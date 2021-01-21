@@ -48,7 +48,7 @@ def list_corpora():
         return utils.error_response(f"Could not access corpora dir! {e}"), 404
 
 
-@bp.route("/upload-corpus", methods=["POST"])
+@bp.route("/upload-corpus", methods=["PUT"])
 def upload_corpus():
     """Upload corpus files."""
     try:
@@ -57,7 +57,7 @@ def upload_corpus():
         return utils.error_response(f"Could not authenticate! {e}"), 401
 
     # Check if corpus ID and files were provided
-    corpus_id = request.form.get("corpus_id")
+    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if not corpus_id:
         return utils.error_response("No corpus ID provided!"), 404
     files = request.files
@@ -71,10 +71,12 @@ def upload_corpus():
 
     # Create corpus dir and upload data
     corpus_dir = current_app.config.get("CORPORA_DIR") + "/" + corpus_id
+    source_dir = corpus_dir + "/" + current_app.config.get("SPARV_SOURCE_DIR")
     try:
         oc.mkdir(corpus_dir)
+        oc.mkdir(source_dir)
         for f in files.values():
-            oc.put_file_contents(corpus_dir + "/" + f.filename, f.read())
+            oc.put_file_contents(source_dir + "/" + f.filename, f.read())
         return utils.success_response(f"Corpus '{corpus_id}' successfully uploaded!")
     except Exception as e:
         try:
@@ -93,7 +95,7 @@ def remove_corpus():
     except Exception as e:
         return utils.error_response(f"Could not authenticate! {e}"), 401
 
-    corpus_id = request.args.get("corpus_id")
+    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if not corpus_id:
         return utils.error_response("No corpus ID provided!"), 404
 
@@ -108,12 +110,81 @@ def remove_corpus():
 @bp.route("/update-corpus", methods=["PUT"])
 def update_corpus():
     """Update corpus with new/modified files."""
+    # TODO: Need specification! How should this work? Do we just add files and replace existing ones?
+    # Or do we replace all source files? In case of the former: How can one delete files?
     return utils.error_response("Not yet implemented!"), 501
 
 
-# Other routes:
-# - upload config file
-# - run corpus
-# - check status
-# - clear annotations
-# - list and download export(s)
+@bp.route("/upload-config", methods=["PUT"])
+def upload_config():
+    """Upload a corpus config file."""
+    try:
+        oc = utils.login(request)
+    except Exception as e:
+        return utils.error_response(f"Could not authenticate! {e}"), 401
+
+    # Check if corpus ID and config file were provided
+    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+    if not corpus_id:
+        return utils.error_response("No corpus ID provided!"), 404
+    config_file = list(request.files.values())[0]
+    if not config_file:
+        return utils.error_response("No config file provided for upload!"), 404
+    # Check if MIME type = YAML
+    if config_file.mimetype != "application/x-yaml":
+        return utils.error_response("Config file needs to be YAML!"), 404
+
+    corpus_dir = current_app.config.get("CORPORA_DIR") + "/" + corpus_id
+    try:
+        oc.put_file_contents(corpus_dir + "/" + "config.yaml", config_file.read())
+        return utils.success_response("Config file successfully uploaded!")
+    except Exception as e:
+        return utils.error_response(f"Could not upload config file! {e}"), 404
+
+
+@bp.route("/run-sparv", methods=["PUT"])
+def run_sparv():
+    """Run Sparv on given corpus."""
+    # TODO: What input args do we need besides corpus_id? Maybe the export format (optionally)?
+    return utils.error_response("Not yet implemented!"), 501
+
+
+@bp.route("/sparv-status", methods=["GET"])
+def sparv_status():
+    """Check the annotation status for a given corpus."""
+    # TODO: Check if this is even possible in Sparv.
+    return utils.error_response("Not yet implemented!"), 501
+
+
+@bp.route("/clear-annotations", methods=["DELETE"])
+def clear_annotations():
+    """Remove annotation files."""
+    try:
+        oc = utils.login(request)
+    except Exception as e:
+        return utils.error_response(f"Could not authenticate! {e}"), 401
+
+    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+    if not corpus_id:
+        return utils.error_response("No corpus ID provided!"), 404
+
+    annotation_dir = current_app.config.get("CORPORA_DIR") + "/" + corpus_id + current_app.config.get("SPARV_WORK_DIR")
+    try:
+        oc.delete(annotation_dir)
+        return utils.success_response(f"Annotations for '{corpus_id}' successfully removed!")
+    except Exception as e:
+        return utils.error_response(f"Could not remove annotations for '{corpus_id}'! {e}"), 404
+
+
+@bp.route("/list-exports", methods=["GET"])
+def list_exports():
+    """List exports available for download for a given corpus."""
+    return utils.error_response("Not yet implemented!"), 501
+
+
+@bp.route("/download-export", methods=["GET"])
+def download_export():
+    """Download and export for a corpus."""
+    # TODO: Need specification! Should result come as zip file? Should user specify which export to download?
+    # Should there be a default download (or default = download all available exports)?
+    return utils.error_response("Not yet implemented!"), 501

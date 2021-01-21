@@ -8,3 +8,8 @@ NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"
 
 # Directory on Nextcloud where the corpora are stored
 CORPORA_DIR = "Min Språkbank"
+
+
+# Sparv specific strings
+SPARV_SOURCE_DIR = "source"
+SPARV_WORK_DIR = "sparv-workdir"
