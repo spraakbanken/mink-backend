@@ -1,15 +1,17 @@
 """Utility functions."""
 
+import json
+
 import owncloud
-from flask import current_app, jsonify
+from flask import current_app
 
 
 def error_response(msg):
     """Create json error response."""
-    return jsonify({
+    return json.dumps({
         "status": "error",
         "message": msg
-    })
+    }, ensure_ascii=False)
 
 
 def success_response(msg, **kwargs):
@@ -20,7 +22,7 @@ def success_response(msg, **kwargs):
     }
     for key, value in kwargs.items():
         response[key] = value
-    return jsonify(response)
+    return json.dumps(response, ensure_ascii=False)
 
 
 def login(request):

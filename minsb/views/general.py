@@ -29,6 +29,7 @@ def init_min_sb():
         oc.mkdir(corpora_dir)
         # TODO: upload some info file?
         current_app.logger.debug(f"Initialized corpora dir '{corpora_dir}'")
+        return utils.success_response("Min Språkbank successfully initialized!")
     except Exception as e:
         return utils.error_response(f"Could not initialize corpora dir '{corpora_dir}'! {e}"), 404
 
