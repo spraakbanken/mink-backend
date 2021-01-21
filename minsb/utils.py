@@ -25,10 +25,10 @@ def success_response(msg, **kwargs):
 
 def login(request):
     """Attempt to login on Nextcloud."""
-    if not request.args:
+    if not request.authorization:
         raise Exception("No login credentials provided!")
-    username = request.args.get("user")
-    password = request.args.get("pw")
+    username = request.authorization.get("username")
+    password = request.authorization.get("password")
     if not (username and password):
         raise Exception("Username or password missing!")
     oc = owncloud.Client(current_app.config.get("NC_DOMAIN", ""))
