@@ -31,7 +31,9 @@ def create_app():
                             format=logfmt, datefmt=datefmt)
 
     # Register blueprints
-    from .views import general
+    from .views import general, nextcloud, sparv
     app.register_blueprint(general.bp)
+    app.register_blueprint(nextcloud.bp)
+    app.register_blueprint(sparv.bp)
 
     return app
