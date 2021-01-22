@@ -4,15 +4,15 @@ import functools
 import json
 
 import owncloud
-from flask import current_app, request
+from flask import Response, current_app, request
 
 
 def error_response(msg):
     """Create json error response."""
-    return json.dumps({
+    return Response(json.dumps({
         "status": "error",
         "message": msg
-    }, ensure_ascii=False)
+    }, ensure_ascii=False), mimetype="application/json")
 
 
 def success_response(msg, **kwargs):
@@ -23,7 +23,7 @@ def success_response(msg, **kwargs):
     }
     for key, value in kwargs.items():
         response[key] = value
-    return json.dumps(response, ensure_ascii=False)
+    return Response(json.dumps(response, ensure_ascii=False), mimetype="application/json")
 
 
 def login(require_init=True, require_corpus_id=True, require_corpus_exists=True):
