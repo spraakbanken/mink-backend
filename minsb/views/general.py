@@ -100,6 +100,9 @@ def remove_corpus():
     if not corpus_id:
         return utils.error_response("No corpus ID provided!"), 404
 
+    if corpus_id not in utils.list_corpora(oc):
+        return utils.error_response(f"Corpus '{corpus_id}' does not exist!"), 404
+
     corpus_dir = current_app.config.get("CORPORA_DIR") + "/" + corpus_id
     try:
         oc.delete(corpus_dir)
@@ -128,17 +131,18 @@ def upload_config():
     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if not corpus_id:
         return utils.error_response("No corpus ID provided!"), 404
-    config_file = list(request.files.values())[0]
-    if not config_file:
-        return utils.error_response("No config file provided for upload!"), 404
+    attached_files = list(request.files.values())
+    if not attached_files:
+        return utils.error_response(f"No config file provided for upload!"), 404
     # Check if MIME type = YAML
-    if config_file.mimetype != "application/x-yaml":
+    config_file = attached_files[0]
+    if config_file.mimetype not in ("application/x-yaml", "text/yaml"):
         return utils.error_response("Config file needs to be YAML!"), 404
 
     corpus_dir = current_app.config.get("CORPORA_DIR") + "/" + corpus_id
     try:
         oc.put_file_contents(corpus_dir + "/" + "config.yaml", config_file.read())
-        return utils.success_response("Config file successfully uploaded!")
+        return utils.success_response("Config file successfully uploaded for '{corpus_id}'!")
     except Exception as e:
         return utils.error_response(f"Could not upload config file! {e}"), 404
 
