@@ -11,7 +11,7 @@ Flask application serving as a backend to Min Språkbank.
 
 - Initialize Min Språkbank:
 ```
-curl -X POST -u some_username 'localhost:9000/init-min-sb'
+curl -X POST -u some_username 'localhost:9000/init'
 ```
 
 - Upload a corpus:

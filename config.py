@@ -9,7 +9,15 @@ NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"
 # Directory on Nextcloud where the corpora are stored
 CORPORA_DIR = "Min Språkbank"
 
-
 # Sparv specific strings
 SPARV_SOURCE_DIR = "source"
-SPARV_WORK_DIR = "sparv-workdir"
+SPARV_EXPORT_DIR = "export"
+SPARV_CORPUS_CONFIG = "config.yaml"
+
+# Info about the server where Sparv is run
+SPARV_SERVER = ""
+SPARV_USER = ""
+REMOTE_CORPORA_DIR = "min-sb-data"
+
+# Local temporary file storage (relative to flask instance dir)
+TMP_DIR = "tmp"
