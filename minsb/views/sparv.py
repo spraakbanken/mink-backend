@@ -39,27 +39,52 @@ def run_sparv(oc, corpora, corpus_id):
     except Exception as e:
         return utils.response(f"Failed to download corpus '{corpus_id}' from Nextcloud!", err=True, info=str(e))
 
-    # return utils.response("Download successful!")
+    # Create user and corpus dir on Sparv server
+    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
+                        f"cd /home/{sparv_user} && mkdir -p {remote_corpus_dir}"], stderr=subprocess.PIPE)
+    if p.stderr:
+        return utils.response("Failed to create corpus dir on Sparv server!", err=True, info=p.stderr.decode()), 404
 
+    # Sync corpus files to Sparv server
+    local_source_dir = os.path.join(local_corpus_dir, app.config.get("SPARV_SOURCE_DIR"))
+    p = subprocess.run(["rsync", "-av", "--delete", local_source_dir,
+                        f"{sparv_user}@{sparv_server}:~/{remote_corpus_dir}/"], stderr=subprocess.PIPE)
+    if p.stderr:
+        return utils.response("Failed to copy corpus files to Sparv server!", err=True, info=p.stderr.decode()), 404
+    local_config_file = os.path.join(local_corpus_dir, app.config.get("SPARV_CORPUS_CONFIG"))
+
+    # Sync corpus config to Sparv server
+    p = subprocess.run(["rsync", "-av", local_config_file,
+                        f"{sparv_user}@{sparv_server}:~/{remote_corpus_dir}/"], stderr=subprocess.PIPE)
+    if p.stderr:
+        return utils.response("Failed to copy corpus config file to Sparv server!", err=True,
+                              info=p.stderr.decode()), 404
+
+    # Run Sparv
+    sparv_command = app.config.get("SPARV_COMMAND") + " run xml_export:pretty"
+    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
+                        f"cd /home/{sparv_user}/{remote_corpus_dir} && {sparv_command}"],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.stderr:
+        return utils.response("Failed to run Sparv!", err=True, info=p.stderr.decode()), 404
+    sparv_output = p.stdout.decode() if p.stdout else ""
+    sparv_output = "\n".join([line for line in sparv_output.split("\n") if not line.startswith("Progress:")]).strip()
+
+    # Retrieve exports from Sparv
+    export_dir = app.config.get("SPARV_EXPORT_DIR")
+    p = subprocess.run(["rsync", "-av", f"{sparv_user}@{sparv_server}:~/{remote_corpus_dir}/{export_dir}",
+                        local_corpus_dir], stderr=subprocess.PIPE)
+    if p.stderr:
+        return utils.response("Failed to retrieve Sparv exports!", err=True, info=p.stderr.decode()), 404
+
+    # Transfer exports to Nextcloud
     try:
-        # Create user and corpus dir on Sparv server
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
-                            f"cd /home/{sparv_user} && mkdir -p {remote_corpus_dir}"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        # Sync corpus files to Sparv server
-        p = subprocess.run(["rsync", "-av", "--delete", local_corpus_dir + "/",
-                            f"{sparv_user}@{sparv_server}:~/{remote_corpus_dir}/"])
-
-        # TODO: run Sparv
-        if p.stderr:
-            return utils.response("Failed to run Sparv!", err=True, info=p.stderr.decode())
-        stdout = p.stdout.decode() if p.stdout else ""
-        # TODO: rsync exports, transfer to Nextcloud
-        return utils.response("Sparv run successfully!", sparv_output=stdout)
+        utils.upload_dir(oc, nextcloud_corpus_dir, os.path.join(local_corpus_dir, export_dir))
     except Exception as e:
-        return utils.response("Failed to run Sparv!", err=True, info=str(e))
+        return utils.response("Failed to upload exports to Nextcloud!", err=True, info=str(e))
+
     # TODO: cleanup tmp dir
+    return utils.response("Sparv run successfully!", sparv_output=sparv_output)
 
 
 @bp.route("/sparv-status", methods=["GET"])

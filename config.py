@@ -18,6 +18,7 @@ SPARV_CORPUS_CONFIG = "config.yaml"
 SPARV_SERVER = ""
 SPARV_USER = ""
 REMOTE_CORPORA_DIR = "min-sb-data"
+SPARV_COMMAND = "/home/fksparv/.local/pipx/venvs/sparv-pipeline/bin/python -m sparv"
 
 # Local temporary file storage (relative to flask instance dir)
 TMP_DIR = "tmp"

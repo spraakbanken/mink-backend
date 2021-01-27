@@ -116,3 +116,8 @@ def download_dir(oc, nc_dir, local_dir, user, corpus_id, contents):
             full_path = os.path.join(root, f)
             timestamp = new_contents.get(full_path)
             os.utime(full_path, (timestamp, timestamp))
+
+
+def upload_dir(oc, nc_dir, local_dir):
+    """Upload local dir to nc_dir on Nextcloud."""
+    oc.put_directory(nc_dir, local_dir)
