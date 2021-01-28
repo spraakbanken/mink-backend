@@ -7,6 +7,7 @@ import os
 import zipfile
 
 import owncloud
+from dateutil.parser import parse
 from flask import Response
 from flask import current_app as app
 from flask import request
@@ -80,44 +81,86 @@ def list_corpora(oc):
     return corpora
 
 
-def list_contents(oc, directory):
+def list_contents(oc, directory, exclude_dirs=True):
     """List file in a directory recursively."""
     listing = oc.list(directory, depth="infinity")
     objlist = []
     for elem in listing:
-        if elem.get_content_type() != "httpd/unix-directory":
-            objlist.append(
-                {"name": elem.get_name(), "type": elem.get_content_type(),
-                 "last_modified": str(elem.get_last_modified()), "path": elem.get_path()})
+        # The get_last_modified method is lacking time zone info, so we don't use it
+        last_modified = str(elem.attributes["{DAV:}getlastmodified"])
+        objlist.append(
+            {"name": elem.get_name(), "type": elem.get_content_type(),
+             "last_modified": last_modified, "path": elem.get_path()})
+    if exclude_dirs:
+        objlist = [i for i in objlist if i.get("type") != "httpd/unix-directory"]
     return objlist
 
 
-def download_dir(oc, nc_dir, local_dir, user, corpus_id, contents):
+def download_dir(oc, nc_dir, local_dir, corpus_id, file_index):
     """Download directory as zip, unzip and update timestamps."""
     zipf = os.path.join(local_dir, corpus_id) + ".zip"
     oc.get_directory_as_zip(nc_dir, zipf)
     with zipfile.ZipFile(zipf, "r") as f:
         f.extractall(local_dir)
 
-    LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-
-    # Create file index with timestamps
-    new_contents = {}
-    for f in contents:
-        parts = f.get("path").split("/")
-        new_path = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user, *parts[2:], f.get("name"))
-        datetime_obj = datetime.datetime.strptime(f.get("last_modified"), "%Y-%m-%d %H:%M:%S")
-        unix_timestamp = int(datetime_obj.replace(tzinfo=LOCAL_TIMEZONE).timestamp())
-        new_contents[new_path] = unix_timestamp
-
     # Change timestamps of local files
     for (root, _dirs, files) in os.walk(os.path.join(local_dir, corpus_id)):
         for f in files:
             full_path = os.path.join(root, f)
-            timestamp = new_contents.get(full_path)
+            timestamp = file_index.get(full_path)
             os.utime(full_path, (timestamp, timestamp))
 
 
-def upload_dir(oc, nc_dir, local_dir):
-    """Upload local dir to nc_dir on Nextcloud."""
-    oc.put_directory(nc_dir, local_dir)
+def upload_dir(oc, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=False):
+    """Upload local dir to nc_dir on Nextcloud by adding new files and replacing newer ones.
+
+    Args:
+        oc: Owncloud instance.
+        nc_dir: Nextcloud directory to upload to.
+        local_dir: Local directory to upload.
+        corpus_id: The corpus ID.
+        user: The user name.
+        nc_file_index: Dictionary created by create_file_index().
+        delete: If set to True delete files that do not exist in local_dir.
+    """
+    local_file_index = []  # Used for file deletions
+    local_path_prefix = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user, corpus_id)
+
+    for (root, dirs, files) in os.walk(local_dir):
+        # Create missing directories
+        for directory in dirs:
+            full_path = os.path.join(root, directory)
+            if full_path not in nc_file_index:
+                nextcloud_path = os.path.join(nc_dir, full_path[len(local_path_prefix) + 1:])
+                oc.mkdir(nextcloud_path)
+
+        for f in files:
+            full_path = os.path.join(root, f)
+            local_file_index.append(full_path)
+            nextcloud_path = os.path.join(nc_dir, full_path[len(local_path_prefix) + 1:])
+            # Copy missing files
+            if full_path not in nc_file_index:
+                oc.put_file(nextcloud_path, full_path)
+            # Update newer files
+            else:
+                nextcloud_timestamp = nc_file_index.get(full_path)
+                local_timestamp = int(os.path.getmtime(full_path))
+                if local_timestamp > nextcloud_timestamp:
+                    oc.delete(nextcloud_path)
+                    oc.put_file(nextcloud_path, full_path)
+
+    # TODO: Take care of deletions
+
+
+def create_file_index(contents, user):
+    """Convert Nextcloud contents list to a file index with local paths and timestamps."""
+    file_index = {}
+    for f in contents:
+        parts = f.get("path").split("/")
+        if f.get("type") != "httpd/unix-directory":
+            new_path = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user, *parts[2:], f.get("name"))
+        else:
+            new_path = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user, *parts[2:])
+        unix_timestamp = int(parse(f.get("last_modified")).astimezone().timestamp())
+        file_index[new_path] = unix_timestamp
+    return file_index
