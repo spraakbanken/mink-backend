@@ -31,15 +31,15 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
         def wrapper(*args, **kwargs):
             if not request.authorization:
                 return response("No login credentials provided!", err=True), 401
-            username = request.authorization.get("username")
+            user = request.authorization.get("username")
             password = request.authorization.get("password")
-            if not (username and password):
+            if not (user and password):
                 return response("Username or password missing!", err=True), 401
             try:
                 oc = owncloud.Client(app.config.get("NC_DOMAIN", ""))
-                oc.login(username, password)
+                oc.login(user, password)
                 if not require_init:
-                    return function(oc, *args, **kwargs)
+                    return function(oc, user, *args, **kwargs)
 
                 # Check if Min SB was initialized
                 try:
@@ -49,7 +49,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                                     "Make sure Min Språkbank is initialized!", err=True, info=str(e)), 401
 
                 if not require_corpus_id:
-                    return function(oc, corpora, *args, **kwargs)
+                    return function(oc, user, corpora, *args, **kwargs)
 
                 # Check if corpus ID was provided
                 corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
@@ -57,13 +57,13 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                     return response("No corpus ID provided!", err=True), 404
 
                 if not require_corpus_exists:
-                    return function(oc, corpora, corpus_id)
+                    return function(oc, user, corpora, corpus_id)
 
                 # Check if corpus exists
                 if corpus_id not in corpora:
                     return response(f"Corpus '{corpus_id}' does not exist!", err=True), 404
 
-                return function(oc, corpora, corpus_id)
+                return function(oc, user, corpora, corpus_id)
 
             except Exception as e:
                 return response("Failed to authenticate!", err=True, info=str(e)), 401
@@ -126,7 +126,7 @@ def upload_dir(oc, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=Fal
     local_file_index = []  # Used for file deletions
     local_path_prefix = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user, corpus_id)
 
-    for (root, dirs, files) in os.walk(local_dir):
+    for root, dirs, files in os.walk(local_dir):
         # Create missing directories
         for directory in dirs:
             full_path = os.path.join(root, directory)
@@ -164,3 +164,12 @@ def create_file_index(contents, user):
         unix_timestamp = int(parse(f.get("last_modified")).astimezone().timestamp())
         file_index[new_path] = unix_timestamp
     return file_index
+
+
+def create_zip(inpath, outpath):
+    """Zip files in inpath into an archive at outpath."""
+    zipf = zipfile.ZipFile(outpath, "w")
+    for root, _dirs, files in os.walk(inpath):
+        for f in files:
+            zipf.write(os.path.join(root, f), os.path.relpath(os.path.join(root, f), os.path.join(inpath, "..")))
+    zipf.close()

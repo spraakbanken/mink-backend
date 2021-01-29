@@ -2,9 +2,10 @@
 
 import logging
 import os
+import shutil
 import sys
 
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 
 
@@ -29,6 +30,14 @@ def create_app():
     if app.config.get("DEBUG"):
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                             format=logfmt, datefmt=datefmt)
+
+    @app.after_request
+    def cleanup(response):
+        """Cleanup temporary files after request."""
+        user = request.authorization.get("username")
+        local_user_dir = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user)
+        shutil.rmtree(local_user_dir, ignore_errors=True)
+        return response
 
     # Register blueprints
     from .views import general, nextcloud, sparv
