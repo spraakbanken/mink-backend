@@ -12,6 +12,8 @@ from flask import Response
 from flask import current_app as app
 from flask import request
 
+from minsb import paths
+
 
 def response(msg, err=False, **kwargs):
     """Create json error response."""
@@ -38,6 +40,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
             try:
                 oc = owncloud.Client(app.config.get("NC_DOMAIN", ""))
                 oc.login(user, password)
+
                 if not require_init:
                     return function(oc, user, *args, **kwargs)
 
@@ -124,7 +127,7 @@ def upload_dir(oc, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=Fal
         delete: If set to True delete files that do not exist in local_dir.
     """
     local_file_index = []  # Used for file deletions
-    local_path_prefix = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user, corpus_id)
+    local_path_prefix = str(paths.get_corpus_dir(user=user, corpus_id=corpus_id))
 
     for root, dirs, files in os.walk(local_dir):
         # Create missing directories
@@ -157,10 +160,11 @@ def create_file_index(contents, user):
     file_index = {}
     for f in contents:
         parts = f.get("path").split("/")
+        user_dir = str(paths.get_corpora_dir(user=user))
         if f.get("type") != "httpd/unix-directory":
-            new_path = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user, *parts[2:], f.get("name"))
+            new_path = os.path.join(user_dir, *parts[2:], f.get("name"))
         else:
-            new_path = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user, *parts[2:])
+            new_path = os.path.join(user_dir, *parts[2:])
         unix_timestamp = int(parse(f.get("last_modified")).astimezone().timestamp())
         file_index[new_path] = unix_timestamp
     return file_index

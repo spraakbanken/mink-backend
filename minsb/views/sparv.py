@@ -1,6 +1,5 @@
 """Routes related to Sparv."""
 
-import os
 import subprocess
 
 from flask import Blueprint
@@ -21,10 +20,10 @@ def run_sparv(oc, user, corpora, corpus_id):
     sparv_exports = [i for i in sparv_exports.split(",") if i] or app.config.get("SPARV_DEFAULT_EXPORTS")
 
     # Get relevant directories
-    nc_corpus_dir = paths.get_corpus_dir(domain="nc", corpus_id=corpus_id)
-    local_user_dir = paths.get_corpus_dir(user=user, mkdir=True)
-    local_corpus_dir = paths.get_corpus_dir(user=user, corpus_id=corpus_id, mkdir=True)
-    remote_corpus_dir = paths.get_corpus_dir(domain="sparv", user=user, corpus_id=corpus_id)
+    nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
+    local_user_dir = str(paths.get_corpus_dir(user=user, mkdir=True))
+    local_corpus_dir = str(paths.get_corpus_dir(user=user, corpus_id=corpus_id, mkdir=True))
+    remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=user, corpus_id=corpus_id))
 
     sparv_user = app.config.get("SPARV_USER")
     sparv_server = app.config.get("SPARV_SERVER")
