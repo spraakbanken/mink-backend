@@ -20,6 +20,7 @@ SPARV_USER = ""
 REMOTE_CORPORA_DIR = "min-sb-data"
 SPARV_COMMAND = "/home/fksparv/.local/pipx/venvs/sparv-pipeline/bin/python -m sparv"
 SPARV_DEFAULT_EXPORTS = ["xml_export:pretty"]
+SPARV_VALID_INPUT_EXT = [".xml", ".txt"]
 
 # Local temporary file storage (relative to flask instance dir)
 TMP_DIR = "tmp"

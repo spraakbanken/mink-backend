@@ -4,7 +4,9 @@ import datetime
 import functools
 import json
 import os
+import shlex
 import zipfile
+from pathlib import Path
 
 import owncloud
 from dateutil.parser import parse
@@ -41,6 +43,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                 oc = owncloud.Client(app.config.get("NC_DOMAIN", ""))
                 oc.login(user, password)
 
+                user = shlex.quote(user)
                 if not require_init:
                     return function(oc, user, *args, **kwargs)
 
@@ -55,7 +58,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                     return function(oc, user, corpora, *args, **kwargs)
 
                 # Check if corpus ID was provided
-                corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+                corpus_id = shlex.quote(request.args.get("corpus_id") or request.form.get("corpus_id"))
                 if not corpus_id:
                     return response("No corpus ID provided!", err=True), 404
 
@@ -177,3 +180,12 @@ def create_zip(inpath, outpath):
         for f in files:
             zipf.write(os.path.join(root, f), os.path.relpath(os.path.join(root, f), os.path.join(inpath, "..")))
     zipf.close()
+
+
+def check_file(filename, valid_extensions=None):
+    """Shell escape filename and check if its extension is valid (return False if not)."""
+    filename = Path(shlex.quote(filename))
+    if valid_extensions:
+        if filename.suffix not in valid_extensions:
+            return False
+    return filename

@@ -50,19 +50,22 @@ def upload_corpus(oc, user, corpora, corpus_id):
     if corpus_id in corpora:
         return utils.response(f"Corpus '{corpus_id}' already exists!", err=True), 404
 
+    # Create corpus dir with subdirs and upload data
+    corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True))
     try:
-        # Create corpus dir with subdirs and upload data
-        paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
         source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
         paths.get_export_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
         for f in files:
-            # TODO: make sure corpus files have correct format (xml or txt)?
-            oc.put_file_contents(str(source_dir / Path(f.filename)), f.read())
+            name = utils.check_file(f.filename, app.config.get("SPARV_VALID_INPUT_EXT"))
+            if not name:
+                # Try to remove partially uploaded corpus data
+                oc.delete(corpus_dir)
+                return utils.response(f"File '{f.filename}' has an invalid file extension!"), 404
+            oc.put_file_contents(str(source_dir / name), f.read())
         return utils.response(f"Corpus '{corpus_id}' successfully uploaded!")
     except Exception as e:
         try:
             # Try to remove partially uploaded corpus data
-            corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
             oc.delete(corpus_dir)
         except Exception as err:
             app.logger.error(f"Failed to remove partially uploaded corpus data for '{corpus_id}'! {err}")
@@ -101,8 +104,10 @@ def update_corpus(oc, user, corpora, corpus_id):
     # Add/update files
     for af in add_files:
         try:
-            # TODO: make sure corpus files have correct format (xml or txt)?
-            oc.put_file_contents(str(source_dir / Path(af.filename)), af.read())
+            name = utils.check_file(af.filename, app.config.get("SPARV_VALID_INPUT_EXT"))
+            if not name:
+                return utils.response(f"File '{af.filename}' has an invalid file extension!"), 404
+            oc.put_file_contents(str(source_dir / name), af.read())
         except Exception as e:
             return utils.response(f"Failed to add file '{af}'!", err=True, info=str(e)), 404
 
