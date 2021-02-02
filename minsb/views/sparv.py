@@ -106,9 +106,32 @@ def sparv_status(oc, user, corpora, corpus_id):
 @utils.login()
 def clear_annotations(oc, user, corpora, corpus_id):
     """Remove annotation files from Sparv server."""
-    return utils.response("Not yet implemented!", err=True), 501
-    # try:
-    #     oc.delete(annotation_dir)
-    #     return utils.response(f"Annotations for '{corpus_id}' successfully removed!")
-    # except Exception as e:
-    #     return utils.response(f"Could not remove annotations for '{corpus_id}'!", err=True, info=str(e)), 404
+    remote_corpus_dir = paths.get_corpus_dir(domain="sparv", user=user, corpus_id=corpus_id)
+    sparv_user = app.config.get("SPARV_USER")
+    sparv_server = app.config.get("SPARV_SERVER")
+
+    # Run sparv clean
+    sparv_command = app.config.get("SPARV_COMMAND") + " clean --all"
+    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
+                        f"cd /home/{sparv_user}/{remote_corpus_dir} && {sparv_command}"],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.stderr:
+        return utils.response("Failed to clear annotations!", err=True, info=p.stderr.decode()), 404
+    sparv_output = p.stdout.decode() if p.stdout else ""
+    sparv_output = "\n".join([line for line in sparv_output.split("\n") if not line.startswith("Progress:")]).strip()
+
+    return utils.response(f"Annotations for '{corpus_id}' successfully removed!", sparv_output=sparv_output)
+
+
+def remove_corpus(user, corpus_id):
+    """Remove entire corpus from Sparv server."""
+    remote_corpus_dir = paths.get_corpus_dir(domain="sparv", user=user, corpus_id=corpus_id)
+    sparv_user = app.config.get("SPARV_USER")
+    sparv_server = app.config.get("SPARV_SERVER")
+
+    # Run sparv clean
+    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
+                        f"rm -rf /home/{sparv_user}/{remote_corpus_dir}"],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.stderr:
+        app.logger.error(f"Failed to remove corpus dir '{remote_corpus_dir}'!")

@@ -15,6 +15,8 @@ def get_corpora_dir(domain="local", user="", oc=None, mkdir=False):
             os.makedirs(corpora_dir, exist_ok=True)
     elif domain == "nc":
         corpora_dir = app.config.get("CORPORA_DIR")
+        if mkdir:
+            oc.mkdir(corpora_dir)
     elif domain == "sparv":
         corpora_dir = os.path.join(app.config.get("REMOTE_CORPORA_DIR"), user)
     return corpora_dir

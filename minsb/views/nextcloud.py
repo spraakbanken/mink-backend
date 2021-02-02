@@ -8,6 +8,7 @@ from flask import current_app as app
 from flask import request, send_file
 
 from minsb import paths, utils
+from minsb.views import sparv
 
 bp = Blueprint("nextcloud", __name__)
 
@@ -75,18 +76,45 @@ def remove_corpus(oc, user, corpora, corpus_id):
     try:
         corpus_dir = paths.get_corpus_dir(domain="nc", corpus_id=corpus_id)
         oc.delete(corpus_dir)
-        return utils.response(f"Corpus '{corpus_id}' successfully removed!")
     except Exception as e:
         return utils.response(f"Failed to remove corpus '{corpus_id}'!", err=True, info=str(e)), 404
+
+    # Remove also from Sparv server
+    sparv.remove_corpus(user, corpus_id)
+    return utils.response(f"Corpus '{corpus_id}' successfully removed!")
 
 
 @bp.route("/update-corpus", methods=["PUT"])
 @utils.login()
 def update_corpus(oc, user, corpora, corpus_id):
-    """Update corpus with new/modified files."""
-    # TODO: Need specification! How should this work? Do we just add files and replace existing ones?
-    # Or do we replace all source files? In case of the former: How can one delete files?
-    return utils.response("Not yet implemented!", err=True), 501
+    """Update corpus with new/modified files or delete files.
+
+    Attached files will be added to the corpus or replace existing ones.
+    File paths listed in 'remove' (comma separated) will be removed.
+    """
+    add_files = list(request.files.listvalues())[0]
+    remove_files = request.args.get("remove") or request.form.get("remove") or ""
+    remove_files = [i for i in remove_files.split(",") if i]
+
+    source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id)
+
+    # Add/update files
+    for af in add_files:
+        try:
+            # TODO: make sure corpus files have correct format (xml or txt)?
+            oc.put_file_contents(os.path.join(source_dir, af.filename), af.read())
+        except Exception as e:
+            return utils.response(f"Failed to add file '{af}'!", err=True, info=str(e)), 404
+
+    # Remove files
+    for rf in remove_files:
+        nc_path = os.path.join(source_dir, rf)
+        try:
+            oc.delete(nc_path)
+        except Exception as e:
+            return utils.response(f"Failed to remove file '{nc_path}'!", err=True, info=str(e)), 404
+
+    return utils.response(f"Corpus '{corpus_id}' successfully updated!")
 
 
 @bp.route("/upload-config", methods=["PUT"])
