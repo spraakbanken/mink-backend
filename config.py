@@ -24,3 +24,6 @@ SPARV_VALID_INPUT_EXT = [".xml", ".txt"]
 
 # Local temporary file storage (relative to flask instance dir)
 TMP_DIR = "tmp"
+
+# Memcached socket file relative to instance dir
+MEMCACHED_SOCKET = "memcached.sock"

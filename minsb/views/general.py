@@ -12,4 +12,4 @@ bp = Blueprint("general", __name__)
 def hello():
     """Show available routes."""
     routes = [str(rule) for rule in app.url_map.iter_rules()]
-    return utils.success_response("Listing available routes", routes=routes)
+    return utils.response("Listing available routes", routes=routes)

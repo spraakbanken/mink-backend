@@ -15,7 +15,8 @@ jinja2==2.11.2            # via flask
 markupsafe==1.1.1         # via jinja2
 pyocclient==0.6           # via -r requirements.in
 python-dateutil==2.8.1    # via -r requirements.in
+python-memcached==1.59    # via -r requirements.in
 requests==2.25.1          # via pyocclient
-six==1.15.0               # via flask-cors, pyocclient, python-dateutil
+six==1.15.0               # via flask-cors, pyocclient, python-dateutil, python-memcached
 urllib3==1.26.2           # via requests
 werkzeug==1.0.1           # via flask

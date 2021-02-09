@@ -7,6 +7,7 @@ import sys
 
 from flask import Flask, request
 from flask_cors import CORS
+import memcache
 
 
 def create_app():
@@ -31,12 +32,17 @@ def create_app():
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                             format=logfmt, datefmt=datefmt)
 
+    # Connect to memcached
+    socket_path = os.path.join(app.instance_path, app.config.get("MEMCACHED_SOCKET"))
+    app.config["cache_client"] = memcache.Client([f"unix:{socket_path}"], debug=1)
+
     @app.after_request
     def cleanup(response):
         """Cleanup temporary files after request."""
-        user = request.authorization.get("username")
-        local_user_dir = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user)
-        shutil.rmtree(local_user_dir, ignore_errors=True)
+        if request.authorization:
+            user = request.authorization.get("username")
+            local_user_dir = os.path.join(app.instance_path, app.config.get("TMP_DIR"), user)
+            shutil.rmtree(local_user_dir, ignore_errors=True)
         return response
 
     # Register blueprints
