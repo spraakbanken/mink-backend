@@ -15,16 +15,15 @@ SPARV_EXPORT_DIR = "export"
 SPARV_CORPUS_CONFIG = "config.yaml"
 
 # Info about the server where Sparv is run
-SPARV_SERVER = ""
-SPARV_USER = ""
+SPARV_SERVER = ""  # Define this in instance/config.py!
+SPARV_USER = ""    # Define this in instance/config.py!
 REMOTE_CORPORA_DIR = "min-sb-data"
 SPARV_COMMAND = "/home/fksparv/.local/pipx/venvs/sparv-pipeline/bin/python -u -m sparv"
 SPARV_DEFAULT_EXPORTS = ["xml_export:pretty"]
-SPARV_VALID_INPUT_EXT = [".xml", ".txt"]
-SPARV_NOHUP_FILE = "min-sb.out"
+SPARV_VALID_INPUT_EXT = [".xml", ".txt"]   # File extensions for corpus input
+SPARV_NOHUP_FILE = "min-sb.out"            # File collecting Sparv output for a job
+SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"      # Temporary Sparv run script created for every job
 
-# Local temporary file storage (relative to flask instance dir)
-TMP_DIR = "tmp"
-
-# Memcached socket file relative to instance dir
-MEMCACHED_SOCKET = "memcached.sock"
+# Local files relative to flask instance dir
+TMP_DIR = "tmp"                      # Temporary file storage
+MEMCACHED_SOCKET = "memcached.sock"  # Memcached socket file

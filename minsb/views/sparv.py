@@ -33,7 +33,7 @@ def run_sparv(oc, user, corpora, corpus_id):
     sparv_user = app.config.get("SPARV_USER")
     sparv_server = app.config.get("SPARV_SERVER")
     nohupfile = app.config.get("SPARV_NOHUP_FILE")
-    runscript = "run_sparv.sh"
+    runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
 
     # Check if required corpus contents are present
     corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
@@ -79,6 +79,7 @@ def run_sparv(oc, user, corpora, corpus_id):
                         (f"cd /home/{sparv_user}/{remote_corpus_dir}"
                          f" && echo 'nohup {sparv_command} >{nohupfile} 2>&1 &\necho $!' > {runscript}"
                          f" && chmod +x {runscript} && ./{runscript}")],
+                        #  f" && nohup {sparv_command} > {nohupfile} 2>&1 & echo $!")],
                        capture_output=True)
 
     if p.returncode != 0:
@@ -91,33 +92,41 @@ def run_sparv(oc, user, corpora, corpus_id):
 
     # Wait a few seconds and poll to check whether the Sparv terminated early
     time.sleep(5)
-    return check_sparv_status(oc, user, corpus_id)
+    return make_status_response(oc, user, corpus_id)
 
 
 @bp.route("/check-status", methods=["GET"])
 @utils.login()
 def check_status(oc, user, corpora, corpus_id):
-    """Check the annotation status for a given corpus (wrapper for check_sparv_status)."""
-    return check_sparv_status(oc, user, corpus_id)
+    """Check the annotation status for a given corpus (wrapper for make_status_response)."""
+    return make_status_response(oc, user, corpus_id)
 
 
 @bp.route("/clear-annotations", methods=["DELETE"])
 @utils.login()
 def clear_annotations(oc, user, corpora, corpus_id):
     """Remove annotation files from Sparv server."""
+    # Check if there is an active job
+    if jobs.get_status(user, corpus_id) == jobs.Status.running:
+        return utils.response("Cannot clear annotations while a job is running!", err=True), 404
+
     remote_corpus_dir = paths.get_corpus_dir(domain="sparv", user=user, corpus_id=corpus_id)
     sparv_user = app.config.get("SPARV_USER")
     sparv_server = app.config.get("SPARV_SERVER")
+    nohupfile = app.config.get("SPARV_NOHUP_FILE")
+    runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
 
     # Run sparv clean
     sparv_command = app.config.get("SPARV_COMMAND") + " clean --all"
-    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
-                        f"cd /home/{sparv_user}/{remote_corpus_dir} && {sparv_command}"],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.run([
+        "ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
+        f"cd /home/{sparv_user}/{remote_corpus_dir} && rm -f {nohupfile} {runscript} && {sparv_command}"],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
     if p.stderr:
         return utils.response("Failed to clear annotations!", err=True, info=p.stderr.decode()), 404
     sparv_output = p.stdout.decode() if p.stdout else ""
-    sparv_output = ", ".join([line for line in sparv_output.split("\n") if not line.startswith("Progress:")]).strip()
+    sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
 
     return utils.response(f"Annotations for '{corpus_id}' successfully removed!", sparv_output=sparv_output)
 
@@ -128,6 +137,10 @@ def remove_corpus(user, corpus_id):
     sparv_user = app.config.get("SPARV_USER")
     sparv_server = app.config.get("SPARV_SERVER")
 
+    # Check if there is an active job
+    if jobs.get_status(user, corpus_id) == jobs.Status.running:
+        app.logger.error(f"Failed to remove corpus dir '{remote_corpus_dir}' due to an active job!")
+
     # Run sparv clean
     p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
                         f"rm -rf /home/{sparv_user}/{remote_corpus_dir}"],
@@ -136,14 +149,15 @@ def remove_corpus(user, corpus_id):
         app.logger.error(f"Failed to remove corpus dir '{remote_corpus_dir}'!")
 
 
-def check_sparv_status(oc, user, corpus_id):
+def make_status_response(oc, user, corpus_id):
     """Check the annotation status for a given corpus and return response."""
     status = jobs.get_status(user, corpus_id)
     if status == jobs.Status.none:
         return utils.response(f"There is no job for '{corpus_id}'!", sparv_status=status.name, err=True), 404
 
+    output = jobs.get_output(user, corpus_id)
+
     if status == jobs.Status.running:
-        output = jobs.get_output(user, corpus_id)
         return utils.response("Sparv is running!", sparv_output=output, sparv_status=status.name)
 
     # If done retrieve exports from Sparv
@@ -155,13 +169,13 @@ def check_sparv_status(oc, user, corpus_id):
             sync_exports(user, corpus_id, oc, file_index)
         except Exception as e:
             return utils.response("Failed to upload exports to Nextcloud!", err=True, info=str(e)), 404
-        return utils.response("Sparv was run successfully!", sparv_status=status.name)
+        return utils.response("Sparv was run successfully!", sparv_output=output, sparv_status=status.name)
 
     # TODO: Error handling
     # if status == jobs.Status.error:
     #     return utils.response("An error occurred while annotating!", err=True), 404
 
-    return utils.response("Cannot handle this Sparv status yet!", sparv_status=status.name)
+    return utils.response("Cannot handle this Sparv status yet!", sparv_output=output, sparv_status=status.name)
 
 
 def sync_exports(user, corpus_id, oc, file_index):

@@ -89,5 +89,7 @@ def get_output(user, corpus_id):
                         f"cd /home/{sparv_user}/{remote_corpus_dir} && tail {nohupfile}"],
                        capture_output=True)
 
-    stdout = p.stdout.decode().strip() if p.stdout else ""
-    return stdout.split("\n")[-1]
+    stdout = p.stdout.decode().strip().split("\n") if p.stdout else ""
+    if stdout[-1].startswith("Progress:"):
+        return stdout[-1]
+    return " ".join([line for line in stdout if line and not line.startswith("Progress:")])
