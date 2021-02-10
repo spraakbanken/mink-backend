@@ -5,6 +5,8 @@ from enum import IntEnum
 
 from flask import current_app as app
 
+from minsb import paths
+
 
 class Status(IntEnum):
     """Class for representing the status of a Sparv job."""
@@ -74,3 +76,18 @@ def process_running(pid):
             # TODO: what do we do if we don't have permission to check the process?
             return False
     return True
+
+
+def get_output(user, corpus_id):
+    """Check latest Sparv output by reading the nohup file."""
+    nohupfile = app.config.get("SPARV_NOHUP_FILE")
+    remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=user, corpus_id=corpus_id))
+    sparv_user = app.config.get("SPARV_USER")
+    sparv_server = app.config.get("SPARV_SERVER")
+
+    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
+                        f"cd /home/{sparv_user}/{remote_corpus_dir} && tail {nohupfile}"],
+                       capture_output=True)
+
+    stdout = p.stdout.decode().strip() if p.stdout else ""
+    return stdout.split("\n")[-1]

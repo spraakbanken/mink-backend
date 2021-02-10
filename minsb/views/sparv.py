@@ -16,6 +16,7 @@ bp = Blueprint("sparv", __name__)
 @utils.login()
 def run_sparv(oc, user, corpora, corpus_id):
     """Run Sparv on given corpus."""
+    # Avoid running multiple jobs on same corpus simultaneously
     status = jobs.get_status(user, corpus_id)
     if status == jobs.Status.running:
         return utils.response(f"There is an unfinished job for '{corpus_id}'!", err=True), 404
@@ -31,6 +32,8 @@ def run_sparv(oc, user, corpora, corpus_id):
 
     sparv_user = app.config.get("SPARV_USER")
     sparv_server = app.config.get("SPARV_SERVER")
+    nohupfile = app.config.get("SPARV_NOHUP_FILE")
+    runscript = "run_sparv.sh"
 
     # Check if required corpus contents are present
     corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
@@ -49,7 +52,7 @@ def run_sparv(oc, user, corpora, corpus_id):
 
     # Create user and corpus dir on Sparv server
     p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
-                        f"cd /home/{sparv_user} && mkdir -p {remote_corpus_dir}"],
+                        f"cd /home/{sparv_user} && mkdir -p {remote_corpus_dir} && rm -f {nohupfile} {runscript}"],
                        capture_output=True)
     if p.stderr:
         return utils.response("Failed to create corpus dir on Sparv server!", err=True, info=p.stderr.decode()), 404
@@ -72,65 +75,30 @@ def run_sparv(oc, user, corpora, corpus_id):
 
     # Run Sparv
     sparv_command = app.config.get("SPARV_COMMAND") + " run --log-to-file info " + " ".join(sparv_exports)
-    p = subprocess.Popen(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
-                          f"cd /home/{sparv_user}/{remote_corpus_dir} && {sparv_command} & echo $!"],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{sparv_user}@{sparv_server}",
+                        (f"cd /home/{sparv_user}/{remote_corpus_dir}"
+                         f" && echo 'nohup {sparv_command} >{nohupfile} 2>&1 &\necho $!' > {runscript}"
+                         f" && chmod +x {runscript} && ./{runscript}")],
+                       capture_output=True)
 
-    stdout = p.stdout.read()
-    stdout = stdout.decode()
-    pid = int(stdout.split("\n")[0])
-    sparv_output = "\n".join(stdout.split("\n")[1:])
+    if p.returncode != 0:
+        stderr = p.stderr.decode() if p.stderr else ""
+        return utils.response("Failed to run Sparv!", err=True, stderr=stderr), 404
 
-    # Wait a few seconds and poll to check whether the process terminated early
-    time.sleep(5)
-    returncode = p.poll()
-    if returncode is not None:
-        stderr = p.stderr.read()
-        if returncode == 0:
-            jobs.set_status(user, corpus_id, jobs.Status.done, pid=pid)
-            try:
-                sync_exports(user, corpus_id, oc, file_index)
-            except Exception as e:
-                return utils.response("Failed to upload exports to Nextcloud!", err=True, info=str(e)), 404
-            # sparv_output = stdout.decode() if stdout else ""
-            sparv_output = "\n".join([line for line in sparv_output.split("\n") if not line.startswith("Progress:")]).strip()
-            return utils.response("Sparv was run successfully!", sparv_output=sparv_output)
-
-        if returncode != 0:
-            jobs.set_status(user, corpus_id, jobs.Status.error, pid=pid)
-            sparv_output = stderr.decode() if stderr else ""
-            return utils.response("Failed to run Sparv!", err=True, sparv_output=sparv_output), 404
-
-    # Store job info
+    # Get pid from Sparv process and store job info
+    pid = int(p.stdout.decode())
     jobs.set_status(user, corpus_id, jobs.Status.running, pid=pid)
 
-    return utils.response("Started annotation job with Sparv successfully!")
+    # Wait a few seconds and poll to check whether the Sparv terminated early
+    time.sleep(5)
+    return check_sparv_status(oc, user, corpus_id)
 
 
 @bp.route("/check-status", methods=["GET"])
 @utils.login()
 def check_status(oc, user, corpora, corpus_id):
-    """Check the annotation status for a given corpus."""
-    status = jobs.get_status(user, corpus_id)
-    if status == jobs.Status.none:
-        return utils.response(f"There is no job for '{corpus_id}'!", err=True), 404
-
-    if status == jobs.Status.running:
-        return utils.response("Sparv is still running!")
-
-    # If done retrieve exports from Sparv
-    if status == jobs.Status.done:
-        nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
-        corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
-        file_index = utils.create_file_index(corpus_contents, user)
-        sync_exports(user, corpus_id, oc, file_index)
-        return utils.response("Sparv was run successfully!")
-
-    # TODO: How do we know when errors occurr and what do we do in this case?
-    # if status == jobs.Status.error:
-    #     return utils.response("An error occurred while annotating!", err=True), 404
-
-    return utils.response("Cannot handle this Sparv status yet!", sparv_status=status.name)
+    """Check the annotation status for a given corpus (wrapper for check_sparv_status)."""
+    return check_sparv_status(oc, user, corpus_id)
 
 
 @bp.route("/clear-annotations", methods=["DELETE"])
@@ -149,7 +117,7 @@ def clear_annotations(oc, user, corpora, corpus_id):
     if p.stderr:
         return utils.response("Failed to clear annotations!", err=True, info=p.stderr.decode()), 404
     sparv_output = p.stdout.decode() if p.stdout else ""
-    sparv_output = "\n".join([line for line in sparv_output.split("\n") if not line.startswith("Progress:")]).strip()
+    sparv_output = ", ".join([line for line in sparv_output.split("\n") if not line.startswith("Progress:")]).strip()
 
     return utils.response(f"Annotations for '{corpus_id}' successfully removed!", sparv_output=sparv_output)
 
@@ -166,6 +134,34 @@ def remove_corpus(user, corpus_id):
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
         app.logger.error(f"Failed to remove corpus dir '{remote_corpus_dir}'!")
+
+
+def check_sparv_status(oc, user, corpus_id):
+    """Check the annotation status for a given corpus and return response."""
+    status = jobs.get_status(user, corpus_id)
+    if status == jobs.Status.none:
+        return utils.response(f"There is no job for '{corpus_id}'!", sparv_status=status.name, err=True), 404
+
+    if status == jobs.Status.running:
+        output = jobs.get_output(user, corpus_id)
+        return utils.response("Sparv is running!", sparv_output=output, sparv_status=status.name)
+
+    # If done retrieve exports from Sparv
+    if status == jobs.Status.done:
+        nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
+        corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
+        file_index = utils.create_file_index(corpus_contents, user)
+        try:
+            sync_exports(user, corpus_id, oc, file_index)
+        except Exception as e:
+            return utils.response("Failed to upload exports to Nextcloud!", err=True, info=str(e)), 404
+        return utils.response("Sparv was run successfully!", sparv_status=status.name)
+
+    # TODO: Error handling
+    # if status == jobs.Status.error:
+    #     return utils.response("An error occurred while annotating!", err=True), 404
+
+    return utils.response("Cannot handle this Sparv status yet!", sparv_status=status.name)
 
 
 def sync_exports(user, corpus_id, oc, file_index):
