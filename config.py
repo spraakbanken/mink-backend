@@ -3,11 +3,10 @@
 Can be overwritten with config.py in instance folder.
 """
 
-# Nextcloud domain
-NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"
-
-# Directory on Nextcloud where the corpora are stored
-CORPORA_DIR = "Min Språkbank"
+# Nextcloud settings
+NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"  # Nextcloud domain
+CORPORA_DIR = "Min Språkbank"  # Directory on Nextcloud where the corpora are stored
+NC_STATUS_FILE = "status.json"    # File where a job status is stored
 
 # Sparv specific strings
 SPARV_SOURCE_DIR = "source"

@@ -1,7 +1,9 @@
 """Utilities related to Sparv jobs."""
 
+import json
 import subprocess
 from enum import IntEnum
+from pathlib import Path
 
 from flask import current_app as app
 
@@ -22,29 +24,35 @@ def get_id(user, corpus_id):
     return f"{user}_{corpus_id}"
 
 
-def get_status(user, corpus_id):
+def get_status(oc, user, corpus_id):
     """Get PID and status of a Sparv job."""
     job_id = get_id(user, corpus_id)
     mc = app.config.get("cache_client")
     mc_return = mc.get(job_id)
 
-    # Job does not exist in cache
-    if mc_return is None:
-        return Status.none
+    if mc_return is not None:
+        pid, status = mc_return
+
+    # Job does not exist in cache, check Nextcloud
+    else:
+        pid, status = get_from_nc(oc, user, corpus_id)
+        mc.set(job_id, (pid, status))
+        # Job does not exist in Nextcloud either
+        if status == Status.none:
+            return status
 
     # Check process if possible
-    pid, status = mc_return
     if status == Status.running:
         if not process_running(pid):
             status = Status.done
-            set_status(user, corpus_id, status)
+            set_status(oc, user, corpus_id, status)
 
     # TODO: Error detection?
 
     return status
 
 
-def set_status(user, corpus_id, status, pid=None):
+def set_status(oc, user, corpus_id, status, pid=None):
     """Set or update the status of a Sparv job."""
     job_id = get_id(user, corpus_id)
     mc = app.config.get("cache_client")
@@ -53,13 +61,31 @@ def set_status(user, corpus_id, status, pid=None):
         if mc_return is None:
             raise Exception(f"Job '{job_id}' does not exist!")
         pid, _ = mc_return
+
+    # Store in Memcached
     mc.set(job_id, (pid, status))
+    # Store in Nextcloud as backup
+    try:
+        statusfile = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc)
+                         / Path(app.config.get("NC_STATUS_FILE")))
+        oc.put_file_contents(statusfile, json.dumps({"pid": pid, "status": status.name}))
+    except Exception as e:
+        app.logger.error(f"Failed to safe job status in Nextcloud: {e}")
+
     app.logger.debug(f"Job in cache: '{mc.get(job_id)}'")
 
 
-def clear_job():
-    """Erase job from memory."""
-    pass
+def get_from_nc(oc, user, corpus_id):
+    """Get job status info from Nextcloud."""
+    app.logger.debug("Getting status from Nextcloud")
+    status_file = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc)
+                      / Path(app.config.get("NC_STATUS_FILE")))
+    try:
+        file_contents = oc.get_file_contents(status_file)
+        status_obj = json.loads(file_contents)
+        return status_obj.get("pid", 0), getattr(Status, status_obj.get("status", "none"))
+    except Exception:
+        return 0, Status.none
 
 
 def process_running(pid):
@@ -93,3 +119,9 @@ def get_output(user, corpus_id):
     if stdout[-1].startswith("Progress:"):
         return stdout[-1]
     return " ".join([line for line in stdout if line and not line.startswith("Progress:")])
+
+
+def clear_job():
+    """Erase job from Memcached and Nextcloud."""
+    # TODO
+    pass

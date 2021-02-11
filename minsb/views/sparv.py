@@ -17,7 +17,7 @@ bp = Blueprint("sparv", __name__)
 def run_sparv(oc, user, corpora, corpus_id):
     """Run Sparv on given corpus."""
     # Avoid running multiple jobs on same corpus simultaneously
-    status = jobs.get_status(user, corpus_id)
+    status = jobs.get_status(oc, user, corpus_id)
     if status == jobs.Status.running:
         return utils.response(f"There is an unfinished job for '{corpus_id}'!", err=True), 404
 
@@ -88,7 +88,7 @@ def run_sparv(oc, user, corpora, corpus_id):
 
     # Get pid from Sparv process and store job info
     pid = int(p.stdout.decode())
-    jobs.set_status(user, corpus_id, jobs.Status.running, pid=pid)
+    jobs.set_status(oc, user, corpus_id, jobs.Status.running, pid=pid)
 
     # Wait a few seconds and poll to check whether the Sparv terminated early
     time.sleep(5)
@@ -107,7 +107,7 @@ def check_status(oc, user, corpora, corpus_id):
 def clear_annotations(oc, user, corpora, corpus_id):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
-    if jobs.get_status(user, corpus_id) == jobs.Status.running:
+    if jobs.get_status(oc, user, corpus_id) == jobs.Status.running:
         return utils.response("Cannot clear annotations while a job is running!", err=True), 404
 
     remote_corpus_dir = paths.get_corpus_dir(domain="sparv", user=user, corpus_id=corpus_id)
@@ -138,7 +138,7 @@ def remove_corpus(user, corpus_id):
     sparv_server = app.config.get("SPARV_SERVER")
 
     # Check if there is an active job
-    if jobs.get_status(user, corpus_id) == jobs.Status.running:
+    if jobs.get_status(oc, user, corpus_id) == jobs.Status.running:
         app.logger.error(f"Failed to remove corpus dir '{remote_corpus_dir}' due to an active job!")
 
     # Run sparv clean
@@ -151,7 +151,7 @@ def remove_corpus(user, corpus_id):
 
 def make_status_response(oc, user, corpus_id):
     """Check the annotation status for a given corpus and return response."""
-    status = jobs.get_status(user, corpus_id)
+    status = jobs.get_status(oc, user, corpus_id)
     if status == jobs.Status.none:
         return utils.response(f"There is no job for '{corpus_id}'!", sparv_status=status.name, err=True), 404
 
