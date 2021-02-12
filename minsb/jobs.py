@@ -1,6 +1,7 @@
 """Utilities related to Sparv jobs."""
 
 import json
+from os import mkdir
 import subprocess
 from enum import IntEnum
 from pathlib import Path
@@ -35,7 +36,7 @@ def get_status(oc, user, corpus_id):
 
     # Job does not exist in cache, check Nextcloud
     else:
-        pid, status = get_from_nc(oc, user, corpus_id)
+        pid, status = get_from_nc(oc, corpus_id)
         mc.set(job_id, (pid, status))
         # Job does not exist in Nextcloud either
         if status == Status.none:
@@ -75,7 +76,7 @@ def set_status(oc, user, corpus_id, status, pid=None):
     app.logger.debug(f"Job in cache: '{mc.get(job_id)}'")
 
 
-def get_from_nc(oc, user, corpus_id):
+def get_from_nc(oc, corpus_id):
     """Get job status info from Nextcloud."""
     app.logger.debug("Getting status from Nextcloud")
     status_file = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc)

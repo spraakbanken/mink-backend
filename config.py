@@ -26,3 +26,4 @@ SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"      # Temporary Sparv run script created 
 # Local files relative to flask instance dir
 TMP_DIR = "tmp"                      # Temporary file storage
 MEMCACHED_SOCKET = "memcached.sock"  # Memcached socket file
+QUEUE_DIR = "queue"
