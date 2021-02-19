@@ -1,13 +1,14 @@
-"""Utilities related to a job queue.
+"""Utilities related to a queue of Sparv jobs.
 
 The job queue lives in the cache and also on the local file system (as backup).
 """
 
+import json
 from pathlib import Path
 
 from flask import current_app as app
 
-PARTITIONER = "_"  # The string used to separate a user and a corpus ID
+from minsb import jobs
 
 
 def init_queue():
@@ -15,54 +16,61 @@ def init_queue():
     queue = []
     queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
     queue_dir.mkdir(exist_ok=True)
+    mc = app.config.get("cache_client")
 
     for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
-        user = f.name[:f.name.rfind(PARTITIONER)]
-        corpus_id = f.name[f.name.rfind(PARTITIONER) + len(PARTITIONER):]
-        queue.append((user, corpus_id))
+        with f.open() as fobj:
+            job = jobs.load_from_str(fobj.read())
+            job.save()
+            app.logger.debug(f"Job in cache: '{mc.get(job.id)}'")
+        queue.append(job.id)
 
+    mc.set("queue", queue)
+    app.logger.debug(f"Queue in cache: {mc.get('queue')}")
     return queue
 
 
-def add(user, corpus_id):
-    """Add an item to the queue."""
+def add(job):
+    """Add a job item to the queue."""
     mc = app.config.get("cache_client")
     queue = mc.get("queue")
 
-    # No queue in cache, get from file system
-    if queue is None:
-        queue = init_queue()
+    # Avoid starting multiple jobs for same corpus simultaneously
+    if job.id in queue:
+        raise Exception("There is an unfinished job for this corpus!")
 
-    # Add to file system queue
-    queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
-    queue_dir.mkdir(exist_ok=True)
-    (queue_dir / Path(f"{user}{PARTITIONER}{corpus_id}")).touch()
-
-    queue.append((user, corpus_id))
+    job.set_status(jobs.Status.queued)
+    queue.append(job.id)
     mc.set("queue", queue)
-    app.logger.debug(f"Queue in cache: '{mc.get(queue)}'")
+    app.logger.debug(f"Queue in cache: {mc.get('queue')}")
+    return job
 
 
-def pop():
-    """Get the first item from the queue and remove it."""
+def get():
+    """Get the first job item from the queue."""
+    mc = app.config.get("cache_client")
+    queue = mc.get("queue")
+    job = mc.get(queue[0])
+    return job
+
+
+def remove(job, remove_job=False):
+    """Remove job item from queue, e.g. when a job is aborted."""
     mc = app.config.get("cache_client")
     queue = mc.get("queue")
 
-    # No queue in cache, get from file system
-    if queue is None:
-        queue = init_queue()
+    if job.id in queue:
+        job = queue.pop(queue.index(job.id))
         mc.set("queue", queue)
+        if remove_job:
+            job.remove(abort=True)
 
-        # No queue on file system either
-        if not queue:
-            return None
 
-    user, corpus_id = queue.pop(0)
-
-    # Pop from file system queue
-    queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
-    filename = queue_dir / Path(f"{user}{PARTITIONER}{corpus_id}")
-    filename.unlink(missing_ok=True)
-
-    mc.set("queue", queue)
-    return user, corpus_id
+def get_priority(job):
+    """Get the queue priority of the job."""
+    mc = app.config.get("cache_client")
+    queue = mc.get("queue")
+    try:
+        return queue.index(job.id) + 1
+    except ValueError:
+        return -1

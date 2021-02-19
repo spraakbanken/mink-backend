@@ -7,15 +7,14 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request, send_file
 
-from minsb import paths, utils
-from minsb.views import sparv
+from minsb import jobs, paths, queue, utils
 
 bp = Blueprint("nextcloud", __name__)
 
 
 @bp.route("/init", methods=["POST"])
 @utils.login(require_init=False, require_corpus_id=False, require_corpus_exists=False)
-def init(oc, user):
+def init(oc, _user):
     """Create corpora directory."""
     try:
         corpora_dir = str(paths.get_corpora_dir(domain="nc", oc=oc, mkdir=True))
@@ -23,19 +22,19 @@ def init(oc, user):
         app.logger.debug(f"Initialized corpora dir '{corpora_dir}'")
         return utils.response("Min Språkbank successfully initialized!")
     except Exception as e:
-        return utils.response(f"Failed to initialize corpora dir '{corpora_dir}'!", err=True, info=str(e)), 404
+        return utils.response("Failed to initialize corpora dir!", err=True, info=str(e)), 404
 
 
 @bp.route("/list-corpora", methods=["GET"])
 @utils.login(require_corpus_id=False, require_corpus_exists=False)
-def list_corpora(oc, user, corpora):
+def list_corpora(_oc, _user, corpora):
     """List all available corpora."""
     return utils.response("Listing available corpora", corpora=corpora)
 
 
 @bp.route("/upload-corpus", methods=["PUT"])
 @utils.login(require_corpus_exists=False)
-def upload_corpus(oc, user, corpora, corpus_id):
+def upload_corpus(oc, _user, corpora, corpus_id):
     """Upload corpus files."""
     # Check if corpus_id is valid
     if not bool(re.match(r"^[a-z0-9-]+$", corpus_id)):
@@ -74,7 +73,7 @@ def upload_corpus(oc, user, corpora, corpus_id):
 
 @bp.route("/remove-corpus", methods=["DELETE"])
 @utils.login()
-def remove_corpus(oc, user, corpora, corpus_id):
+def remove_corpus(oc, user, _corpora, corpus_id):
     """Remove corpus."""
     try:
         corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
@@ -82,14 +81,17 @@ def remove_corpus(oc, user, corpora, corpus_id):
     except Exception as e:
         return utils.response(f"Failed to remove corpus '{corpus_id}'!", err=True, info=str(e)), 404
 
-    # Remove also from Sparv server
-    sparv.remove_corpus(user, corpus_id)
+    # Try to safely remove files from Sparv server and job
+    job = jobs.get_job(user, corpus_id)
+    job.remove_from_sparv(abort=True)
+    queue.remove(user, corpus_id)
+
     return utils.response(f"Corpus '{corpus_id}' successfully removed!")
 
 
 @bp.route("/update-corpus", methods=["PUT"])
 @utils.login()
-def update_corpus(oc, user, corpora, corpus_id):
+def update_corpus(oc, _user, _corpora, corpus_id):
     """Update corpus with new/modified files or delete files.
 
     Attached files will be added to the corpus or replace existing ones.
@@ -124,7 +126,7 @@ def update_corpus(oc, user, corpora, corpus_id):
 
 @bp.route("/upload-config", methods=["PUT"])
 @utils.login()
-def upload_config(oc, user, corpora, corpus_id):
+def upload_config(oc, _user, _corpora, corpus_id):
     """Upload a corpus config file."""
     # Check if config file was provided
     attached_files = list(request.files.values())
@@ -145,7 +147,7 @@ def upload_config(oc, user, corpora, corpus_id):
 
 @bp.route("/list-exports", methods=["GET"])
 @utils.login()
-def list_exports(oc, user, corpora, corpus_id):
+def list_exports(oc, _user, _corpora, corpus_id):
     """List exports available for download for a given corpus."""
     path = str(paths.get_export_dir(domain="nc", corpus_id=corpus_id))
     try:
@@ -157,7 +159,7 @@ def list_exports(oc, user, corpora, corpus_id):
 
 @bp.route("/download-exports", methods=["GET"])
 @utils.login()
-def download_export(oc, user, corpora, corpus_id):
+def download_export(oc, user, _corpora, corpus_id):
     """Download one or more export files for a corpus as a zip file."""
     download_files = request.args.get("file") or request.form.get("files") or ""
     download_files = [i for i in download_files.split(",") if i]

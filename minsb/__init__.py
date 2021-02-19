@@ -9,6 +9,8 @@ from flask import Flask, request
 from flask_cors import CORS
 import memcache
 
+from minsb import queue
+
 
 def create_app():
     """Instanciate app."""
@@ -35,6 +37,10 @@ def create_app():
     # Connect to memcached
     socket_path = os.path.join(app.instance_path, app.config.get("MEMCACHED_SOCKET"))
     app.config["cache_client"] = memcache.Client([f"unix:{socket_path}"], debug=1)
+
+    # Init job queue
+    with app.app_context():
+        queue.init_queue()
 
     @app.after_request
     def cleanup(response):

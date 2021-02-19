@@ -1,6 +1,6 @@
 """Default configuration for sparv_backed.
 
-Can be overwritten with config.py in instance folder.
+Can be overridden with config.py in instance folder.
 """
 
 # Nextcloud settings
