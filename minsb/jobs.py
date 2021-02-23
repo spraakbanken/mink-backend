@@ -1,5 +1,6 @@
 """Utilities related to Sparv jobs."""
 
+import hashlib
 import json
 import subprocess
 from enum import IntEnum
@@ -14,24 +15,23 @@ class Status(IntEnum):
     """Class for representing the status of a Sparv job."""
 
     none = 0
-    syncing = 1  # Syncing from Nextcloud to Sparv server
-    queued = 2   # Waiting to be run with Sparv
-    running = 3  # Annotation with Sparv is running
-    done = 4     # Done processing with Sparv
-    synced = 5   # Exports synced back to Nextcloud
-    error = 6    # An error occurred
-    aborted = 7  # Aborted by the user
+    syncing_corpus = 1   # Syncing from Nextcloud to Sparv server
+    waiting = 2          # Waiting to be run with Sparv
+    annotating = 3       # Sparv annotation process is running
+    done_annotating = 4  # Annotation process is no longer running
+    syncing_results = 5  # Syncing results from Sparv to Nextcloud
+    done = 6             # Done processing with Sparv
+    error = 7            # An error occurred
+    aborted = 8          # Aborted by the user
 
 
 class Job():
     """A job item holding information about a Sparv job."""
 
-    partitioner = "_"  # The string used to separate a user and a corpus ID
-
     def __init__(self, user, corpus_id, status=Status.none, pid=None, sparv_exports=None):
         self.user = user
         self.corpus_id = corpus_id
-        self.id = f"{self.user}{self.partitioner}{self.corpus_id}"
+        self.id = hashlib.sha1(f"{self.user}{self.corpus_id}".encode("UTF-8")).hexdigest()[:10]
         self.status = status
         self.pid = pid
         self.sparv_exports = sparv_exports or []
@@ -61,7 +61,7 @@ class Job():
 
     def remove(self, abort=False):
         """Remove a job item from the cache and file system."""
-        if self.status == Status.running:
+        if self.status == Status.annotating:
             if abort:
                 self.abort_sparv()
             else:
@@ -83,7 +83,7 @@ class Job():
 
     def sync_to_sparv(self, oc):
         """Sync corpus files from Nextcloud to the Sparv server."""
-        self.set_status(Status.syncing)
+        self.set_status(Status.syncing_corpus)
 
         # Get relevant directories
         nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=self.corpus_id))
@@ -133,7 +133,7 @@ class Job():
             raise Exception(f"Failed to copy corpus files to Sparv server! {p.stderr.decode()}")
 
         # TODO: Set this status when done syncing
-        self.set_status(Status.queued)
+        self.set_status(Status.waiting)
 
     def run_sparv(self):
         """Start a Sparv annotation process."""
@@ -154,7 +154,7 @@ class Job():
         # Get pid from Sparv process and store job info
         self.pid = int(p.stdout.decode())
         self.save()
-        self.set_status(Status.running)
+        self.set_status(Status.annotating)
 
     def abort_sparv(self):
         """Abort running Sparv process."""
@@ -172,17 +172,18 @@ class Job():
         if p.stderr:
             app.logger.debug(f"stderr: '{p.stderr.decode()}'")
             if p.stderr.decode().endswith("No such process\n"):
-                self.set_status(Status.done)
+                self.set_status(Status.done_annotating)
+                self.pid = None
                 return False
             if p.stderr.decode().endswith("Operation not permitted\n"):
                 # TODO: what do we do if we don't have permission to check the process?
                 return False
-        self.set_status(Status.running)
+        self.set_status(Status.annotating)
         return True
 
     def get_output(self):
         """Check latest Sparv output of this job by reading the nohup file."""
-        if self.status < Status.running:
+        if self.status < Status.annotating:
             return ""
 
         nohupfile = app.config.get("SPARV_NOHUP_FILE")
@@ -217,7 +218,7 @@ class Job():
             utils.upload_dir(oc, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             raise Exception(f"Failed to upload exports to Nextcloud! {e}")
-        self.set_status(Status.synced)
+        self.set_status(Status.done)
 
     def remove_from_sparv(self):
         """Remove corpus dir from the Sparv server and abort running job if necessary."""

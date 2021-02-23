@@ -3,7 +3,6 @@
 The job queue lives in the cache and also on the local file system (as backup).
 """
 
-import json
 from pathlib import Path
 
 from flask import current_app as app
@@ -36,10 +35,10 @@ def add(job):
     queue = mc.get("queue")
 
     # Avoid starting multiple jobs for same corpus simultaneously
-    if job.id in queue:
+    if job.id in queue and jobs.Status.none < job.status < jobs.Status.done:
         raise Exception("There is an unfinished job for this corpus!")
 
-    job.set_status(jobs.Status.queued)
+    job.set_status(jobs.Status.waiting)
     queue.append(job.id)
     mc.set("queue", queue)
     app.logger.debug(f"Queue in cache: {mc.get('queue')}")

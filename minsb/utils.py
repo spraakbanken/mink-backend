@@ -24,6 +24,29 @@ def response(msg, err=False, **kwargs):
     return Response(json.dumps(res, ensure_ascii=False), mimetype="application/json")
 
 
+def gatekeeper(function):
+    """Make sure that only the protected user can access the decorated endpoint."""
+    @functools.wraps(function)  # Copy original function's information, needed by Flask
+    def wrapper(*args, **kwargs):
+        # if not request.authorization:
+        #     return response("No login credentials provided!", err=True), 401
+        # username = request.authorization.get("username")
+        # password = request.authorization.get("password")
+        # if not (username and password):
+        #     return response("Username or password missing!", err=True), 401
+        user = request.args.get("user") or request.form.get("user") or ""
+        corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id") or ""
+        if not (user and corpus_id):
+            return response("Information missing, 'user' and 'corpus_id' must be specified!", err=True), 404
+        # try:
+        # #   TODO: Do authentication somehow...
+        #     return function(*args, **kwargs)
+        # except Exception as e:
+        #     return response(f"Could not authenticate! {e}", err=True), 401
+        return function(user, corpus_id, *args, **kwargs)
+    return wrapper
+
+
 def login(require_init=True, require_corpus_id=True, require_corpus_exists=True):
     """Attempt to login on Nextcloud.
 

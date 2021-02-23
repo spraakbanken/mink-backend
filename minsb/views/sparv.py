@@ -37,6 +37,40 @@ def run_sparv(oc, user, _corpora, corpus_id):
     return make_status_response(job, oc)
 
 
+@bp.route("/start-annotation", methods=["PUT"])
+@utils.gatekeeper
+def start_annotation(user, corpus_id):
+    """Start annotation process for given corpus (when syncing is done).
+
+    For internal use only!
+    """
+    job = jobs.get_job(user, corpus_id)
+    if job.status != jobs.Status.waiting:
+        return utils.response(f"Job must have status '{jobs.Status.waiting.name}' not {job.status.name}!", err=True), 404
+    try:
+        job.run_sparv()
+        return utils.response(f"Successfully started annotation process for '{corpus_id}'!")
+    except Exception as e:
+        return utils.response(f"Failed to run Sparv on '{corpus_id}'!", err=True, info=str(e)), 404
+
+
+@bp.route("/check-running", methods=["GET"])
+@utils.gatekeeper
+def check_running(user, corpus_id):
+    """Check whether a process for a given corpus is still running.
+
+    For internal use only!
+    """
+    job = jobs.get_job(user, corpus_id)
+    if job.status != jobs.Status.annotating:
+        return utils.response(f"Job must have status '{jobs.Status.annotating.name}' not {job.status.name}!", err=True), 404
+    try:
+        job.process_running()
+        return utils.response(f"Status for '{corpus_id}': {job.status.name}")
+    except Exception as e:
+        return utils.response(f"Failed to run Sparv on '{corpus_id}'!", err=True, info=str(e)), 404
+
+
 @bp.route("/check-status", methods=["GET"])
 @utils.login()
 def check_status(oc, user, _corpora, corpus_id):
@@ -51,7 +85,7 @@ def clear_annotations(oc, user, _corpora, corpus_id):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
     job = jobs.get_job(user, corpus_id)
-    if jobs.Status.none < job.status < jobs.Status.synced:
+    if jobs.Status.none < job.status < jobs.Status.done_annotating:
         return utils.response("Cannot clear annotations while a job is running!", err=True), 404
 
     try:
@@ -68,24 +102,34 @@ def make_status_response(job, oc):
     if status == jobs.Status.none:
         return utils.response(f"There is no active job for '{job.corpus_id}'!", job_status=status.name, err=True), 404
 
-    if status == jobs.Status.syncing:
+    if status == jobs.Status.syncing_corpus:
         return utils.response("Corpus files are being synced to the Sparv server!", job_status=status.name)
 
-    if status == jobs.Status.queued:
+    if status == jobs.Status.waiting:
         return utils.response("Job has been queued!", job_status=status.name, priority=queue.get_priority(job))
 
     output = job.get_output()
 
-    if status == jobs.Status.running:
+    if status == jobs.Status.annotating:
         return utils.response("Sparv is running!", sparv_output=output, job_status=status.name)
 
-    # If done retrieve exports from Sparv
-    if status == jobs.Status.done:
+    # If done annotating, retrieve exports from Sparv
+    if status == jobs.Status.done_annotating:
         try:
-            job.sync_exports(oc)
+            job.sync_results(oc)
         except Exception as e:
             return utils.response("Failed to upload exports to Nextcloud!", err=True, info=str(e)), 404
-        return utils.response("Sparv was run successfully!", sparv_output=output, job_status=status.name)
+        return utils.response("Sparv was run successfully! Starting to sync results.",
+                              sparv_output=output, job_status=status.name)
+
+    if status == jobs.Status.syncing_results:
+        return utils.response("Result files are being synced from the Sparv server!", job_status=status.name)
+
+    if status == jobs.Status.done:
+        return utils.response("Corpus is done processing!", sparv_output=output, job_status=status.name)
+
+    if status == jobs.Status.aborted:
+        return utils.response("Job was aborted by the user!", job_status=status.name)
 
     # TODO: Error handling
     # if status == jobs.Status.error:
