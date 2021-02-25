@@ -17,6 +17,13 @@ bp = Blueprint("nextcloud", __name__)
 def init(oc, _user):
     """Create corpora directory."""
     try:
+        corpora_dir = app.config.get("CORPORA_DIR")
+        listing = oc.list("/")
+        if corpora_dir in [e.get_name() for e in listing]:
+            # Corpora dir already exists
+            return utils.response(f"Failed to initialize Min Språkbank! Directory '{corpora_dir}' already exists!",
+                                  err=True), 404
+        # Create corpora dir
         corpora_dir = str(paths.get_corpora_dir(domain="nc", oc=oc, mkdir=True))
         # TODO: upload some info file?
         app.logger.debug(f"Initialized corpora dir '{corpora_dir}'")
