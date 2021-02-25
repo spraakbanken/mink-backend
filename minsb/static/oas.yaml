@@ -36,6 +36,17 @@ paths:
               example:
                 status: success
                 message: Min Språkbank successfully initialized!
+        '404':
+          description: init Min SB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/404'
+              example:
+                status: error
+                message: >-
+                  Failed to initialize Min Språkbank! Directory 'Min Språkbank'
+                  already exists!
       description: >-
         Call this route before using Min SB for the first time.
 
@@ -56,6 +67,16 @@ paths:
               example:
                 status: success
                 message: Corpus 'min-testkorpus' successfully uploaded!
+        '404':
+          description: upload corpus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/404'
+              example:
+                status: error
+                message: Failed to upload corpus 'min_testkorpus'!
+                info: Corpus ID is invalid!
       requestBody:
         required: true
         content:
@@ -145,8 +166,23 @@ paths:
             example: min-testkorpus
       responses:
         '200':
-          description: ''
-          headers: {}
+          description: remove corpus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Corpus 'min-testkorpus' successfully removed!
+        '404':
+          description: remove corpus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/404'
+              example:
+                status: error
+                message: Corpus 'min-testkorpus' does not exist!
   /run-sparv:
     put:
       summary: run Sparv
@@ -186,6 +222,50 @@ paths:
         '200':
           description: ''
           headers: {}
+  /status-codes:
+    get:
+      summary: status codes
+      description: List job status codes along with their descriptions.
+      operationId: statuscodes
+      parameters: []
+      responses:
+        '200':
+          description: status codes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Listing existing job status codes
+                status_codes:
+                  - code: 0
+                    name: none
+                    description: Job does not exist
+                  - code: 1
+                    name: syncing_corpus
+                    description: Syncing from Nextcloud to Sparv server
+                  - code: 2
+                    name: waiting
+                    description: Waiting to be run with Sparv
+                  - code: 3
+                    name: annotating
+                    description: Sparv annotation process is running
+                  - code: 4
+                    name: done_annotating
+                    description: Annotation process is no longer running
+                  - code: 5
+                    name: syncing_results
+                    description: Syncing results from Sparv to Nextcloud
+                  - code: 6
+                    name: done
+                    description: Done processing with Sparv
+                  - code: 7
+                    name: error
+                    description: An error occurred
+                  - code: 8
+                    name: aborted
+                    description: Aborted by the user
   /list-exports:
     get:
       summary: list exports
@@ -316,6 +396,19 @@ components:
           type: string
           description: ''
           default: Min Språkbank successfully initialized!
+    '404':
+      type: object
+      properties:
+        status:
+          type: string
+          description: ''
+          default: error
+        message:
+          type: string
+          description: ''
+          default: >-
+            Failed to initialize Min Språkbank! Directory 'Min Språkbank'
+            already exists!
   parameters:
     '':
       name: ''

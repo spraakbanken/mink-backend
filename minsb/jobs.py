@@ -4,6 +4,7 @@ import hashlib
 import json
 import subprocess
 from enum import IntEnum
+from itertools import count
 from pathlib import Path
 
 from flask import current_app as app
@@ -11,18 +12,32 @@ from flask import current_app as app
 from minsb import paths, utils
 
 
-class Status(IntEnum):
-    """Class for representing the status of a Sparv job."""
+_status_count = count(0)
 
-    none = 0
-    syncing_corpus = 1   # Syncing from Nextcloud to Sparv server
-    waiting = 2          # Waiting to be run with Sparv
-    annotating = 3       # Sparv annotation process is running
-    done_annotating = 4  # Annotation process is no longer running
-    syncing_results = 5  # Syncing results from Sparv to Nextcloud
-    done = 6             # Done processing with Sparv
-    error = 7            # An error occurred
-    aborted = 8          # Aborted by the user
+
+class Status(IntEnum):
+    """Class for representing the status of a Sparv job.
+
+    Inspired from:
+    https://stackoverflow.com/questions/64038885/adding-attributes-and-starting-value-to-python-enum-intenum
+    """
+
+    none = "Job does not exist"
+    syncing_corpus = "Syncing from Nextcloud to Sparv server"
+    waiting = "Waiting to be run with Sparv"
+    annotating = "Sparv annotation process is running"
+    done_annotating = "Annotation process is no longer running"
+    syncing_results = "Syncing results from Sparv to Nextcloud"
+    done = "Done processing with Sparv"
+    error = "An error occurred"
+    aborted = "Aborted by the user"
+
+    def __new__(cls, desc):
+        value = next(_status_count)
+        member = int.__new__(cls, value)
+        member._value_ = value
+        member.desc = desc
+        return member
 
 
 class Job():
