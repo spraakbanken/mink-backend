@@ -41,7 +41,7 @@ def upload_corpus(oc, _user, corpora, corpus_id):
         return utils.response("Corpus ID is invalid!", err=True), 404
 
     # Check if corpus files were provided
-    files = list(request.files.listvalues())[0]
+    files = list(request.files.listvalues())
     if not files:
         return utils.response("No corpus files provided for upload!", err=True), 404
 
@@ -54,7 +54,7 @@ def upload_corpus(oc, _user, corpora, corpus_id):
     try:
         source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
         paths.get_export_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
-        for f in files:
+        for f in files[0]:
             name = utils.check_file(f.filename, app.config.get("SPARV_VALID_INPUT_EXT"))
             if not name:
                 # Try to remove partially uploaded corpus data
@@ -83,7 +83,7 @@ def remove_corpus(oc, user, _corpora, corpus_id):
 
     # Try to safely remove files from Sparv server and job
     job = jobs.get_job(user, corpus_id)
-    job.remove_from_sparv(abort=True)
+    job.remove_from_sparv()
     queue.remove(user, corpus_id)
 
     return utils.response(f"Corpus '{corpus_id}' successfully removed!")
