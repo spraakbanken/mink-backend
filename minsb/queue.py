@@ -53,16 +53,15 @@ def get():
     return job
 
 
-def remove(job, remove_job=False):
-    """Remove job item from queue, e.g. when a job is aborted."""
+def remove(job):
+    """Remove job item from queue, e.g. when a job is aborted or a corpus is deleted."""
     mc = app.config.get("cache_client")
     queue = mc.get("queue")
 
     if job.id in queue:
         job = queue.pop(queue.index(job.id))
         mc.set("queue", queue)
-        if remove_job:
-            job.remove(abort=True)
+        job.remove(abort=True)
 
 
 def get_priority(job):

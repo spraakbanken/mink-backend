@@ -88,10 +88,13 @@ def remove_corpus(oc, user, _corpora, corpus_id):
     except Exception as e:
         return utils.response(f"Failed to remove corpus '{corpus_id}'!", err=True, info=str(e)), 404
 
-    # Try to safely remove files from Sparv server and job
-    job = jobs.get_job(user, corpus_id)
-    job.remove_from_sparv()
-    queue.remove(user, corpus_id)
+    try:
+        # Try to safely remove files from Sparv server and job
+        job = jobs.get_job(user, corpus_id)
+        queue.remove(job)
+        job.remove_from_sparv()
+    except Exception as e:
+        app.logger.error(f"Failed to remove corpus '{corpus_id}'! {e}")
 
     return utils.response(f"Corpus '{corpus_id}' successfully removed!")
 

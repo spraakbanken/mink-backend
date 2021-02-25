@@ -100,11 +100,6 @@ class Job():
 
         # Create file index with timestamps
         file_index = utils.create_file_index(corpus_contents, self.user)
-        try:
-            utils.download_dir(oc, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
-        except Exception as e:
-            self.set_status(Status.error)
-            raise Exception(f"Failed to download corpus '{self.corpus_id}' from Nextcloud! {e}")
 
         # Create user and corpus dir on Sparv server
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
@@ -113,6 +108,14 @@ class Job():
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
+
+        # Download from Nextcloud to local tmp dir
+        # TODO: do this async?
+        try:
+            utils.download_dir(oc, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
+        except Exception as e:
+            self.set_status(Status.error)
+            raise Exception(f"Failed to download corpus '{self.corpus_id}' from Nextcloud! {e}")
 
         # Sync corpus config to Sparv server
         p = subprocess.run(["rsync", "-av", paths.get_config_file(user=self.user, corpus_id=self.corpus_id),
