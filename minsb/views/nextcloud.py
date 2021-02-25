@@ -43,39 +43,50 @@ def list_corpora(_oc, _user, corpora):
 @utils.login(require_corpus_exists=False)
 def upload_corpus(oc, _user, corpora, corpus_id):
     """Upload corpus files."""
-    # Check if corpus_id is valid
-    if not bool(re.match(r"^[a-z0-9-]+$", corpus_id)):
-        return utils.response("Corpus ID is invalid!", err=True), 404
-
     # Check if corpus files were provided
     files = list(request.files.listvalues())
     if not files:
         return utils.response("No corpus files provided for upload!", err=True), 404
 
-    # Make sure corpus dir does not exist already
-    if corpus_id in corpora:
-        return utils.response(f"Corpus '{corpus_id}' already exists!", err=True), 404
-
-    # Create corpus dir with subdirs and upload data
-    corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True))
     try:
-        source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
-        paths.get_export_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
+        if corpus_id not in corpora:
+            # Create corpus dir with subdirs
+            create_corpus_dir(oc, corpus_id, corpora)
+        # Upload data
+        source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc)
         for f in files[0]:
             name = utils.check_file(f.filename, app.config.get("SPARV_VALID_INPUT_EXT"))
             if not name:
-                # Try to remove partially uploaded corpus data
-                oc.delete(corpus_dir)
                 return utils.response(f"File '{f.filename}' has an invalid file extension!"), 404
             oc.put_file_contents(str(source_dir / name), f.read())
         return utils.response(f"Corpus '{corpus_id}' successfully uploaded!")
+    except Exception as e:
+        return utils.response(f"Failed to upload corpus '{corpus_id}'!", err=True, info=str(e)), 404
+
+
+def create_corpus_dir(oc, corpus_id, corpora):
+    """Create corpus dir for corpus_id."""
+    # Check if corpus_id is valid
+    if not bool(re.match(r"^[a-z0-9-]+$", corpus_id)):
+        raise Exception("Corpus ID is invalid!")
+
+    # Make sure corpus dir does not exist already
+    if corpus_id in corpora:
+        raise Exception(f"Corpus '{corpus_id}' already exists!")
+
+    # Create corpus dir with subdirs
+    try:
+        corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True))
+        source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
+        paths.get_export_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
+        return corpus_dir, source_dir
     except Exception as e:
         try:
             # Try to remove partially uploaded corpus data
             oc.delete(corpus_dir)
         except Exception as err:
             app.logger.error(f"Failed to remove partially uploaded corpus data for '{corpus_id}'! {err}")
-        return utils.response(f"Failed to upload corpus '{corpus_id}'!", err=True, info=str(e)), 404
+        raise Exception(f"Failed to create corpus dir! {e}")
 
 
 @bp.route("/remove-corpus", methods=["DELETE"])
@@ -135,8 +146,8 @@ def update_corpus(oc, _user, _corpora, corpus_id):
 
 
 @bp.route("/upload-config", methods=["PUT"])
-@utils.login()
-def upload_config(oc, _user, _corpora, corpus_id):
+@utils.login(require_corpus_exists=False)
+def upload_config(oc, _user, corpora, corpus_id):
     """Upload a corpus config file."""
     # Check if config file was provided
     attached_files = list(request.files.values())
@@ -149,6 +160,9 @@ def upload_config(oc, _user, _corpora, corpus_id):
         return utils.response("Config file needs to be YAML!", err=True), 404
 
     try:
+        if corpus_id not in corpora:
+            # Create corpus dir with subdirs
+            create_corpus_dir(oc, corpus_id, corpora)
         oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), config_file.read())
         return utils.response(f"Config file successfully uploaded for '{corpus_id}'!")
     except Exception as e:
