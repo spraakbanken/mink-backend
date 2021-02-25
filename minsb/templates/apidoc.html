@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="robots" content="noindex, nofollow"/>
+    <link rel="icon" href="{{favicon}}"/>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet"/>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      /* Hide ReDoc footer */
+      .scrollbar-container div:first-of-type {
+        display: none !important;
+      }
+      /* Style example links */
+      a > code {
+        color: rgb(50, 50, 159) !important;
+        background-color: initial !important;
+        border: none !important;
+      }
+      redoc a:hover > code {
+        color: rgb(104, 104, 207) !important;
+      }
+      /* Smaller and centered logo */
+      redoc img {
+        content:url("{{favicon}}");
+        max-width: 20vh !important;
+        margin: auto;
+      }
+    </style>
+    <script>
+      function loadOAS() {
+        let url = '{{spec_url}}';
+        const options = {
+          expandResponses: '200',
+          theme: {
+            spacing: {
+              sectionVertical: 25,
+            },
+            typography: {
+              fontSize: '15px'
+            }
+          }
+        };
+        Redoc.init(url, options);
+      }
+    </script>
+  </head>
+  <body onload="loadOAS()">
+    <redoc spec-url=""></redoc>
+    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
+  </body>
+</html>

@@ -1,0 +1,361 @@
+openapi: 3.0.0
+servers:
+  - url: https://ws.spraakbanken.gu.se/ws/min-sb
+    description: Test server
+info:
+  title: Min SB API
+  version: 0.0.dev0
+  description: |-
+    # Introduction
+    Web API serving as a backend to Min Språkbank.
+
+    # Overview
+    ...
+  x-logo:
+    url: placeholder
+  contact:
+    name: Språkbanken
+    url: https://spraakbanken.gu.se/
+    email: sb-info@svenska.gu.se
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+paths:
+  /init:
+    post:
+      summary: init Min SB
+      operationId: initMinSB
+      parameters: []
+      responses:
+        '200':
+          description: Init Min SB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Min Språkbank successfully initialized!
+      description: >-
+        Call this route before using Min SB for the first time.
+
+        It creates a directory in your Nextcloud instance which will be used by
+        Min SB.
+  /upload-corpus:
+    put:
+      summary: upload corpus
+      operationId: uploadcorpus
+      parameters: []
+      responses:
+        '200':
+          description: upload corpus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Corpus 'min-testkorpus' successfully uploaded!
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - corpus_id
+                - file
+              properties:
+                corpus_id:
+                  type: string
+                  example: min-testkorpus
+                file:
+                  type: string
+                  format: binary
+            example:
+              - key: corpus_id
+                value: min-testkorpus
+                type: text
+              - key: ''
+                type: file
+                src:
+                  - /home/anne/Downloads/testkorpus/dokument2.xml
+                  - /home/anne/Downloads/testkorpus/dokument1.xml
+  /list-corpora:
+    get:
+      summary: list corpora
+      operationId: listcorpora
+      parameters:
+        - $ref: '#/components/parameters/'
+      responses:
+        '200':
+          description: list corpora
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Listing available corpora
+                corpora:
+                  - min-testkorpus
+  /upload-config:
+    put:
+      summary: upload config
+      operationId: uploadconfig
+      parameters:
+        - $ref: '#/components/parameters/corpus_id'
+      responses:
+        '200':
+          description: upload config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Config file successfully uploaded for 'min-testkorpus'!
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+            example:
+              - key: ''
+                type: file
+                src: /home/anne/Downloads/testkorpus/config.yaml
+  /remove-corpus:
+    delete:
+      summary: remove corpus
+      operationId: removecorpus
+      parameters:
+        - name: corpus_id
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+            example: min-testkorpus
+      responses:
+        '200':
+          description: ''
+          headers: {}
+  /run-sparv:
+    put:
+      summary: run Sparv
+      operationId: runSparv
+      parameters:
+        - name: corpus_id
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+            example: min-testkorpus
+        - $ref: '#/components/parameters/exports'
+      responses:
+        '200':
+          description: run Sparv
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Started annotation process with Sparv successfully!
+  /check-status:
+    get:
+      summary: check status
+      operationId: checkstatus
+      parameters:
+        - name: corpus_id
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+            example: min-testkorpus
+      responses:
+        '200':
+          description: ''
+          headers: {}
+  /list-exports:
+    get:
+      summary: list exports
+      operationId: listexports
+      parameters:
+        - name: corpus_id
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+            example: min-testkorpus
+      responses:
+        '200':
+          description: ''
+          headers: {}
+  /download-exports:
+    get:
+      summary: download exports
+      operationId: downloadexports
+      parameters:
+        - name: corpus_id
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+            example: min-testkorpus
+      responses:
+        '200':
+          description: ''
+          headers: {}
+  /clear-annotations:
+    delete:
+      summary: clear annotations
+      operationId: clearannotations
+      parameters:
+        - name: corpus_id
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+            example: min-testkorpus
+        - name: ''
+          in: query
+          required: true
+          style: form
+          schema:
+            type: number
+      responses:
+        '200':
+          description: clear annotations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Annotations for 'min-testkorpus' successfully removed!
+                sparv_output: |-
+                  'export' directory removed
+                  'sparv-workdir' directory removed
+  /update-corpus:
+    put:
+      summary: update corpus
+      operationId: updatecorpus
+      parameters:
+        - name: corpus_id
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+            example: min-testkorpus
+        - $ref: '#/components/parameters/remove'
+        - name: remove
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+            example: dokument1_copy.xml,dokument2_copy.xml
+      responses:
+        '200':
+          description: update corpus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                status: success
+                message: Corpus 'min-testkorpus' successfully updated!
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+            example:
+              - key: ''
+                type: file
+                src:
+                  - /home/anne/Downloads/testkorpus/dokument1_copy.xml
+                  - /home/anne/Downloads/testkorpus/dokument2_copy.xml
+                disabled: true
+              - key: ''
+                type: file
+                src:
+                  - /home/anne/Downloads/testkorpus/dokument2.xml
+                  - /home/anne/Downloads/testkorpus/dokument1.xml
+components:
+  schemas:
+    '200':
+      type: object
+      properties:
+        status:
+          type: string
+          description: ''
+          default: success
+        message:
+          type: string
+          description: ''
+          default: Min Språkbank successfully initialized!
+  parameters:
+    '':
+      name: ''
+      in: query
+      required: true
+      style: form
+      schema:
+        type: number
+    corpus_id:
+      name: corpus_id
+      in: query
+      required: true
+      style: form
+      schema:
+        type: string
+        example: min-testkorpus
+    exports:
+      name: exports
+      in: query
+      required: true
+      style: form
+      schema:
+        type: string
+        example: csv_export:csv,stats_export:freq_list,xml_export:pretty
+    remove:
+      name: remove
+      in: query
+      required: true
+      style: form
+      schema:
+        type: string
+        example: dokument1.xml,dokument2.xml
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+security:
+  - basicAuth: []
+tags: []
+externalDocs:
+  url: ''
+  description: ''
+warnings: []
