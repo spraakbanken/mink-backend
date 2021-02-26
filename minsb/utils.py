@@ -101,7 +101,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
 
 def list_corpora(oc):
     """List the available corpora in the corpora dir."""
-    path = app.config.get("CORPORA_DIR")
+    path = app.config.get("NC_CORPORA_DIR")
     corpora = []
     for elem in oc.list(path):
         if elem.get_content_type() == "httpd/unix-directory":

@@ -155,10 +155,11 @@ class Job():
 
     def run_sparv(self):
         """Start a Sparv annotation process."""
-        sparv_command = app.config.get("SPARV_COMMAND") + " run --log-to-file info " + " ".join(self.sparv_exports)
+        sparv_env = app.config.get("SPARV_ENVIRON")
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             (f"cd /home/{self.sparv_user}/{self.remote_corpus_dir}"
-                             f" && echo 'nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' > {self.runscript}"
+                             f" && echo '{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' > {self.runscript}"
                              f" && chmod +x {self.runscript} && ./{self.runscript}")],
                            # f" && nohup {sparv_command} > {nohupfile} 2>&1 & echo $!")],
                            capture_output=True)

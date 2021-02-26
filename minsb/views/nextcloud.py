@@ -17,7 +17,7 @@ bp = Blueprint("nextcloud", __name__)
 def init(oc, _user):
     """Create corpora directory."""
     try:
-        corpora_dir = app.config.get("CORPORA_DIR")
+        corpora_dir = app.config.get("NC_CORPORA_DIR")
         listing = oc.list("/")
         if corpora_dir in [e.get_name() for e in listing]:
             # Corpora dir already exists

@@ -15,11 +15,11 @@ def get_corpora_dir(domain="local", user="", oc=None, mkdir=False):
         if mkdir:
             os.makedirs(str(corpora_dir), exist_ok=True)
     elif domain == "nc":
-        corpora_dir = app.config.get("CORPORA_DIR")
+        corpora_dir = app.config.get("NC_CORPORA_DIR")
         if mkdir:
             oc.mkdir(str(corpora_dir))
     elif domain == "sparv":
-        corpora_dir = Path(app.config.get("REMOTE_CORPORA_DIR")) / Path(user)
+        corpora_dir = Path(app.config.get("SPARV_CORPORA_DIR")) / Path(user)
     return corpora_dir
 
 
