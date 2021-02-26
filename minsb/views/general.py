@@ -1,8 +1,11 @@
 """Collection of general routes."""
 
+import os
+
+import yaml
 from flask import Blueprint
 from flask import current_app as app
-from flask import redirect, render_template, send_from_directory, url_for
+from flask import jsonify, redirect, render_template, request, url_for
 
 from minsb import utils
 
@@ -17,11 +20,18 @@ def hello():
 
 @bp.route("/api-spec")
 def api_spec():
-    """Return open API specification in yaml."""
-    return send_from_directory(app.static_folder, "oas.yaml")
-    # spec_file = os.path.join(app.static_folder, "oas.yaml")
-    # with open(spec_file, encoding="UTF-8") as f:
-    #     return jsonify(yaml.load(f, Loader=yaml.FullLoader))
+    """Return open API specification in json."""
+    if app.config.get("DEBUG"):
+        host = request.host_url
+    else:
+        # Proxy fix: When not in debug mode, use MIN_SB_URL instead of host URL
+        host = app.config.get("MIN_SB_URL")
+    spec_file = os.path.join(app.static_folder, "oas.yaml")
+    with open(spec_file, encoding="UTF-8") as f:
+        strspec = f.read()
+        # Replace {{host}} in examples with real URL
+        strspec = strspec.replace("{{host}}", host)
+        return jsonify(yaml.safe_load(strspec))
 
 
 @bp.route("/api-doc")

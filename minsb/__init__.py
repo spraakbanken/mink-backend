@@ -23,6 +23,9 @@ def create_app():
     # Set default config
     app.config.from_object("config")
 
+    # Prevent Flask from sorting json
+    app.config['JSON_SORT_KEYS'] = False
+
     # Overwrite with instance config
     if os.path.exists(os.path.join(app.instance_path, "config.py")):
         app.config.from_pyfile(os.path.join(app.instance_path, "config.py"))
