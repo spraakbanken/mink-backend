@@ -4,10 +4,11 @@ import logging
 import os
 import shutil
 import sys
+import time
 
+import memcache
 from flask import Flask, request
 from flask_cors import CORS
-import memcache
 
 from minsb import queue
 
@@ -32,6 +33,20 @@ def create_app():
 
     if app.config.get("DEBUG"):
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
+                            format=logfmt, datefmt=datefmt)
+    else:
+        today = time.strftime("%Y-%m-%d")
+        logdir = os.path.join(app.instance_path, "logs")
+        logfile = os.path.join(logdir, f"{today}.log")
+        # Create log dir if it does not exist
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
+        # Create log file if it does not exist
+        if not os.path.isfile(logfile):
+            with open(logfile, "w") as f:
+                now = time.strftime("%Y-%m-%d %H:%M:%S")
+                f.write("%s CREATED DEBUG FILE\n\n" % now)
+        logging.basicConfig(filename=logfile, level=logging.INFO,
                             format=logfmt, datefmt=datefmt)
 
     # Connect to memcached
