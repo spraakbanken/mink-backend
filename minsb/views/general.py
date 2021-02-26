@@ -27,12 +27,19 @@ def api_spec():
 @bp.route("/api-doc")
 def api_doc():
     """Render HTML API documentation."""
-    app.logger.info("URL: %s", url_for("general.api_spec", _external=True))
-    return render_template('apidoc.html',
-                           title="Min SB API documentation",
-                           favicon=url_for("static", filename="sbx_favicon.svg", _external=True),
-                           spec_url=url_for("general.api_spec", _external=True)
-                           )
+    if app.config.get("DEBUG"):
+        return render_template('apidoc.html',
+                               title="Min SB API documentation",
+                               favicon=url_for("static", filename="sbx_favicon.svg", _external=True),
+                               spec_url=url_for("general.api_spec", _external=True)
+                               )
+    else:
+        # Proxy fix: When not in debug mode, use MIN_SB_URL instead
+        return render_template('apidoc.html',
+                               title="Min SB API documentation",
+                               favicon=app.config.get("MIN_SB_URL") + url_for("static", filename="sbx_favicon.svg"),
+                               spec_url=app.config.get("MIN_SB_URL") + url_for("general.api_spec")
+                               )
 
 
 # @bp.route("/routes")
