@@ -19,9 +19,38 @@ info:
 
     A user must have a valid Nextcloud account at Språkbanken Text. Before any
 
-    data can be uploaded, Min Språkbank must be initialised (see
+    data can be uploaded, Min Språkbank must be initialized (see
 
-    <a href="#operation/initMinSB">init Min SB</a>).'
+    <a href="#operation/initMinSB">init Min SB</a>).
+
+
+    # Workflow
+
+    A workflow for processing data with Sparv via Min Språkbank could look like this:
+
+
+    1. <a href="#operation/initMinSB">Initialize Min Språkbank</a> (only once per
+    user)
+
+    2. <a href="#operation/uploadcorpus">Upload some corpus files</a>
+
+    3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
+
+    4. <a href="#operation/runSparv">Run Sparv</a>
+
+    5. <a href="#operation/checkstatus">Check the status</a>
+
+    6. <a href="#operation/downloadexports">Download export files</a>
+
+
+    Please observe that the user needs to make a ''/check-status'' call after the
+    annotation process in order
+
+    for the export files to be synced to Nextcloud. This is due to authentication
+    restrictions. Once the annotation
+
+    process with Sparv is complete and a ''/check-status'' call is made, the export
+    files will by synced automatically.'
   x-logo:
     url: placeholder
   contact:
@@ -55,7 +84,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Min Språkbank successfully initialized!
               example:
                 status: success
                 message: Min Språkbank successfully initialized!
@@ -64,7 +100,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/404'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to initialize Min Språkbank! Directory 'Min Språkbank'
+                      already exists!
               example:
                 status: error
                 message: Failed to initialize Min Språkbank! Directory 'Min Språkbank'
@@ -95,7 +139,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpus' successfully uploaded!
               example:
                 status: success
                 message: Corpus 'min-testkorpus' successfully uploaded!
@@ -104,7 +155,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/404'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to upload corpus 'min_testkorpus'!
+                  info:
+                    type: string
+                    example: Corpus ID is invalid!
               example:
                 status: error
                 message: Failed to upload corpus 'min_testkorpus'!
@@ -159,12 +220,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Listing available corpora
+                  corpora:
+                    type: array
+                    example: &id001
+                    - min-testkorpus
               example:
                 status: success
                 message: Listing available corpora
-                corpora:
-                - min-testkorpus
+                corpora: *id001
       tags:
       - Manage Data
   /upload-config:
@@ -196,7 +267,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Config file successfully uploaded for 'min-testkorpus'!
               example:
                 status: success
                 message: Config file successfully uploaded for 'min-testkorpus'!
@@ -259,7 +337,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpus' successfully updated!
               example:
                 status: success
                 message: Corpus 'min-testkorpus' successfully updated!
@@ -326,7 +411,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Annotations for 'min-testkorpus' successfully removed!
+                  sparv_output:
+                    type: string
+                    example: '''export'' directory removed
+
+                      ''sparv-workdir'' directory removed'
               example:
                 status: success
                 message: Annotations for 'min-testkorpus' successfully removed!
@@ -365,7 +462,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpus' successfully removed!
               example:
                 status: success
                 message: Corpus 'min-testkorpus' successfully removed!
@@ -374,7 +478,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/404'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpus' does not exist!
               example:
                 status: error
                 message: Corpus 'min-testkorpus' does not exist!
@@ -476,7 +587,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Job has been queued!
+                  job_status:
+                    type: string
+                    example: waiting
+                  priority:
+                    type: integer
+                    example: 1
               example:
                 status: success
                 message: Job has been queued!
@@ -514,7 +638,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Sparv is running!
+                  sparv_output:
+                    type: string
+                    example: 'Progress: 6%'
+                  job_status:
+                    type: string
+                    example: annotating
               example:
                 status: success
                 message: Sparv is running!
@@ -534,6 +671,7 @@ paths:
           headers: {}
       tags:
       - Documentation
+      security: []
   /api-doc:
     get:
       summary: API documentation
@@ -546,6 +684,7 @@ paths:
           headers: {}
       tags:
       - Documentation
+      security: []
   /status-codes:
     get:
       summary: status codes
@@ -558,65 +697,52 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/200'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Listing existing job status codes
+                  status_codes:
+                    type: array
+                    example: &id002
+                    - code: 0
+                      name: none
+                      description: Job does not exist
+                    - code: 1
+                      name: syncing_corpus
+                      description: Syncing from Nextcloud to Sparv server
+                    - code: 2
+                      name: waiting
+                      description: Waiting to be run with Sparv
+                    - code: 3
+                      name: annotating
+                      description: Sparv annotation process is running
+                    - code: 4
+                      name: done_annotating
+                      description: Annotation process is no longer running
+                    - code: 5
+                      name: syncing_results
+                      description: Syncing results from Sparv to Nextcloud
+                    - code: 6
+                      name: done
+                      description: Done processing with Sparv
+                    - code: 7
+                      name: error
+                      description: An error occurred
+                    - code: 8
+                      name: aborted
+                      description: Aborted by the user
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes:
-                - code: 0
-                  name: none
-                  description: Job does not exist
-                - code: 1
-                  name: syncing_corpus
-                  description: Syncing from Nextcloud to Sparv server
-                - code: 2
-                  name: waiting
-                  description: Waiting to be run with Sparv
-                - code: 3
-                  name: annotating
-                  description: Sparv annotation process is running
-                - code: 4
-                  name: done_annotating
-                  description: Annotation process is no longer running
-                - code: 5
-                  name: syncing_results
-                  description: Syncing results from Sparv to Nextcloud
-                - code: 6
-                  name: done
-                  description: Done processing with Sparv
-                - code: 7
-                  name: error
-                  description: An error occurred
-                - code: 8
-                  name: aborted
-                  description: Aborted by the user
+                status_codes: *id002
       tags:
       - Documentation
+      security: []
 components:
-  schemas:
-    '200':
-      type: object
-      properties:
-        status:
-          type: string
-          description: ''
-          default: success
-        message:
-          type: string
-          description: ''
-          default: Min Språkbank successfully initialized!
-    '404':
-      type: object
-      properties:
-        status:
-          type: string
-          description: ''
-          default: error
-        message:
-          type: string
-          description: ''
-          default: Failed to initialize Min Språkbank! Directory 'Min Språkbank' already
-            exists!
   parameters:
     ? ''
     : name: ''
