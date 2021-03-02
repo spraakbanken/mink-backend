@@ -17,11 +17,11 @@ info:
     instance and processing that data with Sparv.
 
 
-    A user must have a valid Nextcloud account at Språkbanken Text. Before any
+    A user must have a valid [Nextcloud account](https://spraakbanken.gu.se/nextcloud)
 
-    data can be uploaded, Min Språkbank must be initialized (see
+    at Språkbanken Text. Before any data can be uploaded, Min Språkbank must be initialized
 
-    <a href="#operation/initMinSB">init Min SB</a>).
+    (see <a href="#operation/initMinSB">init Min SB</a>).
 
 
     # Workflow
@@ -43,13 +43,13 @@ info:
     6. <a href="#operation/downloadexports">Download export files</a>
 
 
-    Please observe that the user needs to make a ''/check-status'' call after the
-    annotation process in order
+    Please note that the user needs to make a `/check-status` call after the annotation
+    process in order
 
     for the export files to be synced to Nextcloud. This is due to authentication
     restrictions. Once the annotation
 
-    process with Sparv is complete and a ''/check-status'' call is made, the export
+    process with Sparv is complete and a `/check-status` call is made, the export
     files will by synced automatically.'
   x-logo:
     url: placeholder
@@ -95,6 +95,26 @@ paths:
               example:
                 status: success
                 message: Min Språkbank successfully initialized!
+        '401':
+          description: init Min SB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
         '404':
           description: init Min SB
           content:
@@ -150,6 +170,26 @@ paths:
               example:
                 status: success
                 message: Corpus 'min-testkorpus' successfully uploaded!
+        '401':
+          description: upload corpus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
         '404':
           description: upload corpus
           content:
@@ -236,6 +276,26 @@ paths:
                 status: success
                 message: Listing available corpora
                 corpora: *id001
+        '401':
+          description: list corpora
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
       tags:
       - Manage Data
   /upload-config:
@@ -278,6 +338,26 @@ paths:
               example:
                 status: success
                 message: Config file successfully uploaded for 'min-testkorpus'!
+        '401':
+          description: upload config
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
       requestBody:
         required: true
         content:
@@ -348,6 +428,26 @@ paths:
               example:
                 status: success
                 message: Corpus 'min-testkorpus' successfully updated!
+        '401':
+          description: update corpus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
       requestBody:
         required: true
         content:
@@ -430,6 +530,26 @@ paths:
                 sparv_output: '''export'' directory removed
 
                   ''sparv-workdir'' directory removed'
+        '401':
+          description: clear annotations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
       tags:
       - Manage Data
   /remove-corpus:
@@ -473,6 +593,26 @@ paths:
               example:
                 status: success
                 message: Corpus 'min-testkorpus' successfully removed!
+        '401':
+          description: remove corpus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
         '404':
           description: remove corpus
           content:
@@ -516,8 +656,65 @@ paths:
           example: min-testkorpus
       responses:
         '200':
-          description: ''
-          headers: {}
+          description: list exports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Current export files for 'min-testkorpus'
+                  contents:
+                    type: array
+                    example: &id002
+                    - name: dokument1.csv
+                      type: text/csv
+                      last_modified: Fri, 26 Feb 2021 13:22:38 GMT
+                      path: /Min Språkbank/min-testkorpus/export/csv
+                    - name: dokument2.csv
+                      type: text/csv
+                      last_modified: Fri, 26 Feb 2021 13:29:23 GMT
+                      path: /Min Språkbank/min-testkorpus/export/csv
+                    - name: stats_mini-swe.csv
+                      type: text/csv
+                      last_modified: Fri, 26 Feb 2021 13:29:07 GMT
+                      path: /Min Språkbank/min-testkorpus/export/frequency_list
+                    - name: dokument1_export.xml
+                      type: application/xml
+                      last_modified: Fri, 26 Feb 2021 13:23:14 GMT
+                      path: /Min Språkbank/min-testkorpus/export/xml_pretty
+                    - name: dokument2_export.xml
+                      type: application/xml
+                      last_modified: Fri, 26 Feb 2021 13:29:31 GMT
+                      path: /Min Språkbank/min-testkorpus/export/xml_pretty
+              example:
+                status: success
+                message: Current export files for 'min-testkorpus'
+                contents: *id002
+        '401':
+          description: list exports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
       tags:
       - Manage Data
   /download-exports:
@@ -545,8 +742,30 @@ paths:
           example: min-testkorpus
       responses:
         '200':
-          description: ''
-          headers: {}
+          description: download exports
+          content:
+            application/zip:
+              schema: {}
+        '401':
+          description: download exports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
       tags:
       - Manage Data
   /run-sparv:
@@ -606,6 +825,26 @@ paths:
                 message: Job has been queued!
                 job_status: waiting
                 priority: 1
+        '401':
+          description: run Sparv
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
       tags:
       - Process Corpus
   /check-status:
@@ -657,6 +896,54 @@ paths:
                 message: Sparv is running!
                 sparv_output: 'Progress: 6%'
                 job_status: annotating
+        '401':
+          description: check status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+        '404':
+          description: check status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: An error occurred while annotating!
+                  sparv_output:
+                    type: string
+                    example: 'Sparv exited with the following error messages: The
+                      following output files were expected but are missing:  • sparv-workdir/dokument1/textt/@span
+                      There can be many reasons for this. Please make sure that there
+                      are no problems  with the corpus configuration file, like misspelled
+                      annotation names or  references to non-existent source annotations.'
+              example:
+                status: error
+                message: An error occurred while annotating!
+                sparv_output: 'Sparv exited with the following error messages: The
+                  following output files were expected but are missing:  • sparv-workdir/dokument1/textt/@span
+                  There can be many reasons for this. Please make sure that there
+                  are no problems  with the corpus configuration file, like misspelled
+                  annotation names or  references to non-existent source annotations.'
       tags:
       - Process Corpus
   /api-spec:
@@ -707,7 +994,7 @@ paths:
                     example: Listing existing job status codes
                   status_codes:
                     type: array
-                    example: &id002
+                    example: &id003
                     - code: 0
                       name: none
                       description: Job does not exist
@@ -738,7 +1025,7 @@ paths:
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes: *id002
+                status_codes: *id003
       tags:
       - Documentation
       security: []
