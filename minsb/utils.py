@@ -64,10 +64,13 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
             try:
                 oc = owncloud.Client(app.config.get("NC_DOMAIN", ""))
                 oc.login(user, password)
+                # Hack: oc.login() does not seem to raise an error when authentication fails, but oc.list() will.
+                dir_listing = oc.list("/")
+                app.logger.debug("%s logged in", user)
 
                 user = shlex.quote(user)
                 if not require_init:
-                    return function(oc, user, *args, **kwargs)
+                    return function(oc, user, dir_listing, *args, **kwargs)
 
                 # Check if Min SB was initialized
                 try:

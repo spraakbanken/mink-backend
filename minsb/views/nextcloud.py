@@ -14,12 +14,11 @@ bp = Blueprint("nextcloud", __name__)
 
 @bp.route("/init", methods=["POST"])
 @utils.login(require_init=False, require_corpus_id=False, require_corpus_exists=False)
-def init(oc, _user):
+def init(oc, _user, dir_listing):
     """Create corpora directory."""
     try:
         corpora_dir = app.config.get("NC_CORPORA_DIR")
-        listing = oc.list("/")
-        if corpora_dir in [e.get_name() for e in listing]:
+        if corpora_dir in [e.get_name() for e in dir_listing]:
             # Corpora dir already exists
             return utils.response(f"Failed to initialize Min Språkbank! Directory '{corpora_dir}' already exists!",
                                   err=True), 404
