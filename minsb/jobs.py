@@ -166,7 +166,6 @@ class Job():
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            # return utils.response("Failed to run Sparv!", err=True, stderr=stderr), 404
             self.set_status(Status.error)
             raise Exception(f"Failed to run Sparv! {stderr}")
 
@@ -179,7 +178,6 @@ class Job():
         """Abort running Sparv process."""
         self.set_status(Status.aborted)
         # TODO!
-        pass
 
     def process_running(self):
         """Check if process with this job's pid is still running on Sparv server."""
@@ -191,8 +189,13 @@ class Job():
         if p.stderr:
             app.logger.debug(f"stderr: '{p.stderr.decode()}'")
             if p.stderr.decode().endswith("No such process\n"):
-                self.set_status(Status.done_annotating)
                 self.pid = None
+                output = self.get_output()
+                if (output.startswith("The exported files can be found in the following locations:")
+                        or output.startswith("Nothing to be Done.")):
+                    self.set_status(Status.done_annotating)
+                else:
+                    self.set_status(Status.error)
                 return False
             if p.stderr.decode().endswith("Operation not permitted\n"):
                 # TODO: what do we do if we don't have permission to check the process?
@@ -209,7 +212,7 @@ class Job():
         remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id))
 
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"cd /home/{self.sparv_user}/{remote_corpus_dir} && tail {nohupfile}"],
+                            f"cd /home/{self.sparv_user}/{remote_corpus_dir} && cat {nohupfile}"],
                            capture_output=True)
 
         stdout = p.stdout.decode().strip().split("\n") if p.stdout else ""
@@ -241,7 +244,7 @@ class Job():
 
     def remove_from_sparv(self):
         """Remove corpus dir from the Sparv server and abort running job if necessary."""
-        self.remove(abort=True)
+        self.abort_sparv()
 
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"rm -rf /home/{self.sparv_user}/{self.remote_corpus_dir}"],

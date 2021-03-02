@@ -118,7 +118,8 @@ def make_status_response(job, oc):
         try:
             job.sync_results(oc)
         except Exception as e:
-            return utils.response("Failed to upload exports to Nextcloud!", err=True, info=str(e)), 404
+            return utils.response("Sparv was run successfully but exports failed to upload to Nextcloud!",
+                                  err=True, info=str(e)), 404
         return utils.response("Sparv was run successfully! Starting to sync results.",
                               sparv_output=output, job_status=status.name)
 
@@ -128,11 +129,10 @@ def make_status_response(job, oc):
     if status == jobs.Status.done:
         return utils.response("Corpus is done processing!", sparv_output=output, job_status=status.name)
 
+    if status == jobs.Status.error:
+        return utils.response("An error occurred while annotating!", err=True, sparv_output=output), 404
+
     if status == jobs.Status.aborted:
         return utils.response("Job was aborted by the user!", job_status=status.name)
-
-    # TODO: Error handling
-    # if status == jobs.Status.error:
-    #     return utils.response("An error occurred while annotating!", err=True), 404
 
     return utils.response("Cannot handle this Sparv status yet!", sparv_output=output, job_status=status.name), 501
