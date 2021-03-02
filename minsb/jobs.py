@@ -66,12 +66,12 @@ class Job():
         dump = json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
                            "sparv_exports": self.sparv_exports})
         # Save in cache
-        mc = app.config.get("cache_client")
-        mc.set(self.id, dump)
+        utils.memcached_set(self.id, dump)
         # Save backup to file system queue
         queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
         queue_dir.mkdir(exist_ok=True)
-        with (queue_dir / Path(self.id)).open("w") as f:
+        backup_file = queue_dir / Path(self.id)
+        with backup_file.open("w") as f:
             f.write(dump)
 
     def remove(self, abort=False):
@@ -267,10 +267,9 @@ class Job():
 
 def get_job(user, corpus_id, sparv_exports=None, save=False):
     """Get an existing job from the cache or create a new one."""
-    mc = app.config.get("cache_client")
     job = Job(user, corpus_id, sparv_exports=sparv_exports)
-    if mc.get(job.id) is not None:
-        return load_from_str(mc.get(job.id))
+    if utils.memcached_get(job.id) is not None:
+        return load_from_str(utils.memcached_get(job.id))
     if save:
         job.save()
     return job

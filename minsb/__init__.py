@@ -6,11 +6,10 @@ import shutil
 import sys
 import time
 
-import memcache
 from flask import Flask, request
 from flask_cors import CORS
 
-from minsb import queue
+from minsb import queue, utils
 
 
 def create_app():
@@ -53,8 +52,8 @@ def create_app():
                             format=logfmt, datefmt=datefmt)
 
     # Connect to memcached
-    socket_path = os.path.join(app.instance_path, app.config.get("MEMCACHED_SOCKET"))
-    app.config["cache_client"] = memcache.Client([f"unix:{socket_path}"], debug=1)
+    with app.app_context():
+        utils.connect_to_memcached()
 
     # Init job queue
     with app.app_context():

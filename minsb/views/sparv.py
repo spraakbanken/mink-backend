@@ -38,7 +38,7 @@ def run_sparv(oc, user, _corpora, corpus_id):
 
 
 @bp.route("/start-annotation", methods=["PUT"])
-@utils.gatekeeper
+@utils.gatekeeper()
 def start_annotation(user, corpus_id):
     """Start annotation process for given corpus (when syncing is done).
 
@@ -55,7 +55,7 @@ def start_annotation(user, corpus_id):
 
 
 @bp.route("/check-running", methods=["GET"])
-@utils.gatekeeper
+@utils.gatekeeper()
 def check_running(user, corpus_id):
     """Check whether a process for a given corpus is still running.
 

@@ -7,13 +7,14 @@ import shlex
 import zipfile
 from pathlib import Path
 
+import memcache
 import owncloud
 from dateutil.parser import parse
 from flask import Response
 from flask import current_app as app
 from flask import request
 
-from minsb import paths
+from minsb import paths, queue
 
 
 def response(msg, err=False, **kwargs):
@@ -24,27 +25,32 @@ def response(msg, err=False, **kwargs):
     return Response(json.dumps(res, ensure_ascii=False), mimetype="application/json")
 
 
-def gatekeeper(function):
+def gatekeeper(require_corpus_id=True):
     """Make sure that only the protected user can access the decorated endpoint."""
-    @functools.wraps(function)  # Copy original function's information, needed by Flask
-    def wrapper(*args, **kwargs):
-        # if not request.authorization:
-        #     return response("No login credentials provided!", err=True), 401
-        # username = request.authorization.get("username")
-        # password = request.authorization.get("password")
-        # if not (username and password):
-        #     return response("Username or password missing!", err=True), 401
-        user = request.args.get("user") or request.form.get("user") or ""
-        corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id") or ""
-        if not (user and corpus_id):
-            return response("Information missing, 'user' and 'corpus_id' must be specified!", err=True), 404
-        # try:
-        # #   TODO: Do authentication somehow...
-        #     return function(*args, **kwargs)
-        # except Exception as e:
-        #     return response(f"Could not authenticate! {e}", err=True), 401
-        return function(user, corpus_id, *args, **kwargs)
-    return wrapper
+    def decorator(function):
+        @functools.wraps(function)  # Copy original function's information, needed by Flask
+        def wrapper(*args, **kwargs):
+            # if not request.authorization:
+            #     return response("No login credentials provided!", err=True), 401
+            # username = request.authorization.get("username")
+            # password = request.authorization.get("password")
+            # if not (username and password):
+            #     return response("Username or password missing!", err=True), 401
+            if not require_corpus_id:
+                return function(*args, **kwargs)
+
+            user = request.args.get("user") or request.form.get("user") or ""
+            corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id") or ""
+            if not (user and corpus_id):
+                return response("Information missing, 'user' and 'corpus_id' must be specified!", err=True), 404
+            # try:
+            # #   TODO: Do authentication somehow...
+            #     return function(*args, **kwargs)
+            # except Exception as e:
+            #     return response(f"Could not authenticate! {e}", err=True), 401
+            return function(user, corpus_id, *args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def login(require_init=True, require_corpus_id=True, require_corpus_exists=True):
@@ -214,3 +220,33 @@ def check_file(filename, valid_extensions=None):
         if filename.suffix not in valid_extensions:
             return False
     return filename
+
+
+def connect_to_memcached():
+    """Connect to the memcached socket."""
+    socket_path = Path(app.instance_path) / app.config.get("MEMCACHED_SOCKET")
+    app.config["cache_client"] = memcache.Client([f"unix:{socket_path}"], debug=1)
+
+
+def memcached_get(key):
+    """
+    Get 'key' from memcached and return it.
+
+    Initialise the queue if it has not been initialised (e.g. after memcached restart).
+    """
+    mc = app.config.get("cache_client")
+    if mc.get("queue_initialized") is None:
+        queue.init_queue()
+    return mc.get(key)
+
+
+def memcached_set(key, value):
+    """
+    Set 'item' to 'value' in memcached.
+
+    Initialise the queue if it has not been initialised (e.g. after memcached restart).
+    """
+    mc = app.config.get("cache_client")
+    if mc.get("queue_initialized") is None:
+        queue.init_queue()
+    return mc.set(key, value)

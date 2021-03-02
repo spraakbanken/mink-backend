@@ -14,7 +14,14 @@ def check_queue(config):
     # Connect to memcached
     socket_path = Path("instance") / Path(config.get("MEMCACHED_SOCKET"))
     mc = memcache.Client([f"unix:{str(socket_path)}"], debug=1)
-    q = mc.get("queue")
+    if not mc.get("queue_initialized"):
+        try:
+            req = request.Request(f"{config.get('MIN_SB_URL')}/init-queue", method="GET")
+            with request.urlopen(req) as f:
+                print(f.read().decode("UTF-8"))
+        except error.HTTPError as e:
+            print("Error!", e)
+    q = mc.get("queue") or []
 
     # Check how many jobs are running/waiting to be run
     running_jobs = []

@@ -7,15 +7,17 @@ from pathlib import Path
 
 from flask import current_app as app
 
-from minsb import jobs
+from minsb import jobs, utils
 
 
 def init_queue():
     """Initiate a queue from the filesystem."""
-    queue = []
-    queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
-    queue_dir.mkdir(exist_ok=True)
+    app.logger.info("Initializing queue")
     mc = app.config.get("cache_client")
+    mc.set("queue_initialized", True)
+    queue = []
+    queue_dir = Path(app.instance_path) / app.config.get("QUEUE_DIR")
+    queue_dir.mkdir(exist_ok=True)
 
     for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
         with f.open() as fobj:
@@ -31,8 +33,7 @@ def init_queue():
 
 def add(job):
     """Add a job item to the queue."""
-    mc = app.config.get("cache_client")
-    queue = mc.get("queue")
+    queue = utils.memcached_get("queue")
 
     # Avoid starting multiple jobs for same corpus simultaneously
     if job.id in queue and jobs.Status.none < job.status < jobs.Status.done:
@@ -40,34 +41,31 @@ def add(job):
 
     job.set_status(jobs.Status.waiting)
     queue.append(job.id)
-    mc.set("queue", queue)
-    app.logger.debug(f"Queue in cache: {mc.get('queue')}")
+    utils.memcached_set("queue", queue)
+    app.logger.debug(f"Queue in cache: {utils.memcached_get('queue')}")
     return job
 
 
 def get():
     """Get the first job item from the queue."""
-    mc = app.config.get("cache_client")
-    queue = mc.get("queue")
-    job = mc.get(queue[0])
+    queue = utils.memcached_get("queue")
+    job = utils.memcached_get(queue[0])
     return job
 
 
 def remove(job):
     """Remove job item from queue, e.g. when a job is aborted or a corpus is deleted."""
-    mc = app.config.get("cache_client")
-    queue = mc.get("queue")
+    queue = utils.memcached_get("queue")
 
     if job.id in queue:
         job = queue.pop(queue.index(job.id))
-        mc.set("queue", queue)
+        utils.memcached_set("queue", queue)
         job.remove(abort=True)
 
 
 def get_priority(job):
     """Get the queue priority of the job."""
-    mc = app.config.get("cache_client")
-    queue = mc.get("queue")
+    queue = utils.memcached_get("queue")
     try:
         return queue.index(job.id) + 1
     except ValueError:
