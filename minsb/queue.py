@@ -40,6 +40,8 @@ def add(job):
         raise Exception("There is an unfinished job for this corpus!")
 
     job.set_status(jobs.Status.waiting)
+    if job.id in queue:
+        queue.pop(queue.index(job.id))
     queue.append(job.id)
     utils.memcached_set("queue", queue)
     app.logger.debug(f"Queue in cache: {utils.memcached_get('queue')}")

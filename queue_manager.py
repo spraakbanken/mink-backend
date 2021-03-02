@@ -70,6 +70,7 @@ def check_queue(config):
                 print(f.read().decode("UTF-8"))
         except error.HTTPError as e:
             print("Error!", e)
+            break
 
     # For jobs with status "annotating", check if process is still running
     for job in running_jobs:
