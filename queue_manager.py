@@ -1,4 +1,11 @@
-"""Script for advancing the job queue with scheduled jobs."""
+"""Script for advancing the job queue with scheduled jobs.
+
+This scheduler will
+
+1. Unqueue jobs that are done, aborted or erroneous
+2. Run the next job in the queue if there are fewer running jobs than allowed
+3. For jobs with status "annotating", check if process is still running
+"""
 
 import json
 import os
@@ -21,23 +28,40 @@ def check_queue(config):
                 print(f.read().decode("UTF-8"))
         except error.HTTPError as e:
             print("Error!", e)
+            return
     q = mc.get("queue") or []
 
-    # Check how many jobs are running/waiting to be run
+    # Do not continue if queue is empty
+    if not q:
+        print("Empty queue")
+        return
+
+    # Check how many jobs are running/waiting to be run or old
     running_jobs = []
     waiting_jobs = []
+    old_jobs = []
     for j in q:
         job_info = json.loads(mc.get(j))
-        if job_info.get("status") == "annotating":
+        status = job_info.get("status")
+        if status == "annotating":
             running_jobs.append(job_info)
-        elif job_info.get("status") == "waiting":
+        elif status == "waiting":
             waiting_jobs.append(job_info)
+        elif status in ["done", "error", "aborted"]:
+            old_jobs.append(j)
+
+    # Unqueue jobs that are done, aborted or erroneous
+    if old_jobs:
+        for job in old_jobs:
+            print(f"Removing {job}")
+            q.pop(q.index(job))
+        mc.set("queue", q)
 
     print(f"Running: {len(running_jobs)} Waiting: {len(waiting_jobs)}")
 
     # If there are fewer running jobs than allowed, start the next one in the queue
-    if waiting_jobs and len(running_jobs) < config.get("SPARV_WORKERS", 1):
-        job = waiting_jobs[0]
+    while waiting_jobs and len(running_jobs) < config.get("SPARV_WORKERS", 1):
+        job = waiting_jobs.pop(0)
         url = f"{config.get('MIN_SB_URL')}/start-annotation"
         try:
             data = parse.urlencode({"user": job.get("user"), "corpus_id": job.get("corpus_id")}).encode()

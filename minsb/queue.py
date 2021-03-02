@@ -58,9 +58,8 @@ def remove(job):
     queue = utils.memcached_get("queue")
 
     if job.id in queue:
-        job = queue.pop(queue.index(job.id))
+        queue.pop(queue.index(job.id))
         utils.memcached_set("queue", queue)
-        job.remove(abort=True)
 
 
 def get_priority(job):
