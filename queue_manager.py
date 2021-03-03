@@ -23,7 +23,8 @@ def check_queue(config):
     mc = memcache.Client([f"unix:{str(socket_path)}"], debug=1)
     if not mc.get("queue_initialized"):
         try:
-            req = request.Request(f"{config.get('MIN_SB_URL')}/init-queue", method="GET")
+            req = request.Request(f"{config.get('MIN_SB_URL')}/init-queue?secret_key={config.get('MIN_SB_SECRET_KEY')}",
+                                  method="GET")
             with request.urlopen(req) as f:
                 print(f.read().decode("UTF-8"))
         except error.HTTPError as e:
@@ -64,7 +65,8 @@ def check_queue(config):
         job = waiting_jobs.pop(0)
         url = f"{config.get('MIN_SB_URL')}/start-annotation"
         try:
-            data = parse.urlencode({"user": job.get("user"), "corpus_id": job.get("corpus_id")}).encode()
+            data = parse.urlencode({"secret_key": config.get("MIN_SB_SECRET_KEY"), "user": job.get("user"),
+                                    "corpus_id": job.get("corpus_id")}).encode()
             req = request.Request(url, data=data, method="PUT")
             with request.urlopen(req) as f:
                 print(f.read().decode("UTF-8"))
@@ -76,7 +78,8 @@ def check_queue(config):
     for job in running_jobs:
         url = f"{config.get('MIN_SB_URL')}/check-running"
         try:
-            data = parse.urlencode({"user": job.get("user"), "corpus_id": job.get("corpus_id")}).encode()
+            data = parse.urlencode({"secret_key": config.get("MIN_SB_SECRET_KEY"), "user": job.get("user"),
+                                    "corpus_id": job.get("corpus_id")}).encode()
             req = request.Request(url, data=data, method="GET")
             with request.urlopen(req) as f:
                 print(f.read().decode("UTF-8"))

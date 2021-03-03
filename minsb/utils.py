@@ -30,12 +30,9 @@ def gatekeeper(require_corpus_id=True):
     def decorator(function):
         @functools.wraps(function)  # Copy original function's information, needed by Flask
         def wrapper(*args, **kwargs):
-            # if not request.authorization:
-            #     return response("No login credentials provided!", err=True), 401
-            # username = request.authorization.get("username")
-            # password = request.authorization.get("password")
-            # if not (username and password):
-            #     return response("Username or password missing!", err=True), 401
+            secret_key = request.args.get("secret_key") or request.form.get("secret_key")
+            if secret_key != app.config.get("MIN_SB_SECRET_KEY"):
+                return response("Failed to confirm secret key for protected route!", err=True), 401
             if not require_corpus_id:
                 return function(*args, **kwargs)
 
@@ -43,11 +40,6 @@ def gatekeeper(require_corpus_id=True):
             corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id") or ""
             if not (user and corpus_id):
                 return response("Information missing, 'user' and 'corpus_id' must be specified!", err=True), 404
-            # try:
-            # #   TODO: Do authentication somehow...
-            #     return function(*args, **kwargs)
-            # except Exception as e:
-            #     return response(f"Could not authenticate! {e}", err=True), 401
             return function(user, corpus_id, *args, **kwargs)
         return wrapper
     return decorator
