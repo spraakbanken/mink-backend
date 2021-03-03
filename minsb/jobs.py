@@ -119,7 +119,7 @@ class Job():
         # Create user and corpus dir on Sparv server
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"cd /home/{self.sparv_user} && mkdir -p {self.remote_corpus_dir} && "
-                            f"rm -f {self.nohupfile} {self.runscript}"], capture_output=True)
+                            f"rm -f {self.nohupfile} {self.runscript}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
@@ -135,7 +135,7 @@ class Job():
         # Sync corpus config to Sparv server
         p = subprocess.run(["rsync", "-av", paths.get_config_file(user=self.user, corpus_id=self.corpus_id),
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
-                           capture_output=True)
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to copy corpus config file to Sparv server! {p.stderr.decode()}")
@@ -145,7 +145,7 @@ class Job():
         local_source_dir = paths.get_source_dir(user=self.user, corpus_id=self.corpus_id)
         p = subprocess.run(["rsync", "-av", "--delete", local_source_dir,
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
-                           capture_output=True)
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to copy corpus files to Sparv server! {p.stderr.decode()}")
@@ -162,7 +162,7 @@ class Job():
                              f" && echo '{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' > {self.runscript}"
                              f" && chmod +x {self.runscript} && ./{self.runscript}")],
                            # f" && nohup {sparv_command} > {nohupfile} 2>&1 & echo $!")],
-                           capture_output=True)
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -213,7 +213,7 @@ class Job():
 
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"cd /home/{self.sparv_user}/{remote_corpus_dir} && cat {nohupfile}"],
-                           capture_output=True)
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout = p.stdout.decode().strip().split("\n") if p.stdout else ""
         if stdout[-1].startswith("Progress:"):
@@ -230,7 +230,7 @@ class Job():
 
         remote_export_dir = paths.get_export_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id)
         p = subprocess.run(["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}",
-                            local_corpus_dir], capture_output=True)
+                            local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
             return utils.response("Failed to retrieve Sparv exports!", err=True, info=p.stderr.decode()), 404
 
