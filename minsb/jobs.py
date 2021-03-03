@@ -186,22 +186,19 @@ class Job():
 
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"kill -0 {self.pid}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if p.stderr:
+        if p.returncode == 0:
+            self.set_status(Status.annotating)
+            return True
+        else:
             app.logger.debug(f"stderr: '{p.stderr.decode()}'")
-            if p.stderr.decode().endswith("No such process\n"):
-                self.pid = None
-                output = self.get_output()
-                if (output.startswith("The exported files can be found in the following locations:")
-                        or output.startswith("Nothing to be Done.")):
-                    self.set_status(Status.done_annotating)
-                else:
-                    self.set_status(Status.error)
-                return False
-            if p.stderr.decode().endswith("Operation not permitted\n"):
-                # TODO: what do we do if we don't have permission to check the process?
-                return False
-        self.set_status(Status.annotating)
-        return True
+            self.pid = None
+            output = self.get_output()
+            if (output.startswith("The exported files can be found in the following locations:")
+                    or output.startswith("Nothing to be Done.")):
+                self.set_status(Status.done_annotating)
+            else:
+                self.set_status(Status.error)
+            return False
 
     def get_output(self):
         """Check latest Sparv output of this job by reading the nohup file."""
