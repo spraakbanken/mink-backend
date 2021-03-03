@@ -48,7 +48,9 @@ def create_app():
             with open(logfile, "w") as f:
                 now = time.strftime("%Y-%m-%d %H:%M:%S")
                 f.write("%s CREATED DEBUG FILE\n\n" % now)
-        logging.basicConfig(filename=logfile, level=logging.INFO,
+
+        log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper())
+        logging.basicConfig(filename=logfile, level=log_level,
                             format=logfmt, datefmt=datefmt)
 
     # Connect to memcached

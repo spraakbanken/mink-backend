@@ -3,6 +3,8 @@
 Can be overridden with config.py in instance folder.
 """
 
+LOG_LEVEL = "INFO"   # Log level for the application
+
 # Nextcloud settings
 NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"  # Nextcloud domain
 NC_CORPORA_DIR = "Min Språkbank"  # Directory on Nextcloud where the corpora are stored
@@ -29,7 +31,7 @@ SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"          # Temporary Sparv run script crea
 # Local files relative to flask instance dir
 TMP_DIR = "tmp"                      # Temporary file storage
 MEMCACHED_SOCKET = "memcached.sock"  # Memcached socket file
-QUEUE_DIR = "queue"
+QUEUE_DIR = "queue"                  # Directory for storing job files
 
 # Settings for queue manager
 MIN_SB_URL = "https://ws.spraakbanken.gu.se/ws/min-sb"  # URL for min-sb API
