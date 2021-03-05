@@ -24,7 +24,9 @@ def init_queue():
             job = jobs.load_from_str(fobj.read())
             job.save()
             app.logger.debug(f"Job in cache: '{mc.get(job.id)}'")
-        queue.append(job.id)
+        # Queue job unless it is done, aborted or erroneous
+        if job.status not in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
+            queue.append(job.id)
 
     mc.set("queue", queue)
     app.logger.debug(f"Queue in cache: {mc.get('queue')}")
