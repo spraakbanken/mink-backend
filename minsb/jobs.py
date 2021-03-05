@@ -212,7 +212,7 @@ class Job():
             self.set_pid(None)
             output = self.get_output()
             if (output.startswith("The exported files can be found in the following locations:")
-                    or output.startswith("Nothing to be Done.")):
+                    or output.startswith("Nothing to be done.")):
                 self.set_status(Status.done_annotating)
             else:
                 self.set_status(Status.error)
@@ -233,7 +233,7 @@ class Job():
         stdout = p.stdout.decode().strip().split("\n") if p.stdout else ""
         if stdout and stdout[-1].startswith("Progress:"):
             return stdout[-1]
-        return " ".join([line for line in stdout if line and not line.startswith("Progress:")])
+        return " ".join([line for line in stdout if line.strip() and not line.startswith("Progress:")])
 
     def sync_results(self, oc):
         """Sync exports from Sparv server to Nextcloud."""
