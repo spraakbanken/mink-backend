@@ -9,8 +9,7 @@ from pathlib import Path
 
 from flask import current_app as app
 
-from minsb import paths, utils
-
+from minsb import exceptions, paths, utils
 
 _status_count = count(0)
 
@@ -78,9 +77,14 @@ class Job():
         """Remove a job item from the cache and file system."""
         if self.status == Status.annotating:
             if abort:
-                self.abort_sparv()
+                try:
+                    self.abort_sparv()
+                except exceptions.ProcessNotRunning:
+                    pass
+                except Exception as e:
+                    raise e
             else:
-                raise Exception("Job cannot be removed due to a running Sparv process!")
+                raise exceptions.JobError("Job cannot be removed due to a running Sparv process!")
 
         # Remove from cache
         mc = app.config.get("cache_client")
@@ -95,6 +99,11 @@ class Job():
         if not self.status == status:
             self.status = status
             self.save()
+
+    def set_pid(self, pid):
+        """Set pid of job and save."""
+        self.pid = pid
+        self.save()
 
     def sync_to_sparv(self, oc):
         """Sync corpus files from Nextcloud to the Sparv server."""
@@ -167,17 +176,26 @@ class Job():
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
             self.set_status(Status.error)
-            raise Exception(f"Failed to run Sparv! {stderr}")
+            raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
 
         # Get pid from Sparv process and store job info
-        self.pid = int(p.stdout.decode())
-        self.save()
+        self.set_pid(int(p.stdout.decode()))
         self.set_status(Status.annotating)
 
     def abort_sparv(self):
         """Abort running Sparv process."""
-        self.set_status(Status.aborted)
-        # TODO!
+        if not self.status == Status.annotating:
+            raise exceptions.ProcessNotRunning("Failed to abort job because Sparv was not running!")
+        if not self.pid:
+            raise exceptions.ProcessNotFound("Failed to abort job because no process ID was found!")
+
+        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
+                            f"kill -SIGTERM {self.pid}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if p.returncode == 0:
+            self.set_pid(None)
+            self.set_status(Status.aborted)
+        else:
+            raise exceptions.JobError(f"Failed to abort job! Error: '{p.stderr.decode()}'")
 
     def process_running(self):
         """Check if process with this job's pid is still running on Sparv server."""
@@ -191,7 +209,7 @@ class Job():
             return True
         else:
             app.logger.debug(f"stderr: '{p.stderr.decode()}'")
-            self.pid = None
+            self.set_pid(None)
             output = self.get_output()
             if (output.startswith("The exported files can be found in the following locations:")
                     or output.startswith("Nothing to be Done.")):
@@ -213,7 +231,7 @@ class Job():
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout = p.stdout.decode().strip().split("\n") if p.stdout else ""
-        if stdout[-1].startswith("Progress:"):
+        if stdout and stdout[-1].startswith("Progress:"):
             return stdout[-1]
         return " ".join([line for line in stdout if line and not line.startswith("Progress:")])
 
@@ -241,7 +259,12 @@ class Job():
 
     def remove_from_sparv(self):
         """Remove corpus dir from the Sparv server and abort running job if necessary."""
-        self.abort_sparv()
+        try:
+            self.abort_sparv()
+        except exceptions.ProcessNotRunning:
+            pass
+        except Exception as e:
+            raise e
 
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"rm -rf /home/{self.sparv_user}/{self.remote_corpus_dir}"],

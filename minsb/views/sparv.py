@@ -6,7 +6,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request
 
-from minsb import jobs, queue, utils
+from minsb import exceptions, jobs, queue, utils
 
 bp = Blueprint("sparv", __name__)
 
@@ -79,6 +79,20 @@ def check_status(oc, user, _corpora, corpus_id):
     return make_status_response(job, oc)
 
 
+@bp.route("/abort-job", methods=["POST"])
+@utils.login()
+def abort_job(_oc, user, _corpora, corpus_id):
+    """Try to abort a running job."""
+    job = jobs.get_job(user, corpus_id)
+    try:
+        job.abort_sparv()
+    except exceptions.ProcessNotRunning:
+        return utils.response(f"No running job found for '{corpus_id}'.")
+    except Exception as e:
+        return utils.response(f"Failed to abort job for '{corpus_id}'!", err=True, info=str(e)), 404
+    return utils.response(f"Successfully aborted running job for '{corpus_id}'.", job_status=job.status.name)
+
+
 @bp.route("/clear-annotations", methods=["DELETE"])
 @utils.login()
 def clear_annotations(oc, user, _corpora, corpus_id):
@@ -108,6 +122,9 @@ def make_status_response(job, oc):
     if status == jobs.Status.waiting:
         return utils.response("Job has been queued!", job_status=status.name, priority=queue.get_priority(job))
 
+    if status == jobs.Status.aborted:
+        return utils.response("Job was aborted by the user!", job_status=status.name)
+
     output = job.get_output()
 
     if status == jobs.Status.annotating:
@@ -131,8 +148,5 @@ def make_status_response(job, oc):
 
     if status == jobs.Status.error:
         return utils.response("An error occurred while annotating!", err=True, sparv_output=output), 404
-
-    if status == jobs.Status.aborted:
-        return utils.response("Job was aborted by the user!", job_status=status.name)
 
     return utils.response("Cannot handle this Sparv status yet!", sparv_output=output, job_status=status.name), 501

@@ -946,6 +946,72 @@ paths:
                   annotation names or  references to non-existent source annotations.'
       tags:
       - Process Corpus
+  /abort-job:
+    post:
+      summary: abort job
+      description: 'Attempts to abort a running Sparv job.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X POST -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/abort-job''
+
+        ```'
+      operationId: abortjob
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: abort job
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Successfully aborted running job for 'min-testkorpus'.
+                  job_status:
+                    type: string
+                    example: aborted
+              example:
+                status: success
+                message: Successfully aborted running job for 'min-testkorpus'.
+                job_status: aborted
+        '401':
+          description: abort job
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+      tags:
+      - Process Corpus
   /api-spec:
     get:
       summary: API specification
