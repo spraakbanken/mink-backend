@@ -8,7 +8,9 @@ This scheduler will
 """
 
 import json
-import os
+import logging
+import sys
+import time
 from pathlib import Path
 from urllib import error, parse, request
 
@@ -26,15 +28,15 @@ def check_queue(config):
             req = request.Request(f"{config.get('MIN_SB_URL')}/init-queue?secret_key={config.get('MIN_SB_SECRET_KEY')}",
                                   method="GET")
             with request.urlopen(req) as f:
-                print(f.read().decode("UTF-8"))
+                logging.debug(f.read().decode("UTF-8"))
         except error.HTTPError as e:
-            print("Error!", e)
+            logging.error(f"Error! {e}")
             return
     q = mc.get("queue") or []
 
     # Do not continue if queue is empty
     if not q:
-        print("Empty queue")
+        logging.debug("Empty queue")
         return
 
     # Check how many jobs are running/waiting to be run or old
@@ -54,24 +56,25 @@ def check_queue(config):
     # Unqueue jobs that are done, aborted or erroneous
     if old_jobs:
         for job in old_jobs:
-            print(f"Removing {job}")
+            logging.info(f"Removing {job}")
             q.pop(q.index(job))
         mc.set("queue", q)
 
-    print(f"Running: {len(running_jobs)} Waiting: {len(waiting_jobs)}")
+    logging.info(f"Running: {len(running_jobs)} Waiting: {len(waiting_jobs)}")
 
     # If there are fewer running jobs than allowed, start the next one in the queue
     while waiting_jobs and len(running_jobs) < config.get("SPARV_WORKERS", 1):
         job = waiting_jobs.pop(0)
+        logging.info(f"Start annotation for job {job}")
         url = f"{config.get('MIN_SB_URL')}/start-annotation"
         try:
             data = parse.urlencode({"secret_key": config.get("MIN_SB_SECRET_KEY"), "user": job.get("user"),
                                     "corpus_id": job.get("corpus_id")}).encode()
             req = request.Request(url, data=data, method="PUT")
             with request.urlopen(req) as f:
-                print(f.read().decode("UTF-8"))
+                logging.debug(f.read().decode("UTF-8"))
         except error.HTTPError as e:
-            print("Error!", e)
+            logging.error(f"Error! {e}")
             break
 
     # For jobs with status "annotating", check if process is still running
@@ -82,9 +85,9 @@ def check_queue(config):
                                     "corpus_id": job.get("corpus_id")}).encode()
             req = request.Request(url, data=data, method="GET")
             with request.urlopen(req) as f:
-                print(f.read().decode("UTF-8"))
+                logging.info(f.read().decode("UTF-8"))
         except error.HTTPError as e:
-            print("Error!", e)
+            logging.error(f"Error! {e}")
 
 
 def import_config():
@@ -92,7 +95,7 @@ def import_config():
     import config
     Config = {item: getattr(config, item) for item in dir(config) if item.isupper()}
 
-    user_config_path = Path("instance") / Path("config.py")
+    user_config_path = Path("instance") / "config.py"
     if user_config_path.is_file():
         from instance import config as user_config
         User_Config = {item: getattr(user_config, item) for item in dir(user_config) if item.isupper()}
@@ -105,10 +108,35 @@ if __name__ == '__main__':
     # Load config
     config = import_config()
 
+    # Configure logger
+    logfmt = "%(asctime)-15s - %(levelname)s: %(message)s"
+    datefmt = "%Y-%m-%d %H:%M:%S"
+
+    if sys.stdin.isatty():
+        # Script is run interactively: log to console on debug level
+        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=logfmt, datefmt=datefmt)
+    else:
+        # Log to file
+        today = time.strftime("%Y-%m-%d")
+        logdir = Path("instance") / "logs"
+        logfile = logdir / f"queue-{today}.log"
+        logdir.mkdir(exist_ok=True)
+        # Create log file if it does not exist
+        if not logfile.is_file():
+            with logfile.open("w") as f:
+                now = time.strftime("%Y-%m-%d %H:%M:%S")
+                f.write(f"{now} CREATED DEBUG FILE\n\n")
+
+        logging.basicConfig(filename=logfile, level=getattr(logging, config.get("LOG_LEVEL", "INFO").upper()),
+                            format=logfmt, datefmt=datefmt)
+
+    # Make apscheduler less chatty
+    logging.getLogger("apscheduler").setLevel(logging.WARNING)
+
+    # Start scheduler
     scheduler = BlockingScheduler()
-    scheduler.add_executor('processpool')
-    scheduler.add_job(check_queue, 'interval', [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
-    print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
+    scheduler.add_executor("processpool")
+    scheduler.add_job(check_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
 
     try:
         scheduler.start()
