@@ -404,13 +404,6 @@ paths:
           type: string
           example: min-testkorpus
       - $ref: '#/components/parameters/remove'
-      - name: remove
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: dokument1_copy.xml,dokument2_copy.xml
       responses:
         '200':
           description: update corpus
@@ -461,12 +454,6 @@ paths:
                   type: string
                   format: binary
             example:
-            - key: ''
-              type: file
-              src:
-              - /home/anne/Downloads/testkorpus/dokument1_copy.xml
-              - /home/anne/Downloads/testkorpus/dokument2_copy.xml
-              disabled: true
             - key: ''
               type: file
               src:
@@ -720,7 +707,7 @@ paths:
   /download-exports:
     get:
       summary: download exports
-      description: 'Download all available export files created by Sparv.
+      description: 'Downloads all available export files created by Sparv.
 
 
         ### Example
@@ -748,6 +735,108 @@ paths:
               schema: {}
         '401':
           description: download exports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+      tags:
+      - Manage Data
+  /download-corpus:
+    get:
+      summary: download corpus
+      description: 'Downloads corpus files from Nextcloud as zip file.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/download-corpus''
+
+        ```'
+      operationId: downloadcorpus
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: download corpus
+          content:
+            application/zip:
+              schema: {}
+        '401':
+          description: download corpus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+      tags:
+      - Manage Data
+  /download-config:
+    get:
+      summary: download config
+      description: 'Downloads the corpus config file (in yaml format).
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/download-config''
+
+        ```'
+      operationId: downloadconfig
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: download config
+          content:
+            text/yaml; charset=utf-8:
+              schema: {}
+        '401':
+          description: download config
           content:
             application/json:
               schema:
@@ -1075,13 +1164,13 @@ paths:
                       description: Sparv annotation process is running
                     - code: 4
                       name: done_annotating
-                      description: Annotation process is no longer running
+                      description: Annotation process has finished
                     - code: 5
                       name: syncing_results
                       description: Syncing results from Sparv to Nextcloud
                     - code: 6
                       name: done
-                      description: Done processing with Sparv
+                      description: Results have been synced to Nexcloud
                     - code: 7
                       name: error
                       description: An error occurred

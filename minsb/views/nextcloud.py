@@ -211,3 +211,35 @@ def download_export(oc, user, _corpora, corpus_id):
     # utils.download_dir(oc, nc_export_dir, str(local_corpus_dir), corpus_id, file_index)
     # utils.create_zip(local_export_dir, zip_out)
     return utils.response("Not yet implemented!", err=True), 501
+
+
+@bp.route("/download-corpus", methods=["GET"])
+@utils.login()
+def download_corpus(oc, user, _corpora, corpus_id):
+    """Download the corpus as a zip file."""
+    nc_source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
+    local_source_dir = paths.get_source_dir(user=user, corpus_id=corpus_id, mkdir=True)
+    zip_out = str(local_source_dir / f"{corpus_id}_source.zip")
+
+    try:
+        # Get files from Nextcloud
+        oc.get_directory_as_zip(nc_source_dir, zip_out)
+        return send_file(zip_out, mimetype="application/zip")
+    except Exception as e:
+        return utils.response(f"Failed to download corpus files for corpus '{corpus_id}'!", err=True, info=str(e)), 404
+
+
+@bp.route("/download-config", methods=["GET"])
+@utils.login()
+def download_config(oc, user, _corpora, corpus_id):
+    """Download the corpus config file."""
+    nc_config_file = str(paths.get_config_file(domain="nc", corpus_id=corpus_id))
+    paths.get_source_dir(user=user, corpus_id=corpus_id, mkdir=True)
+    local_config_file = str(paths.get_config_file(user=user, corpus_id=corpus_id))
+
+    try:
+        # Get file from Nextcloud
+        oc.get_file(nc_config_file, local_file=local_config_file)
+        return send_file(local_config_file, mimetype="text/yaml")
+    except Exception as e:
+        return utils.response(f"Failed to download config file for corpus '{corpus_id}'!", err=True, info=str(e)), 404
