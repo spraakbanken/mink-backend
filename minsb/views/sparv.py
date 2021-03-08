@@ -144,7 +144,8 @@ def make_status_response(job, oc):
         return utils.response("Result files are being synced from the Sparv server!", job_status=status.name)
 
     if status == jobs.Status.done:
-        return utils.response("Corpus is done processing!", sparv_output=output, job_status=status.name)
+        return utils.response("Corpus is done processing and the results have been synced!", sparv_output=output,
+                              job_status=status.name)
 
     if status == jobs.Status.error:
         return utils.response("An error occurred while annotating!", err=True, sparv_output=output), 404

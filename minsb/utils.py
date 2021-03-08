@@ -81,9 +81,10 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                     return function(oc, user, corpora, *args, **kwargs)
 
                 # Check if corpus ID was provided
-                corpus_id = shlex.quote(request.args.get("corpus_id") or request.form.get("corpus_id"))
+                corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
                 if not corpus_id:
                     return response("No corpus ID provided!", err=True), 404
+                corpus_id = shlex.quote(corpus_id)
 
                 if not require_corpus_exists:
                     return function(oc, user, corpora, corpus_id)

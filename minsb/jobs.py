@@ -25,9 +25,9 @@ class Status(IntEnum):
     syncing_corpus = "Syncing from Nextcloud to Sparv server"
     waiting = "Waiting to be run with Sparv"
     annotating = "Sparv annotation process is running"
-    done_annotating = "Annotation process is no longer running"
+    done_annotating = "Annotation process has finished"
     syncing_results = "Syncing results from Sparv to Nextcloud"
-    done = "Done processing with Sparv"
+    done = "Results have been synced to Nexcloud"
     error = "An error occurred"
     aborted = "Aborted by the user"
 
