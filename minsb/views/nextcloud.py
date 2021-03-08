@@ -184,33 +184,63 @@ def list_exports(oc, _user, _corpora, corpus_id):
 @bp.route("/download-exports", methods=["GET"])
 @utils.login()
 def download_export(oc, user, _corpora, corpus_id):
-    """Download one or more export files for a corpus as a zip file."""
-    download_files = request.args.get("file") or request.form.get("files") or ""
-    download_files = [i for i in download_files.split(",") if i]
-    download_folders = request.args.get("directories") or request.form.get("directories") or ""
-    download_folders = [i for i in download_folders.split(",") if i]
+    """Download export files for a corpus as a zip file.
+
+    The parameters 'file' and 'dir' may be used to download a specific export file
+    or a directory of export files. These parameters must be supplied as absolute
+    Nextcloud paths or paths relative to the export directory.
+    """
+    download_file = request.args.get("file") or request.form.get("file") or ""
+    download_folder = request.args.get("dir") or request.form.get("dir") or ""
+
+    if download_file and download_folder:
+        return utils.response("The parameters 'dir' and 'file' must not be supplied simultaneously!", err=True), 404
 
     nc_export_dir = str(paths.get_export_dir(domain="nc", corpus_id=corpus_id))
-    local_corpus_dir = paths.get_corpus_dir(user=user, corpus_id=corpus_id, mkdir=True)
-    local_export_dir = str(paths.get_export_dir(user=user, corpus_id=corpus_id, mkdir=True))
+    local_corpus_dir = str(paths.get_corpus_dir(user=user, corpus_id=corpus_id, mkdir=True))
 
-    zip_out = str(local_corpus_dir / Path(f"{corpus_id}_export.zip"))
-
-    if not (download_files or download_folders):
+    if not (download_file or download_folder):
         try:
+            zip_out = str(local_corpus_dir / Path(f"{corpus_id}_export.zip"))
             # Get files from Nextcloud
             oc.get_directory_as_zip(nc_export_dir, zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             return utils.response(f"Failed to download exports for corpus '{corpus_id}'!", err=True, info=str(e)), 404
 
-    # TODO: Download and zip files/folders specified in args
-    # print(download_files, download_folders)
-    # export_contents = utils.list_contents(oc, nc_export_dir, exclude_dirs=False)
-    # file_index = utils.create_file_index(export_contents, user)
-    # utils.download_dir(oc, nc_export_dir, str(local_corpus_dir), corpus_id, file_index)
-    # utils.create_zip(local_export_dir, zip_out)
-    return utils.response("Not yet implemented!", err=True), 501
+    # Download and zip folder specified in args
+    export_contents = utils.list_contents(oc, nc_export_dir, exclude_dirs=False)
+    if download_folder:
+        full_download_folder = download_folder
+        if not download_folder("/").startswith(nc_export_dir):
+            full_download_folder = "/" + str(Path(nc_export_dir) / download_folder)
+        if full_download_folder not in [i.get("path") for i in export_contents]:
+            return utils.response(f"The folder '{download_folder}' you are trying to download does not exist!",
+                                  err=True), 404
+        try:
+            zip_out = str(local_corpus_dir / Path(f"{corpus_id}_{download_folder}.zip"))
+            oc.get_directory_as_zip(full_download_folder, zip_out)
+            return send_file(zip_out, mimetype="application/zip")
+        except Exception as e:
+            utils.response(f"Failed to download folder '{download_folder}'!", err=True, info=str(e)), 404
+
+    # Download and zip file specified in args
+    if download_file:
+        full_download_file = download_file
+        download_file_name = Path(download_file).name
+        if not download_file.lstrip("/").startswith(nc_export_dir):
+            full_download_file = "/" + str(Path(nc_export_dir) / download_file)
+        if full_download_file not in [i.get("path") for i in export_contents]:
+            return utils.response(f"The file '{download_file}' you are trying to download does not exist!",
+                                  err=True), 404
+        try:
+            zip_out = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
+            local_path = Path(local_corpus_dir) / download_file_name
+            oc.get_file(full_download_file, local_path)
+            utils.create_zip(local_path, zip_out)
+            return send_file(zip_out, mimetype="application/zip")
+        except Exception as e:
+            return utils.response(f"Failed to download file '{download_file}'!", err=True, info=str(e)), 404
 
 
 @bp.route("/download-corpus", methods=["GET"])

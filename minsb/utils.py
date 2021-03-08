@@ -118,9 +118,12 @@ def list_contents(oc, directory, exclude_dirs=True):
     for elem in listing:
         # The get_last_modified method is lacking time zone info, so we don't use it
         last_modified = str(elem.attributes["{DAV:}getlastmodified"])
+        full_path = elem.get_path()
+        if elem.get_content_type() != "httpd/unix-directory":
+            full_path = str(Path(full_path) / elem.get_name())
         objlist.append(
             {"name": elem.get_name(), "type": elem.get_content_type(),
-             "last_modified": last_modified, "path": elem.get_path()})
+             "last_modified": last_modified, "path": full_path})
     if exclude_dirs:
         objlist = [i for i in objlist if i.get("type") != "httpd/unix-directory"]
     return objlist
@@ -188,10 +191,7 @@ def create_file_index(contents, user):
     for f in contents:
         parts = f.get("path").split("/")
         user_dir = str(paths.get_corpora_dir(user=user))
-        if f.get("type") != "httpd/unix-directory":
-            new_path = os.path.join(user_dir, *parts[2:], f.get("name"))
-        else:
-            new_path = os.path.join(user_dir, *parts[2:])
+        new_path = os.path.join(user_dir, *parts[2:])
         unix_timestamp = int(parse(f.get("last_modified")).astimezone().timestamp())
         file_index[new_path] = unix_timestamp
     return file_index
@@ -200,6 +200,8 @@ def create_file_index(contents, user):
 def create_zip(inpath, outpath):
     """Zip files in inpath into an archive at outpath."""
     zipf = zipfile.ZipFile(outpath, "w")
+    if Path(inpath).is_file():
+        zipf.write(inpath, Path(inpath).name)
     for root, _dirs, files in os.walk(inpath):
         for f in files:
             zipf.write(os.path.join(root, f), os.path.relpath(os.path.join(root, f), os.path.join(inpath, "..")))

@@ -660,24 +660,24 @@ paths:
                     example: &id002
                     - name: dokument1.csv
                       type: text/csv
-                      last_modified: Fri, 26 Feb 2021 13:22:38 GMT
-                      path: /Min Språkbank/min-testkorpus/export/csv
+                      last_modified: Fri, 05 Mar 2021 10:37:25 GMT
+                      path: /Min Språkbank/min-testkorpus/export/csv/dokument1.csv
                     - name: dokument2.csv
                       type: text/csv
-                      last_modified: Fri, 26 Feb 2021 13:29:23 GMT
-                      path: /Min Språkbank/min-testkorpus/export/csv
+                      last_modified: Fri, 05 Mar 2021 10:37:47 GMT
+                      path: /Min Språkbank/min-testkorpus/export/csv/dokument2.csv
                     - name: stats_mini-swe.csv
                       type: text/csv
-                      last_modified: Fri, 26 Feb 2021 13:29:07 GMT
-                      path: /Min Språkbank/min-testkorpus/export/frequency_list
+                      last_modified: Fri, 05 Mar 2021 10:37:45 GMT
+                      path: /Min Språkbank/min-testkorpus/export/frequency_list/stats_mini-swe.csv
                     - name: dokument1_export.xml
                       type: application/xml
-                      last_modified: Fri, 26 Feb 2021 13:23:14 GMT
-                      path: /Min Språkbank/min-testkorpus/export/xml_pretty
+                      last_modified: Fri, 05 Mar 2021 10:37:24 GMT
+                      path: /Min Språkbank/min-testkorpus/export/xml_pretty/dokument1_export.xml
                     - name: dokument2_export.xml
                       type: application/xml
-                      last_modified: Fri, 26 Feb 2021 13:29:31 GMT
-                      path: /Min Språkbank/min-testkorpus/export/xml_pretty
+                      last_modified: Fri, 05 Mar 2021 10:37:46 GMT
+                      path: /Min Språkbank/min-testkorpus/export/xml_pretty/dokument2_export.xml
               example:
                 status: success
                 message: Current export files for 'min-testkorpus'
@@ -708,6 +708,15 @@ paths:
     get:
       summary: download exports
       description: 'Downloads all available export files created by Sparv.
+
+
+        The parameters `file` and `dir` may be used to download a specific export
+        file
+
+        or a directory of export files. These parameters must be supplied as absolute
+
+        Nextcloud paths or paths relative to the export directory. Only one of these
+        parameter may be applied at a time.
 
 
         ### Example
