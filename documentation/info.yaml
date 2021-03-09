@@ -1,0 +1,66 @@
+info:
+  title: Min SB API
+  version: 0.0.dev0
+  description: |-
+    # Introduction
+    Web API serving as a backend to Min Språkbank.
+
+    # Overview
+    For now the API is used for uploading corpus data to a user's Nextcloud
+    instance and processing that data with Sparv.
+
+    A user must have a valid [Nextcloud account](https://spraakbanken.gu.se/nextcloud)
+    at Språkbanken Text. Before any data can be uploaded, Min Språkbank must be initialized
+    (see <a href="#operation/initMinSB">init Min SB</a>).
+
+    # Workflow
+    A workflow for processing data with Sparv via Min Språkbank could look like this:
+    
+    1. <a href="#operation/initMinSB">Initialize Min Språkbank</a> (only once per user)
+    2. <a href="#operation/uploadcorpus">Upload some corpus files</a>
+    3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
+    4. <a href="#operation/runSparv">Run Sparv</a>
+    5. <a href="#operation/checkstatus">Check the status</a>
+    6. <a href="#operation/downloadexports">Download export files</a>
+
+    Please note that the user needs to make a `/check-status` call after the annotation process in order
+    for the export files to be synced to Nextcloud. This is due to authentication restrictions. Once the annotation
+    process with Sparv is complete and a `/check-status` call is made, the export files will by synced automatically.
+  x-logo:
+    url: placeholder
+  contact:
+    name: Språkbanken
+    url: https://spraakbanken.gu.se/
+    email: sb-info@svenska.gu.se
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: https://ws.spraakbanken.gu.se/ws/min-sb
+    description: Test server
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+security:
+  - basicAuth: []
+
+tags:
+  - name: Manage Data
+    description: Routes for uploading, viewing, updating and removing corpus data on Nextcloud.
+  - name: Process Corpus
+    description: Routes for starting corpus annotation jobs with Sparv and checking job status.
+  - name: Documentation
+    description: Routes used for documentation purposes.
+
+paths:
+  /api-spec:
+    get:
+      security: []
+  /api-doc:
+    get:
+      security: []
+  /status-codes:
+    get:
+      security: []
