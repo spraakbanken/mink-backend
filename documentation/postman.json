@@ -2227,6 +2227,311 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Internal Routes",
+			"item": [
+				{
+					"name": "start annotation",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{host}}/start-annotation?user=anne&corpus_id=min-testkorpus",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"start-annotation"
+							],
+							"query": [
+								{
+									"key": "user",
+									"value": "anne"
+								},
+								{
+									"key": "corpus_id",
+									"value": "min-testkorpus"
+								}
+							]
+						},
+						"description": "Start the annotation process for the next job in the queue with status `waiting` if a worker is available."
+					},
+					"response": [
+						{
+							"name": "start annotation",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/start-annotation?user=anne&corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"start-annotation"
+									],
+									"query": [
+										{
+											"key": "user",
+											"value": "anne"
+										},
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "74"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 09 Mar 2021 10:01:53 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully started annotation process for 'min-testkorpus'!\"\n}"
+						},
+						{
+							"name": "start annotation",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/start-annotation?user=anne&corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"start-annotation"
+									],
+									"query": [
+										{
+											"key": "user",
+											"value": "anne"
+										},
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "74"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 09 Mar 2021 10:01:53 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Job must have status 'waiting' not 'done'!\"\n}"
+						}
+					]
+				},
+				{
+					"name": "check running",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{host}}/check-running?user=anne&corpus_id=min-testkorpus",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"check-running"
+							],
+							"query": [
+								{
+									"key": "user",
+									"value": "anne"
+								},
+								{
+									"key": "corpus_id",
+									"value": "min-testkorpus"
+								}
+							]
+						},
+						"description": "Check if a job with status `annotating` still has a running process."
+					},
+					"response": [
+						{
+							"name": "check running",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/check-running?user=anne&corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-running"
+									],
+									"query": [
+										{
+											"key": "user",
+											"value": "anne"
+										},
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "77"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 09 Mar 2021 10:10:49 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Status for 'min-testkorpus': 'annotating'\"\n}"
+						},
+						{
+							"name": "check running",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/check-running?user=anne&corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-running"
+									],
+									"query": [
+										{
+											"key": "user",
+											"value": "anne"
+										},
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "77"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 09 Mar 2021 10:10:49 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Job must have status 'annotating' not 'done'!\"\n}"
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "apikey",
+				"apikey": [
+					{
+						"key": "value",
+						"value": "tLgJwo6UsjrB6D3x9mhsGsndC9F2PEb9",
+						"type": "string"
+					},
+					{
+						"key": "in",
+						"value": "query",
+						"type": "string"
+					},
+					{
+						"key": "key",
+						"value": "secret_key",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
 		}
 	],
 	"auth": {

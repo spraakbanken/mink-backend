@@ -43,6 +43,10 @@ components:
     basicAuth:
       type: http
       scheme: basic
+    ApiKeyAuth:
+      type: apiKey
+      in: query
+      name: secret_key
 security:
   - basicAuth: []
 
@@ -53,6 +57,8 @@ tags:
     description: Routes for starting corpus annotation jobs with Sparv and checking job status.
   - name: Documentation
     description: Routes used for documentation purposes.
+  - name: Internal Routes
+    description: Routes for internal use only. These routes are used by the queue manager to advance the job queue.
 
 paths:
   /api-spec:
@@ -64,3 +70,11 @@ paths:
   /status-codes:
     get:
       security: []
+  /start-annotation:
+    put:
+      security:
+        - ApiKeyAuth: []
+  /check-running:
+    get:
+      security:
+        - ApiKeyAuth: []

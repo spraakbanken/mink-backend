@@ -46,7 +46,7 @@ def start_annotation(user, corpus_id):
     """
     job = jobs.get_job(user, corpus_id)
     if job.status != jobs.Status.waiting:
-        return utils.response(f"Job must have status '{jobs.Status.waiting.name}' not {job.status.name}!", err=True), 404
+        return utils.response(f"Job must have status '{jobs.Status.waiting.name}' not '{job.status.name}'!", err=True), 404
     try:
         job.run_sparv()
         return utils.response(f"Successfully started annotation process for '{corpus_id}'!")
@@ -63,10 +63,10 @@ def check_running(user, corpus_id):
     """
     job = jobs.get_job(user, corpus_id)
     if job.status != jobs.Status.annotating:
-        return utils.response(f"Job must have status '{jobs.Status.annotating.name}' not {job.status.name}!", err=True), 404
+        return utils.response(f"Job must have status '{jobs.Status.annotating.name}' not '{job.status.name}'!", err=True), 404
     try:
         job.process_running()
-        return utils.response(f"Status for '{corpus_id}': {job.status.name}")
+        return utils.response(f"Status for '{corpus_id}': '{job.status.name}'")
     except Exception as e:
         return utils.response(f"Failed to run Sparv on '{corpus_id}'!", err=True, info=str(e)), 404
 

@@ -1193,6 +1193,115 @@ paths:
       tags:
       - Documentation
       security: []
+  /start-annotation:
+    put:
+      summary: start annotation
+      description: Start the annotation process for the next job in the queue with
+        status `waiting` if a worker is available.
+      operationId: startannotation
+      parameters:
+      - $ref: '#/components/parameters/user'
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: start annotation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Successfully started annotation process for 'min-testkorpus'!
+              example:
+                status: success
+                message: Successfully started annotation process for 'min-testkorpus'!
+        '404':
+          description: start annotation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Job must have status 'waiting' not 'done'!
+              example:
+                status: error
+                message: Job must have status 'waiting' not 'done'!
+      tags:
+      - Internal Routes
+      security:
+      - ApiKeyAuth: []
+  /check-running:
+    get:
+      summary: check running
+      description: Check if a job with status `annotating` still has a running process.
+      operationId: checkrunning
+      parameters:
+      - name: user
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: anne
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: check running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Status for ''min-testkorpus'': ''annotating'''
+              example:
+                status: success
+                message: 'Status for ''min-testkorpus'': ''annotating'''
+        '404':
+          description: check running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Job must have status 'annotating' not 'done'!
+              example:
+                status: error
+                message: Job must have status 'annotating' not 'done'!
+      tags:
+      - Internal Routes
+      security:
+      - ApiKeyAuth: []
 components:
   parameters:
     ? ''
@@ -1226,10 +1335,22 @@ components:
       schema:
         type: string
         example: csv_export:csv,stats_export:freq_list,xml_export:pretty
+    user:
+      name: user
+      in: query
+      required: true
+      style: form
+      schema:
+        type: string
+        example: anne
   securitySchemes:
     basicAuth:
       type: http
       scheme: basic
+    ApiKeyAuth:
+      type: apiKey
+      in: query
+      name: secret_key
 security:
 - basicAuth: []
 tags:
@@ -1241,6 +1362,9 @@ tags:
     job status.
 - name: Documentation
   description: Routes used for documentation purposes.
+- name: Internal Routes
+  description: Routes for internal use only. These routes are used by the queue manager
+    to advance the job queue.
 externalDocs:
   url: ''
   description: ''
