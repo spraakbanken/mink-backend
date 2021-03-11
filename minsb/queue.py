@@ -6,6 +6,7 @@ The job queue lives in the cache and also on the local file system (as backup).
 from pathlib import Path
 
 from flask import current_app as app
+from flask import g
 
 from minsb import jobs, utils
 
@@ -14,23 +15,47 @@ def init_queue():
     """Initiate a queue from the filesystem."""
     app.logger.info("Initializing queue")
     mc = app.config.get("cache_client")
-    mc.set("queue_initialized", True)
     queue = []
     queue_dir = Path(app.instance_path) / app.config.get("QUEUE_DIR")
     queue_dir.mkdir(exist_ok=True)
+    if mc is not None:
+        mc.set("queue_initialized", True)
+        for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
+            with f.open() as fobj:
+                job = jobs.load_from_str(fobj.read())
+                job.save()
+                app.logger.debug(f"Job in cache: '{mc.get(job.id)}'")
+            # Queue job unless it is done, aborted or erroneous
+            if job.status not in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
+                queue.append(job.id)
+        mc.set("queue", queue)
+        app.logger.debug(f"Queue in cache: {mc.get('queue')}")
 
-    for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
-        with f.open() as fobj:
-            job = jobs.load_from_str(fobj.read())
-            job.save()
-            app.logger.debug(f"Job in cache: '{mc.get(job.id)}'")
-        # Queue job unless it is done, aborted or erroneous
-        if job.status not in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
-            queue.append(job.id)
+    else:
+        app.logger.info("Memcached not available. Using app context instead.")
+        g.queue_initialized = True
+        g.job_queue = {}
+        for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
+            with f.open() as fobj:
+                job = jobs.load_from_str(fobj.read())
+                g.job_queue[job.id] = job
+            # Queue job unless it is done, aborted or erroneous
+            if job.status not in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
+                queue.append(job.id)
+        g.job_queue["queue"] = queue
 
-    mc.set("queue", queue)
-    app.logger.debug(f"Queue in cache: {mc.get('queue')}")
-    return queue
+
+def is_initialized():
+    """Return True if the job queue has been initialized, else False."""
+    mc = app.config.get("cache_client")
+    if mc is not None:
+        if mc.get("queue_initialized"):
+            return True
+        return False
+
+    if g.queue_initialized:
+        return True
+    return False
 
 
 def add(job):

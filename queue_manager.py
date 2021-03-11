@@ -14,16 +14,21 @@ import time
 from pathlib import Path
 from urllib import error, parse, request
 
-import memcache
+from pymemcache.client.base import Client
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 
 def check_queue(config):
     """Check the queue and run jobs if possible."""
     # Connect to memcached
-    socket_path = Path("instance") / Path(config.get("MEMCACHED_SOCKET"))
-    mc = memcache.Client([f"unix:{str(socket_path)}"], debug=1)
+    try:
+        mc = connect_to_memcached(config)
+    except Exception as e:
+        logging.error(f"Failed to connect to memcached! {str(e)}")
+        raise(e)
+
     if not mc.get("queue_initialized"):
+        # Ask min-sb to initialise the job queue
         try:
             req = request.Request(f"{config.get('MIN_SB_URL')}/init-queue?secret_key={config.get('MIN_SB_SECRET_KEY')}",
                                   method="GET")
@@ -44,7 +49,7 @@ def check_queue(config):
     waiting_jobs = []
     old_jobs = []
     for j in q:
-        job_info = json.loads(mc.get(j))
+        job_info = mc.get(j)
         status = job_info.get("status")
         if status == "annotating":
             running_jobs.append(job_info)
@@ -102,6 +107,28 @@ def import_config():
         Config.update(User_Config)
 
     return Config
+
+
+def connect_to_memcached(config):
+    """Connect to the memcached socket."""
+
+    def json_serializer(key, value):
+        if type(value) == str:
+            return value, 1
+        return json.dumps(value), 2
+
+    def json_deserializer(key, value, flags):
+        if flags == 1:
+            return value
+        if flags == 2:
+            return json.loads(value)
+        raise Exception("Unknown serialization format")
+
+    socket_path = Path("instance") / config.get("MEMCACHED_SOCKET")
+    mc = Client(f"unix:{socket_path}", serializer=json_serializer, deserializer=json_deserializer)
+    # Check if connection is working
+    mc.get("test")
+    return mc
 
 
 if __name__ == '__main__':

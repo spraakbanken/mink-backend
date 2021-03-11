@@ -14,13 +14,13 @@ idna==2.10                # via requests
 itsdangerous==1.1.0       # via flask
 jinja2==2.11.2            # via flask
 markupsafe==1.1.1         # via jinja2
+pymemcache==3.4.1         # via -r requirements.in
 pyocclient==0.6           # via -r requirements.in
 python-dateutil==2.8.1    # via -r requirements.in
-python-memcached==1.59    # via -r requirements.in
 pytz==2021.1              # via apscheduler, tzlocal
 pyyaml==5.4.1             # via -r requirements.in
 requests==2.25.1          # via pyocclient
-six==1.15.0               # via apscheduler, flask-cors, pyocclient, python-dateutil, python-memcached
+six==1.15.0               # via apscheduler, flask-cors, pymemcache, pyocclient, python-dateutil
 tzlocal==2.1              # via apscheduler
 urllib3==1.26.2           # via requests
 werkzeug==1.0.1           # via flask
