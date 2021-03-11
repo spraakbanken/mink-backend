@@ -2232,56 +2232,76 @@
 			"name": "Internal Routes",
 			"item": [
 				{
-					"name": "start annotation",
+					"name": "advance queue",
 					"request": {
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{protocol}}://{{host}}/start-annotation?user=anne&corpus_id=min-testkorpus",
+							"raw": "{{protocol}}://{{host}}/advance-queue",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
-								"start-annotation"
-							],
-							"query": [
-								{
-									"key": "user",
-									"value": "anne"
-								},
-								{
-									"key": "corpus_id",
-									"value": "min-testkorpus"
-								}
+								"advance-queue"
 							]
 						},
-						"description": "Start the annotation process for the next job in the queue with status `waiting` if a worker is available."
+						"description": "Check the job queue and attempt to advance it.\n\n1. Unqueue jobs that are done, aborted or erroneous\n2. For jobs with status \"annotating\", check if process is still running\n3. Run the next job in the queue if there are fewer running jobs than allowed\n\nFor internal use only!"
 					},
 					"response": [
 						{
-							"name": "start annotation",
+							"name": "advance queue",
 							"originalRequest": {
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{host}}/start-annotation?user=anne&corpus_id=min-testkorpus",
+									"raw": "{{protocol}}://{{host}}/advance-queue",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"start-annotation"
+										"advance-queue"
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "83"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 11 Mar 2021 14:43:33 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to confirm secret key for protected route!\"\n}"
+						},
+						{
+							"name": "advance queue",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/advance-queue",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
 									],
-									"query": [
-										{
-											"key": "user",
-											"value": "anne"
-										},
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
+									"path": [
+										"advance-queue"
 									]
 								}
 							},
@@ -2295,7 +2315,7 @@
 								},
 								{
 									"key": "Content-Length",
-									"value": "74"
+									"value": "62"
 								},
 								{
 									"key": "Server",
@@ -2303,191 +2323,11 @@
 								},
 								{
 									"key": "Date",
-									"value": "Tue, 09 Mar 2021 10:01:53 GMT"
+									"value": "Thu, 11 Mar 2021 14:43:12 GMT"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully started annotation process for 'min-testkorpus'!\"\n}"
-						},
-						{
-							"name": "start annotation",
-							"originalRequest": {
-								"method": "PUT",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/start-annotation?user=anne&corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"start-annotation"
-									],
-									"query": [
-										{
-											"key": "user",
-											"value": "anne"
-										},
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "74"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Tue, 09 Mar 2021 10:01:53 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Job must have status 'waiting' not 'done'!\"\n}"
-						}
-					]
-				},
-				{
-					"name": "check running",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{protocol}}://{{host}}/check-running?user=anne&corpus_id=min-testkorpus",
-							"protocol": "{{protocol}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"check-running"
-							],
-							"query": [
-								{
-									"key": "user",
-									"value": "anne"
-								},
-								{
-									"key": "corpus_id",
-									"value": "min-testkorpus"
-								}
-							]
-						},
-						"description": "Check if a job with status `annotating` still has a running process."
-					},
-					"response": [
-						{
-							"name": "check running",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/check-running?user=anne&corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"check-running"
-									],
-									"query": [
-										{
-											"key": "user",
-											"value": "anne"
-										},
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "77"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Tue, 09 Mar 2021 10:10:49 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Status for 'min-testkorpus': 'annotating'\"\n}"
-						},
-						{
-							"name": "check running",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/check-running?user=anne&corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"check-running"
-									],
-									"query": [
-										{
-											"key": "user",
-											"value": "anne"
-										},
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "77"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Tue, 09 Mar 2021 10:10:49 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Job must have status 'annotating' not 'done'!\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Queue advancing completed!\"\n}"
 						}
 					]
 				}

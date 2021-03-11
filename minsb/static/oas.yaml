@@ -1196,11 +1196,17 @@ paths:
   /advance-queue:
     put:
       summary: advance queue
-      description: "Check the job queue and attempt to advance it.\n\n    1. Unqueue\
-        \ jobs that are done, aborted or erroneous\n    2. For jobs with status \"\
-        annotating\", check if process is still running\n    3. Run the next job in\
-        \ the queue if there are fewer running jobs than allowed\n\n For internal\
-        \ use only!"
+      description: 'Check the job queue and attempt to advance it.
+
+
+        1. Unqueue jobs that are done, aborted or erroneous
+
+        2. For jobs with status "annotating", check if process is still running
+
+        3. Run the next job in the queue if there are fewer running jobs than allowed
+
+
+        For internal use only!'
       operationId: advancequeue
       parameters: []
       responses:
