@@ -37,3 +37,5 @@ QUEUE_DIR = "queue"                  # Directory for storing job files
 MIN_SB_URL = "https://ws.spraakbanken.gu.se/ws/min-sb"  # URL for min-sb API
 CHECK_QUEUE_FREQUENCY = 20  # How often the queue will be checked for new jobs (in seconds)
 MIN_SB_SECRET_KEY = ""  # Define this in instance/config.py!
+HEALTHCHECKS_URL = ""   # Healthchecks URL, define this in instance/config.py!
+PING_FREQUENCY = 60     # Frequency (in minutes) for how often healthchecks should be pinged

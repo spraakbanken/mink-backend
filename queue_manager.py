@@ -22,7 +22,21 @@ def advance_queue(config):
         with request.urlopen(req) as f:
             logging.debug(f.read().decode("UTF-8"))
     except error.HTTPError as e:
-        logging.error(f"Error! {e}")
+        logging.error(f"Error advancing queue! {e}")
+
+
+def ping_healthchecks(config):
+    """Ping helthchecks (https://healthchecks.io/) to tell it that the queue manager is running."""
+    url = config.get("HEALTHCHECKS_URL")
+    if url:
+        logging.debug("Sending ping to healthchecks")
+        try:
+            with request.urlopen(url) as f:
+                logging.debug(f.read().decode("UTF-8"))
+        except error.HTTPError as e:
+            logging.error(f"Error pinging healthchecks! {e}")
+    else:
+        logging.debug("No health check URL found")
 
 
 def import_config():
@@ -72,6 +86,7 @@ if __name__ == '__main__':
     scheduler = BlockingScheduler()
     scheduler.add_executor("processpool")
     scheduler.add_job(advance_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
+    scheduler.add_job(ping_healthchecks, "interval", [config], minutes=config.get("PING_FREQUENCY", 60))
 
     try:
         scheduler.start()
