@@ -6,7 +6,7 @@ import sys
 import time
 from pathlib import Path
 
-from flask import Flask, request
+from flask import Flask, g, request
 from flask_cors import CORS
 
 from minsb import queue, utils
@@ -50,13 +50,18 @@ def create_app():
         log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper())
         logging.basicConfig(filename=logfile, level=log_level, format=logfmt, datefmt=datefmt)
 
-    # Connect to memcached
+    # Connect to memcached and init job queue
     with app.app_context():
         utils.connect_to_memcached()
-
-    # Init job queue
-    with app.app_context():
         queue.init_queue()
+
+    @app.before_request
+    def before_request():
+        """Init variables in app context (as backup for memcached) and try to reconnect to memcached if necessary."""
+        g.queue_initialized = False
+        g.job_queue = []
+        if app.config["cache_client"] is None:
+            utils.connect_to_memcached()
 
     @app.after_request
     def cleanup(response):

@@ -37,38 +37,41 @@ def run_sparv(oc, user, _corpora, corpus_id):
     return make_status_response(job, oc)
 
 
-@bp.route("/start-annotation", methods=["PUT"])
-@utils.gatekeeper()
-def start_annotation(user, corpus_id):
-    """Start annotation process for given corpus (when syncing is done).
+@bp.route("/advance-queue", methods=["PUT"])
+@utils.gatekeeper
+def advance_queue():
+    """Check the job queue and attempt to advance it.
+
+    1. Unqueue jobs that are done, aborted or erroneous
+    2. For jobs with status "annotating", check if process is still running
+    3. Run the next job in the queue if there are fewer running jobs than allowed
 
     For internal use only!
     """
-    job = jobs.get_job(user, corpus_id)
-    if job.status != jobs.Status.waiting:
-        return utils.response(f"Job must have status '{jobs.Status.waiting.name}' not '{job.status.name}'!", err=True), 404
-    try:
-        job.run_sparv()
-        return utils.response(f"Successfully started annotation process for '{corpus_id}'!")
-    except Exception as e:
-        return utils.response(f"Failed to run Sparv on '{corpus_id}'!", err=True, info=str(e)), 404
+    # Unqueue jobs that are done, aborted or erroneous
+    queue.unqueue_old()
 
+    # For jobs with status "annotating", check if process is still running
+    running_jobs, waiting_jobs = queue.get_running_waiting()
+    app.logger.debug(f"Running jobs: {len(running_jobs)}  Waiting jobs: {len(waiting_jobs)}")
+    for job in running_jobs:
+        try:
+            if not job.process_running():
+                running_jobs.remove(job)
+        except Exception as e:
+            app.logger.error(f"Failed to check if process is running for '{job.id}'! {str(e)}")
 
-@bp.route("/check-running", methods=["GET"])
-@utils.gatekeeper()
-def check_running(user, corpus_id):
-    """Check whether a process for a given corpus is still running.
+    # If there are fewer running jobs than allowed, start the next one in the queue
+    while waiting_jobs and len(running_jobs) < app.config.get("SPARV_WORKERS", 1):
+        job = waiting_jobs.pop(0)
+        try:
+            job.run_sparv()
+            running_jobs.append(job)
+            app.logger.info(f"Started annotation process for '{job.id}'")
+        except Exception as e:
+            app.logger.error(f"Failed to run Sparv on '{job.id}'! {str(e)}")
 
-    For internal use only!
-    """
-    job = jobs.get_job(user, corpus_id)
-    if job.status != jobs.Status.annotating:
-        return utils.response(f"Job must have status '{jobs.Status.annotating.name}' not '{job.status.name}'!", err=True), 404
-    try:
-        job.process_running()
-        return utils.response(f"Status for '{corpus_id}': '{job.status.name}'")
-    except Exception as e:
-        return utils.response(f"Failed to run Sparv on '{corpus_id}'!", err=True, info=str(e)), 404
+    return utils.response("Queue advancing completed!")
 
 
 @bp.route("/check-status", methods=["GET"])

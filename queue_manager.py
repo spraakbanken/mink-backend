@@ -1,98 +1,28 @@
 """Script for advancing the job queue with scheduled jobs.
 
-This scheduler will
-
-1. Unqueue jobs that are done, aborted or erroneous
-2. Run the next job in the queue if there are fewer running jobs than allowed
-3. For jobs with status "annotating", check if process is still running
+This scheduler will make a call to the 'advance-queue' route of the min-sb API.
 """
 
-import json
 import logging
 import sys
 import time
 from pathlib import Path
 from urllib import error, parse, request
 
-from pymemcache.client.base import Client
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 
-def check_queue(config):
+def advance_queue(config):
     """Check the queue and run jobs if possible."""
-    # Connect to memcached
+    logging.debug("Calling '/advance-queue'...")
+    url = f"{config.get('MIN_SB_URL')}/advance-queue"
     try:
-        mc = connect_to_memcached(config)
-    except Exception as e:
-        logging.error(f"Failed to connect to memcached! {str(e)}")
-        raise(e)
-
-    if not mc.get("queue_initialized"):
-        # Ask min-sb to initialise the job queue
-        try:
-            req = request.Request(f"{config.get('MIN_SB_URL')}/init-queue?secret_key={config.get('MIN_SB_SECRET_KEY')}",
-                                  method="GET")
-            with request.urlopen(req) as f:
-                logging.debug(f.read().decode("UTF-8"))
-        except error.HTTPError as e:
-            logging.error(f"Error! {e}")
-            return
-    q = mc.get("queue") or []
-
-    # Do not continue if queue is empty
-    if not q:
-        logging.debug("Empty queue")
-        return
-
-    # Check how many jobs are running/waiting to be run or old
-    running_jobs = []
-    waiting_jobs = []
-    old_jobs = []
-    for j in q:
-        job_info = mc.get(j)
-        status = job_info.get("status")
-        if status == "annotating":
-            running_jobs.append(job_info)
-        elif status == "waiting":
-            waiting_jobs.append(job_info)
-        elif status in ["done", "error", "aborted"]:
-            old_jobs.append(j)
-
-    # Unqueue jobs that are done, aborted or erroneous
-    if old_jobs:
-        for job in old_jobs:
-            logging.info(f"Removing {job}")
-            q.pop(q.index(job))
-        mc.set("queue", q)
-
-    logging.info(f"Running: {len(running_jobs)} Waiting: {len(waiting_jobs)}")
-
-    # If there are fewer running jobs than allowed, start the next one in the queue
-    while waiting_jobs and len(running_jobs) < config.get("SPARV_WORKERS", 1):
-        job = waiting_jobs.pop(0)
-        logging.info(f"Start annotation for job {job}")
-        url = f"{config.get('MIN_SB_URL')}/start-annotation"
-        try:
-            data = parse.urlencode({"secret_key": config.get("MIN_SB_SECRET_KEY"), "user": job.get("user"),
-                                    "corpus_id": job.get("corpus_id")}).encode()
-            req = request.Request(url, data=data, method="PUT")
-            with request.urlopen(req) as f:
-                logging.debug(f.read().decode("UTF-8"))
-        except error.HTTPError as e:
-            logging.error(f"Error! {e}")
-            break
-
-    # For jobs with status "annotating", check if process is still running
-    for job in running_jobs:
-        url = f"{config.get('MIN_SB_URL')}/check-running"
-        try:
-            data = parse.urlencode({"secret_key": config.get("MIN_SB_SECRET_KEY"), "user": job.get("user"),
-                                    "corpus_id": job.get("corpus_id")}).encode()
-            req = request.Request(url, data=data, method="GET")
-            with request.urlopen(req) as f:
-                logging.info(f.read().decode("UTF-8"))
-        except error.HTTPError as e:
-            logging.error(f"Error! {e}")
+        data = parse.urlencode({"secret_key": config.get("MIN_SB_SECRET_KEY")}).encode()
+        req = request.Request(url, data=data, method="PUT")
+        with request.urlopen(req) as f:
+            logging.debug(f.read().decode("UTF-8"))
+    except error.HTTPError as e:
+        logging.error(f"Error! {e}")
 
 
 def import_config():
@@ -107,28 +37,6 @@ def import_config():
         Config.update(User_Config)
 
     return Config
-
-
-def connect_to_memcached(config):
-    """Connect to the memcached socket."""
-
-    def json_serializer(key, value):
-        if type(value) == str:
-            return value, 1
-        return json.dumps(value), 2
-
-    def json_deserializer(key, value, flags):
-        if flags == 1:
-            return value
-        if flags == 2:
-            return json.loads(value)
-        raise Exception("Unknown serialization format")
-
-    socket_path = Path("instance") / config.get("MEMCACHED_SOCKET")
-    mc = Client(f"unix:{socket_path}", serializer=json_serializer, deserializer=json_deserializer)
-    # Check if connection is working
-    mc.get("test")
-    return mc
 
 
 if __name__ == '__main__':
@@ -163,7 +71,7 @@ if __name__ == '__main__':
     # Start scheduler
     scheduler = BlockingScheduler()
     scheduler.add_executor("processpool")
-    scheduler.add_job(check_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
+    scheduler.add_job(advance_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
 
     try:
         scheduler.start()

@@ -70,11 +70,7 @@ paths:
   /status-codes:
     get:
       security: []
-  /start-annotation:
+  /advance-queue:
     put:
-      security:
-        - ApiKeyAuth: []
-  /check-running:
-    get:
       security:
         - ApiKeyAuth: []

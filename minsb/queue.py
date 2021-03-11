@@ -38,20 +38,26 @@ def init_queue():
         for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
             with f.open() as fobj:
                 job = jobs.load_from_str(fobj.read())
-                g.job_queue[job.id] = job
+                g.job_queue[job.id] = str(job)
             # Queue job unless it is done, aborted or erroneous
             if job.status not in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
                 queue.append(job.id)
         g.job_queue["queue"] = queue
+        app.logger.debug(f"Queue in cache: {g.job_queue['queue']}")
 
 
 def is_initialized():
     """Return True if the job queue has been initialized, else False."""
     mc = app.config.get("cache_client")
     if mc is not None:
-        if mc.get("queue_initialized"):
-            return True
-        return False
+        try:
+            if mc.get("queue_initialized"):
+                return True
+            return False
+        except Exception as e:
+            app.logger.error(f"Lost connection to memcached! ({str(e)}) Trying to reconnect...")
+            utils.connect_to_memcached()
+            return False
 
     if g.queue_initialized:
         return True
@@ -98,3 +104,37 @@ def get_priority(job):
         return queue.index(job.id) + 1
     except ValueError:
         return -1
+
+
+def get_running_waiting():
+    """Get the running and waiting jobs from the queue."""
+    running_jobs = []
+    waiting_jobs = []
+
+    queue = utils.memcached_get("queue")
+    for j in queue:
+        job = jobs.load_from_str(utils.memcached_get(j))
+        status = job.status
+        if status == jobs.Status.annotating:
+            running_jobs.append(job)
+        elif status == jobs.Status.waiting:
+            waiting_jobs.append(job)
+
+    return running_jobs, waiting_jobs
+
+
+def unqueue_old():
+    """Unqueue jobs that are done, aborted or erroneous."""
+    queue = utils.memcached_get("queue")
+    old_jobs = []
+    for j in queue:
+        job = jobs.load_from_str(utils.memcached_get(j))
+        status = job.status
+        if status in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
+            old_jobs.append(j)
+
+    if old_jobs:
+        for j in old_jobs:
+            app.logger.info(f"Removing job {j}")
+            queue.pop(queue.index(j))
+        utils.memcached_set("queue", queue)

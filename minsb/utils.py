@@ -25,23 +25,14 @@ def response(msg, err=False, **kwargs):
     return Response(json.dumps(res, ensure_ascii=False), mimetype="application/json")
 
 
-def gatekeeper(require_corpus_id=True):
+def gatekeeper(function):
     """Make sure that only the protected user can access the decorated endpoint."""
-    def decorator(function):
-        @functools.wraps(function)  # Copy original function's information, needed by Flask
-        def wrapper(*args, **kwargs):
-            secret_key = request.args.get("secret_key") or request.form.get("secret_key")
-            if secret_key != app.config.get("MIN_SB_SECRET_KEY"):
-                return response("Failed to confirm secret key for protected route!", err=True), 401
-            if not require_corpus_id:
-                return function(*args, **kwargs)
-
-            user = request.args.get("user") or request.form.get("user") or ""
-            corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id") or ""
-            if not (user and corpus_id):
-                return response("Information missing, 'user' and 'corpus_id' must be specified!", err=True), 404
-            return function(user, corpus_id, *args, **kwargs)
-        return wrapper
+    @functools.wraps(function)  # Copy original function's information, needed by Flask
+    def decorator(*args, **kwargs):
+        secret_key = request.args.get("secret_key") or request.form.get("secret_key")
+        if secret_key != app.config.get("MIN_SB_SECRET_KEY"):
+            return response("Failed to confirm secret key for protected route!", err=True), 401
+        return function(*args, **kwargs)
     return decorator
 
 

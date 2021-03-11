@@ -67,17 +67,3 @@ def status_codes():
     for s in Status:
         status_codes.append({"code": s._value_, "name": s.name, "description": s.desc})
     return utils.response("Listing existing job status codes", status_codes=status_codes)
-
-
-@bp.route("/init-queue", methods=["GET"])
-@utils.gatekeeper(require_corpus_id=False)
-def init_queue():
-    """Initialize the memcached queue.
-
-    For internal use only!
-    """
-    try:
-        queue.init_queue()
-        return utils.response("Successfully initialized the job queue!")
-    except Exception as e:
-        return utils.response("Failed to init the job queue!", err=True, info=str(e)), 404
