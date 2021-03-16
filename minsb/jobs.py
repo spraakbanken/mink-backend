@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 import subprocess
 from enum import IntEnum
 from itertools import count
@@ -210,11 +211,11 @@ class Job():
         else:
             app.logger.debug(f"stderr: '{p.stderr.decode()}'")
             self.set_pid(None)
-            output = self.get_output()
-            if (output.startswith("The exported files can be found in the following locations:")
-                    or output.startswith("Nothing to be done.")):
+            progress, _warnings, errors, nothing_to_be_done = self.get_output()
+            if (progress == "Progress: 100%" or nothing_to_be_done):
                 self.set_status(Status.done_annotating)
             else:
+                app.logger.debug(f"Error in Sparv: {errors}")
                 self.set_status(Status.error)
             return False
 
@@ -230,10 +231,23 @@ class Job():
                             f"cd /home/{self.sparv_user}/{remote_corpus_dir} && cat {nohupfile}"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        stdout = p.stdout.decode().strip().split("\n") if p.stdout else ""
-        if stdout and stdout[-1].startswith("Progress:"):
-            return stdout[-1]
-        return " ".join([line for line in stdout if line.strip() and not line.startswith("Progress:")])
+        stdout = p.stdout.decode().strip() if p.stdout else ""
+        progress = warnings = errors = ""
+        if stdout:
+            progress = [line for line in stdout.split("\n") if line.startswith("Progress:")]
+            progress = progress[-1] if progress else ""
+            warnings = []
+            errors = []
+            for msg in re.findall(r"^\d\d:\d\d:\d\d (WARNING|ERROR)\s+(.+(?:\n\s{8,}.+)*)", stdout, flags=re.MULTILINE):
+                m = "{} {}".format(msg[0], re.sub(r"\s*\n\s+", " ", msg[1].strip()))
+                if msg[0] == "WARNING":
+                    warnings.append(m)
+                else:
+                    errors.append(m)
+            warnings = "\n".join(warnings)
+            errors = "\n".join(errors)
+            nothing_to_be_done = stdout.startswith("Nothing to be done.")
+        return progress, warnings, errors, nothing_to_be_done
 
     def sync_results(self, oc):
         """Sync exports from Sparv server to Nextcloud."""
