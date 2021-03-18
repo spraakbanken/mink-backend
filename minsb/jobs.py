@@ -211,11 +211,14 @@ class Job():
         else:
             app.logger.debug(f"stderr: '{p.stderr.decode()}'")
             self.set_pid(None)
-            progress, _warnings, errors, nothing_to_be_done = self.get_output()
-            if (progress == "Progress: 100%" or nothing_to_be_done):
+            progress, _warnings, errors, misc = self.get_output()
+            if (progress == "100%" or misc.startswith("Nothing to be done.")):
                 self.set_status(Status.done_annotating)
             else:
-                app.logger.debug(f"Error in Sparv: {errors}")
+                if errors:
+                    app.logger.debug(f"Error in Sparv: {errors}")
+                if misc:
+                    app.logger.debug(f"Sparv output: {misc}")
                 self.set_status(Status.error)
             return False
 
@@ -232,23 +235,31 @@ class Job():
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout = p.stdout.decode().strip() if p.stdout else ""
-        progress = warnings = errors = ""
-        nothing_to_be_done = False
+        progress = warnings = errors = misc = ""
         if stdout:
-            progress = [line for line in stdout.split("\n") if line.startswith("Progress:")]
-            progress = progress[-1] if progress else ""
             warnings = []
             errors = []
-            for msg in re.findall(r"^\d\d:\d\d:\d\d (WARNING|ERROR)\s+(.+(?:\n\s{8,}.+)*)", stdout, flags=re.MULTILINE):
-                m = "{} {}".format(msg[0], re.sub(r"\s*\n\s+", " ", msg[1].strip()))
-                if msg[0] == "WARNING":
-                    warnings.append(m)
+            misc = []
+            latest_msg = misc
+            for line in stdout.split("\n"):
+                if line.startswith("Progress:"):
+                    progress = line.lstrip("Progress:").strip()
+                elif re.match(r"\d\d:\d\d:\d\d WARNING", line):
+                    warnings.append(line.strip()[9:])
+                    latest_msg = warnings
+                elif re.match(r"\d\d:\d\d:\d\d ERROR", line):
+                    errors.append(line.strip()[9:])
+                    latest_msg = errors
+                elif re.match(r"\s{8,}.+", line):
+                    latest_msg.append(line.strip())
                 else:
-                    errors.append(m)
+                    if line.strip():
+                        misc.append(line.strip())
             warnings = "\n".join(warnings)
             errors = "\n".join(errors)
-            nothing_to_be_done = stdout.startswith("Nothing to be done.")
-        return progress, warnings, errors, nothing_to_be_done
+            misc = "\n".join(misc)
+
+        return progress, warnings, errors, misc
 
     def sync_results(self, oc):
         """Sync exports from Sparv server to Nextcloud."""

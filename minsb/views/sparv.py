@@ -109,7 +109,7 @@ def clear_annotations(oc, user, _corpora, corpus_id):
         sparv_output = job.clean()
         return utils.response(f"Annotations for '{corpus_id}' successfully removed!", sparv_output=sparv_output)
     except Exception as e:
-        return utils.response("Failed to clear annotations!", err=True, info=e), 404
+        return utils.response("Failed to clear annotations!", err=True, info=str(e)), 404
 
 
 def make_status_response(job, oc):
@@ -128,11 +128,11 @@ def make_status_response(job, oc):
     if status == jobs.Status.aborted:
         return utils.response("Job was aborted by the user!", job_status=status.name)
 
-    progress, warnings, errors, nothing_to_be_done = job.get_output()
+    progress, warnings, errors, output = job.get_output()
 
     if status == jobs.Status.annotating:
         return utils.response("Sparv is running!", progress=progress, warnings=warnings, errors=errors,
-                              job_status=status.name)
+                              sparv_output=output, job_status=status.name)
 
     # If done annotating, retrieve exports from Sparv
     if status == jobs.Status.done_annotating:
@@ -141,22 +141,19 @@ def make_status_response(job, oc):
         except Exception as e:
             return utils.response("Sparv was run successfully but exports failed to upload to Nextcloud!",
                                   err=True, info=str(e)), 404
-        if nothing_to_be_done:
-            return utils.response("Sparv was run successfully! Starting to sync results.",
-                                  sparv_output="Nothing to be done.", job_status=status.name)
         return utils.response("Sparv was run successfully! Starting to sync results.",
-                              warnings=warnings, errors=errors, job_status=status.name)
+                              warnings=warnings, errors=errors, sparv_output=output, job_status=status.name)
 
     if status == jobs.Status.syncing_results:
         return utils.response("Result files are being synced from the Sparv server!", job_status=status.name)
 
     if status == jobs.Status.done:
         return utils.response("Corpus is done processing and the results have been synced!", warnings=warnings,
-                              errors=errors, job_status=status.name)
+                              errors=errors, sparv_output=output, job_status=status.name)
 
     if status == jobs.Status.error:
         return utils.response("An error occurred while annotating!", err=True, warnings=warnings,
-                              errors=errors), 404
+                              errors=errors, sparv_output=output), 404
 
-    return utils.response("Cannot handle this Sparv status yet!", warnings=warnings, errors=errors,
+    return utils.response("Cannot handle this Sparv status yet!", warnings=warnings, errors=errors, sparv_output=output,
                           job_status=status.name), 501
