@@ -21,7 +21,8 @@ def response(msg, err=False, **kwargs):
     """Create json error response."""
     res = {"status": "error" if err else "success", "message": msg}
     for key, value in kwargs.items():
-        res[key] = value
+        if value != "":
+            res[key] = value
     return Response(json.dumps(res, ensure_ascii=False), mimetype="application/json")
 
 
