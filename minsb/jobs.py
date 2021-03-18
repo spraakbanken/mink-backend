@@ -299,13 +299,27 @@ class Job():
             app.logger.error(f"Failed to remove corpus dir '{self.remote_corpus_dir}'!")
 
     def clean(self):
-        """Remove annotation files from Sparv server by running 'sparv clean'."""
+        """Remove annotation and export files from Sparv server by running 'sparv clean --all'."""
         sparv_command = app.config.get("SPARV_COMMAND") + " clean --all"
         p = subprocess.run([
             "ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
             f"cd /home/{self.sparv_user}/{self.remote_corpus_dir} && rm -f {self.nohupfile} {self.runscript} && "
             f"{sparv_command}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+        if p.stderr:
+            raise Exception(p.stderr.decode())
+
+        sparv_output = p.stdout.decode() if p.stdout else ""
+        sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
+        return sparv_output
+
+    def clean_export(self):
+        """Remove export files from Sparv server by running 'sparv clean --export'."""
+        sparv_command = app.config.get("SPARV_COMMAND") + " clean --export"
+        p = subprocess.run([
+            "ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
+            f"cd /home/{self.sparv_user}/{self.remote_corpus_dir} && "
+            f"{sparv_command}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
             raise Exception(p.stderr.decode())
 

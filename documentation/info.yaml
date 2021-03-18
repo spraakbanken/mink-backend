@@ -17,15 +17,25 @@ info:
     A workflow for processing data with Sparv via Min Språkbank could look like this:
     
     1. <a href="#operation/initMinSB">Initialize Min Språkbank</a> (only once per user)
-    2. <a href="#operation/uploadcorpus">Upload some corpus files</a>
-    3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
-    4. <a href="#operation/runSparv">Run Sparv</a>
-    5. <a href="#operation/checkstatus">Check the status</a>
-    6. <a href="#operation/downloadexports">Download export files</a>
+    2. <a href="#operation/createcorpus">Create a new corpus</a>
+    3. <a href="#operation/uploadsources">Upload some corpus source files</a>
+    4. <a href="#operation/uploadconfig">Upload a corpus config file</a>
+    5. <a href="#operation/runSparv">Run Sparv</a>
+    6. <a href="#operation/checkstatus">Check the status</a>
+    7. <a href="#operation/downloadexports">Download export files</a>
 
     Please note that the user needs to make a `/check-status` call after the annotation process in order
     for the export files to be synced to Nextcloud. This is due to authentication restrictions. Once the annotation
     process with Sparv is complete and a `/check-status` call is made, the export files will by synced automatically.
+
+    # Parameters
+    Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
+    The following two examples will thus result in the same response:
+
+    `curl -X GET -u some_username '{{host}}/list-sources?corpus_id=some_corpus_name'`
+
+    `curl -X GET -u some_username -F "corpus_id=some_corpus_name" '{{host}}/list-sources'`
+
   x-logo:
     url: placeholder
   contact:
@@ -51,10 +61,16 @@ security:
   - basicAuth: []
 
 tags:
-  - name: Manage Data
-    description: Routes for uploading, viewing, updating and removing corpus data on Nextcloud.
+  - name: Manage Corpora
+    description: Routes for creating, listing and removing corpora.
+  - name: Manage Sources
+    description: Routes for uploading, listing, downloading and removing corpus source files.
+  - name: Manage Config
+    description: Routes for uploading and downloading corpus config files.
+  - name: Manage Exports
+    description: Routes for listing, downloading and removing export files.
   - name: Process Corpus
-    description: Routes for starting corpus annotation jobs with Sparv and checking job status.
+    description: Routes for starting/aborting corpus annotation jobs with Sparv and checking job status.
   - name: Documentation
     description: Routes used for documentation purposes.
   - name: Internal Routes

@@ -32,15 +32,17 @@ info:
     1. <a href="#operation/initMinSB">Initialize Min Språkbank</a> (only once per
     user)
 
-    2. <a href="#operation/uploadcorpus">Upload some corpus files</a>
+    2. <a href="#operation/createcorpus">Create a new corpus</a>
 
-    3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
+    3. <a href="#operation/uploadsources">Upload some corpus source files</a>
 
-    4. <a href="#operation/runSparv">Run Sparv</a>
+    4. <a href="#operation/uploadconfig">Upload a corpus config file</a>
 
-    5. <a href="#operation/checkstatus">Check the status</a>
+    5. <a href="#operation/runSparv">Run Sparv</a>
 
-    6. <a href="#operation/downloadexports">Download export files</a>
+    6. <a href="#operation/checkstatus">Check the status</a>
+
+    7. <a href="#operation/downloadexports">Download export files</a>
 
 
     Please note that the user needs to make a `/check-status` call after the annotation
@@ -50,7 +52,21 @@ info:
     restrictions. Once the annotation
 
     process with Sparv is complete and a `/check-status` call is made, the export
-    files will by synced automatically.'
+    files will by synced automatically.
+
+
+    # Parameters
+
+    Parameters such as `corpus_id` can usually be provided as a query parameter or
+    as form data.
+
+    The following two examples will thus result in the same response:
+
+
+    `curl -X GET -u some_username ''{{host}}/list-sources?corpus_id=some_corpus_name''`
+
+
+    `curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/list-sources''`'
   x-logo:
     url: placeholder
   contact:
@@ -80,7 +96,7 @@ paths:
       parameters: []
       responses:
         '200':
-          description: Init Min SB
+          description: Init Min SB 200
           content:
             application/json:
               schema:
@@ -96,7 +112,7 @@ paths:
                 status: success
                 message: Min Språkbank successfully initialized!
         '401':
-          description: init Min SB
+          description: init Min SB 401
           content:
             application/json:
               schema:
@@ -116,7 +132,7 @@ paths:
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
         '404':
-          description: init Min SB
+          description: init Min SB 404
           content:
             application/json:
               schema:
@@ -134,12 +150,11 @@ paths:
                 message: Failed to initialize Min Språkbank! Directory 'Min Språkbank'
                   already exists!
       tags:
-      - Manage Data
-  /upload-corpus:
-    put:
-      summary: upload corpus
-      description: 'Uploads corpus files to Nextcloud. All files within one corpus
-        must have the same file extension (`.xml` or `.txt`).
+      - Manage Corpora
+  /create-corpus:
+    post:
+      summary: create corpus
+      description: 'Creates a new corpus on Nextcloud.
 
 
         ### Example
@@ -147,15 +162,15 @@ paths:
 
         ```.bash
 
-        curl -X PUT -u some_username -F "corpus_id=some_corpus_name" -F "files[0]=@/absolute/path/to/localfile1.txt"
-        -F "files[1]=@/absolute/path/to/localfile2.txt" ''{{host}}/upload-corpus''
+        curl -X POST -u some_username ''{{host}}/create-corpus?corpus_id=some_corpus_name''
 
         ```'
-      operationId: uploadcorpus
-      parameters: []
+      operationId: createcorpus
+      parameters:
+      - $ref: '#/components/parameters/corpus_id'
       responses:
         '200':
-          description: upload corpus
+          description: create corpus 200
           content:
             application/json:
               schema:
@@ -166,12 +181,12 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Corpus 'min-testkorpus' successfully uploaded!
+                    example: Corpus 'min-testkorpus' created successfully!
               example:
                 status: success
-                message: Corpus 'min-testkorpus' successfully uploaded!
+                message: Corpus 'min-testkorpus' created successfully!
         '401':
-          description: upload corpus
+          description: upload corpus 401
           content:
             application/json:
               schema:
@@ -191,7 +206,7 @@ paths:
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
         '404':
-          description: upload corpus
+          description: create corpus 404-exists
           content:
             application/json:
               schema:
@@ -202,14 +217,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to upload corpus 'min_testkorpus'!
-                  info:
-                    type: string
-                    example: Corpus ID is invalid!
+                    example: Corpus 'min-testkorpus' already exists!
               example:
                 status: error
-                message: Failed to upload corpus 'min_testkorpus'!
-                info: Corpus ID is invalid!
+                message: Corpus 'min-testkorpus' already exists!
       requestBody:
         required: true
         content:
@@ -236,7 +247,7 @@ paths:
               - /home/anne/Downloads/testkorpus/dokument2.xml
               - /home/anne/Downloads/testkorpus/dokument1.xml
       tags:
-      - Manage Data
+      - Manage Corpora
   /list-corpora:
     get:
       summary: list corpora
@@ -256,7 +267,7 @@ paths:
       - $ref: '#/components/parameters/'
       responses:
         '200':
-          description: list corpora
+          description: list corpora 200
           content:
             application/json:
               schema:
@@ -277,7 +288,7 @@ paths:
                 message: Listing available corpora
                 corpora: *id001
         '401':
-          description: list corpora
+          description: list corpora 401
           content:
             application/json:
               schema:
@@ -297,248 +308,7 @@ paths:
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
       tags:
-      - Manage Data
-  /upload-config:
-    put:
-      summary: upload config
-      description: 'Uploads a corpus config file. File must be in yaml format. Read
-        more about corpus config files in [the Sparv Pipeline documentation](https://spraakbanken.gu.se/sparv/#/user-manual/corpus-configuration).
-
-
-        If a config file already exists for the given corpus it will be replaced by
-        the newly uploaded one.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X PUT -u some_username -F "corpus_id=some_corpus_name" -F "files[0]=@/absolute/path/to/config.yaml;type=text/yaml"
-        ''{{host}}/upload-config''
-
-        ```'
-      operationId: uploadconfig
-      parameters:
-      - $ref: '#/components/parameters/corpus_id'
-      responses:
-        '200':
-          description: upload config
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Config file successfully uploaded for 'min-testkorpus'!
-              example:
-                status: success
-                message: Config file successfully uploaded for 'min-testkorpus'!
-        '401':
-          description: upload config
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate!
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate!
-                info: 'HTTP error: 401'
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-              - file
-              properties:
-                file:
-                  type: string
-                  format: binary
-            example:
-            - key: ''
-              type: file
-              src: /home/anne/Downloads/testkorpus/config.yaml
-      tags:
-      - Manage Data
-  /update-corpus:
-    put:
-      summary: update corpus
-      description: 'Updates, adds and removes corpus files. When uploading a file
-        with a name that already exists you can replace corpus files. Files that should
-        be removed are listed in the `remove` query parameter or in the `remove` key
-        in the uploaded form.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X PUT -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/update-corpus''
-        -F "remove=some_filepath,another_filepath" -F "files[0]=@/absolute/path/to/some_localfile.txt"
-
-        ```'
-      operationId: updatecorpus
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      - $ref: '#/components/parameters/remove'
-      responses:
-        '200':
-          description: update corpus
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpus' successfully updated!
-              example:
-                status: success
-                message: Corpus 'min-testkorpus' successfully updated!
-        '401':
-          description: update corpus
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate!
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate!
-                info: 'HTTP error: 401'
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-              - file
-              properties:
-                file:
-                  type: string
-                  format: binary
-            example:
-            - key: ''
-              type: file
-              src:
-              - /home/anne/Downloads/testkorpus/dokument2.xml
-              - /home/anne/Downloads/testkorpus/dokument1.xml
-      tags:
-      - Manage Data
-  /clear-annotations:
-    delete:
-      summary: clear annotations
-      description: 'Clears the annotation directory for the provided corpus on the
-        Sparv server. This is useful if you want to process a previously annotated
-        corpus with a new corpus config file.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X DELETE -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/clear-annotations''
-
-        ```'
-      operationId: clearannotations
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      - name: ''
-        in: query
-        required: true
-        style: form
-        schema:
-          type: number
-      responses:
-        '200':
-          description: clear annotations
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Annotations for 'min-testkorpus' successfully removed!
-                  sparv_output:
-                    type: string
-                    example: '''export'' directory removed
-
-                      ''sparv-workdir'' directory removed'
-              example:
-                status: success
-                message: Annotations for 'min-testkorpus' successfully removed!
-                sparv_output: '''export'' directory removed
-
-                  ''sparv-workdir'' directory removed'
-        '401':
-          description: clear annotations
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate!
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate!
-                info: 'HTTP error: 401'
-      tags:
-      - Manage Data
+      - Manage Corpora
   /remove-corpus:
     delete:
       summary: remove corpus
@@ -565,7 +335,7 @@ paths:
           example: min-testkorpus
       responses:
         '200':
-          description: remove corpus
+          description: remove corpus 200
           content:
             application/json:
               schema:
@@ -581,7 +351,7 @@ paths:
                 status: success
                 message: Corpus 'min-testkorpus' successfully removed!
         '401':
-          description: remove corpus
+          description: remove corpus 401
           content:
             application/json:
               schema:
@@ -601,7 +371,7 @@ paths:
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
         '404':
-          description: remove corpus
+          description: remove corpus 404
           content:
             application/json:
               schema:
@@ -617,7 +387,495 @@ paths:
                 status: error
                 message: Corpus 'min-testkorpus' does not exist!
       tags:
-      - Manage Data
+      - Manage Corpora
+  /upload-sources:
+    put:
+      summary: upload sources
+      description: 'Uploads the attached files as corpus source files to Nextcloud.
+        When uploading a file with a name that already exists it will be replaced.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X PUT -u some_username -F "files[]=@/absolute/path/to/localfile1.txt"
+        -F "files[]=@/absolute/path/to/localfile2.txt" ''{{host}}/upload-sources?corpus_id=some_corpus_name''
+
+        ```'
+      operationId: uploadsources
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: upload sources 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Source files successfully added to 'min-testkorpus'!
+              example:
+                status: success
+                message: Source files successfully added to 'min-testkorpus'!
+        '401':
+          description: upload sources 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+        '404':
+          description: upload sources 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist!
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist!
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+            example:
+            - key: ''
+              type: file
+              src:
+              - /home/anne/Downloads/testkorpus/source/dokument2.xml
+              - /home/anne/Downloads/testkorpus/source/dokument1.xml
+      tags:
+      - Manage Sources
+  /list-sources:
+    get:
+      summary: list sources
+      description: 'Lists the available corpus source files.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X GET -u some_username ''{{host}}/list-sources?corpus_id=some_corpus_name''
+
+        ```'
+      operationId: listsources
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: list sources 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Current source files for 'min-testkorpus'
+                  contents:
+                    type: array
+                    example: &id002
+                    - name: dokument1.xml
+                      type: application/xml
+                      last_modified: Tue, 02 Mar 2021 15:31:46 GMT
+                      path: /Min Språkbank/min-testkorpus/source/dokument1.xml
+                    - name: dokument2.xml
+                      type: application/xml
+                      last_modified: Tue, 02 Mar 2021 15:31:46 GMT
+                      path: /Min Språkbank/min-testkorpus/source/dokument2.xml
+              example:
+                status: success
+                message: Current source files for 'min-testkorpus'
+                contents: *id002
+        '401':
+          description: list sources 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+        '404':
+          description: list sources 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist!
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist!
+      tags:
+      - Manage Sources
+  /download-sources:
+    get:
+      summary: download sources
+      description: "Downloads corpus source files from Nextcloud as zip file.\n\n\
+        ### Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/download-sources?corpus_id=some_corpus_name'\n\
+        ```"
+      operationId: downloadsources
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: download sources 200
+          content:
+            application/zip:
+              schema: {}
+        '401':
+          description: download sources 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+        '404':
+          description: download sources 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist!
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist!
+      tags:
+      - Manage Sources
+  /remove-sources:
+    delete:
+      summary: remove sources
+      description: "Remove the source files given in the `remove` query parameter\
+        \ (or in the `remove` key in the uploaded form) from the corpus. Files are\
+        \ provided as a comma-separated list of paths relative to the source directory.\n\
+        \nIf any files could not be removed they will be listed in the error response.\n\
+        \n### Example\n\n```.bash\ncurl -X DELETE -u some_username \n '{{host}}/remove-sources?corpus_id=some_corpus_name&remove=dokument1.xml,dokument2.xml'\n\
+        ```"
+      operationId: removesources
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      - $ref: '#/components/parameters/remove'
+      responses:
+        '200':
+          description: remove sources 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Source files for 'min-testkorpus' successfully updated!
+              example:
+                status: success
+                message: Source files for 'min-testkorpus' successfully updated!
+        '401':
+          description: remove sources 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+        '404':
+          description: remove sources 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: No files provided for removal!
+              example:
+                status: error
+                message: No files provided for removal!
+      tags:
+      - Manage Sources
+  /upload-config:
+    put:
+      summary: upload config
+      description: 'Uploads a corpus config file. File must be in yaml format. Read
+        more about corpus config files in [the Sparv Pipeline documentation](https://spraakbanken.gu.se/sparv/#/user-manual/corpus-configuration).
+
+
+        If a config file already exists for the given corpus it will be replaced by
+        the newly uploaded one.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X PUT -u some_username -F "files[]=@/absolute/path/to/config.yaml;type=text/yaml"
+        ''{{host}}/upload-config?corpus_id=some_corpus_name''
+
+        ```'
+      operationId: uploadconfig
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: upload config 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Config file successfully uploaded for 'min-testkorpus'!
+              example:
+                status: success
+                message: Config file successfully uploaded for 'min-testkorpus'!
+        '401':
+          description: upload config 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+        '404':
+          description: upload config 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist!
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist!
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+            example:
+            - key: ''
+              type: file
+              src: /home/anne/Downloads/testkorpus/config.yaml
+      tags:
+      - Manage Config
+  /download-config:
+    get:
+      summary: download config
+      description: 'Downloads the corpus config file (in yaml format).
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X GET -u some_username ''{{host}}/download-config?corpus_id=some_corpus_name''
+
+        ```'
+      operationId: downloadconfig
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: download config 200
+          content:
+            text/yaml; charset=utf-8:
+              schema: {}
+        '401':
+          description: download config 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+        '404':
+          description: download config 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist!
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist!
+      tags:
+      - Manage Config
   /list-exports:
     get:
       summary: list exports
@@ -629,7 +887,7 @@ paths:
 
         ```.bash
 
-        curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/list-exports''
+        curl -X GET -u some_username ''{{host}}/list-exports?corpus_id=some_corpus_name''
 
         ```'
       operationId: listexports
@@ -643,7 +901,7 @@ paths:
           example: min-testkorpus
       responses:
         '200':
-          description: list exports
+          description: list exports 200
           content:
             application/json:
               schema:
@@ -657,7 +915,7 @@ paths:
                     example: Current export files for 'min-testkorpus'
                   contents:
                     type: array
-                    example: &id002
+                    example: &id003
                     - name: dokument1.csv
                       type: text/csv
                       last_modified: Fri, 05 Mar 2021 10:37:25 GMT
@@ -681,9 +939,9 @@ paths:
               example:
                 status: success
                 message: Current export files for 'min-testkorpus'
-                contents: *id002
+                contents: *id003
         '401':
-          description: list exports
+          description: list exports 401
           content:
             application/json:
               schema:
@@ -702,8 +960,24 @@ paths:
                 status: error
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
+        '404':
+          description: list exports 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist!
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist!
       tags:
-      - Manage Data
+      - Manage Exports
   /download-exports:
     get:
       summary: download exports
@@ -724,7 +998,7 @@ paths:
 
         ```.bash
 
-        curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/download-exports''
+        curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name''
 
         ```'
       operationId: downloadexports
@@ -738,12 +1012,12 @@ paths:
           example: min-testkorpus
       responses:
         '200':
-          description: download exports
+          description: download exports 200
           content:
             application/zip:
               schema: {}
         '401':
-          description: download exports
+          description: download exports 401
           content:
             application/json:
               schema:
@@ -762,23 +1036,32 @@ paths:
                 status: error
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
+        '404':
+          description: download exports 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist!
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist!
       tags:
-      - Manage Data
-  /download-corpus:
-    get:
-      summary: download corpus
-      description: 'Downloads corpus files from Nextcloud as zip file.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/download-corpus''
-
-        ```'
-      operationId: downloadcorpus
+      - Manage Exports
+  /remove-exports:
+    delete:
+      summary: remove exports
+      description: "Removes all export files for the corpus from Nextcloud. Will attempt\
+        \ to remove exports from the Sparv server, too, but won't crash if this fails.\n\
+        \n### Example\n\n```.bash\ncurl -X DELETE -u some_username \n '{{host}}/remove-exports?corpus_id=some_corpus_name'\n\
+        ```"
+      operationId: removeexports
       parameters:
       - name: corpus_id
         in: query
@@ -789,12 +1072,24 @@ paths:
           example: min-testkorpus
       responses:
         '200':
-          description: download corpus
+          description: remove exports 200
           content:
-            application/zip:
-              schema: {}
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Export files for corpus 'min-testkorpus' successfully
+                      removed!
+              example:
+                status: success
+                message: Export files for corpus 'min-testkorpus' successfully removed!
         '401':
-          description: download corpus
+          description: remove exports 401
           content:
             application/json:
               schema:
@@ -814,58 +1109,7 @@ paths:
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
       tags:
-      - Manage Data
-  /download-config:
-    get:
-      summary: download config
-      description: 'Downloads the corpus config file (in yaml format).
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/download-config''
-
-        ```'
-      operationId: downloadconfig
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      responses:
-        '200':
-          description: download config
-          content:
-            text/yaml; charset=utf-8:
-              schema: {}
-        '401':
-          description: download config
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate!
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate!
-                info: 'HTTP error: 401'
-      tags:
-      - Manage Data
+      - Manage Exports
   /run-sparv:
     put:
       summary: run Sparv
@@ -875,8 +1119,8 @@ paths:
 
 
         There can only be one annotation job for each corpus at a time. A job must
-        finish annotating and sync to Nextcloud or aborted (N.B: not yet implemented!)
-        before a new one can be started.
+        finish annotating and syncing to Nextcloud or aborted before a new one can
+        be started.
 
 
         ### Example
@@ -900,7 +1144,7 @@ paths:
       - $ref: '#/components/parameters/exports'
       responses:
         '200':
-          description: run Sparv
+          description: run Sparv 200
           content:
             application/json:
               schema:
@@ -924,78 +1168,7 @@ paths:
                 job_status: waiting
                 priority: 1
         '401':
-          description: run Sparv
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate!
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate!
-                info: 'HTTP error: 401'
-      tags:
-      - Process Corpus
-  /check-status:
-    get:
-      summary: check status
-      description: 'Checks the status of an annotation job. The different job status
-        codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`).
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/check-status''
-
-        ```'
-      operationId: checkstatus
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      responses:
-        '200':
-          description: check status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Sparv is running!
-                  sparv_output:
-                    type: string
-                    example: 'Progress: 6%'
-                  job_status:
-                    type: string
-                    example: annotating
-              example:
-                status: success
-                message: Sparv is running!
-                sparv_output: 'Progress: 6%'
-                job_status: annotating
-        '401':
-          description: check status
+          description: run Sparv 401
           content:
             application/json:
               schema:
@@ -1015,7 +1188,7 @@ paths:
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
         '404':
-          description: check status
+          description: run Sparv 404
           content:
             application/json:
               schema:
@@ -1026,28 +1199,17 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: An error occurred while annotating!
-                  sparv_output:
-                    type: string
-                    example: 'Sparv exited with the following error messages: The
-                      following output files were expected but are missing:  • sparv-workdir/dokument1/textt/@span
-                      There can be many reasons for this. Please make sure that there
-                      are no problems  with the corpus configuration file, like misspelled
-                      annotation names or  references to non-existent source annotations.'
+                    example: Corpus 'min-testkorpuss' does not exist!
               example:
                 status: error
-                message: An error occurred while annotating!
-                sparv_output: 'Sparv exited with the following error messages: The
-                  following output files were expected but are missing:  • sparv-workdir/dokument1/textt/@span
-                  There can be many reasons for this. Please make sure that there
-                  are no problems  with the corpus configuration file, like misspelled
-                  annotation names or  references to non-existent source annotations.'
+                message: Corpus 'min-testkorpuss' does not exist!
       tags:
       - Process Corpus
-  /abort-job:
-    post:
-      summary: abort job
-      description: 'Attempts to abort a running Sparv job.
+  /check-status:
+    get:
+      summary: check status
+      description: 'Checks the status of an annotation job. The different job status
+        codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`).
 
 
         ### Example
@@ -1055,10 +1217,10 @@ paths:
 
         ```.bash
 
-        curl -X POST -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/abort-job''
+        curl -X GET -u some_username ''{{host}}/check-status?corpus_id=some_corpus_name''
 
         ```'
-      operationId: abortjob
+      operationId: checkstatus
       parameters:
       - name: corpus_id
         in: query
@@ -1069,7 +1231,7 @@ paths:
           example: min-testkorpus
       responses:
         '200':
-          description: abort job
+          description: check status 200
           content:
             application/json:
               schema:
@@ -1080,16 +1242,20 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Successfully aborted running job for 'min-testkorpus'.
+                    example: Sparv is running!
+                  progress:
+                    type: string
+                    example: 18%
                   job_status:
                     type: string
-                    example: aborted
+                    example: annotating
               example:
                 status: success
-                message: Successfully aborted running job for 'min-testkorpus'.
-                job_status: aborted
+                message: Sparv is running!
+                progress: 18%
+                job_status: annotating
         '401':
-          description: abort job
+          description: check status 401
           content:
             application/json:
               schema:
@@ -1108,6 +1274,183 @@ paths:
                 status: error
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
+        '404':
+          description: check status 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: An error occurred while annotating!
+                  sparv_output:
+                    type: string
+                    example: "Sparv exited with the following error messages:\n\n\
+                      The following output files were expected but are missing:\n\
+                      \ • sparv-workdir/dokument1/textt/@span\nThere can be many reasons\
+                      \ for this. Please make sure that there are no problems \nwith\
+                      \ the corpus configuration file, like misspelled annotation\
+                      \ names or \nreferences to non-existent source annotations."
+              example:
+                status: error
+                message: An error occurred while annotating!
+                sparv_output: "Sparv exited with the following error messages:\n\n\
+                  The following output files were expected but are missing:\n • sparv-workdir/dokument1/textt/@span\n\
+                  There can be many reasons for this. Please make sure that there\
+                  \ are no problems \nwith the corpus configuration file, like misspelled\
+                  \ annotation names or \nreferences to non-existent source annotations."
+      tags:
+      - Process Corpus
+  /abort-job:
+    post:
+      summary: abort job
+      description: 'Attempts to abort a running Sparv job.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X POST -u some_username ''{{host}}/abort-job?corpus_id=some_corpus_name''
+
+        ```'
+      operationId: abortjob
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: abort job 200-no-job
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: No running job found for 'min-testkorpus'.
+              example:
+                status: success
+                message: No running job found for 'min-testkorpus'.
+        '401':
+          description: abort job 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+      tags:
+      - Process Corpus
+  /clear-annotations:
+    delete:
+      summary: clear annotations
+      description: "Clears the annotation and export directory for the provided corpus\
+        \ on the Sparv server. This is useful if you want to process a previously\
+        \ annotated corpus with a new corpus config file.\n\n### Example\n\n```.bash\n\
+        curl -X DELETE -u some_username \n '{{host}}/clear-annotations?corpus_id=some_corpus_name'\n\
+        ```"
+      operationId: clearannotations
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      - name: ''
+        in: query
+        required: true
+        style: form
+        schema:
+          type: number
+      responses:
+        '200':
+          description: clear annotations 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Annotations for 'min-testkorpus' successfully removed!
+                  sparv_output:
+                    type: string
+                    example: '''export'' directory removed
+
+                      ''sparv-workdir'' directory removed'
+              example:
+                status: success
+                message: Annotations for 'min-testkorpus' successfully removed!
+                sparv_output: '''export'' directory removed
+
+                  ''sparv-workdir'' directory removed'
+        '401':
+          description: clear annotations 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate!
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate!
+                info: 'HTTP error: 401'
+        '404':
+          description: clear annotations 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist!
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist!
       tags:
       - Process Corpus
   /api-spec:
@@ -1144,7 +1487,7 @@ paths:
       parameters: []
       responses:
         '200':
-          description: status codes
+          description: status codes 200
           content:
             application/json:
               schema:
@@ -1158,7 +1501,7 @@ paths:
                     example: Listing existing job status codes
                   status_codes:
                     type: array
-                    example: &id003
+                    example: &id004
                     - code: 0
                       name: none
                       description: Job does not exist
@@ -1189,7 +1532,7 @@ paths:
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes: *id003
+                status_codes: *id004
       tags:
       - Documentation
       security: []
@@ -1211,7 +1554,7 @@ paths:
       parameters: []
       responses:
         '200':
-          description: advance queue
+          description: advance queue 200
           content:
             application/json:
               schema:
@@ -1227,7 +1570,7 @@ paths:
                 status: success
                 message: Queue advancing completed!
         '401':
-          description: advance queue
+          description: advance queue 401
           content:
             application/json:
               schema:
@@ -1248,13 +1591,6 @@ paths:
       - ApiKeyAuth: []
 components:
   parameters:
-    ? ''
-    : name: ''
-      in: query
-      required: true
-      style: form
-      schema:
-        type: number
     corpus_id:
       name: corpus_id
       in: query
@@ -1263,6 +1599,13 @@ components:
       schema:
         type: string
         example: min-testkorpus
+    ? ''
+    : name: ''
+      in: query
+      required: true
+      style: form
+      schema:
+        type: number
     remove:
       name: remove
       in: query
@@ -1290,12 +1633,18 @@ components:
 security:
 - basicAuth: []
 tags:
-- name: Manage Data
-  description: Routes for uploading, viewing, updating and removing corpus data on
-    Nextcloud.
+- name: Manage Corpora
+  description: Routes for creating, listing and removing corpora.
+- name: Manage Sources
+  description: Routes for uploading, listing, downloading and removing corpus source
+    files.
+- name: Manage Config
+  description: Routes for uploading and downloading corpus config files.
+- name: Manage Exports
+  description: Routes for listing, downloading and removing export files.
 - name: Process Corpus
-  description: Routes for starting corpus annotation jobs with Sparv and checking
-    job status.
+  description: Routes for starting/aborting corpus annotation jobs with Sparv and
+    checking job status.
 - name: Documentation
   description: Routes used for documentation purposes.
 - name: Internal Routes

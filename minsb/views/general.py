@@ -22,7 +22,7 @@ def hello():
 def api_spec():
     """Return open API specification in json."""
     if app.config.get("DEBUG"):
-        host = request.host_url
+        host = request.host_url.rstrip("/")
     else:
         # Proxy fix: When not in debug mode, use MIN_SB_URL instead of host URL
         host = app.config.get("MIN_SB_URL")
