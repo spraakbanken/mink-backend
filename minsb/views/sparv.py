@@ -131,7 +131,7 @@ def make_status_response(job, oc):
     progress, warnings, errors, nothing_to_be_done = job.get_output()
 
     if status == jobs.Status.annotating:
-        return utils.response("Sparv is running!", progross=progress, warnings=warnings, errors=errors,
+        return utils.response("Sparv is running!", progress=progress, warnings=warnings, errors=errors,
                               job_status=status.name)
 
     # If done annotating, retrieve exports from Sparv

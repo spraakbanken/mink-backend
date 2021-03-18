@@ -233,6 +233,7 @@ class Job():
 
         stdout = p.stdout.decode().strip() if p.stdout else ""
         progress = warnings = errors = ""
+        nothing_to_be_done = False
         if stdout:
             progress = [line for line in stdout.split("\n") if line.startswith("Progress:")]
             progress = progress[-1] if progress else ""
