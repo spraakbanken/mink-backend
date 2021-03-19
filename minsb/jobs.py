@@ -46,7 +46,7 @@ class Job():
     def __init__(self, user, corpus_id, status=Status.none, pid=None, sparv_exports=None):
         self.user = user
         self.corpus_id = corpus_id
-        self.id = hashlib.sha1(f"{self.user}{self.corpus_id}".encode("UTF-8")).hexdigest()[:10]
+        self.id = self.get_id()
         self.status = status
         self.pid = pid
         self.sparv_exports = sparv_exports or []
@@ -104,6 +104,26 @@ class Job():
     def set_pid(self, pid):
         """Set pid of job and save."""
         self.pid = pid
+        self.save()
+
+    def get_id(self, corpus_id=None):
+        """Get hashed ID for job."""
+        if corpus_id is None:
+            corpus_id = self.corpus_id
+        return hashlib.sha1(f"{self.user}{corpus_id}".encode("UTF-8")).hexdigest()[:10]
+
+    def change_id(self, new_corpus_id):
+        """Change the corpus ID on the Sparv server and in cache."""
+        new_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=self.user, corpus_id=new_corpus_id))
+        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
+                            f"cd /home/{self.sparv_user} && mv {self.remote_corpus_dir} {new_corpus_dir}"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if p.stderr:
+            raise Exception(f"Failed to rename corpus on Sparv server! {p.stderr.decode()}")
+
+        self.remove()
+        self.corpus_id = new_corpus_id
+        self.id = self.get_id(corpus_id=new_corpus_id)
         self.save()
 
     def sync_to_sparv(self, oc):

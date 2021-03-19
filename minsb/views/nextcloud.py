@@ -91,6 +91,32 @@ def remove_corpus(oc, user, _corpora, corpus_id):
     return utils.response(f"Corpus '{corpus_id}' successfully removed!")
 
 
+# @bp.route("/rename-corpus", methods=["POST"])
+# @utils.login()
+# def rename_corpus(oc, user, _corpora, corpus_id):
+#     """Rename corpus."""
+#     new_id = request.args.get("new_id") or request.form.get("new_id") or ""
+#     if not new_id:
+#         return utils.response("No new corpus ID was provided!", err=True), 404
+#     try:
+#         job = jobs.get_job(user, corpus_id)
+#         if jobs.Status.none < job.status < jobs.Status.done_annotating or job.status == jobs.Status.syncing_results:
+#             return utils.response("Cannot rename corpus while a job is running!", err=True), 404
+#         # Rename on Nextcloud
+#         corpus_dir = paths.get_corpus_dir(domain="nc", corpus_id=corpus_id)
+#         new_corpus_dir = corpus_dir.parent.joinpath(new_id)
+#         oc.move(corpus_dir, new_corpus_dir)
+#         # Rename corpus dir on Sparv server and job in cache
+#         queue.remove(job)
+#         job.change_id(new_id)
+#         queue.add(job)
+#         # TODO: Change ID in config file
+#         return utils.response(f"Successfully renamed corpus to '{new_id}'!")
+#     except Exception as e:
+#         # TODO: Undo renaming if it succeeded partially
+#         return utils.response("Failed to rename corpus!", err=True, info=str(e)), 404
+
+
 # ------------------------------------------------------------------------------
 # Source file operations
 # ------------------------------------------------------------------------------
