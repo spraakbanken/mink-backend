@@ -3220,7 +3220,7 @@
 								"advance-queue"
 							]
 						},
-						"description": "Check the job queue and attempt to advance it.\n\n1. Unqueue jobs that are done, aborted or erroneous\n2. For jobs with status \"annotating\", check if process is still running\n3. Run the next job in the queue if there are fewer running jobs than allowed\n\nFor internal use only!"
+						"description": "Check the job queue and attempt to advance it.\n\n1. Unqueue jobs that are done, aborted or erroneous\n2. For jobs with status \"annotating\", check if process is still running\n3. Run the next job in the queue if there are fewer running jobs than allowed\n\nFor internal use only! This route is called regularly by the queue manager."
 					},
 					"response": [
 						{

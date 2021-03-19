@@ -7,7 +7,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, url_for
 
-from minsb import queue, utils
+from minsb import utils
 
 bp = Blueprint("general", __name__)
 

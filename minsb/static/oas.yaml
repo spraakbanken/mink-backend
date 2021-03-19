@@ -10,8 +10,6 @@ info:
     Web API serving as a backend to Min Språkbank.
 
 
-    # Overview
-
     For now the API is used for uploading corpus data to a user''s Nextcloud
 
     instance and processing that data with Sparv.
@@ -1549,7 +1547,7 @@ paths:
         3. Run the next job in the queue if there are fewer running jobs than allowed
 
 
-        For internal use only!'
+        For internal use only! This route is called regularly by the queue manager.'
       operationId: advancequeue
       parameters: []
       responses:
