@@ -47,15 +47,25 @@ info:
 servers:
   - url: https://ws.spraakbanken.gu.se/ws/min-sb
     description: Test server
-components:
-  securitySchemes:
-    basicAuth:
-      type: http
-      scheme: basic
-    ApiKeyAuth:
-      type: apiKey
+
+securitySchemes:
+  basicAuth:
+    type: http
+    scheme: basic
+  ApiKeyAuth:
+    type: apiKey
+    in: query
+    name: secret_key
+parameters:
+    exports:
+      name: exports
       in: query
-      name: secret_key
+      required: false
+      style: form
+      schema:
+        type: string
+        example: csv_export:csv,stats_export:freq_list,xml_export:pretty
+
 security:
   - basicAuth: []
 

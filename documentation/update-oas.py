@@ -54,9 +54,15 @@ def main(infile):
         for method, methodobj in pathobj.items():
             input_oas["paths"][path][method].update(methodobj)
 
-    # Add components
-    for key, value in info_yaml.get("components").items():
-        input_oas["components"][key] = value
+    # Override securitySchemes
+    input_oas["components"]["securitySchemes"] = {}
+    for key, value in info_yaml.get("securitySchemes").items():
+        input_oas["components"]["securitySchemes"][key] = value
+
+    # Override some parameters
+    for key, value in info_yaml.get("parameters").items():
+        input_oas["components"]["parameters"][key] = value
+
 
     yamldump = yaml.dump(input_oas, sort_keys=False, allow_unicode=True)
     # print(yamldump)

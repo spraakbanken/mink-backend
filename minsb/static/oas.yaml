@@ -227,23 +227,14 @@ paths:
               type: object
               required:
               - corpus_id
-              - file
               properties:
                 corpus_id:
                   type: string
                   example: min-testkorpus
-                file:
-                  type: string
-                  format: binary
             example:
             - key: corpus_id
               value: min-testkorpus
               type: text
-            - key: ''
-              type: file
-              src:
-              - /home/anne/Downloads/testkorpus/dokument2.xml
-              - /home/anne/Downloads/testkorpus/dokument1.xml
       tags:
       - Manage Corpora
   /list-corpora:
@@ -261,8 +252,7 @@ paths:
 
         ```'
       operationId: listcorpora
-      parameters:
-      - $ref: '#/components/parameters/'
+      parameters: []
       responses:
         '200':
           description: list corpora 200
@@ -578,8 +568,8 @@ paths:
     get:
       summary: download sources
       description: "Downloads corpus source files from Nextcloud as zip file.\n\n\
-        ### Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/download-sources?corpus_id=some_corpus_name'\n\
-        ```"
+        ### Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/download-sources?corpus_id=some_corpus_name'\
+        \ --output some_corpus_name_sources.zip\n```"
       operationId: downloadsources
       parameters:
       - name: corpus_id
@@ -997,6 +987,7 @@ paths:
         ```.bash
 
         curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name''
+        --output some_corpus_name.zip
 
         ```'
       operationId: downloadexports
@@ -1382,12 +1373,6 @@ paths:
         schema:
           type: string
           example: min-testkorpus
-      - name: ''
-        in: query
-        required: true
-        style: form
-        schema:
-          type: number
       responses:
         '200':
           description: clear annotations 200
@@ -1597,13 +1582,6 @@ components:
       schema:
         type: string
         example: min-testkorpus
-    ? ''
-    : name: ''
-      in: query
-      required: true
-      style: form
-      schema:
-        type: number
     remove:
       name: remove
       in: query
@@ -1615,7 +1593,7 @@ components:
     exports:
       name: exports
       in: query
-      required: true
+      required: false
       style: form
       schema:
         type: string
