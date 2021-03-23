@@ -1,6 +1,7 @@
 apscheduler
 flask
 flask_cors
+gevent
 pymemcache
 pyocclient
 python-dateutil
