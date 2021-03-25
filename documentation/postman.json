@@ -2565,7 +2565,7 @@
 								}
 							]
 						},
-						"description": "Checks the status of an annotation job. The different job status codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`).\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/check-status?corpus_id=some_corpus_name'\n```"
+						"description": "Checks the status of an annotation job and reports it in the `job_status` field of the json response. The different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation process has been started successfully a percentage of the completed annotation progress will be shown in the `progress` field.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/check-status?corpus_id=some_corpus_name'\n```"
 					},
 					"response": [
 						{

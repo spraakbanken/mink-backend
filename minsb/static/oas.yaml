@@ -64,7 +64,22 @@ info:
     `curl -X GET -u some_username ''{{host}}/list-sources?corpus_id=some_corpus_name''`
 
 
-    `curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/list-sources''`'
+    `curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/list-sources''`
+
+
+    # Responses
+
+    Most responses will be in json format. Json responses contain a `status` field
+    which will have the value `success`
+
+    if the response code is 200 and `error` otherwise. Thus this `status` merely reports
+    whether the call was processed
+
+    correctly. Most responses contain a `message` field with information about what
+    was done during the call or where
+
+    things went wrong. Each call may have an arbitrary amount of additional fields
+    containing more information or data.'
   x-logo:
     url: placeholder
   contact:
@@ -1197,8 +1212,11 @@ paths:
   /check-status:
     get:
       summary: check status
-      description: 'Checks the status of an annotation job. The different job status
-        codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`).
+      description: 'Checks the status of an annotation job and reports it in the `job_status`
+        field of the json response. The different `job_status` codes can be looked
+        up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation
+        process has been started successfully a percentage of the completed annotation
+        progress will be shown in the `progress` field.
 
 
         ### Example
