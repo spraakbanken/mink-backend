@@ -213,22 +213,38 @@ def download_sources(oc, user, _corpora, corpus_id):
 @bp.route("/upload-config", methods=["PUT"])
 @utils.login()
 def upload_config(oc, _user, corpora, corpus_id):
-    """Upload a corpus config file."""
-    # Check if config file was provided
+    """Upload a corpus config as file or plain text."""
     attached_files = list(request.files.values())
-    if not attached_files:
+    config_txt = request.args.get("config") or request.form.get("config") or ""
+
+    if attached_files and config_txt:
+        return utils.response("Found both a config file and a plain text config but can only process one of these!",
+                              err=True), 404
+
+    # Process uploaded config file
+    if attached_files:
+        # Check if config file is YAML
+        config_file = attached_files[0]
+        if config_file.mimetype not in ("application/x-yaml", "text/yaml"):
+            return utils.response("Config file needs to be YAML!", err=True), 404
+
+        try:
+            new_config = utils.set_corpus_id(config_file.read(), corpus_id)
+            oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), new_config)
+            return utils.response(f"Config file successfully uploaded for '{corpus_id}'!")
+        except Exception as e:
+            return utils.response(f"Failed to upload config file for '{corpus_id}'!", err=True, info=str(e))
+
+    elif config_txt:
+        try:
+            new_config = utils.set_corpus_id(config_txt, corpus_id)
+            oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), new_config)
+            return utils.response(f"Config file successfully uploaded for '{corpus_id}'!")
+        except Exception as e:
+            return utils.response(f"Failed to upload config file for '{corpus_id}'!", err=True, info=str(e))
+
+    else:
         return utils.response("No config file provided for upload!", err=True), 404
-
-    # Check if config file is YAML
-    config_file = attached_files[0]
-    if config_file.mimetype not in ("application/x-yaml", "text/yaml"):
-        return utils.response("Config file needs to be YAML!", err=True), 404
-
-    try:
-        oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), config_file.read())
-        return utils.response(f"Config file successfully uploaded for '{corpus_id}'!")
-    except Exception as e:
-        return utils.response(f"Failed to upload config file for '{corpus_id}'!", err=True, info=str(e))
 
 
 @bp.route("/download-config", methods=["GET"])

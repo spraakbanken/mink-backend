@@ -715,12 +715,16 @@ paths:
   /upload-config:
     put:
       summary: upload config
-      description: 'Uploads a corpus config file. File must be in yaml format. Read
-        more about corpus config files in [the Sparv Pipeline documentation](https://spraakbanken.gu.se/sparv/#/user-manual/corpus-configuration).
+      description: 'Uploads a corpus configuration, either as a file or as plain with
+        the `config` parameter. The config must be in yaml format. Read more about
+        corpus config files in [the Sparv Pipeline documentation](https://spraakbanken.gu.se/sparv/#/user-manual/corpus-configuration).
 
 
         If a config file already exists for the given corpus it will be replaced by
         the newly uploaded one.
+
+
+        Please note that comments may be removed from your config on upload.
 
 
         ### Example

@@ -8,6 +8,7 @@ import zipfile
 from pathlib import Path
 
 import owncloud
+import yaml
 from dateutil.parser import parse
 from flask import Response
 from flask import current_app as app
@@ -267,3 +268,17 @@ def memcached_set(key, value):
     else:
         # Use app context if memcached is unavailable
         g.job_queue[key] = value
+
+
+def set_corpus_id(config, corpus_id):
+    """Set the correct corpus_id in a corpus config."""
+    config_yaml = yaml.load(config, Loader=yaml.FullLoader)
+
+    # If corpus_id already has correct value, do nothing
+    if config_yaml.get("metadata", {}).get("id") == corpus_id:
+        return config
+
+    if not config_yaml.get("metadata"):
+        config_yaml["metadata"] = {}
+    config_yaml["metadata"]["id"] = corpus_id
+    return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True)
