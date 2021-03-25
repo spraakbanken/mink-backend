@@ -59,7 +59,7 @@ def create_app():
     def before_request():
         """Init variables in app context (as backup for memcached) and try to reconnect to memcached if necessary."""
         g.queue_initialized = False
-        g.job_queue = []
+        g.job_queue = {}
         if app.config["cache_client"] is None:
             utils.connect_to_memcached()
 

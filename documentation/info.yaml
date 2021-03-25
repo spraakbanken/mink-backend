@@ -105,3 +105,13 @@ paths:
     put:
       security:
         - ApiKeyAuth: []
+  /check-status:
+    get:
+      parameters:
+      - name: corpus_id
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus

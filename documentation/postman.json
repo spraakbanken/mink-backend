@@ -2550,22 +2550,16 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{protocol}}://{{host}}/check-status?corpus_id=min-testkorpus",
+							"raw": "{{protocol}}://{{host}}/check-status",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"check-status"
-							],
-							"query": [
-								{
-									"key": "corpus_id",
-									"value": "min-testkorpus"
-								}
 							]
 						},
-						"description": "Checks the status of an annotation job and reports it in the `job_status` field of the json response. The different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation process has been started successfully a percentage of the completed annotation progress will be shown in the `progress` field.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/check-status?corpus_id=some_corpus_name'\n```"
+						"description": "Checks the status of the user's annotation jobs and reports it in the `job_status` field for each job.\n\nWhen the `corpus_id` parameter is supplied only the job corresponding to that corpus ID is reported.\n\nThe different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation process has been started successfully a percentage of the completed annotation progress will be shown in the `progress` field.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/check-status'\n```"
 					},
 					"response": [
 						{
@@ -2574,19 +2568,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{host}}/check-status?corpus_id=min-testkorpus",
+									"raw": "{{protocol}}://{{host}}/check-status",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
 										"check-status"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
 									]
 								}
 							},
@@ -2600,7 +2588,7 @@
 								},
 								{
 									"key": "Content-Length",
-									"value": "110"
+									"value": "558"
 								},
 								{
 									"key": "Server",
@@ -2608,11 +2596,11 @@
 								},
 								{
 									"key": "Date",
-									"value": "Thu, 18 Mar 2021 15:09:30 GMT"
+									"value": "Thu, 25 Mar 2021 14:14:53 GMT"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Sparv is running!\",\n    \"progress\": \"18%\",\n    \"job_status\": \"annotating\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"min-testkorpus\",\n            \"message\": \"An error occurred while annotating!\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\"\n        },\n        {\n            \"corpus_id\": \"min-testkorpus2\",\n            \"message\": \"Corpus is done processing and the results have been synced!\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\"\n        },\n        {\n            \"corpus_id\": \"min-testkorpus3\",\n            \"message\": \"Sparv is running!\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\"\n        }\n    ]\n}"
 						},
 						{
 							"name": "check status 404",
@@ -2666,19 +2654,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{host}}/check-status?corpus_id=min-testkorpus",
+									"raw": "{{protocol}}://{{host}}/check-status",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
 										"check-status"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
 									]
 								}
 							},

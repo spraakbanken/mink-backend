@@ -1216,11 +1216,17 @@ paths:
   /check-status:
     get:
       summary: check status
-      description: 'Checks the status of an annotation job and reports it in the `job_status`
-        field of the json response. The different `job_status` codes can be looked
-        up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation
-        process has been started successfully a percentage of the completed annotation
-        progress will be shown in the `progress` field.
+      description: 'Checks the status of the user''s annotation jobs and reports it
+        in the `job_status` field for each job.
+
+
+        When the `corpus_id` parameter is supplied only the job corresponding to that
+        corpus ID is reported.
+
+
+        The different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`).
+        If the annotation process has been started successfully a percentage of the
+        completed annotation progress will be shown in the `progress` field.
 
 
         ### Example
@@ -1228,14 +1234,14 @@ paths:
 
         ```.bash
 
-        curl -X GET -u some_username ''{{host}}/check-status?corpus_id=some_corpus_name''
+        curl -X GET -u some_username ''{{host}}/check-status''
 
         ```'
       operationId: checkstatus
       parameters:
       - name: corpus_id
         in: query
-        required: true
+        required: false
         style: form
         schema:
           type: string
@@ -1253,18 +1259,39 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Sparv is running!
-                  progress:
-                    type: string
-                    example: 18%
-                  job_status:
-                    type: string
-                    example: annotating
+                    example: Listing jobs
+                  jobs:
+                    type: array
+                    example: &id004
+                    - corpus_id: min-testkorpus
+                      message: An error occurred while annotating!
+                      sparv_output: "Sparv exited with the following error messages:\n\
+                        \nThe following output files were expected but are missing:\n\
+                        \ • sparv-workdir/dokument1/textt/@span\nThere can be many\
+                        \ reasons for this. Please make sure that there are no problems\
+                        \ \nwith the corpus configuration file, like misspelled annotation\
+                        \ names or \nreferences to non-existent source annotations."
+                      job_status: error
+                    - corpus_id: min-testkorpus2
+                      message: Corpus is done processing and the results have been
+                        synced!
+                      sparv_output: 'The exported files can be found in the following
+                        locations:
+
+                        • export/csv/
+
+                        • export/frequency_list/
+
+                        • export/xml_pretty/'
+                      job_status: done
+                    - corpus_id: min-testkorpus3
+                      message: Sparv is running!
+                      progress: 18%
+                      job_status: annotating
               example:
                 status: success
-                message: Sparv is running!
-                progress: 18%
-                job_status: annotating
+                message: Listing jobs
+                jobs: *id004
         '401':
           description: check status 401
           content:
@@ -1506,7 +1533,7 @@ paths:
                     example: Listing existing job status codes
                   status_codes:
                     type: array
-                    example: &id004
+                    example: &id005
                     - code: 0
                       name: none
                       description: Job does not exist
@@ -1537,7 +1564,7 @@ paths:
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes: *id004
+                status_codes: *id005
       tags:
       - Documentation
       security: []

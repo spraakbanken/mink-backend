@@ -75,11 +75,35 @@ def advance_queue():
 
 
 @bp.route("/check-status", methods=["GET"])
-@utils.login()
-def check_status(oc, user, _corpora, corpus_id):
-    """Check the annotation status for a given corpus (wrapper for make_status_response)."""
-    job = jobs.get_job(user, corpus_id)
-    return make_status_response(job, oc)
+@utils.login(require_corpus_id=False)
+def check_status(oc, user, corpora):
+    """Check the annotation status for all jobs belonging to a user or a given corpus."""
+    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+    if corpus_id:
+        try:
+            # Check if corpus exists
+            if corpus_id not in corpora:
+                return utils.response(f"Corpus '{corpus_id}' does not exist!", err=True), 404
+            job = jobs.get_job(user, corpus_id)
+            return make_status_response(job, oc)
+        except Exception as e:
+            return utils.response(f"Failed to get job status for '{corpus_id}'!", err=True, info=str(e)), 404
+
+    try:
+        # Get all job statuses for user
+        job_list = []
+        user_jobs = queue.get_user_jobs(user)
+        for job in user_jobs:
+            resp = make_status_response(job, oc)
+            if isinstance(resp, tuple):
+                resp = resp[0]
+            job_status = {"corpus_id": job.corpus_id}
+            job_status.update(resp.get_json())
+            job_status.pop("status")
+            job_list.append(job_status)
+        return utils.response("Listing jobs", jobs=job_list)
+    except Exception as e:
+        return utils.response("Failed to get job statuses!", err=True, info=str(e)), 404
 
 
 @bp.route("/abort-job", methods=["POST"])
@@ -153,7 +177,7 @@ def make_status_response(job, oc):
 
     if status == jobs.Status.error:
         return utils.response("An error occurred while annotating!", err=True, warnings=warnings,
-                              errors=errors, sparv_output=output), 404
+                              errors=errors, sparv_output=output, job_status=status.name), 404
 
     return utils.response("Cannot handle this Sparv status yet!", warnings=warnings, errors=errors, sparv_output=output,
                           job_status=status.name), 501

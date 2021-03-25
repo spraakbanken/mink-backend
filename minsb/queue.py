@@ -16,20 +16,25 @@ def init_queue():
     app.logger.info("Initializing queue")
     mc = app.config.get("cache_client")
     queue = []
+    all_jobs = []  # Storage for all jobs, including done, aborted and errorneous
     queue_dir = Path(app.instance_path) / app.config.get("QUEUE_DIR")
     queue_dir.mkdir(exist_ok=True)
+
     if mc is not None:
         mc.set("queue_initialized", True)
         for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
             with f.open() as fobj:
                 job = jobs.load_from_str(fobj.read())
                 job.save()
+                all_jobs.append(job.id)
                 app.logger.debug(f"Job in cache: '{mc.get(job.id)}'")
             # Queue job unless it is done, aborted or erroneous
             if job.status not in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
                 queue.append(job.id)
         mc.set("queue", queue)
-        app.logger.debug(f"Queue in cache: {mc.get('queue')}")
+        mc.set("all_jobs", all_jobs)
+        app.logger.debug(f"Queue in memcached: {mc.get('queue')}")
+        app.logger.debug(f"All jobs in memcached: {mc.get('all_jobs')}")
 
     else:
         app.logger.info("Memcached not available. Using app context instead.")
@@ -38,12 +43,15 @@ def init_queue():
         for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
             with f.open() as fobj:
                 job = jobs.load_from_str(fobj.read())
+                all_jobs.append(job.id)
                 g.job_queue[job.id] = str(job)
             # Queue job unless it is done, aborted or erroneous
             if job.status not in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
                 queue.append(job.id)
         g.job_queue["queue"] = queue
+        g.job_queue["all_jobs"] = all_jobs
         app.logger.debug(f"Queue in cache: {g.job_queue['queue']}")
+        app.logger.debug(f"All jobs in cache: {g.job_queue['all_jobs']}")
 
 
 def is_initialized():
@@ -138,3 +146,14 @@ def unqueue_old():
             app.logger.info(f"Removing job {j}")
             queue.pop(queue.index(j))
         utils.memcached_set("queue", queue)
+
+
+def get_user_jobs(user):
+    """Get all jobs belonging to one user."""
+    all_jobs = utils.memcached_get("all_jobs")
+    user_jobs = []
+    for j in all_jobs:
+        job = jobs.load_from_str(utils.memcached_get(j))
+        if job.user == user:
+            user_jobs.append(job)
+    return user_jobs
