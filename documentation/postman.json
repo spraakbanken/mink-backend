@@ -2370,7 +2370,7 @@
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty",
+							"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&doc=dokument1,document2",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{host}}"
@@ -2386,10 +2386,14 @@
 								{
 									"key": "exports",
 									"value": "csv_export:csv,stats_export:freq_list,xml_export:pretty"
+								},
+								{
+									"key": "doc",
+									"value": "dokument1,document2"
 								}
 							]
 						},
-						"description": "Adds an annotation job to the queue. The requested export formats are supplied as a comma-separated list to the `exports` query parameter or the `exports` key in the form.\n\nThere can only be one annotation job for each corpus at a time. A job must finish annotating and syncing to Nextcloud or aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"corpus_id=some_corpus_name\" -F \"exports=csv_export:csv,stats_export:freq_list,xml_export:pretty\" '{{host}}/run-sparv'\n```"
+						"description": "Adds an annotation job to the queue. The requested export formats may be supplied as a comma-separated list to the `exports` query parameter or the `exports` key in the form. If no export formats are specified, some standard exports will be generated.\n\nThe `doc` parameter can be used to run the pipeline on a part of the corpus. The key to `doc` is a comma-separated list of document names without file extensions, e.g. `doc=document1,document2`.\n\nThere can only be one annotation job for each corpus at a time. A job must finish annotating and syncing to Nextcloud or aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"corpus_id=some_corpus_name\" -F \"exports=csv_export:csv,stats_export:freq_list,xml_export:pretty\" '{{host}}/run-sparv'\n```"
 					},
 					"response": [
 						{

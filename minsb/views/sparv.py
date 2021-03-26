@@ -17,10 +17,13 @@ def run_sparv(oc, user, _corpora, corpus_id):
     """Run Sparv on given corpus."""
     # Parse requested exports
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
-    sparv_exports = [i for i in sparv_exports.split(",") if i] or app.config.get("SPARV_DEFAULT_EXPORTS")
+    sparv_exports = [i.strip() for i in sparv_exports.split(",") if i] or app.config.get("SPARV_DEFAULT_EXPORTS")
+
+    doc = request.args.get("doc") or request.form.get("doc") or ""
+    doc = [i.strip() for i in doc.split(",") if i]
 
     # Queue job
-    job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports)
+    job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, doc=doc)
     try:
         job = queue.add(job)
     except Exception as e:

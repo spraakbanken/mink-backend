@@ -71,6 +71,14 @@ parameters:
       schema:
         type: string
         example: csv_export:csv,stats_export:freq_list,xml_export:pretty
+    doc:
+      name: doc
+      in: query
+      required: false
+      style: form
+      schema:
+        type: string
+        example: dokument1,document2
 
 security:
   - basicAuth: []
