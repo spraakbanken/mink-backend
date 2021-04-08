@@ -1575,6 +1575,162 @@ paths:
       tags:
       - Documentation
       security: []
+  /sparv-languages:
+    get:
+      summary: Sparv languages
+      description: Lists languages available in Sparv along with their language codes.
+      operationId: Sparvlanguages
+      parameters: []
+      responses:
+        '200':
+          description: Sparv languages 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Listing languages available in Sparv
+                  languages:
+                    type: array
+                    example: &id006
+                    - name: Asturian
+                      code: ast
+                    - name: Bulgarian
+                      code: bul
+                    - name: Catalan
+                      code: cat
+                    - name: Dutch
+                      code: nld
+                    - name: English
+                      code: eng
+                    - name: Estonian
+                      code: est
+                    - name: Finnish
+                      code: fin
+                    - name: French
+                      code: fra
+                    - name: Galician
+                      code: glg
+                    - name: German
+                      code: deu
+                    - name: Italian
+                      code: ita
+                    - name: Latin
+                      code: lat
+                    - name: Norwegian Bokmål
+                      code: nob
+                    - name: Polish
+                      code: pol
+                    - name: Portuguese
+                      code: por
+                    - name: Romanian
+                      code: ron
+                    - name: Russian
+                      code: rus
+                    - name: Slovak
+                      code: slk
+                    - name: Slovenian
+                      code: slv
+                    - name: Spanish
+                      code: spa
+                    - name: Swedish
+                      code: swe
+              example:
+                status: success
+                message: Listing languages available in Sparv
+                languages: *id006
+      tags:
+      - Documentation
+      security: []
+  /sparv-exports:
+    get:
+      summary: Sparv exports
+      description: 'Lists Sparv export formats for the chosen language. The language
+        is specified with the `language` query parameter (or the `languange` key in
+        the form) as ISO 639-3 code. See available languages by calling [{{host}}/sparv-languages](`{{host}}/sparv-languages`).
+
+
+        If no language is supplied Swedish (`swe`) is chosen automatically.'
+      operationId: Sparvexports
+      parameters:
+      - name: language
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: swe
+      responses:
+        '200':
+          description: Sparv exports 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Listing exports available in Sparv
+                  language:
+                    type: string
+                    example: swe
+                  exports:
+                    type: array
+                    example: &id007
+                    - export: conll_export:conllu
+                      description: CoNLL-U (SBX version) export
+                    - export: csv_export:csv
+                      description: CSV export
+                    - export: cwb:encode
+                      description: CWB encode
+                    - export: cwb:encode_scrambled
+                      description: CWB encode, scrambled
+                    - export: cwb:info
+                      description: CWB .info file
+                    - export: cwb:vrt
+                      description: VRT export
+                    - export: cwb:vrt_scrambled
+                      description: Scrambled VRT export
+                    - export: korp:lemgram_sql
+                      description: Lemgram index SQL file for use in Korp
+                    - export: korp:relations_sql
+                      description: Word Picture SQL for use in Korp
+                    - export: korp:timespan_sql
+                      description: Timespan SQL data for use in Korp
+                    - export: stats_export:freq_list
+                      description: Corpus word frequency list
+                    - export: stats_export:freq_list_simple
+                      description: Corpus word frequency list (withouth Swedish annotations)
+                    - export: xml_export:combined
+                      description: Combined XML export (all results in one file)
+                    - export: xml_export:combined_scrambled
+                      description: Combined scrambled XML export
+                    - export: xml_export:compressed
+                      description: Compressed combined XML export
+                    - export: xml_export:compressed_scrambled
+                      description: Compressed combined scrambled XML export
+                    - export: xml_export:preserved_format
+                      description: XML export preserving whitespaces from source file
+                    - export: xml_export:pretty
+                      description: XML export with one token element per line
+                    - export: xml_export:scrambled
+                      description: Scrambled XML export
+              example:
+                status: success
+                message: Listing exports available in Sparv
+                language: swe
+                exports: *id007
+      tags:
+      - Documentation
+      security: []
   /advance-queue:
     put:
       summary: advance queue
@@ -1662,6 +1818,14 @@ components:
       schema:
         type: string
         example: dokument1,document2
+    language:
+      name: language
+      in: query
+      required: true
+      style: form
+      schema:
+        type: string
+        example: swe
   securitySchemes:
     basicAuth:
       type: http

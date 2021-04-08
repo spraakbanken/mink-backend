@@ -8,7 +8,7 @@ from flask import current_app as app
 
 def get_corpora_dir(domain="local", user="", oc=None, mkdir=False):
     """Get user specific dir for corpora."""
-    if domain not in ["local", "nc", "sparv"]:
+    if domain not in ["local", "nc", "sparv", "sparv-default"]:
         raise Exception(f"Failed to get corpora dir for '{domain}'. Domain does not exist.")
     if domain == "local":
         corpora_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / Path(user)
@@ -20,13 +20,15 @@ def get_corpora_dir(domain="local", user="", oc=None, mkdir=False):
             oc.mkdir(str(corpora_dir))
     elif domain == "sparv":
         corpora_dir = Path(app.config.get("SPARV_CORPORA_DIR")) / Path(user)
+    elif domain == "sparv-default":
+        corpora_dir = Path(app.config.get("SPARV_DEFAULT_CORPORA_DIR"))
     return corpora_dir
 
 
 def get_corpus_dir(domain="local", user="", corpus_id="", oc=None, mkdir=False):
     """Get dir for given corpus."""
     send_mkdir = mkdir if domain == "local" else False
-    corpora_dir = get_corpora_dir(domain, user, oc, send_mkdir, )
+    corpora_dir = get_corpora_dir(domain, user, oc, send_mkdir)
     corpus_dir = corpora_dir / Path(corpus_id)
     if mkdir:
         if domain == "local":

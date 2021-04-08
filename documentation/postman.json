@@ -3142,6 +3142,138 @@
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing existing job status codes\",\n    \"status_codes\": [\n        {\n            \"code\": 0,\n            \"name\": \"none\",\n            \"description\": \"Job does not exist\"\n        },\n        {\n            \"code\": 1,\n            \"name\": \"syncing_corpus\",\n            \"description\": \"Syncing from Nextcloud to Sparv server\"\n        },\n        {\n            \"code\": 2,\n            \"name\": \"waiting\",\n            \"description\": \"Waiting to be run with Sparv\"\n        },\n        {\n            \"code\": 3,\n            \"name\": \"annotating\",\n            \"description\": \"Sparv annotation process is running\"\n        },\n        {\n            \"code\": 4,\n            \"name\": \"done_annotating\",\n            \"description\": \"Annotation process has finished\"\n        },\n        {\n            \"code\": 5,\n            \"name\": \"syncing_results\",\n            \"description\": \"Syncing results from Sparv to Nextcloud\"\n        },\n        {\n            \"code\": 6,\n            \"name\": \"done\",\n            \"description\": \"Results have been synced to Nexcloud\"\n        },\n        {\n            \"code\": 7,\n            \"name\": \"error\",\n            \"description\": \"An error occurred\"\n        },\n        {\n            \"code\": 8,\n            \"name\": \"aborted\",\n            \"description\": \"Aborted by the user\"\n        }\n    ]\n}"
 						}
 					]
+				},
+				{
+					"name": "Sparv languages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{host}}/sparv-languages",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"sparv-languages"
+							]
+						},
+						"description": "Lists languages available in Sparv along with their language codes."
+					},
+					"response": [
+						{
+							"name": "Sparv languages 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/sparv-languages",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"sparv-languages"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "856"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 08 Apr 2021 15:12:10 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing languages available in Sparv\",\n    \"languages\": [\n        {\n            \"name\": \"Asturian\",\n            \"code\": \"ast\"\n        },\n        {\n            \"name\": \"Bulgarian\",\n            \"code\": \"bul\"\n        },\n        {\n            \"name\": \"Catalan\",\n            \"code\": \"cat\"\n        },\n        {\n            \"name\": \"Dutch\",\n            \"code\": \"nld\"\n        },\n        {\n            \"name\": \"English\",\n            \"code\": \"eng\"\n        },\n        {\n            \"name\": \"Estonian\",\n            \"code\": \"est\"\n        },\n        {\n            \"name\": \"Finnish\",\n            \"code\": \"fin\"\n        },\n        {\n            \"name\": \"French\",\n            \"code\": \"fra\"\n        },\n        {\n            \"name\": \"Galician\",\n            \"code\": \"glg\"\n        },\n        {\n            \"name\": \"German\",\n            \"code\": \"deu\"\n        },\n        {\n            \"name\": \"Italian\",\n            \"code\": \"ita\"\n        },\n        {\n            \"name\": \"Latin\",\n            \"code\": \"lat\"\n        },\n        {\n            \"name\": \"Norwegian Bokmål\",\n            \"code\": \"nob\"\n        },\n        {\n            \"name\": \"Polish\",\n            \"code\": \"pol\"\n        },\n        {\n            \"name\": \"Portuguese\",\n            \"code\": \"por\"\n        },\n        {\n            \"name\": \"Romanian\",\n            \"code\": \"ron\"\n        },\n        {\n            \"name\": \"Russian\",\n            \"code\": \"rus\"\n        },\n        {\n            \"name\": \"Slovak\",\n            \"code\": \"slk\"\n        },\n        {\n            \"name\": \"Slovenian\",\n            \"code\": \"slv\"\n        },\n        {\n            \"name\": \"Spanish\",\n            \"code\": \"spa\"\n        },\n        {\n            \"name\": \"Swedish\",\n            \"code\": \"swe\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Sparv exports",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{host}}/sparv-exports?language=swe",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"sparv-exports"
+							],
+							"query": [
+								{
+									"key": "language",
+									"value": "swe"
+								}
+							]
+						},
+						"description": "Lists Sparv export formats for the chosen language. The language is specified with the `language` query parameter (or the `languange` key in the form) as ISO 639-3 code. See available languages by calling [{{host}}/sparv-languages](`{{host}}/sparv-languages`).\n\nIf no language is supplied Swedish (`swe`) is chosen automatically."
+					},
+					"response": [
+						{
+							"name": "Sparv exports 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/sparv-exports?language=swe",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"sparv-exports"
+									],
+									"query": [
+										{
+											"key": "language",
+											"value": "swe"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1683"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 08 Apr 2021 15:15:22 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing exports available in Sparv\",\n    \"language\": \"swe\",\n    \"exports\": [\n        {\n            \"export\": \"conll_export:conllu\",\n            \"description\": \"CoNLL-U (SBX version) export\"\n        },\n        {\n            \"export\": \"csv_export:csv\",\n            \"description\": \"CSV export\"\n        },\n        {\n            \"export\": \"cwb:encode\",\n            \"description\": \"CWB encode\"\n        },\n        {\n            \"export\": \"cwb:encode_scrambled\",\n            \"description\": \"CWB encode, scrambled\"\n        },\n        {\n            \"export\": \"cwb:info\",\n            \"description\": \"CWB .info file\"\n        },\n        {\n            \"export\": \"cwb:vrt\",\n            \"description\": \"VRT export\"\n        },\n        {\n            \"export\": \"cwb:vrt_scrambled\",\n            \"description\": \"Scrambled VRT export\"\n        },\n        {\n            \"export\": \"korp:lemgram_sql\",\n            \"description\": \"Lemgram index SQL file for use in Korp\"\n        },\n        {\n            \"export\": \"korp:relations_sql\",\n            \"description\": \"Word Picture SQL for use in Korp\"\n        },\n        {\n            \"export\": \"korp:timespan_sql\",\n            \"description\": \"Timespan SQL data for use in Korp\"\n        },\n        {\n            \"export\": \"stats_export:freq_list\",\n            \"description\": \"Corpus word frequency list\"\n        },\n        {\n            \"export\": \"stats_export:freq_list_simple\",\n            \"description\": \"Corpus word frequency list (withouth Swedish annotations)\"\n        },\n        {\n            \"export\": \"xml_export:combined\",\n            \"description\": \"Combined XML export (all results in one file)\"\n        },\n        {\n            \"export\": \"xml_export:combined_scrambled\",\n            \"description\": \"Combined scrambled XML export\"\n        },\n        {\n            \"export\": \"xml_export:compressed\",\n            \"description\": \"Compressed combined XML export\"\n        },\n        {\n            \"export\": \"xml_export:compressed_scrambled\",\n            \"description\": \"Compressed combined scrambled XML export\"\n        },\n        {\n            \"export\": \"xml_export:preserved_format\",\n            \"description\": \"XML export preserving whitespaces from source file\"\n        },\n        {\n            \"export\": \"xml_export:pretty\",\n            \"description\": \"XML export with one token element per line\"\n        },\n        {\n            \"export\": \"xml_export:scrambled\",\n            \"description\": \"Scrambled XML export\"\n        }\n    ]\n}"
+						}
+					]
 				}
 			],
 			"auth": {

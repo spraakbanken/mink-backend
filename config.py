@@ -20,7 +20,8 @@ SPARV_VALID_INPUT_EXT = [".xml", ".txt"]       # File extensions for corpus inpu
 SPARV_SERVER = ""  # Define this in instance/config.py!
 SPARV_USER = ""    # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
-SPARV_CORPORA_DIR = "min-sb-data"
+SPARV_DEFAULT_CORPORA_DIR = "min-sb-data/default"  # Dir for running listings like 'sparv run -l'
+SPARV_CORPORA_DIR = "min-sb-data"                  # Dir where the user corpora are stored and run
 SPARV_ENVIRON = "SPARV_DATADIR=~/min-sb-pipeline/data/"                       # Environment variables to set when running Sparv
 SPARV_COMMAND = "~/min-sb-pipeline/venv/bin/python -u -m sparv"               # Command for calling Sparv
 SPARV_RUN = "run --socket ~/min-sb-pipeline/sparv.socket --log-to-file info"  # Sparv's 'run' command

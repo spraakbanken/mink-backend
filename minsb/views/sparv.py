@@ -187,3 +187,26 @@ def make_status_response(job, oc):
 
     return utils.response("Cannot handle this Sparv status yet!", warnings=warnings, errors=errors, sparv_output=output,
                           **job_attrs), 501
+
+
+@bp.route("/sparv-languages", methods=["GET"])
+def sparv_languages():
+    """List languages available in Sparv."""
+    try:
+        job = jobs.DefaultJob()
+        languages = job.list_languages()
+    except Exception as e:
+        return utils.response("Failed to retrieve languages listing!", err=True, info=str(e)), 404
+    return utils.response("Listing languages available in Sparv", languages=languages)
+
+
+@bp.route("/sparv-exports", methods=["GET"])
+def sparv_exports():
+    """List available Sparv exports for current language (default: swe)."""
+    language = request.args.get("language") or request.form.get("language") or "swe"
+    try:
+        job = jobs.DefaultJob(language=language)
+        exports = job.list_exports()
+    except Exception as e:
+        return utils.response("Failed to retrieve exports listing!", err=True, info=str(e)), 404
+    return utils.response("Listing exports available in Sparv", language=language, exports=exports)

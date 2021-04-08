@@ -368,3 +368,79 @@ def load_from_str(jsonstr, sparv_exports=None, doc=None):
     if doc is not None:
         job_info["doc"] = doc
     return Job(**job_info)
+
+
+class DefaultJob():
+    """A default job item for running generic Sparv commands like `sparv run -l`.
+
+    A default job is not part of the job queue
+    """
+
+    def __init__(self, language="swe"):
+        self.lang = language
+
+        self.sparv_user = app.config.get("SPARV_USER")
+        self.sparv_server = app.config.get("SPARV_SERVER")
+        self.remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv-default", corpus_id=self.lang))
+        self.config_file = app.config.get("SPARV_CORPUS_CONFIG")
+
+    def list_languages(self):
+        """List the languages available in Sparv."""
+        # Create and corpus dir with config file on Sparv server
+        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
+                            f"cd /home/{self.sparv_user} && mkdir -p {self.remote_corpus_dir} && "
+                            f"echo 'metadata:\n  language: {self.lang}'>{self.remote_corpus_dir}/{self.config_file}"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if p.stderr:
+            raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
+
+        sparv_env = app.config.get("SPARV_ENVIRON")
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} languages"
+        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
+                            f"cd /home/{self.sparv_user}/{self.remote_corpus_dir} && {sparv_env} {sparv_command}"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
+
+        languages = []
+        stdout = p.stdout.decode() if p.stdout else ""
+        lines = [line.strip() for line in stdout.split("\n") if line.strip()][1:]
+        for line in lines:
+            matchobj = re.match(r"(.+?)\s+(\S+)$", line)
+            if matchobj:
+                languages.append({"name": matchobj.group(1), "code": matchobj.group(2)})
+        return languages
+
+    def list_exports(self):
+        """List the available exports for the current language."""
+        # Create and corpus dir with config file on Sparv server
+        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
+                            f"cd /home/{self.sparv_user} && mkdir -p {self.remote_corpus_dir} && "
+                            f"echo 'metadata:\n  language: {self.lang}'>{self.remote_corpus_dir}/{self.config_file}"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if p.stderr:
+            raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
+
+        sparv_env = app.config.get("SPARV_ENVIRON")
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} run -l"
+        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
+                            f"cd /home/{self.sparv_user}/{self.remote_corpus_dir} && {sparv_env} {sparv_command}"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
+
+        exports = []
+        stdout = p.stdout.decode() if p.stdout else ""
+        lines = [line for line in stdout.split("\n") if line.strip()][1:-1]
+        for line in lines:
+            if line.startswith("    "):
+                exports[-1]["description"] += " " + line.strip()
+            else:
+                matchobj = re.match(r"(\S+)\s+(.+)$", line.strip())
+                if matchobj:
+                    exports.append({"export": matchobj.group(1), "description": matchobj.group(2)})
+        return exports

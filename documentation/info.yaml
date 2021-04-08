@@ -123,3 +123,17 @@ paths:
         schema:
           type: string
           example: min-testkorpus
+  /sparv-languages:
+    get:
+      security: []
+  /sparv-exports:
+    get:
+      security: []
+      parameters:
+      - name: language
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: swe
