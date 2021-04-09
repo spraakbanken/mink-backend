@@ -1174,6 +1174,17 @@ paths:
                   job_status:
                     type: string
                     example: waiting
+                  sparv_exports:
+                    type: array
+                    example: &id004
+                    - csv_export:csv
+                    - stats_export:freq_list
+                    - xml_export:pretty
+                  doc:
+                    type: array
+                    example: &id005
+                    - dokument1
+                    - dokument2
                   priority:
                     type: integer
                     example: 1
@@ -1181,6 +1192,8 @@ paths:
                 status: success
                 message: Job has been queued!
                 job_status: waiting
+                sparv_exports: *id004
+                doc: *id005
                 priority: 1
         '401':
           description: run Sparv 401
@@ -1269,7 +1282,7 @@ paths:
                     example: Listing jobs
                   jobs:
                     type: array
-                    example: &id004
+                    example: &id006
                     - corpus_id: min-testkorpus
                       message: An error occurred while annotating!
                       sparv_output: "Sparv exited with the following error messages:\n\
@@ -1279,6 +1292,10 @@ paths:
                         \ \nwith the corpus configuration file, like misspelled annotation\
                         \ names or \nreferences to non-existent source annotations."
                       job_status: error
+                      sparv_exports:
+                      - csv_export:csv
+                      - stats_export:freq_list
+                      - xml_export:pretty
                     - corpus_id: min-testkorpus2
                       message: Corpus is done processing and the results have been
                         synced!
@@ -1291,14 +1308,28 @@ paths:
 
                         • export/xml_pretty/'
                       job_status: done
+                      sparv_exports:
+                      - csv_export:csv
+                      doc:
+                      - dokument1
+                      - dokument2
                     - corpus_id: min-testkorpus3
                       message: Sparv is running!
                       progress: 18%
                       job_status: annotating
+                      sparv_exports:
+                      - stats_export:freq_list
+                      - xml_export:pretty
+                    - corpus_id: min-testkorpus4
+                      message: Job has been queued!
+                      job_status: waiting
+                      sparv_exports:
+                      - xml_export:pretty
+                      priority: 1
               example:
                 status: success
                 message: Listing jobs
-                jobs: *id004
+                jobs: *id006
         '401':
           description: check status 401
           content:
@@ -1540,7 +1571,7 @@ paths:
                     example: Listing existing job status codes
                   status_codes:
                     type: array
-                    example: &id005
+                    example: &id007
                     - code: 0
                       name: none
                       description: Job does not exist
@@ -1571,7 +1602,7 @@ paths:
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes: *id005
+                status_codes: *id007
       tags:
       - Documentation
       security: []
@@ -1597,7 +1628,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id006
+                    example: &id008
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -1643,7 +1674,7 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id006
+                languages: *id008
       tags:
       - Documentation
       security: []
@@ -1684,7 +1715,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id007
+                    example: &id009
                     - export: conll_export:conllu
                       description: CoNLL-U (SBX version) export
                     - export: csv_export:csv
@@ -1727,7 +1758,7 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id007
+                exports: *id009
       tags:
       - Documentation
       security: []

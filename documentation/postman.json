@@ -2370,7 +2370,7 @@
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&doc=dokument1,document2",
+							"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&doc=dokument1,dokument2",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{host}}"
@@ -2389,7 +2389,7 @@
 								},
 								{
 									"key": "doc",
-									"value": "dokument1,document2"
+									"value": "dokument1,dokument2"
 								}
 							]
 						},
@@ -2447,6 +2447,60 @@
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate!\",\n    \"info\": \"HTTP error: 401\"\n}"
 						},
 						{
+							"name": "run Sparv 200",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&doc=dokument1,dokument2",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"run-sparv"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "exports",
+											"value": "csv_export:csv,stats_export:freq_list,xml_export:pretty"
+										},
+										{
+											"key": "doc",
+											"value": "dokument1,dokument2"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "215"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 09 Apr 2021 07:59:14 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued!\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"doc\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"priority\": 1\n}"
+						},
+						{
 							"name": "run Sparv 404",
 							"originalRequest": {
 								"method": "PUT",
@@ -2495,56 +2549,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpuss' does not exist!\"\n}"
-						},
-						{
-							"name": "run Sparv 200",
-							"originalRequest": {
-								"method": "PUT",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"run-sparv"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										},
-										{
-											"key": "exports",
-											"value": "csv_export:csv,stats_export:freq_list,xml_export:pretty"
-										}
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "96"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Fri, 26 Feb 2021 10:44:42 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued!\",\n    \"job_status\": \"waiting\",\n    \"priority\": 1\n}"
 						}
 					]
 				},
@@ -2604,7 +2608,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"min-testkorpus\",\n            \"message\": \"An error occurred while annotating!\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\"\n        },\n        {\n            \"corpus_id\": \"min-testkorpus2\",\n            \"message\": \"Corpus is done processing and the results have been synced!\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\"\n        },\n        {\n            \"corpus_id\": \"min-testkorpus3\",\n            \"message\": \"Sparv is running!\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"min-testkorpus\",\n            \"message\": \"An error occurred while annotating!\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\",\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ]\n        },\n        {\n            \"corpus_id\": \"min-testkorpus2\",\n            \"message\": \"Corpus is done processing and the results have been synced!\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\",\n            \"sparv_exports\": [\n                \"csv_export:csv\"\n            ],\n            \"doc\": [\n                \"dokument1\",\n                \"dokument2\"\n            ]\n        },\n        {\n            \"corpus_id\": \"min-testkorpus3\",\n            \"message\": \"Sparv is running!\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\",\n            \"sparv_exports\": [\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ]\n        },\n        {\n            \"corpus_id\": \"min-testkorpus4\",\n            \"message\": \"Job has been queued!\",\n            \"job_status\": \"waiting\",\n            \"sparv_exports\": [\n                \"xml_export:pretty\"\n            ],\n            \"priority\": 1\n        }\n    ]\n}"
 						},
 						{
 							"name": "check status 404",
