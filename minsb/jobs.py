@@ -265,14 +265,17 @@ class Job():
             misc = []
             latest_msg = misc
             for line in stdout.split("\n"):
-                if line.startswith("Progress:"):
-                    progress = line.lstrip("Progress:").strip()
-                elif re.match(r"\d\d:\d\d:\d\d WARNING", line):
-                    warnings.append(line.strip()[9:])
-                    latest_msg = warnings
-                elif re.match(r"\d\d:\d\d:\d\d ERROR", line):
-                    errors.append(line.strip()[9:])
-                    latest_msg = errors
+                matchobj = re.match(r"(?:\d\d:\d\d:\d\d|\s{8}) ([A-Z]+)\s+(.+)$", line)
+                if matchobj:
+                    msg = matchobj.group(2).strip()
+                    if matchobj.group(1) == "PROGRESS":
+                        progress = msg
+                    elif matchobj.group(1) == "WARNING":
+                        warnings.append = matchobj.group(1) + " " + msg
+                        latest_msg = warnings
+                    elif matchobj.group(1) == "ERROR":
+                        errors.append = matchobj.group(1) + " " + msg
+                        latest_msg = errors
                 elif re.match(r"\s{8,}.+", line):
                     latest_msg.append(line.strip())
                 else:
