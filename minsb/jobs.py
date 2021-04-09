@@ -208,6 +208,9 @@ class Job():
 
     def abort_sparv(self):
         """Abort running Sparv process."""
+        if self.status == Status.done_annotating:
+            self.set_status(Status.aborted)
+            return
         if not self.status == Status.annotating:
             raise exceptions.ProcessNotRunning("Failed to abort job because Sparv was not running!")
         if not self.pid:
@@ -237,6 +240,7 @@ class Job():
             progress, _warnings, errors, misc = self.get_output()
             if (progress == "100%" or misc.startswith("Nothing to be done.")):
                 self.set_status(Status.done_annotating)
+                self.set_pid(None)
             else:
                 if errors:
                     app.logger.debug(f"Error in Sparv: {errors}")
