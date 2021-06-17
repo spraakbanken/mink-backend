@@ -41,6 +41,7 @@ def api_doc():
         return render_template('apidoc.html',
                                title="Min SB API documentation",
                                favicon=url_for("static", filename="sbx_favicon.svg", _external=True),
+                               logo=url_for("static", filename="my-sb-logo.png", _external=True),
                                spec_url=url_for("general.api_spec", _external=True)
                                )
     else:
@@ -48,6 +49,7 @@ def api_doc():
         return render_template('apidoc.html',
                                title="Min SB API documentation",
                                favicon=app.config.get("MIN_SB_URL") + url_for("static", filename="sbx_favicon.svg"),
+                               logo=app.config.get("MIN_SB_URL") + url_for("static", filename="my-sb-logo.png"),
                                spec_url=app.config.get("MIN_SB_URL") + url_for("general.api_spec")
                                )
 
