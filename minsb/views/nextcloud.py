@@ -20,13 +20,12 @@ def init(oc, _user, dir_listing):
         corpora_dir = app.config.get("NC_CORPORA_DIR")
         if corpora_dir in [e.get_name() for e in dir_listing]:
             # Corpora dir already exists
-            return utils.response(f"Failed to initialize Min Språkbank! Directory '{corpora_dir}' already exists!",
-                                  err=True), 404
+            return utils.response(f"Nothing to be done. Min Språkbank has already been initialized."), 200
         # Create corpora dir
         corpora_dir = str(paths.get_corpora_dir(domain="nc", oc=oc, mkdir=True))
         # TODO: upload some info file?
         app.logger.debug(f"Initialized corpora dir '{corpora_dir}'")
-        return utils.response("Min Språkbank successfully initialized!")
+        return utils.response("Min Språkbank successfully initialized!"), 201
     except Exception as e:
         return utils.response("Failed to initialize corpora dir!", err=True, info=str(e)), 404
 

@@ -109,7 +109,23 @@ paths:
       parameters: []
       responses:
         '200':
-          description: Init Min SB 200
+          description: init Min SB 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Nothing to be done. Min Språkbank has already been initialized.
+              example:
+                status: success
+                message: Nothing to be done. Min Språkbank has already been initialized.
+        '201':
+          description: init Min SB 201
           content:
             application/json:
               schema:
@@ -144,24 +160,6 @@ paths:
                 status: error
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
-        '404':
-          description: init Min SB 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to initialize Min Språkbank! Directory 'Min Språkbank'
-                      already exists!
-              example:
-                status: error
-                message: Failed to initialize Min Språkbank! Directory 'Min Språkbank'
-                  already exists!
       tags:
       - Manage Corpora
   /create-corpus:
@@ -219,7 +217,7 @@ paths:
                 message: Failed to authenticate!
                 info: 'HTTP error: 401'
         '404':
-          description: create corpus 404-exists
+          description: create corpus 404-invalid
           content:
             application/json:
               schema:
@@ -230,10 +228,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpus' already exists!
+                    example: Corpus ID 'min_testkorpus' is invalid!
               example:
                 status: error
-                message: Corpus 'min-testkorpus' already exists!
+                message: Corpus ID 'min_testkorpus' is invalid!
       requestBody:
         required: true
         content:
@@ -706,10 +704,12 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: No files provided for removal!
+                    example: 'Failed to remove: ''dokument1.xml''! Successfully removed:
+                      ''dokument2.xml''!'
               example:
                 status: error
-                message: No files provided for removal!
+                message: 'Failed to remove: ''dokument1.xml''! Successfully removed:
+                  ''dokument2.xml''!'
       tags:
       - Manage Sources
   /upload-config:
