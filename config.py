@@ -14,7 +14,7 @@ NC_STATUS_FILE = "status.json"    # File where a job status is stored
 SPARV_SOURCE_DIR = "source"
 SPARV_EXPORT_DIR = "export"
 SPARV_CORPUS_CONFIG = "config.yaml"
-SPARV_VALID_INPUT_EXT = [".xml", ".txt"]       # File extensions for corpus input
+SPARV_VALID_INPUT_EXT = [".xml", ".txt", ".docx", ".odt"]  # File extensions for corpus input
 
 # Settings for the server where Sparv is run
 SPARV_SERVER = ""  # Define this in instance/config.py!
