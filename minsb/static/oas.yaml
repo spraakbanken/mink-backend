@@ -120,10 +120,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Nothing to be done. Min Språkbank has already been initialized.
+                    example: Nothing to be done. Min Språkbank has already been initialized
               example:
                 status: success
-                message: Nothing to be done. Min Språkbank has already been initialized.
+                message: Nothing to be done. Min Språkbank has already been initialized
         '201':
           description: init Min SB 201
           content:
@@ -136,10 +136,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Min Språkbank successfully initialized!
+                    example: Min Språkbank successfully initialized
               example:
                 status: success
-                message: Min Språkbank successfully initialized!
+                message: Min Språkbank successfully initialized
         '401':
           description: init Min SB 401
           content:
@@ -152,13 +152,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
       tags:
       - Manage Corpora
@@ -192,10 +192,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Corpus 'min-testkorpus' created successfully!
+                    example: Corpus 'min-testkorpus' created successfully
               example:
                 status: success
-                message: Corpus 'min-testkorpus' created successfully!
+                message: Corpus 'min-testkorpus' created successfully
         '401':
           description: upload corpus 401
           content:
@@ -208,13 +208,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: create corpus 404-invalid
@@ -228,10 +228,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus ID 'min_testkorpus' is invalid!
+                    example: Corpus ID 'min_testkorpus' is invalid
               example:
                 status: error
-                message: Corpus ID 'min_testkorpus' is invalid!
+                message: Corpus ID 'min_testkorpus' is invalid
       requestBody:
         required: true
         content:
@@ -300,13 +300,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
       tags:
       - Manage Corpora
@@ -347,10 +347,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Corpus 'min-testkorpus' successfully removed!
+                    example: Corpus 'min-testkorpus' successfully removed
               example:
                 status: success
-                message: Corpus 'min-testkorpus' successfully removed!
+                message: Corpus 'min-testkorpus' successfully removed
         '401':
           description: remove corpus 401
           content:
@@ -363,13 +363,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: remove corpus 404
@@ -383,10 +383,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpus' does not exist!
+                    example: Corpus 'min-testkorpus' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpus' does not exist!
+                message: Corpus 'min-testkorpus' does not exist
       tags:
       - Manage Corpora
   /upload-sources:
@@ -427,10 +427,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Source files successfully added to 'min-testkorpus'!
+                    example: Source files successfully added to 'min-testkorpus'
               example:
                 status: success
-                message: Source files successfully added to 'min-testkorpus'!
+                message: Source files successfully added to 'min-testkorpus'
         '401':
           description: upload sources 401
           content:
@@ -443,13 +443,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: upload sources 404
@@ -463,10 +463,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       requestBody:
         required: true
         content:
@@ -483,8 +483,8 @@ paths:
             - key: ''
               type: file
               src:
-              - /home/anne/Downloads/testkorpus/source/dokument2.xml
               - /home/anne/Downloads/testkorpus/source/dokument1.xml
+              - /home/anne/Downloads/testkorpus/source/dokument2.xml
       tags:
       - Manage Sources
   /list-sources:
@@ -551,13 +551,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: list sources 404
@@ -571,10 +571,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       tags:
       - Manage Sources
   /download-sources:
@@ -610,13 +610,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: download sources 404
@@ -630,10 +630,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       tags:
       - Manage Sources
   /remove-sources:
@@ -668,10 +668,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Source files for 'min-testkorpus' successfully updated!
+                    example: Source files for 'min-testkorpus' successfully updated
               example:
                 status: success
-                message: Source files for 'min-testkorpus' successfully updated!
+                message: Source files for 'min-testkorpus' successfully updated
         '401':
           description: remove sources 401
           content:
@@ -684,13 +684,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: remove sources 404
@@ -704,12 +704,12 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: 'Failed to remove: ''dokument1.xml''! Successfully removed:
-                      ''dokument2.xml''!'
+                    example: 'Failed to remove: ''dokument1.xml''. Successfully removed:
+                      ''dokument2.xml''.'
               example:
                 status: error
-                message: 'Failed to remove: ''dokument1.xml''! Successfully removed:
-                  ''dokument2.xml''!'
+                message: 'Failed to remove: ''dokument1.xml''. Successfully removed:
+                  ''dokument2.xml''.'
       tags:
       - Manage Sources
   /upload-config:
@@ -758,10 +758,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Config file successfully uploaded for 'min-testkorpus'!
+                    example: Config file successfully uploaded for 'min-testkorpus'
               example:
                 status: success
-                message: Config file successfully uploaded for 'min-testkorpus'!
+                message: Config file successfully uploaded for 'min-testkorpus'
         '401':
           description: upload config 401
           content:
@@ -774,13 +774,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: upload config 404
@@ -794,10 +794,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       requestBody:
         required: true
         content:
@@ -857,13 +857,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: download config 404
@@ -877,10 +877,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       tags:
       - Manage Config
   /list-exports:
@@ -959,13 +959,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: list exports 404
@@ -979,10 +979,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       tags:
       - Manage Exports
   /download-exports:
@@ -1036,13 +1036,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: download exports 404
@@ -1056,10 +1056,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       tags:
       - Manage Exports
   /remove-exports:
@@ -1092,10 +1092,10 @@ paths:
                   message:
                     type: string
                     example: Export files for corpus 'min-testkorpus' successfully
-                      removed!
+                      removed
               example:
                 status: success
-                message: Export files for corpus 'min-testkorpus' successfully removed!
+                message: Export files for corpus 'min-testkorpus' successfully removed
         '401':
           description: remove exports 401
           content:
@@ -1108,13 +1108,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
       tags:
       - Manage Exports
@@ -1127,9 +1127,9 @@ paths:
         standard exports will be generated.
 
 
-        The `doc` parameter can be used to run the pipeline on a part of the corpus.
-        The key to `doc` is a comma-separated list of document names without file
-        extensions, e.g. `doc=document1,document2`.
+        The `files` parameter can be used to run the pipeline on a part of the corpus.
+        The key to `files` is a comma-separated list of file names without file extensions,
+        e.g. `files=document1,document2`.
 
 
         There can only be one annotation job for each corpus at a time. A job must
@@ -1156,7 +1156,7 @@ paths:
           type: string
           example: min-testkorpus
       - $ref: '#/components/parameters/exports'
-      - $ref: '#/components/parameters/doc'
+      - $ref: '#/components/parameters/files'
       responses:
         '200':
           description: run Sparv 200
@@ -1170,7 +1170,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Job has been queued!
+                    example: Job has been queued
                   job_status:
                     type: string
                     example: waiting
@@ -1180,7 +1180,7 @@ paths:
                     - csv_export:csv
                     - stats_export:freq_list
                     - xml_export:pretty
-                  doc:
+                  files:
                     type: array
                     example: &id005
                     - dokument1
@@ -1190,10 +1190,10 @@ paths:
                     example: 1
               example:
                 status: success
-                message: Job has been queued!
+                message: Job has been queued
                 job_status: waiting
                 sparv_exports: *id004
-                doc: *id005
+                files: *id005
                 priority: 1
         '401':
           description: run Sparv 401
@@ -1207,13 +1207,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: run Sparv 404
@@ -1227,10 +1227,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       tags:
       - Process Corpus
   /check-status:
@@ -1284,7 +1284,7 @@ paths:
                     type: array
                     example: &id006
                     - corpus_id: min-testkorpus
-                      message: An error occurred while annotating!
+                      message: An error occurred while annotating
                       sparv_output: "Sparv exited with the following error messages:\n\
                         \nThe following output files were expected but are missing:\n\
                         \ • sparv-workdir/dokument1/textt/@span\nThere can be many\
@@ -1298,7 +1298,7 @@ paths:
                       - xml_export:pretty
                     - corpus_id: min-testkorpus2
                       message: Corpus is done processing and the results have been
-                        synced!
+                        synced
                       sparv_output: 'The exported files can be found in the following
                         locations:
 
@@ -1310,18 +1310,18 @@ paths:
                       job_status: done
                       sparv_exports:
                       - csv_export:csv
-                      doc:
+                      files:
                       - dokument1
                       - dokument2
                     - corpus_id: min-testkorpus3
-                      message: Sparv is running!
+                      message: Sparv is running
                       progress: 18%
                       job_status: annotating
                       sparv_exports:
                       - stats_export:freq_list
                       - xml_export:pretty
                     - corpus_id: min-testkorpus4
-                      message: Job has been queued!
+                      message: Job has been queued
                       job_status: waiting
                       sparv_exports:
                       - xml_export:pretty
@@ -1342,13 +1342,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: check status 404
@@ -1362,7 +1362,7 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: An error occurred while annotating!
+                    example: An error occurred while annotating
                   sparv_output:
                     type: string
                     example: "Sparv exited with the following error messages:\n\n\
@@ -1373,7 +1373,7 @@ paths:
                       \ names or \nreferences to non-existent source annotations."
               example:
                 status: error
-                message: An error occurred while annotating!
+                message: An error occurred while annotating
                 sparv_output: "Sparv exited with the following error messages:\n\n\
                   The following output files were expected but are missing:\n • sparv-workdir/dokument1/textt/@span\n\
                   There can be many reasons for this. Please make sure that there\
@@ -1417,10 +1417,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: No running job found for 'min-testkorpus'.
+                    example: No running job found for 'min-testkorpus'
               example:
                 status: success
-                message: No running job found for 'min-testkorpus'.
+                message: No running job found for 'min-testkorpus'
         '401':
           description: abort job 401
           content:
@@ -1433,13 +1433,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
       tags:
       - Process Corpus
@@ -1473,7 +1473,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Annotations for 'min-testkorpus' successfully removed!
+                    example: Annotations for 'min-testkorpus' successfully removed
                   sparv_output:
                     type: string
                     example: '''export'' directory removed
@@ -1481,7 +1481,7 @@ paths:
                       ''sparv-workdir'' directory removed'
               example:
                 status: success
-                message: Annotations for 'min-testkorpus' successfully removed!
+                message: Annotations for 'min-testkorpus' successfully removed
                 sparv_output: '''export'' directory removed
 
                   ''sparv-workdir'' directory removed'
@@ -1497,13 +1497,13 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to authenticate!
+                    example: Failed to authenticate
                   info:
                     type: string
                     example: 'HTTP error: 401'
               example:
                 status: error
-                message: Failed to authenticate!
+                message: Failed to authenticate
                 info: 'HTTP error: 401'
         '404':
           description: clear annotations 404
@@ -1517,10 +1517,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist!
+                    example: Corpus 'min-testkorpuss' does not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist!
+                message: Corpus 'min-testkorpuss' does not exist
       tags:
       - Process Corpus
   /api-spec:
@@ -1791,10 +1791,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Queue advancing completed!
+                    example: Queue advancing completed
               example:
                 status: success
-                message: Queue advancing completed!
+                message: Queue advancing completed
         '401':
           description: advance queue 401
           content:
@@ -1807,10 +1807,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to confirm secret key for protected route!
+                    example: Failed to confirm secret key for protected route
               example:
                 status: error
-                message: Failed to confirm secret key for protected route!
+                message: Failed to confirm secret key for protected route
       tags:
       - Internal Routes
       security:
@@ -1841,8 +1841,8 @@ components:
       schema:
         type: string
         example: csv_export:csv,stats_export:freq_list,xml_export:pretty
-    doc:
-      name: doc
+    files:
+      name: files
       in: query
       required: false
       style: form

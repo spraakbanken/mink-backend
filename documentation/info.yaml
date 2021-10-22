@@ -71,8 +71,8 @@ parameters:
       schema:
         type: string
         example: csv_export:csv,stats_export:freq_list,xml_export:pretty
-    doc:
-      name: doc
+    files:
+      name: files
       in: query
       required: false
       style: form
