@@ -33,7 +33,7 @@ def gatekeeper(function):
     def decorator(*args, **kwargs):
         secret_key = request.args.get("secret_key") or request.form.get("secret_key")
         if secret_key != app.config.get("MIN_SB_SECRET_KEY"):
-            return response("Failed to confirm secret key for protected route!", err=True), 401
+            return response("Failed to confirm secret key for protected route", err=True), 401
         return function(*args, **kwargs)
     return decorator
 
@@ -47,11 +47,11 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
         @functools.wraps(function)  # Copy original function's information, needed by Flask
         def wrapper(*args, **kwargs):
             if not request.authorization:
-                return response("No login credentials provided!", err=True), 401
+                return response("No login credentials provided", err=True), 401
             user = request.authorization.get("username")
             password = request.authorization.get("password")
             if not (user and password):
-                return response("Username or password missing!", err=True), 401
+                return response("Username or password missing", err=True), 401
             try:
                 oc = owncloud.Client(app.config.get("NC_DOMAIN", ""))
                 oc.login(user, password)
@@ -67,8 +67,8 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                 try:
                     corpora = list_corpora(oc)
                 except Exception as e:
-                    return response("Failed to access corpora dir! "
-                                    "Make sure Min Språkbank is initialized!", err=True, info=str(e)), 401
+                    return response("Failed to access corpora dir. "
+                                    "Make sure Min Språkbank is initialized", err=True, info=str(e)), 401
 
                 if not require_corpus_id:
                     return function(oc, user, corpora, *args, **kwargs)
@@ -76,7 +76,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                 # Check if corpus ID was provided
                 corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
                 if not corpus_id:
-                    return response("No corpus ID provided!", err=True), 404
+                    return response("No corpus ID provided", err=True), 404
                 corpus_id = shlex.quote(corpus_id)
 
                 if not require_corpus_exists:
@@ -84,12 +84,12 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
 
                 # Check if corpus exists
                 if corpus_id not in corpora:
-                    return response(f"Corpus '{corpus_id}' does not exist!", err=True), 404
+                    return response(f"Corpus '{corpus_id}' does not exist", err=True), 404
 
                 return function(oc, user, corpora, corpus_id)
 
             except Exception as e:
-                return response("Failed to authenticate!", err=True, info=str(e)), 401
+                return response("Failed to authenticate", err=True, info=str(e)), 401
         return wrapper
     return decorator
 

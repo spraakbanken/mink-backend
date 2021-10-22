@@ -303,7 +303,7 @@ class Job():
         p = subprocess.run(["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
-            return utils.response("Failed to retrieve Sparv exports!", err=True, info=p.stderr.decode()), 404
+            return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 404
 
         # Transfer exports to Nextcloud
         local_export_dir = paths.get_export_dir(user=self.user, corpus_id=self.corpus_id)
