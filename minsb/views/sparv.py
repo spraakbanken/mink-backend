@@ -19,11 +19,11 @@ def run_sparv(oc, user, _corpora, corpus_id):
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
     sparv_exports = [i.strip() for i in sparv_exports.split(",") if i] or app.config.get("SPARV_DEFAULT_EXPORTS")
 
-    doc = request.args.get("doc") or request.form.get("doc") or ""
-    doc = [i.strip() for i in doc.split(",") if i]
+    files = request.args.get("files") or request.form.get("files") or ""
+    files = [i.strip() for i in files.split(",") if i]
 
     # Queue job
-    job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, doc=doc)
+    job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, files=files)
     try:
         job = queue.add(job)
     except Exception as e:
@@ -143,8 +143,8 @@ def make_status_response(job, oc):
     """Check the annotation status for a given corpus and return response."""
     status = job.status
     job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports}
-    if job.doc:
-        job_attrs["doc"] = job.doc
+    if job.files:
+        job_attrs["files"] = job.files
 
     if status == jobs.Status.none:
         return utils.response(f"There is no active job for '{job.corpus_id}'!", job_status=status.name, err=True), 404

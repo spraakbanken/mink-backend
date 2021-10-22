@@ -43,14 +43,14 @@ class Status(IntEnum):
 class Job():
     """A job item holding information about a Sparv job."""
 
-    def __init__(self, user, corpus_id, status=Status.none, pid=None, sparv_exports=None, doc=None):
+    def __init__(self, user, corpus_id, status=Status.none, pid=None, sparv_exports=None, files=None):
         self.user = user
         self.corpus_id = corpus_id
         self.id = self.get_id()
         self.status = status
         self.pid = pid
         self.sparv_exports = sparv_exports or []
-        self.doc = doc or []
+        self.files = files or []
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_SERVER")
@@ -60,12 +60,12 @@ class Job():
 
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
-                           "sparv_exports": self.sparv_exports, "doc": self.doc})
+                           "sparv_exports": self.sparv_exports, "files": self.files})
 
     def save(self):
         """Write a job item to the cache and filesystem."""
         dump = json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
-                           "sparv_exports": self.sparv_exports, "doc": self.doc})
+                           "sparv_exports": self.sparv_exports, "files": self.files})
         # Save in cache
         utils.memcached_set(self.id, dump)
         # Save backup to file system queue
@@ -188,8 +188,8 @@ class Job():
         """Start a Sparv annotation process."""
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
-        if self.doc:
-            sparv_command += f" --doc {' '.join(self.doc)}"
+        if self.files:
+            sparv_command += f" --file {' '.join(self.files)}"
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             (f"cd /home/{self.sparv_user}/{self.remote_corpus_dir}"
                              f" && echo '{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' > {self.runscript}"
@@ -358,22 +358,22 @@ class Job():
         return sparv_output
 
 
-def get_job(user, corpus_id, sparv_exports=None, doc=None):
+def get_job(user, corpus_id, sparv_exports=None, files=None):
     """Get an existing job from the cache or create a new one."""
-    job = Job(user, corpus_id, sparv_exports=sparv_exports, doc=doc)
+    job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files)
     if utils.memcached_get(job.id) is not None:
-        return load_from_str(utils.memcached_get(job.id), sparv_exports=sparv_exports, doc=doc)
+        return load_from_str(utils.memcached_get(job.id), sparv_exports=sparv_exports, files=files)
     return job
 
 
-def load_from_str(jsonstr, sparv_exports=None, doc=None):
+def load_from_str(jsonstr, sparv_exports=None, files=None):
     """Load a job object from a json string."""
     job_info = json.loads(jsonstr)
     job_info["status"] = getattr(Status, job_info.get("status"))
     if sparv_exports is not None:
         job_info["sparv_exports"] = sparv_exports
-    if doc is not None:
-        job_info["doc"] = doc
+    if files is not None:
+        job_info["files"] = files
     return Job(**job_info)
 
 
