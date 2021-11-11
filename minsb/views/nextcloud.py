@@ -286,6 +286,8 @@ def download_export(oc, user, _corpora, corpus_id):
     The parameters 'file' and 'dir' may be used to download a specific export file
     or a directory of export files. These parameters must be supplied as absolute
     Nextcloud paths or paths relative to the export directory.
+    The `zip` parameter may be set to `false` in combination the the `file` param
+    to avoid zipping the file to be downloaded.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
     download_folder = request.args.get("dir") or request.form.get("dir") or ""
@@ -337,11 +339,17 @@ def download_export(oc, user, _corpora, corpus_id):
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
         try:
-            zip_out = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
             local_path = Path(local_corpus_dir) / download_file_name
-            oc.get_file(full_download_file, local_path)
-            utils.create_zip(local_path, zip_out)
-            return send_file(zip_out, mimetype="application/zip")
+            zipped = request.args.get("zip") or request.form.get("zip") or True
+            zipped = False if zipped.lower() == "false" else True
+            if zipped:
+                outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
+                oc.get_file(full_download_file, local_path)
+                utils.create_zip(local_path, outf)
+            else:
+                outf = str(local_corpus_dir / Path(download_file_name))
+                oc.get_file(full_download_file, local_path)
+            return send_file(outf, mimetype="application/zip")
         except Exception as e:
             return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 404
 
