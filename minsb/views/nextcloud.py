@@ -191,17 +191,59 @@ def remove_sources(oc, _user, _corpora, corpus_id):
 @bp.route("/download-sources", methods=["GET"])
 @utils.login()
 def download_sources(oc, user, _corpora, corpus_id):
-    """Download the corpus source files as a zip file."""
-    nc_source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
-    local_source_dir = paths.get_source_dir(user=user, corpus_id=corpus_id, mkdir=True)
-    zip_out = str(local_source_dir / f"{corpus_id}_source.zip")
+    """Download the corpus source files as a zip file.
 
+    The parameter 'file' may be used to download a specific source file. This
+    parameter must either be a file name or an absolute Nextcloud path. The `zip`
+    parameter may be set to `false` in combination the the `file` param to avoid
+    zipping the file to be downloaded.
+    """
+    download_file = request.args.get("file") or request.form.get("file") or ""
+
+    # Check if there are any source files
+    nc_source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
+    source_contents = utils.list_contents(oc, nc_source_dir, exclude_dirs=False)
     try:
+        source_contents = utils.list_contents(oc, nc_source_dir, exclude_dirs=False)
+        if source_contents == []:
+            return utils.response(f"You have not uploaded any source files for corpus '{corpus_id}'", err=True), 404
+    except Exception as e:
+        return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True, info=str(e)), 404
+
+    local_source_dir = paths.get_source_dir(user=user, corpus_id=corpus_id, mkdir=True)
+
+    # Download and zip file specified in args
+    if download_file:
+        full_download_file = download_file
+        download_file_name = Path(download_file).name
+        if not download_file.lstrip("/").startswith(nc_source_dir):
+            full_download_file = "/" + str(Path(nc_source_dir) / download_file)
+        if full_download_file not in [i.get("path") for i in source_contents]:
+            return utils.response(f"The file '{download_file}' you are trying to download does not exist",
+                                  err=True), 404
+        try:
+            local_path = local_source_dir / download_file_name
+            zipped = request.args.get("zip", "") or request.form.get("zip", "")
+            zipped = False if zipped.lower() == "false" else True
+            if zipped:
+                outf = str(local_source_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
+                oc.get_file(full_download_file, local_path)
+                utils.create_zip(local_path, outf)
+            else:
+                outf = str(local_source_dir / Path(download_file_name))
+                oc.get_file(full_download_file, local_path)
+            return send_file(outf, mimetype="application/zip")
+        except Exception as e:
+            return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 404
+
+    # Download all files as zip archive
+    try:
+        zip_out = str(local_source_dir / f"{corpus_id}_source.zip")
         # Get files from Nextcloud
         oc.get_directory_as_zip(nc_source_dir, zip_out)
         return send_file(zip_out, mimetype="application/zip")
     except Exception as e:
-        return utils.response(f"Failed to download corpus source files for corpus '{corpus_id}'", err=True,
+        return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True,
                               info=str(e)), 404
 
 
@@ -340,7 +382,7 @@ def download_export(oc, user, _corpora, corpus_id):
                                   err=True), 404
         try:
             local_path = Path(local_corpus_dir) / download_file_name
-            zipped = request.args.get("zip") or request.form.get("zip") or True
+            zipped = request.args.get("zip", "") or request.form.get("zip", "")
             zipped = False if zipped.lower() == "false" else True
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
