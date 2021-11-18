@@ -51,6 +51,7 @@ def create_corpus(oc, _user, corpora, corpus_id):
         corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True))
         paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
         paths.get_export_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
+        paths.get_work_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
         return utils.response(f"Corpus '{corpus_id}' created successfully")
     except Exception as e:
         try:
@@ -417,3 +418,41 @@ def remove_exports(oc, user, _corpora, corpus_id):
         app.logger.error(f"Failed to remove export files from Sparv server. {str(e)}")
 
     return utils.response(f"Export files for corpus '{corpus_id}' successfully removed")
+
+
+@bp.route("/download-source-text", methods=["GET"])
+@utils.login()
+def download_source_text(oc, user, _corpora, corpus_id):
+    """Get one of the source files in plain text.
+
+    The source file name (including its file extension) must be specified in the 'file' parameter.
+    """
+    download_file = request.args.get("file") or request.form.get("file") or ""
+
+    nc_work_dir = str(paths.get_work_dir(domain="nc", corpus_id=corpus_id))
+    local_corpus_dir = str(paths.get_corpus_dir(user=user, corpus_id=corpus_id, mkdir=True))
+
+    if not download_file:
+        return utils.response("Please specify the source file to download", err=True), 404
+
+    try:
+        source_texts = utils.list_contents(oc, nc_work_dir, exclude_dirs=False)
+        if source_texts == []:
+            return utils.response((f"There are currently no source texts for corpus '{corpus_id}'. "
+                                    "You must run Sparv before you can view source texts."), err=True), 404
+    except Exception as e:
+        return utils.response(f"Failed to download source text for corpus '{corpus_id}'", err=True, info=str(e)), 404
+
+    # Download file specified in args
+    download_file_stem = Path(download_file).stem
+    full_download_path = "/" + str(Path(nc_work_dir) / download_file_stem / app.config.get("SPARV_PLAIN_TEXT_FILE"))
+    out_file_name = download_file_stem + "_plain.txt"
+    if full_download_path not in [i.get("path") for i in source_texts]:
+        return utils.response(f"The source text for the file '{download_file}' does not exist",
+                                err=True), 404
+    try:
+        local_path = Path(local_corpus_dir) / out_file_name
+        oc.get_file(full_download_path, local_path)
+        return send_file(local_path, mimetype="text/plain")
+    except Exception as e:
+        return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e)), 404

@@ -299,18 +299,38 @@ class Job():
         corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
         file_index = utils.create_file_index(corpus_contents, self.user)
 
+        # Get exports from Sparv
         remote_export_dir = paths.get_export_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id)
         p = subprocess.run(["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
+            self.set_status(Status.error)
             return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 404
+
+        # Get plain text sources from Sparv
+        remote_work_dir = paths.get_work_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id)
+        p = subprocess.run(["rsync", "-av", "--include=@text", "--include=*/", "--exclude=*", "--prune-empty-dirs",
+                            f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
+                            local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # Transfer exports to Nextcloud
         local_export_dir = paths.get_export_dir(user=self.user, corpus_id=self.corpus_id)
         try:
             utils.upload_dir(oc, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
+            self.set_status(Status.error)
             raise Exception(f"Failed to upload exports to Nextcloud! {e}")
+
+        # Transfer plain text sources to Nextcloud
+        local_work_dir = paths.get_work_dir(user=self.user, corpus_id=self.corpus_id)
+        try:
+            app.logger.warning(local_work_dir)
+            utils.upload_dir(oc, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
+        except Exception as e:
+            self.set_status(Status.error)
+            app.logger.warning(e)
+            raise Exception(f"Failed to upload plain text sources to Nextcloud! {e}")
+
         self.set_status(Status.done)
 
     def remove_from_sparv(self):

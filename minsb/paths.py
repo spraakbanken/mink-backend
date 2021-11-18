@@ -51,6 +51,19 @@ def get_export_dir(domain="local", user="", corpus_id="", oc=None, mkdir=False):
     return export_dir
 
 
+def get_work_dir(domain="local", user="", corpus_id="", oc=None, mkdir=False):
+    """Get sparv workdir for given corpus."""
+    send_mkdir = mkdir if domain == "local" else False
+    corpus_dir = get_corpus_dir(domain, user, corpus_id, oc, send_mkdir)
+    work_dir = corpus_dir / Path(app.config.get("SPARV_WORK_DIR"))
+    if mkdir:
+        if domain == "local":
+            os.makedirs(str(work_dir), exist_ok=True)
+        elif domain == "nc":
+            oc.mkdir(str(work_dir))
+    return work_dir
+
+
 def get_source_dir(domain="local", user="", corpus_id="", oc=None, mkdir=False):
     """Get source dir for given corpus."""
     send_mkdir = mkdir if domain == "local" else False
