@@ -142,7 +142,7 @@ def clear_annotations(oc, user, _corpora, corpus_id):
 def make_status_response(job, oc):
     """Check the annotation status for a given corpus and return response."""
     status = job.status
-    job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports}
+    job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports, "started": job.started}
     if job.files:
         job_attrs["files"] = job.files
 

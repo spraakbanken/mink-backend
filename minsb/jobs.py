@@ -1,5 +1,6 @@
 """Utilities related to Sparv jobs."""
 
+import datetime
 import hashlib
 import json
 import re
@@ -43,12 +44,13 @@ class Status(IntEnum):
 class Job():
     """A job item holding information about a Sparv job."""
 
-    def __init__(self, user, corpus_id, status=Status.none, pid=None, sparv_exports=None, files=None):
+    def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, sparv_exports=None, files=None):
         self.user = user
         self.corpus_id = corpus_id
         self.id = self.get_id()
         self.status = status
         self.pid = pid
+        self.started = started
         self.sparv_exports = sparv_exports or []
         self.files = files or []
 
@@ -60,12 +62,12 @@ class Job():
 
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
-                           "sparv_exports": self.sparv_exports, "files": self.files})
+                           "started": self.started, "sparv_exports": self.sparv_exports, "files": self.files})
 
     def save(self):
         """Write a job item to the cache and filesystem."""
         dump = json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
-                           "sparv_exports": self.sparv_exports, "files": self.files})
+                           "started": self.started, "sparv_exports": self.sparv_exports, "files": self.files})
         # Save in cache
         utils.memcached_set(self.id, dump)
         # Save backup to file system queue
@@ -186,6 +188,7 @@ class Job():
 
     def run_sparv(self):
         """Start a Sparv annotation process."""
+        self.started=datetime.datetime.now(datetime.timezone.utc).strftime(app.config.get("TIMEFORMAT"))
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
         if self.files:
