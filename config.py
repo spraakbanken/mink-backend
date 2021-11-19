@@ -4,6 +4,7 @@ Can be overridden with config.py in instance folder.
 """
 
 LOG_LEVEL = "INFO"   # Log level for the application
+TIMEFORMAT = "%Y-%m-%d %H:%M:%S %Z"
 
 # Nextcloud settings
 NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"  # Nextcloud domain
