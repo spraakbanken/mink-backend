@@ -9,6 +9,7 @@ from enum import IntEnum
 from itertools import count
 from pathlib import Path
 
+from dateutil.parser import parse
 from flask import current_app as app
 
 from minsb import exceptions, paths, utils
@@ -44,13 +45,15 @@ class Status(IntEnum):
 class Job():
     """A job item holding information about a Sparv job."""
 
-    def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, sparv_exports=None, files=None):
+    def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, completed=None, sparv_exports=None,
+                 files=None):
         self.user = user
         self.corpus_id = corpus_id
         self.id = self.get_id()
         self.status = status
         self.pid = pid
         self.started = started
+        self.completed = completed
         self.sparv_exports = sparv_exports or []
         self.files = files or []
 
@@ -62,12 +65,12 @@ class Job():
 
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
-                           "started": self.started, "sparv_exports": self.sparv_exports, "files": self.files})
+                           "started": self.started, "completed": self.completed, "sparv_exports": self.sparv_exports,
+                           "files": self.files})
 
     def save(self):
         """Write a job item to the cache and filesystem."""
-        dump = json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
-                           "started": self.started, "sparv_exports": self.sparv_exports, "files": self.files})
+        dump = str(self)
         # Save in cache
         utils.memcached_set(self.id, dump)
         # Save backup to file system queue
@@ -188,7 +191,8 @@ class Job():
 
     def run_sparv(self):
         """Start a Sparv annotation process."""
-        self.started=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+        self.started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+        self.completed = None
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
         if self.files:
@@ -243,6 +247,7 @@ class Job():
             progress, _warnings, errors, misc = self.get_output()
             if (progress == "100%" or misc.startswith("Nothing to be done.")):
                 self.set_status(Status.done_annotating)
+                self.completed = self.get_nohup_timestamp()
                 self.set_pid(None)
             else:
                 if errors:
@@ -293,6 +298,18 @@ class Job():
             misc = "\n".join(misc)
 
         return progress, warnings, errors, misc
+
+    def get_nohup_timestamp(self):
+        """Get the last modification time of the nohup file."""
+        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
+                            (f"cd /home/{self.sparv_user}/{self.remote_corpus_dir}"
+                            f" && date -r {self.nohupfile} -R")],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out = p.stdout.decode() if p.stdout else ""
+        try:
+            return parse(out.strip()).isoformat()
+        except Exception:
+            return None
 
     def sync_results(self, oc):
         """Sync exports from Sparv server to Nextcloud."""

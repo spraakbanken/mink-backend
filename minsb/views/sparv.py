@@ -142,9 +142,13 @@ def clear_annotations(oc, user, _corpora, corpus_id):
 def make_status_response(job, oc):
     """Check the annotation status for a given corpus and return response."""
     status = job.status
-    job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports, "started": job.started}
+    job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports}
     if job.files:
         job_attrs["files"] = job.files
+    if job.started:
+        job_attrs["last_run_started"] = job.started
+    if job.completed:
+        job_attrs["last_run_completed"] = job.completed
 
     if status == jobs.Status.none:
         return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.name, err=True), 404
