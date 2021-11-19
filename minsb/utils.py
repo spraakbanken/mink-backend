@@ -111,7 +111,7 @@ def list_contents(oc, directory, exclude_dirs=True):
     for elem in listing:
         # The get_last_modified method is lacking time zone info, so we don't use it.
         # Get last modified date in UTC
-        last_modified = parse(elem.attributes["{DAV:}getlastmodified"]).strftime(app.config.get("TIMEFORMAT"))
+        last_modified = parse(elem.attributes["{DAV:}getlastmodified"]).isoformat()
         full_path = elem.get_path()
         if elem.get_content_type() != "httpd/unix-directory":
             full_path = str(Path(full_path) / elem.get_name())
