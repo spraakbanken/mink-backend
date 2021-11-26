@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 
+import dateutil
 from flask import Blueprint
 from flask import current_app as app
 from flask import request, send_file
@@ -456,3 +457,50 @@ def download_source_text(oc, user, _corpora, corpus_id):
         return send_file(local_path, mimetype="text/plain")
     except Exception as e:
         return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e)), 404
+
+
+@bp.route("/check-changes", methods=["GET"])
+@utils.login()
+def check_changes(oc, user, _corpora, corpus_id):
+    """Check if config or source files have changed since the last job was started."""
+    try:
+        job = jobs.get_job(user, corpus_id)
+        if not job.started:
+            return utils.response(f"Failed to remove export files for corpus '{corpus_id}'", err=True), 404
+        started = dateutil.parser.isoparse(job.started)
+
+        # Compare all source files modification time to the time stamp of the last job started
+        # TODO: Check if any files have been deleted (somehow...)
+        source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
+        try:
+            source_files = utils.list_contents(oc, source_dir)
+        except Exception as e:
+            return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 404
+        changed_sources = []
+        for sf in source_files:
+            mod = dateutil.parser.isoparse(sf.get("last_modified"))
+            if mod > started:
+                changed_sources.append(sf)
+
+        # Compare the config file modification time to the time stamp of the last job started
+        changed_config = None
+        corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
+        corpus_files = utils.list_contents(oc, corpus_dir)
+        config_file = paths.get_config_file(domain="nc", corpus_id=corpus_id)
+        for f in corpus_files:
+            if f.get("name") == config_file.name:
+                config_mod = dateutil.parser.isoparse(f.get("last_modified"))
+                if config_mod > started:
+                    changed_config = f
+                break
+
+        if changed_sources or changed_config:
+            return utils.response(f"Your input for the corpus '{corpus_id}' has changed since the last run",
+                                  config_changed=bool(changed_config), sources_changed=bool(changed_sources),
+                                  changed_config=changed_config, changed_sources=changed_sources,
+                                  last_run_started=job.started)
+        return utils.response(f"Your input for the corpus '{corpus_id}' has not changed since the last run",
+                              last_run_started=job.started)
+
+    except Exception as e:
+        return utils.response(f"Failed to check changes for corpus '{corpus_id}'", err=True, info=str(e)), 404
