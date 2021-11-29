@@ -46,7 +46,7 @@ class Job():
     """A job item holding information about a Sparv job."""
 
     def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, completed=None, sparv_exports=None,
-                 files=None):
+                 files=None, available_files=None):
         self.user = user
         self.corpus_id = corpus_id
         self.id = self.get_id()
@@ -56,6 +56,7 @@ class Job():
         self.completed = completed
         self.sparv_exports = sparv_exports or []
         self.files = files or []
+        self.available_files = available_files or []
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_SERVER")
@@ -66,7 +67,7 @@ class Job():
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
                            "started": self.started, "completed": self.completed, "sparv_exports": self.sparv_exports,
-                           "files": self.files})
+                           "files": self.files, "available_files": self.available_files})
 
     def save(self):
         """Write a job item to the cache and filesystem."""
@@ -398,15 +399,16 @@ class Job():
         return sparv_output
 
 
-def get_job(user, corpus_id, sparv_exports=None, files=None):
+def get_job(user, corpus_id, sparv_exports=None, files=None, available_files=None):
     """Get an existing job from the cache or create a new one."""
-    job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files)
+    job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files)
     if utils.memcached_get(job.id) is not None:
-        return load_from_str(utils.memcached_get(job.id), sparv_exports=sparv_exports, files=files)
+        return load_from_str(utils.memcached_get(job.id), sparv_exports=sparv_exports, files=files,
+                             available_files=available_files)
     return job
 
 
-def load_from_str(jsonstr, sparv_exports=None, files=None):
+def load_from_str(jsonstr, sparv_exports=None, files=None, available_files=None):
     """Load a job object from a json string."""
     job_info = json.loads(jsonstr)
     job_info["status"] = getattr(Status, job_info.get("status"))
@@ -414,6 +416,8 @@ def load_from_str(jsonstr, sparv_exports=None, files=None):
         job_info["sparv_exports"] = sparv_exports
     if files is not None:
         job_info["files"] = files
+    if available_files is not None:
+        job_info["available_files"] = available_files
     return Job(**job_info)
 
 

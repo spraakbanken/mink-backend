@@ -469,21 +469,33 @@ def check_changes(oc, user, _corpora, corpus_id):
             return utils.response(f"Failed to remove export files for corpus '{corpus_id}'", err=True), 404
         started = dateutil.parser.isoparse(job.started)
 
-        # Compare all source files modification time to the time stamp of the last job started
-        # TODO: Check if any files have been deleted (somehow...)
+        # Get currenct source files on Nextclouds
         source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
         try:
             source_files = utils.list_contents(oc, source_dir)
         except Exception as e:
             return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 404
+        # Check for new source files
+        added_sources = []
+        for sf in source_files:
+            if sf not in job.available_files:
+                added_sources.append(sf)
+        # Compare all source files modification time to the time stamp of the last job started
         changed_sources = []
         for sf in source_files:
+            if sf in added_sources:
+                continue
             mod = dateutil.parser.isoparse(sf.get("last_modified"))
             if mod > started:
                 changed_sources.append(sf)
+        # Check for deleted source files
+        deleted_sources = []
+        for fileobj in job.available_files:
+            if fileobj not in source_files:
+                deleted_sources.append(fileobj)
 
         # Compare the config file modification time to the time stamp of the last job started
-        changed_config = None
+        changed_config = {}
         corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
         corpus_files = utils.list_contents(oc, corpus_dir)
         config_file = paths.get_config_file(domain="nc", corpus_id=corpus_id)
@@ -494,10 +506,12 @@ def check_changes(oc, user, _corpora, corpus_id):
                     changed_config = f
                 break
 
-        if changed_sources or changed_config:
+        if added_sources or changed_sources or changed_config or deleted_sources:
             return utils.response(f"Your input for the corpus '{corpus_id}' has changed since the last run",
-                                  config_changed=bool(changed_config), sources_changed=bool(changed_sources),
-                                  changed_config=changed_config, changed_sources=changed_sources,
+                                  config_changed=bool(changed_config), sources_added=bool(added_sources),
+                                  sources_changed=bool(changed_sources), sources_deleted=bool(deleted_sources),
+                                  changed_config=changed_config, added_sources=added_sources,
+                                  changed_sources=changed_sources, deleted_sources=deleted_sources,
                                   last_run_started=job.started)
         return utils.response(f"Your input for the corpus '{corpus_id}' has not changed since the last run",
                               last_run_started=job.started)

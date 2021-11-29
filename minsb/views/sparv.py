@@ -6,7 +6,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request
 
-from minsb import exceptions, jobs, queue, utils
+from minsb import exceptions, jobs, paths, queue, utils
 
 bp = Blueprint("sparv", __name__)
 
@@ -22,8 +22,16 @@ def run_sparv(oc, user, _corpora, corpus_id):
     files = request.args.get("files") or request.form.get("files") or ""
     files = [i.strip() for i in files.split(",") if i]
 
+    # Get list of available source files to be stored in the job info
+    source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
+    try:
+        source_files = utils.list_contents(oc, source_dir)
+    except Exception as e:
+        app.logger.error(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e))
+        source_files = None
+
     # Queue job
-    job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, files=files)
+    job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=source_files)
     try:
         job = queue.add(job)
     except Exception as e:
@@ -142,7 +150,7 @@ def clear_annotations(oc, user, _corpora, corpus_id):
 def make_status_response(job, oc):
     """Check the annotation status for a given corpus and return response."""
     status = job.status
-    job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports}
+    job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports, "available_files": job.available_files}
     if job.files:
         job_attrs["files"] = job.files
     if job.started:
