@@ -9,7 +9,7 @@ from enum import IntEnum
 from itertools import count
 from pathlib import Path
 
-from dateutil.parser import parse
+import dateutil
 from flask import current_app as app
 
 from minsb import exceptions, paths, utils
@@ -247,9 +247,9 @@ class Job():
             self.set_pid(None)
             progress, _warnings, errors, misc = self.get_output()
             if (progress == "100%" or misc.startswith("Nothing to be done.")):
-                self.set_status(Status.done_annotating)
                 self.completed = self.get_nohup_timestamp()
                 self.set_pid(None)
+                self.set_status(Status.done_annotating)
             else:
                 if errors:
                     app.logger.debug(f"Error in Sparv: {errors}")
@@ -308,9 +308,31 @@ class Job():
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out = p.stdout.decode() if p.stdout else ""
         try:
-            return parse(out.strip()).isoformat()
+            return dateutil.parser.parse(out.strip()).isoformat()
         except Exception:
             return None
+
+    @property
+    def time_taken(self):
+        """Calculate the time it took to process the corpus until it finished, exited or until now."""
+        if self.status in (Status.none, Status.waiting, Status.syncing_corpus):
+            return None
+
+        started = dateutil.parser.isoparse(self.started)
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if self.status == Status.annotating:
+            delta = now - started
+        elif self.status in (Status.done_annotating, Status.syncing_results, Status.done):
+            delta = dateutil.parser.isoparse(self.completed) - started
+        elif self.status in (Status.error, Status.aborted):
+            nohup_timestamp = self.get_nohup_timestamp()
+            if nohup_timestamp is not None:
+                delta = dateutil.parser.isoparse(nohup_timestamp) - started
+            else:
+                return None
+
+        # Remove microseconds from timedelta object
+        return str(delta - datetime.timedelta(microseconds=delta.microseconds))
 
     def sync_results(self, oc):
         """Sync exports from Sparv server to Nextcloud."""

@@ -157,6 +157,8 @@ def make_status_response(job, oc):
         job_attrs["last_run_started"] = job.started
     if job.completed:
         job_attrs["last_run_completed"] = job.completed
+    if job.time_taken:
+        job_attrs["time_taken"] = job.time_taken
 
     if status == jobs.Status.none:
         return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.name, err=True), 404
