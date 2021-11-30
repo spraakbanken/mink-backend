@@ -231,10 +231,17 @@ def download_sources(oc, user, _corpora, corpus_id):
                 outf = str(local_source_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
                 oc.get_file(full_download_file, local_path)
                 utils.create_zip(local_path, outf)
+                return send_file(outf, mimetype="application/zip")
             else:
                 outf = str(local_source_dir / Path(download_file_name))
                 oc.get_file(full_download_file, local_path)
-            return send_file(outf, mimetype="application/zip")
+                # Determine content type
+                content_type = "application/xml"
+                for file_obj in source_contents:
+                    if file_obj.get("name") == download_file_name:
+                        content_type = file_obj.get("type")
+                        break
+                return send_file(outf, mimetype=content_type)
         except Exception as e:
             return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 404
 
@@ -390,10 +397,17 @@ def download_export(oc, user, _corpora, corpus_id):
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
                 oc.get_file(full_download_file, local_path)
                 utils.create_zip(local_path, outf)
+                return send_file(outf, mimetype="application/zip")
             else:
                 outf = str(local_corpus_dir / Path(download_file_name))
                 oc.get_file(full_download_file, local_path)
-            return send_file(outf, mimetype="application/zip")
+                # Determine content type
+                content_type = "application/xml"
+                for file_obj in export_contents:
+                    if file_obj.get("name") == download_file_name:
+                        content_type = file_obj.get("type")
+                        break
+                return send_file(outf, mimetype=content_type)
         except Exception as e:
             return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 404
 
