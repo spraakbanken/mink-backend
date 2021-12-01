@@ -138,9 +138,14 @@ def upload_sources(oc, _user, corpora, corpus_id):
         # Upload data
         source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc)
         for f in files[0]:
-            name = utils.check_file(f.filename, app.config.get("SPARV_VALID_INPUT_EXT"))
+            name = utils.check_file_ext(f.filename, app.config.get("SPARV_VALID_INPUT_EXT"))
             if not name:
                 return utils.response(f"File '{f.filename}' has an invalid file extension"), 404
+            compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir, oc)
+            if not compatible:
+                return utils.response(f"Failed to upload some source files to '{corpus_id}' due to incompatible "
+                                       "file extensions", err=True, file=f.filename,
+                                       current_file_extension=current_ext, existing_file_extension=existing_ext), 404
             oc.put_file_contents(str(source_dir / name), f.read())
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:

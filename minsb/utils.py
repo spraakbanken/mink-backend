@@ -202,13 +202,23 @@ def create_zip(inpath, outpath):
     zipf.close()
 
 
-def check_file(filename, valid_extensions=None):
+def check_file_ext(filename, valid_extensions=None):
     """Shell escape filename and check if its extension is valid (return False if not)."""
     filename = Path(shlex.quote(filename))
     if valid_extensions:
         if filename.suffix not in valid_extensions:
             return False
     return filename
+
+
+def check_file_compatible(filename, source_dir, oc):
+    """Check if the file extension of filename is identical to the first file in source_dir."""
+    existing_files = list_contents(oc, str(source_dir))
+    current_ext = Path(filename).suffix
+    if not existing_files:
+        return True, current_ext, None
+    existing_ext = Path(existing_files[0].get("name")).suffix
+    return current_ext == existing_ext, current_ext, existing_ext
 
 
 def connect_to_memcached():
