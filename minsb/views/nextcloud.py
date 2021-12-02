@@ -140,12 +140,18 @@ def upload_sources(oc, _user, corpora, corpus_id):
         for f in files[0]:
             name = utils.check_file_ext(f.filename, app.config.get("SPARV_VALID_INPUT_EXT"))
             if not name:
-                return utils.response(f"File '{f.filename}' has an invalid file extension"), 404
+                return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid "
+                                       "file extension", err=True, file=f.filename, info="invalid file extension"), 404
             compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir, oc)
             if not compatible:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to incompatible "
-                                       "file extensions", err=True, file=f.filename,
+                                       "file extensions", err=True, file=f.filename, info="incompatible file extensions",
                                        current_file_extension=current_ext, existing_file_extension=existing_ext), 404
+            # Validate XML files
+            if current_ext == ".xml":
+                if not utils.validate_xml(f):
+                    return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
+                                          err=True, file=f.filename, info="invalid XML"), 404
             oc.put_file_contents(str(source_dir / name), f.read())
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:
@@ -187,12 +193,12 @@ def remove_sources(oc, _user, _corpora, corpus_id):
             fails.append(rf)
 
     if fails and successes:
-        return utils.response("Failed to remove: '{}'. Successfully removed: '{}'.".format(
-                              "', '".join(fails), "', '".join(successes)), err=True), 404
+        return utils.response(f"Failed to remove some source files form '{corpus_id}'.",
+                              failed=fails, succeeded=successes, err=True), 404
     if fails:
         return utils.response("Failed to remove files", err=True), 404
 
-    return utils.response(f"Source files for '{corpus_id}' successfully updated")
+    return utils.response(f"Source files for '{corpus_id}' successfully removed")
 
 
 @bp.route("/download-sources", methods=["GET"])

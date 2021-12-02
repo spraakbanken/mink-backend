@@ -221,6 +221,16 @@ def check_file_compatible(filename, source_dir, oc):
     return current_ext == existing_ext, current_ext, existing_ext
 
 
+def validate_xml(inputfile):
+    """Check if inputfile is valid XML."""
+    import xml.etree.ElementTree as etree
+    try:
+        etree.parse(inputfile)
+        return True
+    except etree.ParseError:
+        return False
+
+
 def connect_to_memcached():
     """Connect to the memcached socket."""
 
