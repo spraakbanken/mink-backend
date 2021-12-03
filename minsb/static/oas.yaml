@@ -529,11 +529,13 @@ paths:
                     example: &id002
                     - name: dokument1.xml
                       type: application/xml
-                      last_modified: Tue, 02 Mar 2021 15:31:46 GMT
+                      last_modified: '2021-11-17T15:20:54+00:00'
+                      'size:': 1396
                       path: /Min Språkbank/min-testkorpus/source/dokument1.xml
                     - name: dokument2.xml
                       type: application/xml
-                      last_modified: Tue, 02 Mar 2021 15:31:46 GMT
+                      last_modified: '2021-11-17T15:20:54+00:00'
+                      'size:': 115
                       path: /Min Språkbank/min-testkorpus/source/dokument2.xml
               example:
                 status: success
@@ -592,6 +594,8 @@ paths:
         schema:
           type: string
           example: min-testkorpus
+      - $ref: '#/components/parameters/file'
+      - $ref: '#/components/parameters/zip'
       responses:
         '200':
           description: download sources 200
@@ -668,10 +672,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Source files for 'min-testkorpus' successfully updated
+                    example: Source files for 'min-testkorpus' successfully removed
               example:
                 status: success
-                message: Source files for 'min-testkorpus' successfully updated
+                message: Source files for 'min-testkorpus' successfully removed
         '401':
           description: remove sources 401
           content:
@@ -704,12 +708,20 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: 'Failed to remove: ''dokument1.xml''. Successfully removed:
-                      ''dokument2.xml''.'
+                    example: Failed to remove some source files form 'min-testkorpus'.
+                  failed:
+                    type: array
+                    example: &id003
+                    - dokument2.xml
+                  succeeded:
+                    type: array
+                    example: &id004
+                    - dokument1.xml
               example:
                 status: error
-                message: 'Failed to remove: ''dokument1.xml''. Successfully removed:
-                  ''dokument2.xml''.'
+                message: Failed to remove some source files form 'min-testkorpus'.
+                failed: *id003
+                succeeded: *id004
       tags:
       - Manage Sources
   /upload-config:
@@ -922,31 +934,36 @@ paths:
                     example: Current export files for 'min-testkorpus'
                   contents:
                     type: array
-                    example: &id003
+                    example: &id005
                     - name: dokument1.csv
                       type: text/csv
-                      last_modified: Fri, 05 Mar 2021 10:37:25 GMT
+                      last_modified: '2021-11-17T15:25:26+00:00'
+                      'size:': 4809
                       path: /Min Språkbank/min-testkorpus/export/csv/dokument1.csv
                     - name: dokument2.csv
                       type: text/csv
-                      last_modified: Fri, 05 Mar 2021 10:37:47 GMT
+                      last_modified: '2021-11-17T15:25:29+00:00'
+                      'size:': 526
                       path: /Min Språkbank/min-testkorpus/export/csv/dokument2.csv
-                    - name: stats_mini-swe.csv
+                    - name: stats_min-testkorpus.csv
                       type: text/csv
-                      last_modified: Fri, 05 Mar 2021 10:37:45 GMT
-                      path: /Min Språkbank/min-testkorpus/export/frequency_list/stats_mini-swe.csv
+                      last_modified: '2021-11-17T15:25:27+00:00'
+                      'size:': 10728
+                      path: /Min Språkbank/min-testkorpus/export/frequency_list/stats_min-testkorpus.csv
                     - name: dokument1_export.xml
                       type: application/xml
-                      last_modified: Fri, 05 Mar 2021 10:37:24 GMT
+                      last_modified: '2021-11-17T15:25:29+00:00'
+                      'size:': 13147
                       path: /Min Språkbank/min-testkorpus/export/xml_pretty/dokument1_export.xml
                     - name: dokument2_export.xml
                       type: application/xml
-                      last_modified: Fri, 05 Mar 2021 10:37:46 GMT
+                      last_modified: '2021-11-17T15:25:28+00:00'
+                      'size:': 1464
                       path: /Min Språkbank/min-testkorpus/export/xml_pretty/dokument2_export.xml
               example:
                 status: success
                 message: Current export files for 'min-testkorpus'
-                contents: *id003
+                contents: *id005
         '401':
           description: list exports 401
           content:
@@ -1000,13 +1017,26 @@ paths:
         parameter may be applied at a time.
 
 
-        ### Example
+        The `zip` parameter may be set to `false` in combination the the `file` parameter
+        to avoid zipping the file to be downloaded. If `zip` is used without the `file`
+        parameter it will have no effect.
+
+
+        ### Examples
 
 
         ```.bash
 
         curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name''
         --output some_corpus_name.zip
+
+        ```
+
+
+        ```.bash
+
+        curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name&file=/Min
+        Språkbank/some_corpus_name/export/csv/dokument1.csv&zip=false'' --output dokument1.csv
 
         ```'
       operationId: downloadexports
@@ -1018,6 +1048,20 @@ paths:
         schema:
           type: string
           example: min-testkorpus
+      - name: file
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: /Min Språkbank/min-testkorpus/export/csv/dokument2.csv
+      - name: zip
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: 'true'
       responses:
         '200':
           description: download exports 200
@@ -1118,6 +1162,59 @@ paths:
                 info: 'HTTP error: 401'
       tags:
       - Manage Exports
+  /download-source-text:
+    get:
+      summary: download source text
+      description: "Downloads one of the source files in plain text. The plain text\
+        \ is extracted by Sparv and therefore it can only be requested after a completed\
+        \ Sparv job. \n    \nThe source file name (including its file extension) must\
+        \ be specified in the `file` parameter.\n\n### Example\n\n```.bash\ncurl -X\
+        \ GET -u some_username '{{host}}/download-source-text?corpus_id=some_corpus_name?file=dokument1.xml'\
+        \ --output dokument1_plain.txt\n```"
+      operationId: downloadsourcetext
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      - name: file
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: dokument1.xml
+      responses:
+        '200':
+          description: download source text 200
+          content:
+            text/plain; charset=utf-8:
+              schema: {}
+        '401':
+          description: download source text 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate
+                info: 'HTTP error: 401'
+      tags:
+      - Manage Exports
   /run-sparv:
     put:
       summary: run Sparv
@@ -1129,7 +1226,7 @@ paths:
 
         The `files` parameter can be used to run the pipeline on a part of the corpus.
         The key to `files` is a comma-separated list of file names without file extensions,
-        e.g. `files=document1,document2`.
+        e.g. `files=dokument1,dokument2`.
 
 
         There can only be one annotation job for each corpus at a time. A job must
@@ -1176,15 +1273,34 @@ paths:
                     example: waiting
                   sparv_exports:
                     type: array
-                    example: &id004
+                    example: &id006
                     - csv_export:csv
                     - stats_export:freq_list
                     - xml_export:pretty
+                  available_files:
+                    type: array
+                    example: &id007
+                    - name: dokument1.xml
+                      type: application/xml
+                      last_modified: '2021-11-26T13:39:09+00:00'
+                      'size:': 1396
+                      path: /Min Språkbank/min-testkorpus/source/dokument1.xml
+                    - name: dokument2.xml
+                      type: application/xml
+                      last_modified: '2021-11-26T13:39:08+00:00'
+                      'size:': 115
+                      path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                   files:
                     type: array
-                    example: &id005
+                    example: &id008
                     - dokument1
                     - dokument2
+                  last_run_started:
+                    type: string
+                    example: '2021-11-26T13:46:30+00:00'
+                  last_run_completed:
+                    type: string
+                    example: '2021-11-26T14:50:31+01:00'
                   priority:
                     type: integer
                     example: 1
@@ -1192,8 +1308,11 @@ paths:
                 status: success
                 message: Job has been queued
                 job_status: waiting
-                sparv_exports: *id004
-                files: *id005
+                sparv_exports: *id006
+                available_files: *id007
+                files: *id008
+                last_run_started: '2021-11-26T13:46:30+00:00'
+                last_run_completed: '2021-11-26T14:50:31+01:00'
                 priority: 1
         '401':
           description: run Sparv 401
@@ -1282,7 +1401,7 @@ paths:
                     example: Listing jobs
                   jobs:
                     type: array
-                    example: &id006
+                    example: &id009
                     - corpus_id: min-testkorpus
                       message: An error occurred while annotating
                       sparv_output: "Sparv exited with the following error messages:\n\
@@ -1296,6 +1415,19 @@ paths:
                       - csv_export:csv
                       - stats_export:freq_list
                       - xml_export:pretty
+                      available_files:
+                      - name: dokument1.xml
+                        type: application/xml
+                        last_modified: '2021-11-16T13:39:09+00:00'
+                        'size:': 1396
+                        path: /Min Språkbank/min-testkorpus/source/dokument1.xml
+                      - name: dokument2.xml
+                        type: application/xml
+                        last_modified: '2021-11-16T13:39:08+00:00'
+                        'size:': 115
+                        path: /Min Språkbank/min-testkorpus/source/dokument2.xml
+                      last_run_started: '2021-11-17T09:28:32+00:00'
+                      time_taken: 0:00:42
                     - corpus_id: min-testkorpus2
                       message: Corpus is done processing and the results have been
                         synced
@@ -1310,9 +1442,23 @@ paths:
                       job_status: done
                       sparv_exports:
                       - csv_export:csv
+                      available_files:
+                      - name: dokument1.xml
+                        type: application/xml
+                        last_modified: '2021-11-19T13:39:09+00:00'
+                        'size:': 1396
+                        path: /Min Språkbank/min-testkorpus/source/dokument1.xml
+                      - name: dokument2.xml
+                        type: application/xml
+                        last_modified: '2021-11-19T13:39:08+00:00'
+                        'size:': 115
+                        path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                       files:
                       - dokument1
                       - dokument2
+                      last_run_started: '2021-11-19T13:27:50+00:00'
+                      last_run_completed: '2021-11-19T15:16:15+01:00'
+                      time_taken: '1:48:25'
                     - corpus_id: min-testkorpus3
                       message: Sparv is running
                       progress: 18%
@@ -1320,16 +1466,40 @@ paths:
                       sparv_exports:
                       - stats_export:freq_list
                       - xml_export:pretty
+                      available_files:
+                      - name: dokument1.xml
+                        type: application/xml
+                        last_modified: '2021-11-19T10:39:09+00:00'
+                        'size:': 1396
+                        path: /Min Språkbank/min-testkorpus/source/dokument1.xml
+                      - name: dokument2.xml
+                        type: application/xml
+                        last_modified: '2021-11-19T10:39:08+00:00'
+                        'size:': 115
+                        path: /Min Språkbank/min-testkorpus/source/dokument2.xml
+                      last_run_started: '2021-11-19T10:54:10+00:00'
+                      time_taken: 0:10:32
                     - corpus_id: min-testkorpus4
                       message: Job has been queued
                       job_status: waiting
                       sparv_exports:
                       - xml_export:pretty
+                      available_files:
+                      - name: dokument1.xml
+                        type: application/xml
+                        last_modified: '2021-11-29T13:39:09+00:00'
+                        'size:': 1396
+                        path: /Min Språkbank/min-testkorpus/source/dokument1.xml
+                      - name: dokument2.xml
+                        type: application/xml
+                        last_modified: '2021-11-29T13:39:08+00:00'
+                        'size:': 115
+                        path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                       priority: 1
               example:
                 status: success
                 message: Listing jobs
-                jobs: *id006
+                jobs: *id009
         '401':
           description: check status 401
           content:
@@ -1523,6 +1693,140 @@ paths:
                 message: Corpus 'min-testkorpuss' does not exist
       tags:
       - Process Corpus
+  /check-changes:
+    get:
+      summary: check changes
+      description: "Checks if any source files were changed, added or deleted since\
+        \ the last Sparv run. Also checks if the config file was modified. \n\n###\
+        \ Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/check-changes?corpus_id=some_corpus_name'\n\
+        ```"
+      operationId: checkchanges
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      responses:
+        '200':
+          description: check changes 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Your input for the corpus 'min-testkorpus' has changed
+                      since the last run
+                  config_changed:
+                    type: integer
+                    example: true
+                  sources_added:
+                    type: integer
+                    example: true
+                  sources_changed:
+                    type: integer
+                    example: true
+                  sources_deleted:
+                    type: integer
+                    example: true
+                  changed_config:
+                    type: object
+                    example: &id010
+                      name: config.yaml
+                      type: application/yaml
+                      last_modified: '2021-11-25T15:52:17+00:00'
+                      'size:': 848
+                      path: /Min Språkbank/min-testkorpus/config.yaml
+                  added_sources:
+                    type: array
+                    example: &id011
+                    - name: dokument4.xml
+                      type: application/xml
+                      last_modified: '2021-11-29T14:35:30+00:00'
+                      'size:': 461
+                      path: /Min Språkbank/min-testkorpus/source/dokument4.xml
+                  changed_sources:
+                    type: array
+                    example: &id012
+                    - name: dokument1.xml
+                      type: application/xml
+                      last_modified: '2021-11-25T15:56:51+00:00'
+                      'size:': 1396
+                      path: /Min Språkbank/min-testkorpus/source/dokument1.xml
+                    - name: dokument2.xml
+                      type: application/xml
+                      last_modified: '2021-11-25T15:56:51+00:00'
+                      'size:': 115
+                      path: /Min Språkbank/min-testkorpus/source/dokument2.xml
+                  deleted_sources:
+                    type: array
+                    example: &id013
+                    - name: dokument3.xml
+                      type: application/xml
+                      last_modified: '2021-11-29T14:22:54+00:00'
+                      'size:': 41
+                      path: /Min Språkbank/min-testkorpus/source/dokument3.xml
+                  last_run_started:
+                    type: string
+                    example: '2021-11-19T14:16:10+00:00'
+              example:
+                status: success
+                message: Your input for the corpus 'min-testkorpus' has changed since
+                  the last run
+                config_changed: true
+                sources_added: true
+                sources_changed: true
+                sources_deleted: true
+                changed_config: *id010
+                added_sources: *id011
+                changed_sources: *id012
+                deleted_sources: *id013
+                last_run_started: '2021-11-19T14:16:10+00:00'
+        '401':
+          description: check changes 401
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: 'HTTP error: 401'
+              example:
+                status: error
+                message: Failed to authenticate
+                info: 'HTTP error: 401'
+        '404':
+          description: check changes 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'min-testkorpuss' does not exist
+              example:
+                status: error
+                message: Corpus 'min-testkorpuss' does not exist
+      tags:
+      - Process Corpus
   /api-spec:
     get:
       summary: API specification
@@ -1571,7 +1875,7 @@ paths:
                     example: Listing existing job status codes
                   status_codes:
                     type: array
-                    example: &id007
+                    example: &id014
                     - code: 0
                       name: none
                       description: Job does not exist
@@ -1602,7 +1906,7 @@ paths:
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes: *id007
+                status_codes: *id014
       tags:
       - Documentation
       security: []
@@ -1628,7 +1932,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id008
+                    example: &id015
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -1674,7 +1978,7 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id008
+                languages: *id015
       tags:
       - Documentation
       security: []
@@ -1715,7 +2019,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id009
+                    example: &id016
                     - export: conll_export:conllu
                       description: CoNLL-U (SBX version) export
                     - export: csv_export:csv
@@ -1758,7 +2062,7 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id009
+                exports: *id016
       tags:
       - Documentation
       security: []
@@ -1825,6 +2129,22 @@ components:
       schema:
         type: string
         example: min-testkorpus
+    file:
+      name: file
+      in: query
+      required: true
+      style: form
+      schema:
+        type: string
+        example: dokument1.xml
+    zip:
+      name: zip
+      in: query
+      required: true
+      style: form
+      schema:
+        type: string
+        example: 'False'
     remove:
       name: remove
       in: query

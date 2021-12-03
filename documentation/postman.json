@@ -755,6 +755,65 @@
 					},
 					"response": [
 						{
+							"name": "upload sources 200",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "",
+											"type": "file",
+											"src": [
+												"/home/anne/Downloads/testkorpus/source/dokument2.xml",
+												"/home/anne/Downloads/testkorpus/source/dokument1.xml"
+											]
+										}
+									]
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/upload-sources?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"upload-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "88"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 10:12:37 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to 'min-testkorpus'\"\n}"
+						},
+						{
 							"name": "upload sources 401",
 							"originalRequest": {
 								"method": "PUT",
@@ -814,7 +873,7 @@
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
 						},
 						{
-							"name": "upload sources 200",
+							"name": "upload sources 404 incompatible",
 							"originalRequest": {
 								"method": "PUT",
 								"header": [],
@@ -824,10 +883,7 @@
 										{
 											"key": "",
 											"type": "file",
-											"src": [
-												"/home/anne/Downloads/testkorpus/source/dokument2.xml",
-												"/home/anne/Downloads/testkorpus/source/dokument1.xml"
-											]
+											"src": "/home/anne/Downloads/text.txt"
 										}
 									]
 								},
@@ -848,8 +904,8 @@
 									]
 								}
 							},
-							"status": "OK",
-							"code": 200,
+							"status": "NOT FOUND",
+							"code": 404,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -858,19 +914,19 @@
 								},
 								{
 									"key": "Content-Length",
-									"value": "88"
+									"value": "208"
 								},
 								{
 									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
 								},
 								{
 									"key": "Date",
-									"value": "Thu, 18 Mar 2021 10:12:37 GMT"
+									"value": "Wed, 01 Dec 2021 14:28:20 GMT"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to 'min-testkorpus'\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to 'min-testkorpus' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\"\n}"
 						},
 						{
 							"name": "upload sources 404",
@@ -989,19 +1045,19 @@
 								},
 								{
 									"key": "Content-Length",
-									"value": "425"
+									"value": "454"
 								},
 								{
 									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
 								},
 								{
 									"key": "Date",
-									"value": "Thu, 18 Mar 2021 10:04:22 GMT"
+									"value": "Thu, 11 Nov 2021 10:32:11 GMT"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current source files for 'min-testkorpus'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"Tue, 02 Mar 2021 15:31:46 GMT\",\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"Tue, 02 Mar 2021 15:31:46 GMT\",\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current source files for 'min-testkorpus'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-17T15:20:54+00:00\",\n            \"size:\": 1396,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-17T15:20:54+00:00\",\n            \"size:\": 115,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n        }\n    ]\n}"
 						},
 						{
 							"name": "list sources 401",
@@ -1115,6 +1171,16 @@
 								{
 									"key": "corpus_id",
 									"value": "min-testkorpus"
+								},
+								{
+									"key": "file",
+									"value": "dokument1.xml",
+									"disabled": true
+								},
+								{
+									"key": "zip",
+									"value": "False",
+									"disabled": true
 								}
 							]
 						},
@@ -1306,52 +1372,6 @@
 					},
 					"response": [
 						{
-							"name": "remove sources 404",
-							"originalRequest": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/remove-sources?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"remove-sources"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "64"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 18 Mar 2021 10:39:37 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No files provided for removal\"\n}"
-						},
-						{
 							"name": "remove sources 200",
 							"originalRequest": {
 								"method": "DELETE",
@@ -1399,57 +1419,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for 'min-testkorpus' successfully updated\"\n}"
-						},
-						{
-							"name": "remove sources 404",
-							"originalRequest": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/remove-sources?corpus_id=min-testkorpus&remove=dokument1.xml,dokument2.xml",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"remove-sources"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										},
-										{
-											"key": "remove",
-											"value": "dokument1.xml,dokument2.xml"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "107"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 18 Mar 2021 13:04:39 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove: 'dokument1.xml'. Successfully removed: 'dokument2.xml'.\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for 'min-testkorpus' successfully removed\"\n}"
 						},
 						{
 							"name": "remove sources 401",
@@ -1500,6 +1470,102 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
+						},
+						{
+							"name": "remove sources 404",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/remove-sources?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "64"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 10:39:37 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No files provided for removal\"\n}"
+						},
+						{
+							"name": "remove sources 404",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/remove-sources?corpus_id=min-testkorpus&remove=dokument1.xml,dokument2.xml",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "remove",
+											"value": "dokument1.xml,dokument2.xml"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "107"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 13:04:39 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove some source files form 'min-testkorpus'.\",\n    \"failed\": [\n        \"dokument2.xml\"\n    ],\n    \"succeeded\": [\n        \"dokument1.xml\"\n    ]\n}"
 						}
 					]
 				}
@@ -1922,6 +1988,52 @@
 					},
 					"response": [
 						{
+							"name": "list exports 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/list-exports?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"list-exports"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1076"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 11 Nov 2021 10:26:05 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current export files for 'min-testkorpus'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2021-11-17T15:25:26+00:00\",\n            \"size:\": 4809,\n            \"path\": \"/Min Språkbank/min-testkorpus/export/csv/dokument1.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2021-11-17T15:25:29+00:00\",\n            \"size:\": 526,\n            \"path\": \"/Min Språkbank/min-testkorpus/export/csv/dokument2.csv\"\n        },\n        {\n            \"name\": \"stats_min-testkorpus.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2021-11-17T15:25:27+00:00\",\n            \"size:\": 10728,\n            \"path\": \"/Min Språkbank/min-testkorpus/export/frequency_list/stats_min-testkorpus.csv\"\n        },\n        {\n            \"name\": \"dokument1_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-17T15:25:29+00:00\",\n            \"size:\": 13147,\n            \"path\": \"/Min Språkbank/min-testkorpus/export/xml_pretty/dokument1_export.xml\"\n        },\n        {\n            \"name\": \"dokument2_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-17T15:25:28+00:00\",\n            \"size:\": 1464,\n            \"path\": \"/Min Språkbank/min-testkorpus/export/xml_pretty/dokument2_export.xml\"\n        }\n    ]\n}"
+						},
+						{
 							"name": "list exports 401",
 							"originalRequest": {
 								"method": "GET",
@@ -1966,52 +2078,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
-						},
-						{
-							"name": "list exports 200",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/list-exports?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"list-exports"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "988"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 08 Mar 2021 15:22:51 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current export files for 'min-testkorpus'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"Fri, 05 Mar 2021 10:37:25 GMT\",\n            \"path\": \"/Min Språkbank/min-testkorpus/export/csv/dokument1.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"Fri, 05 Mar 2021 10:37:47 GMT\",\n            \"path\": \"/Min Språkbank/min-testkorpus/export/csv/dokument2.csv\"\n        },\n        {\n            \"name\": \"stats_mini-swe.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"Fri, 05 Mar 2021 10:37:45 GMT\",\n            \"path\": \"/Min Språkbank/min-testkorpus/export/frequency_list/stats_mini-swe.csv\"\n        },\n        {\n            \"name\": \"dokument1_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"Fri, 05 Mar 2021 10:37:24 GMT\",\n            \"path\": \"/Min Språkbank/min-testkorpus/export/xml_pretty/dokument1_export.xml\"\n        },\n        {\n            \"name\": \"dokument2_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"Fri, 05 Mar 2021 10:37:46 GMT\",\n            \"path\": \"/Min Språkbank/min-testkorpus/export/xml_pretty/dokument2_export.xml\"\n        }\n    ]\n}"
 						},
 						{
 							"name": "list exports 404",
@@ -2079,10 +2145,20 @@
 								{
 									"key": "corpus_id",
 									"value": "min-testkorpus"
+								},
+								{
+									"key": "file",
+									"value": "/Min Språkbank/min-testkorpus/export/csv/dokument2.csv",
+									"disabled": true
+								},
+								{
+									"key": "zip",
+									"value": "true",
+									"disabled": true
 								}
 							]
 						},
-						"description": "Downloads all available export files created by Sparv.\n\nThe parameters `file` and `dir` may be used to download a specific export file\nor a directory of export files. These parameters must be supplied as absolute\nNextcloud paths or paths relative to the export directory. Only one of these parameter may be applied at a time.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/download-exports?corpus_id=some_corpus_name' --output some_corpus_name.zip\n```"
+						"description": "Downloads all available export files created by Sparv.\n\nThe parameters `file` and `dir` may be used to download a specific export file\nor a directory of export files. These parameters must be supplied as absolute\nNextcloud paths or paths relative to the export directory. Only one of these parameter may be applied at a time.\n\nThe `zip` parameter may be set to `false` in combination the the `file` parameter to avoid zipping the file to be downloaded. If `zip` is used without the `file` parameter it will have no effect.\n\n### Examples\n\n```.bash\ncurl -X GET -u some_username '{{host}}/download-exports?corpus_id=some_corpus_name' --output some_corpus_name.zip\n```\n\n```.bash\ncurl -X GET -u some_username '{{host}}/download-exports?corpus_id=some_corpus_name&file=/Min Språkbank/some_corpus_name/export/csv/dokument1.csv&zip=false' --output dokument1.csv\n```"
 					},
 					"response": [
 						{
@@ -2358,6 +2434,152 @@
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
 						}
 					]
+				},
+				{
+					"name": "download source text",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{host}}/download-source-text?corpus_id=min-testkorpus&file=dokument1.xml",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"download-source-text"
+							],
+							"query": [
+								{
+									"key": "corpus_id",
+									"value": "min-testkorpus"
+								},
+								{
+									"key": "file",
+									"value": "dokument1.xml"
+								}
+							]
+						},
+						"description": "Downloads one of the source files in plain text. The plain text is extracted by Sparv and therefore it can only be requested after a completed Sparv job. \n    \nThe source file name (including its file extension) must be specified in the `file` parameter.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/download-source-text?corpus_id=some_corpus_name?file=dokument1.xml' --output dokument1_plain.txt\n```"
+					},
+					"response": [
+						{
+							"name": "download source text 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/download-source-text?corpus_id=min-testkorpus&file=dokument1.xml",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"download-source-text"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "file",
+											"value": "dokument1.xml"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Content-Disposition",
+									"value": "inline; filename=dokument1_plain.txt"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/plain; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "101"
+								},
+								{
+									"key": "Last-Modified",
+									"value": "Thu, 18 Nov 2021 14:48:46 GMT"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache"
+								},
+								{
+									"key": "ETag",
+									"value": "\"1637246926.6186583-101-2699829583\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Nov 2021 14:48:46 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								}
+							],
+							"cookie": [],
+							"body": "\nHej! Det här är en text.\n\nDen är jättekort. Den har bara tre meningar och ingen metadata.\n"
+						},
+						{
+							"name": "download source text 401",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/download-source-text?corpus_id=min-testkorpus&file=dokument1.xml",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"download-source-text"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "file",
+											"value": "dokument1.xml"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "98"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 14:58:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
+						}
+					]
 				}
 			]
 		},
@@ -2393,9 +2615,63 @@
 								}
 							]
 						},
-						"description": "Adds an annotation job to the queue. The requested export formats may be supplied as a comma-separated list to the `exports` query parameter or the `exports` key in the form. If no export formats are specified, some standard exports will be generated.\n\nThe `doc` parameter can be used to run the pipeline on a part of the corpus. The key to `doc` is a comma-separated list of document names without file extensions, e.g. `doc=document1,document2`.\n\nThere can only be one annotation job for each corpus at a time. A job must finish annotating and syncing to Nextcloud or aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"corpus_id=some_corpus_name\" -F \"exports=csv_export:csv,stats_export:freq_list,xml_export:pretty\" '{{host}}/run-sparv'\n```"
+						"description": "Adds an annotation job to the queue. The requested export formats may be supplied as a comma-separated list to the `exports` query parameter or the `exports` key in the form. If no export formats are specified, some standard exports will be generated.\n\nThe `files` parameter can be used to run the pipeline on a part of the corpus. The key to `files` is a comma-separated list of file names without file extensions, e.g. `files=dokument1,dokument2`.\n\nThere can only be one annotation job for each corpus at a time. A job must finish annotating and syncing to Nextcloud or aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"corpus_id=some_corpus_name\" -F \"exports=csv_export:csv,stats_export:freq_list,xml_export:pretty\" '{{host}}/run-sparv'\n```"
 					},
 					"response": [
+						{
+							"name": "run Sparv 200",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"run-sparv"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "exports",
+											"value": "csv_export:csv,stats_export:freq_list,xml_export:pretty"
+										},
+										{
+											"key": "files",
+											"value": "dokument1,dokument2"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "217"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.5"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 20 Oct 2021 15:18:25 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-26T13:39:09+00:00\",\n            \"size:\": 1396,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-26T13:39:08+00:00\",\n            \"size:\": 115,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n        }\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"last_run_started\": \"2021-11-26T13:46:30+00:00\",\n    \"last_run_completed\": \"2021-11-26T14:50:31+01:00\",\n    \"priority\": 1\n}"
+						},
 						{
 							"name": "run Sparv 401",
 							"originalRequest": {
@@ -2495,60 +2771,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpuss' does not exist\"\n}"
-						},
-						{
-							"name": "run Sparv 200",
-							"originalRequest": {
-								"method": "PUT",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"run-sparv"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										},
-										{
-											"key": "exports",
-											"value": "csv_export:csv,stats_export:freq_list,xml_export:pretty"
-										},
-										{
-											"key": "files",
-											"value": "dokument1,dokument2"
-										}
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "217"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/2.0.2 Python/3.9.5"
-								},
-								{
-									"key": "Date",
-									"value": "Wed, 20 Oct 2021 15:18:25 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"priority\": 1\n}"
 						}
 					]
 				},
@@ -2570,6 +2792,46 @@
 						"description": "Checks the status of the user's annotation jobs and reports it in the `job_status` field for each job.\n\nWhen the `corpus_id` parameter is supplied only the job corresponding to that corpus ID is reported.\n\nThe different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation process has been started successfully a percentage of the completed annotation progress will be shown in the `progress` field.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/check-status'\n```"
 					},
 					"response": [
+						{
+							"name": "check status 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/check-status",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-status"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "558"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 25 Mar 2021 14:14:53 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"min-testkorpus\",\n            \"message\": \"An error occurred while annotating\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\",\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:09+00:00\",\n                    \"size:\": 1396,\n                    \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:08+00:00\",\n                    \"size:\": 115,\n                    \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n                }\n            ],\n            \"last_run_started\": \"2021-11-17T09:28:32+00:00\",\n            \"time_taken\": \"0:00:42\"\n        },\n        {\n            \"corpus_id\": \"min-testkorpus2\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\",\n            \"sparv_exports\": [\n                \"csv_export:csv\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:09+00:00\",\n                    \"size:\": 1396,\n                    \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:08+00:00\",\n                    \"size:\": 115,\n                    \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n                }\n            ],\n            \"files\": [\n                \"dokument1\",\n                \"dokument2\"\n            ],\n            \"last_run_started\": \"2021-11-19T13:27:50+00:00\",\n            \"last_run_completed\": \"2021-11-19T15:16:15+01:00\",\n            \"time_taken\": \"1:48:25\"\n        },\n        {\n            \"corpus_id\": \"min-testkorpus3\",\n            \"message\": \"Sparv is running\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\",\n            \"sparv_exports\": [\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:09+00:00\",\n                    \"size:\": 1396,\n                    \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:08+00:00\",\n                    \"size:\": 115,\n                    \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n                }\n            ],\n            \"last_run_started\": \"2021-11-19T10:54:10+00:00\",\n            \"time_taken\": \"0:10:32\"\n        },\n        {\n            \"corpus_id\": \"min-testkorpus4\",\n            \"message\": \"Job has been queued\",\n            \"job_status\": \"waiting\",\n            \"sparv_exports\": [\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:09+00:00\",\n                    \"size:\": 1396,\n                    \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:08+00:00\",\n                    \"size:\": 115,\n                    \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n                }\n            ],\n            \"priority\": 1\n        }\n    ]\n}"
+						},
 						{
 							"name": "check status 401",
 							"originalRequest": {
@@ -2655,46 +2917,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"An error occurred while annotating\",\n    \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\"\n}"
-						},
-						{
-							"name": "check status 200",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/check-status",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"check-status"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "558"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 25 Mar 2021 14:14:53 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"min-testkorpus\",\n            \"message\": \"An error occurred while annotating\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\",\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ]\n        },\n        {\n            \"corpus_id\": \"min-testkorpus2\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\",\n            \"sparv_exports\": [\n                \"csv_export:csv\"\n            ],\n            \"files\": [\n                \"dokument1\",\n                \"dokument2\"\n            ]\n        },\n        {\n            \"corpus_id\": \"min-testkorpus3\",\n            \"message\": \"Sparv is running\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\",\n            \"sparv_exports\": [\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ]\n        },\n        {\n            \"corpus_id\": \"min-testkorpus4\",\n            \"message\": \"Job has been queued\",\n            \"job_status\": \"waiting\",\n            \"sparv_exports\": [\n                \"xml_export:pretty\"\n            ],\n            \"priority\": 1\n        }\n    ]\n}"
 						}
 					]
 				},
@@ -3034,6 +3256,170 @@
 								{
 									"key": "Date",
 									"value": "Thu, 18 Mar 2021 10:25:04 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpuss' does not exist\"\n}"
+						}
+					]
+				},
+				{
+					"name": "check changes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{host}}/check-changes?corpus_id=min-testkorpus",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"check-changes"
+							],
+							"query": [
+								{
+									"key": "corpus_id",
+									"value": "min-testkorpus"
+								}
+							]
+						},
+						"description": "Checks if any source files were changed, added or deleted since the last Sparv run. Also checks if the config file was modified. \n\n### Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/check-changes?corpus_id=some_corpus_name'\n```"
+					},
+					"response": [
+						{
+							"name": "check changes 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/check-changes?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-changes"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "748"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 25 Nov 2021 15:57:15 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Your input for the corpus 'min-testkorpus' has changed since the last run\",\n    \"config_changed\": true,\n    \"sources_added\": true,\n    \"sources_changed\": true,\n    \"sources_deleted\": true,\n    \"changed_config\": {\n        \"name\": \"config.yaml\",\n        \"type\": \"application/yaml\",\n        \"last_modified\": \"2021-11-25T15:52:17+00:00\",\n        \"size:\": 848,\n        \"path\": \"/Min Språkbank/min-testkorpus/config.yaml\"\n    },\n    \"added_sources\": [\n        {\n            \"name\": \"dokument4.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:35:30+00:00\",\n            \"size:\": 461,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument4.xml\"\n        }\n    ],\n    \"changed_sources\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size:\": 1396,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size:\": 115,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n        }\n    ],\n    \"deleted_sources\": [\n        {\n            \"name\": \"dokument3.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:22:54+00:00\",\n            \"size:\": 41,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument3.xml\"\n        }\n    ],\n    \"last_run_started\": \"2021-11-19T14:16:10+00:00\"\n}"
+						},
+						{
+							"name": "check changes 401",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/check-changes?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-changes"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 08 Mar 2021 12:37:15 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
+						},
+						{
+							"name": "check changes 404",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/check-changes?corpus_id=min-testkorpuss",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-changes"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpuss"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "74"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 10:28:11 GMT"
 								}
 							],
 							"cookie": [],
