@@ -147,12 +147,13 @@ def upload_sources(oc, _user, corpora, corpus_id):
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to incompatible "
                                        "file extensions", err=True, file=f.filename, info="incompatible file extensions",
                                        current_file_extension=current_ext, existing_file_extension=existing_ext), 404
+            file_contents = f.read()
             # Validate XML files
             if current_ext == ".xml":
-                if not utils.validate_xml(f):
+                if not utils.validate_xml(file_contents):
                     return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
                                           err=True, file=f.filename, info="invalid XML"), 404
-            oc.put_file_contents(str(source_dir / name), f.read())
+            oc.put_file_contents(str(source_dir / name), file_contents)
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:
         return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 404
