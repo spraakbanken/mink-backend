@@ -30,6 +30,17 @@ def run_sparv(oc, user, _corpora, corpus_id):
         app.logger.error(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e))
         source_files = None
 
+    # Check compatibility between source files and config
+    try:
+        config_file = str(paths.get_config_file(domain="nc", corpus_id=corpus_id))
+        config_contents = oc.get_file_contents(config_file)
+        if source_files:
+            compatible, resp = utils.config_compatible(config_contents, source_files[0])
+            if not compatible:
+                return resp, 404
+    except Exception as e:
+        app.logger.error(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e))
+
     # Queue job
     job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=source_files)
     try:

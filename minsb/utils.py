@@ -231,6 +231,23 @@ def validate_xml(file_contents):
         return False
 
 
+def config_compatible(config, source_file):
+    """Check if the importer module in the corpus config is compatible with the source files."""
+    file_ext = Path(source_file.get("name")).suffix
+    config_yaml = yaml.load(config, Loader=yaml.FullLoader)
+    current_importer = config_yaml.get("import", {}).get("importer", "").split(":")[0] or None
+    importer_dict = app.config.get("SPARV_IMPORTER_MODULES", {})
+
+    # If no importer is specified xml is default
+    if current_importer is None and file_ext == ".xml":
+        return True, None
+
+    expected_importer = importer_dict.get(file_ext)
+    if current_importer == expected_importer:
+        return True, None
+    return False, response("The importer in your config file is not compatible with your source files",
+                            err=True, current_importer=current_importer, expected_importer=expected_importer)
+
 def connect_to_memcached():
     """Connect to the memcached socket."""
 

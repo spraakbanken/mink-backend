@@ -138,7 +138,7 @@ def upload_sources(oc, _user, corpora, corpus_id):
         # Upload data
         source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc)
         for f in files[0]:
-            name = utils.check_file_ext(f.filename, app.config.get("SPARV_VALID_INPUT_EXT"))
+            name = utils.check_file_ext(f.filename, app.config.get("SPARV_IMPORTER_MODULES", {}).keys())
             if not name:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid "
                                        "file extension", err=True, file=f.filename, info="invalid file extension"), 404
@@ -283,6 +283,9 @@ def upload_config(oc, _user, corpora, corpus_id):
         return utils.response("Found both a config file and a plain text config but can only process one of these",
                               err=True), 404
 
+    source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
+    source_files = utils.list_contents(oc, str(source_dir))
+
     # Process uploaded config file
     if attached_files:
         # Check if config file is YAML
@@ -290,8 +293,16 @@ def upload_config(oc, _user, corpora, corpus_id):
         if config_file.mimetype not in ("application/x-yaml", "text/yaml"):
             return utils.response("Config file needs to be YAML", err=True), 404
 
+        config_contents = config_file.read()
+
+        # Check if config file is compatible with the uploaded source files
+        if source_files:
+            compatible, resp = utils.config_compatible(config_contents, source_files[0])
+            if not compatible:
+                return resp, 404
+
         try:
-            new_config = utils.set_corpus_id(config_file.read(), corpus_id)
+            new_config = utils.set_corpus_id(config_contents, corpus_id)
             oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), new_config)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'")
         except Exception as e:
@@ -299,6 +310,11 @@ def upload_config(oc, _user, corpora, corpus_id):
 
     elif config_txt:
         try:
+            # Check if config file is compatible with the uploaded source files
+            if source_files:
+                compatible, resp = utils.config_compatible(config_txt, source_files[0])
+                if not compatible:
+                    return resp, 404
             new_config = utils.set_corpus_id(config_txt, corpus_id)
             oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), new_config)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'")
