@@ -133,6 +133,14 @@ def check_status(oc, user, corpora):
 def abort_job(_oc, user, _corpora, corpus_id):
     """Try to abort a running job."""
     job = jobs.get_job(user, corpus_id)
+    # No job
+    if job.status in (jobs.Status.none, jobs.Status.done, jobs.Status.error,
+                      jobs.Status.aborted):
+        return utils.response(f"No running job found for '{corpus_id}'")
+    # Syncing
+    if job.status in (jobs.Status.syncing_corpus, jobs.Status.syncing_results):
+        return utils.response(f"Cannot abort job while syncing files", job_status=job.status.name), 404
+    # Running job, try to abort
     try:
         job.abort_sparv()
     except exceptions.ProcessNotRunning:

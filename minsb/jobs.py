@@ -96,7 +96,10 @@ class Job():
 
         # Remove from cache
         mc = app.config.get("cache_client")
-        mc.delete(self.id)
+        try:
+            mc.delete(self.id)
+        except Exception as e:
+            app.logger.error(f"Failed to delete job ID from cache client: {e}")
         # Remove backup from file system
         queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
         filename = queue_dir / Path(self.id)
@@ -126,7 +129,7 @@ class Job():
                             f"cd /home/{self.sparv_user} && mv {self.remote_corpus_dir} {new_corpus_dir}"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
-            raise Exception(f"Failed to rename corpus on Sparv server! {p.stderr.decode()}")
+            app.logger.debug(f"Failed to rename corpus on Sparv server: '{p.stderr.decode()}'")
 
         self.remove()
         self.corpus_id = new_corpus_id
@@ -216,7 +219,7 @@ class Job():
 
     def abort_sparv(self):
         """Abort running Sparv process."""
-        if self.status == Status.done_annotating:
+        if self.status in (Status.done_annotating, Status.waiting):
             self.set_status(Status.aborted)
             return
         if not self.status == Status.annotating:
@@ -317,7 +320,8 @@ class Job():
         """Calculate the time it took to process the corpus until it finished, exited or until now."""
         if self.status in (Status.none, Status.waiting, Status.syncing_corpus):
             return None
-
+        if self.started == None:
+            return None
         started = dateutil.parser.isoparse(self.started)
         now = datetime.datetime.now(datetime.timezone.utc)
         if self.status == Status.annotating:
