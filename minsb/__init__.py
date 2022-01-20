@@ -10,6 +10,7 @@ from flask import Flask, g, request
 from flask_cors import CORS
 
 from minsb import queue, utils
+from minsb.memcached import cache
 
 
 def create_app():
@@ -52,7 +53,7 @@ def create_app():
 
     # Connect to memcached and init job queue
     with app.app_context():
-        utils.connect_to_memcached()
+        cache.connect()
         queue.init_queue()
 
     @app.before_request
@@ -61,7 +62,7 @@ def create_app():
         g.queue_initialized = False
         g.job_queue = {}
         if app.config["cache_client"] is None:
-            utils.connect_to_memcached()
+            cache.connect()
 
     @app.after_request
     def cleanup(response):

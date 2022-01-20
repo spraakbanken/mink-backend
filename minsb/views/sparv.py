@@ -7,12 +7,13 @@ from flask import current_app as app
 from flask import request
 
 from minsb import exceptions, jobs, paths, queue, utils
+from minsb.nextcloud import login, storage
 
 bp = Blueprint("sparv", __name__)
 
 
 @bp.route("/run-sparv", methods=["PUT"])
-@utils.login()
+@login.login()
 def run_sparv(oc, user, _corpora, corpus_id):
     """Run Sparv on given corpus."""
     # Parse requested exports
@@ -25,7 +26,7 @@ def run_sparv(oc, user, _corpora, corpus_id):
     # Get list of available source files to be stored in the job info
     source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
     try:
-        source_files = utils.list_contents(oc, source_dir)
+        source_files = storage.list_contents(oc, source_dir)
     except Exception as e:
         app.logger.error(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e))
         source_files = None
@@ -97,7 +98,7 @@ def advance_queue():
 
 
 @bp.route("/check-status", methods=["GET"])
-@utils.login(require_corpus_id=False)
+@login.login(require_corpus_id=False)
 def check_status(oc, user, corpora):
     """Check the annotation status for all jobs belonging to a user or a given corpus."""
     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
@@ -129,7 +130,7 @@ def check_status(oc, user, corpora):
 
 
 @bp.route("/abort-job", methods=["POST"])
-@utils.login()
+@login.login()
 def abort_job(_oc, user, _corpora, corpus_id):
     """Try to abort a running job."""
     job = jobs.get_job(user, corpus_id)
@@ -151,7 +152,7 @@ def abort_job(_oc, user, _corpora, corpus_id):
 
 
 @bp.route("/clear-annotations", methods=["DELETE"])
-@utils.login()
+@login.login()
 def clear_annotations(oc, user, _corpora, corpus_id):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job

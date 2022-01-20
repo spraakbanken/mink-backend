@@ -13,6 +13,8 @@ import dateutil
 from flask import current_app as app
 
 from minsb import exceptions, paths, utils
+from minsb.memcached import cache
+from minsb.nextcloud import storage
 
 _status_count = count(0)
 
@@ -73,7 +75,7 @@ class Job():
         """Write a job item to the cache and filesystem."""
         dump = str(self)
         # Save in cache
-        utils.memcached_set(self.id, dump)
+        cache.set(self.id, dump)
         # Save backup to file system queue
         queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
         queue_dir.mkdir(exist_ok=True)
@@ -145,7 +147,7 @@ class Job():
         local_user_dir = str(paths.get_corpus_dir(user=self.user, mkdir=True))
 
         # Check if required corpus contents are present
-        corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
+        corpus_contents = storage.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
         if not app.config.get("SPARV_CORPUS_CONFIG") in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.corpus_id}'!")
@@ -154,7 +156,7 @@ class Job():
             raise Exception(f"No input files provided for '{self.corpus_id}'!")
 
         # Create file index with timestamps
-        file_index = utils.create_file_index(corpus_contents, self.user)
+        file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Create user and corpus dir on Sparv server
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
@@ -167,7 +169,7 @@ class Job():
         # Download from Nextcloud to local tmp dir
         # TODO: do this async?
         try:
-            utils.download_dir(oc, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
+            storage.download_dir(oc, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to download corpus '{self.corpus_id}' from Nextcloud! {e}")
@@ -343,8 +345,8 @@ class Job():
         local_corpus_dir = str(paths.get_corpus_dir(user=self.user, corpus_id=self.corpus_id, mkdir=True))
         nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=self.corpus_id))
 
-        corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
-        file_index = utils.create_file_index(corpus_contents, self.user)
+        corpus_contents = storage.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
+        file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Get exports from Sparv
         remote_export_dir = paths.get_export_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id)
@@ -363,7 +365,7 @@ class Job():
         # Transfer exports to Nextcloud
         local_export_dir = paths.get_export_dir(user=self.user, corpus_id=self.corpus_id)
         try:
-            utils.upload_dir(oc, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(oc, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to upload exports to Nextcloud! {e}")
@@ -372,7 +374,7 @@ class Job():
         local_work_dir = paths.get_work_dir(user=self.user, corpus_id=self.corpus_id)
         try:
             app.logger.warning(local_work_dir)
-            utils.upload_dir(oc, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(oc, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             self.set_status(Status.error)
             app.logger.warning(e)
@@ -428,8 +430,8 @@ class Job():
 def get_job(user, corpus_id, sparv_exports=None, files=None, available_files=None):
     """Get an existing job from the cache or create a new one."""
     job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files)
-    if utils.memcached_get(job.id) is not None:
-        return load_from_str(utils.memcached_get(job.id), sparv_exports=sparv_exports, files=files,
+    if cache.get(job.id) is not None:
+        return load_from_str(cache.get(job.id), sparv_exports=sparv_exports, files=files,
                              available_files=available_files)
     return job
 

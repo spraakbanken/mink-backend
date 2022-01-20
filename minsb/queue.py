@@ -8,7 +8,8 @@ from pathlib import Path
 from flask import current_app as app
 from flask import g
 
-from minsb import jobs, utils
+from minsb import jobs
+from minsb.memcached import cache
 
 
 def init_queue():
@@ -64,7 +65,7 @@ def is_initialized():
             return False
         except Exception as e:
             app.logger.error(f"Lost connection to memcached! ({str(e)}) Trying to reconnect...")
-            utils.connect_to_memcached()
+            cache.connect()
             return False
 
     if g.queue_initialized:
@@ -74,7 +75,7 @@ def is_initialized():
 
 def add(job):
     """Add a job item to the queue."""
-    queue = utils.memcached_get("queue")
+    queue = cache.get("queue")
 
     # Avoid starting multiple jobs for same corpus simultaneously
     if job.id in queue and jobs.Status.none < job.status < jobs.Status.done:
@@ -84,30 +85,30 @@ def add(job):
     if job.id in queue:
         queue.pop(queue.index(job.id))
     queue.append(job.id)
-    utils.memcached_set("queue", queue)
-    app.logger.debug(f"Queue in cache: {utils.memcached_get('queue')}")
+    cache.set("queue", queue)
+    app.logger.debug(f"Queue in cache: {cache.get('queue')}")
     return job
 
 
 def get():
     """Get the first job item from the queue."""
-    queue = utils.memcached_get("queue")
-    job = utils.memcached_get(queue[0])
+    queue = cache.get("queue")
+    job = cache.get(queue[0])
     return job
 
 
 def remove(job):
     """Remove job item from queue, e.g. when a job is aborted or a corpus is deleted."""
-    queue = utils.memcached_get("queue")
+    queue = cache.get("queue")
 
     if job.id in queue:
         queue.pop(queue.index(job.id))
-        utils.memcached_set("queue", queue)
+        cache.set("queue", queue)
 
 
 def get_priority(job):
     """Get the queue priority of the job."""
-    queue = utils.memcached_get("queue")
+    queue = cache.get("queue")
     try:
         return queue.index(job.id) + 1
     except ValueError:
@@ -119,9 +120,9 @@ def get_running_waiting():
     running_jobs = []
     waiting_jobs = []
 
-    queue = utils.memcached_get("queue")
+    queue = cache.get("queue")
     for j in queue:
-        job = jobs.load_from_str(utils.memcached_get(j))
+        job = jobs.load_from_str(cache.get(j))
         status = job.status
         if status == jobs.Status.annotating:
             running_jobs.append(job)
@@ -133,10 +134,10 @@ def get_running_waiting():
 
 def unqueue_old():
     """Unqueue jobs that are done, aborted or erroneous."""
-    queue = utils.memcached_get("queue")
+    queue = cache.get("queue")
     old_jobs = []
     for j in queue:
-        job = jobs.load_from_str(utils.memcached_get(j))
+        job = jobs.load_from_str(cache.get(j))
         status = job.status
         if status in [jobs.Status.done, jobs.Status.error, jobs.Status.aborted]:
             old_jobs.append(j)
@@ -145,15 +146,15 @@ def unqueue_old():
         for j in old_jobs:
             app.logger.info(f"Removing job {j}")
             queue.pop(queue.index(j))
-        utils.memcached_set("queue", queue)
+        cache.set("queue", queue)
 
 
 def get_user_jobs(user):
     """Get all jobs belonging to one user."""
-    all_jobs = utils.memcached_get("all_jobs")
+    all_jobs = cache.get("all_jobs")
     user_jobs = []
     for j in all_jobs:
-        job = jobs.load_from_str(utils.memcached_get(j))
+        job = jobs.load_from_str(cache.get(j))
         if job.user == user:
             user_jobs.append(job)
     return user_jobs
