@@ -55,9 +55,9 @@ def check_file_ext(filename, valid_extensions=None):
     return filename
 
 
-def check_file_compatible(filename, source_dir, oc):
+def check_file_compatible(filename, source_dir, ui):
     """Check if the file extension of filename is identical to the first file in source_dir."""
-    existing_files = storage.list_contents(oc, str(source_dir))
+    existing_files = storage.list_contents(ui, str(source_dir))
     current_ext = Path(filename).suffix
     if not existing_files:
         return True, current_ext, None

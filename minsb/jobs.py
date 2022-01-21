@@ -27,11 +27,11 @@ class Status(IntEnum):
     """
 
     none = "Job does not exist"
-    syncing_corpus = "Syncing from Nextcloud to Sparv server"
+    syncing_corpus = "Syncing from the storage server to Sparv server"
     waiting = "Waiting to be run with Sparv"
     annotating = "Sparv annotation process is running"
     done_annotating = "Annotation process has finished"
-    syncing_results = "Syncing results from Sparv to Nextcloud"
+    syncing_results = "Syncing results from Sparv to the storage server"
     done = "Results have been synced to Nexcloud"
     error = "An error occurred"
     aborted = "Aborted by the user"
@@ -137,8 +137,8 @@ class Job():
         self.id = self.get_id(corpus_id=new_corpus_id)
         self.save()
 
-    def sync_to_sparv(self, oc):
-        """Sync corpus files from Nextcloud to the Sparv server."""
+    def sync_to_sparv(self, ui):
+        """Sync corpus files from storage server to the Sparv server."""
         self.set_status(Status.syncing_corpus)
 
         # Get relevant directories
@@ -146,7 +146,7 @@ class Job():
         local_user_dir = str(paths.get_corpus_dir(user=self.user, mkdir=True))
 
         # Check if required corpus contents are present
-        corpus_contents = storage.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
+        corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)
         if not app.config.get("SPARV_CORPUS_CONFIG") in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.corpus_id}'!")
@@ -165,13 +165,13 @@ class Job():
             self.set_status(Status.error)
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
 
-        # Download from Nextcloud to local tmp dir
+        # Download from storage server to local tmp dir
         # TODO: do this async?
         try:
-            storage.download_dir(oc, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
+            storage.download_dir(ui, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to download corpus '{self.corpus_id}' from Nextcloud! {e}")
+            raise Exception(f"Failed to download corpus '{self.corpus_id}' from the storage server! {e}")
 
         # Sync corpus config to Sparv server
         p = subprocess.run(["rsync", "-av", paths.get_config_file(user=self.user, corpus_id=self.corpus_id),
@@ -339,12 +339,12 @@ class Job():
         # Remove microseconds from timedelta object
         return str(delta - datetime.timedelta(microseconds=delta.microseconds))
 
-    def sync_results(self, oc):
-        """Sync exports from Sparv server to Nextcloud."""
+    def sync_results(self, ui):
+        """Sync exports from Sparv server to the storage server."""
         local_corpus_dir = str(paths.get_corpus_dir(user=self.user, corpus_id=self.corpus_id, mkdir=True))
         nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=self.corpus_id))
 
-        corpus_contents = storage.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
+        corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)
         file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Get exports from Sparv
@@ -361,23 +361,23 @@ class Job():
                             f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # Transfer exports to Nextcloud
+        # Transfer exports to the storage server
         local_export_dir = paths.get_export_dir(user=self.user, corpus_id=self.corpus_id)
         try:
-            storage.upload_dir(oc, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(ui, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to upload exports to Nextcloud! {e}")
+            raise Exception(f"Failed to upload exports to the storage server! {e}")
 
-        # Transfer plain text sources to Nextcloud
+        # Transfer plain text sources to the storage server
         local_work_dir = paths.get_work_dir(user=self.user, corpus_id=self.corpus_id)
         try:
             app.logger.warning(local_work_dir)
-            storage.upload_dir(oc, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(ui, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             self.set_status(Status.error)
             app.logger.warning(e)
-            raise Exception(f"Failed to upload plain text sources to Nextcloud! {e}")
+            raise Exception(f"Failed to upload plain text sources to the storage server! {e}")
 
         self.set_status(Status.done)
 

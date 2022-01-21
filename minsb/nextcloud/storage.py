@@ -10,19 +10,19 @@ from flask import current_app as app
 from minsb import paths
 
 
-def list_corpora(oc):
+def list_corpora(ui):
     """List the available corpora in the corpora dir."""
     path = app.config.get("NC_CORPORA_DIR")
     corpora = []
-    for elem in oc.list(path):
+    for elem in ui.list(path):
         if elem.get_content_type() == "httpd/unix-directory":
             corpora.append(elem.get_name())
     return corpora
 
 
-def list_contents(oc, directory, exclude_dirs=True):
+def list_contents(ui, directory, exclude_dirs=True):
     """List file in a directory recursively."""
-    listing = oc.list(directory, depth="infinity")
+    listing = ui.list(directory, depth="infinity")
     objlist = []
     for elem in listing:
         # The get_last_modified method is lacking time zone info, so we don't use it.
@@ -39,10 +39,10 @@ def list_contents(oc, directory, exclude_dirs=True):
     return objlist
 
 
-def download_dir(oc, nc_dir, local_dir, corpus_id, file_index):
+def download_dir(ui, nc_dir, local_dir, corpus_id, file_index):
     """Download directory as zip, unzip and update timestamps."""
     zipf = os.path.join(local_dir, corpus_id) + ".zip"
-    oc.get_directory_as_zip(nc_dir, zipf)
+    ui.get_directory_as_zip(nc_dir, zipf)
     with zipfile.ZipFile(zipf, "r") as f:
         f.extractall(local_dir)
 
@@ -54,11 +54,16 @@ def download_dir(oc, nc_dir, local_dir, corpus_id, file_index):
             os.utime(full_path, (timestamp, timestamp))
 
 
-def upload_dir(oc, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=False):
+def get_file_contents(ui, filepath):
+    """Get contents of file at 'filepath'."""
+    return ui.get_file_contents(filepath)
+
+
+def upload_dir(ui, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=False):
     """Upload local dir to nc_dir on Nextcloud by adding new files and replacing newer ones.
 
     Args:
-        oc: Owncloud instance.
+        ui: User instance (Owncloud).
         nc_dir: Nextcloud directory to upload to.
         local_dir: Local directory to upload.
         corpus_id: The corpus ID.
@@ -75,7 +80,7 @@ def upload_dir(oc, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=Fal
             full_path = os.path.join(root, directory)
             if full_path not in nc_file_index:
                 nextcloud_path = os.path.join(nc_dir, full_path[len(local_path_prefix) + 1:])
-                oc.mkdir(nextcloud_path)
+                ui.mkdir(nextcloud_path)
 
         for f in files:
             full_path = os.path.join(root, f)
@@ -83,14 +88,14 @@ def upload_dir(oc, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=Fal
             nextcloud_path = os.path.join(nc_dir, full_path[len(local_path_prefix) + 1:])
             # Copy missing files
             if full_path not in nc_file_index:
-                oc.put_file(nextcloud_path, full_path)
+                ui.put_file(nextcloud_path, full_path)
             # Update newer files
             else:
                 nextcloud_timestamp = nc_file_index.get(full_path)
                 local_timestamp = int(os.path.getmtime(full_path))
                 if local_timestamp > nextcloud_timestamp:
-                    oc.delete(nextcloud_path)
-                    oc.put_file(nextcloud_path, full_path)
+                    ui.delete(nextcloud_path)
+                    ui.put_file(nextcloud_path, full_path)
 
     # TODO: Take care of deletions
 
