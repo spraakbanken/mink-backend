@@ -10,10 +10,8 @@ from pathlib import Path
 import yaml
 from flask import Response
 from flask import current_app as app
-from flask import g, request
-from pymemcache.client.base import Client
+from flask import request
 
-from minsb import queue
 from minsb.nextcloud import storage
 
 

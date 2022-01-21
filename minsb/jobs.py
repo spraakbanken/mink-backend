@@ -11,9 +11,9 @@ from pathlib import Path
 
 import dateutil
 from flask import current_app as app
+from flask import g
 
 from minsb import exceptions, paths, utils
-from minsb.memcached import cache
 from minsb.nextcloud import storage
 
 _status_count = count(0)
@@ -75,7 +75,7 @@ class Job():
         """Write a job item to the cache and filesystem."""
         dump = str(self)
         # Save in cache
-        cache.set(self.id, dump)
+        g.cache.set(self.id, dump)
         # Save backup to file system queue
         queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
         queue_dir.mkdir(exist_ok=True)
@@ -97,9 +97,8 @@ class Job():
                 raise exceptions.JobError("Job cannot be removed due to a running Sparv process!")
 
         # Remove from cache
-        mc = app.config.get("cache_client")
         try:
-            mc.delete(self.id)
+            g.cache.remove(self.id)
         except Exception as e:
             app.logger.error(f"Failed to delete job ID from cache client: {e}")
         # Remove backup from file system
@@ -430,8 +429,8 @@ class Job():
 def get_job(user, corpus_id, sparv_exports=None, files=None, available_files=None):
     """Get an existing job from the cache or create a new one."""
     job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files)
-    if cache.get(job.id) is not None:
-        return load_from_str(cache.get(job.id), sparv_exports=sparv_exports, files=files,
+    if g.cache.get(job.id) is not None:
+        return load_from_str(g.cache.get(job.id), sparv_exports=sparv_exports, files=files,
                              available_files=available_files)
     return job
 
