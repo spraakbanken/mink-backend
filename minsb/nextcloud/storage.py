@@ -7,7 +7,7 @@ from pathlib import Path
 from dateutil.parser import parse
 from flask import current_app as app
 
-from minsb import paths
+from minsb import utils
 
 
 def list_corpora(ui):
@@ -72,7 +72,7 @@ def upload_dir(ui, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=Fal
         delete: If set to True delete files that do not exist in local_dir.
     """
     local_file_index = []  # Used for file deletions
-    local_path_prefix = str(paths.get_corpus_dir(user=user, corpus_id=corpus_id))
+    local_path_prefix = str(get_corpus_dir(ui, corpus_id))
 
     for root, dirs, files in os.walk(local_dir):
         # Create missing directories
@@ -105,8 +105,67 @@ def create_file_index(contents, user):
     file_index = {}
     for f in contents:
         parts = f.get("path").split("/")
-        user_dir = str(paths.get_corpora_dir(user=user))
+        user_dir = str(utils.get_corpora_dir(user))
         new_path = os.path.join(user_dir, *parts[2:])
         unix_timestamp = int(parse(f.get("last_modified")).astimezone().timestamp())
         file_index[new_path] = unix_timestamp
     return file_index
+
+
+def remove_dir(ui, path):
+    """Remove directory on 'path' from Nextcloud."""
+    ui.delete(path)
+
+
+################################################################################
+# Get paths on Nextcloud
+################################################################################
+
+def get_corpora_dir(ui, mkdir=False):
+    """Get corpora directory."""
+    corpora_dir = app.config.get("NC_CORPORA_DIR")
+    if mkdir:
+        ui.mkdir(str(corpora_dir))
+    return corpora_dir
+
+
+def get_corpus_dir(ui, corpus_id, mkdir=False):
+    """Get dir for given corpus."""
+    corpora_dir = get_corpora_dir(ui)
+    corpus_dir = corpora_dir / Path(corpus_id)
+    if mkdir:
+        ui.mkdir(str(corpus_dir))
+    return corpus_dir
+
+
+def get_export_dir(ui, corpus_id, mkdir=False):
+    """Get export dir for given corpus."""
+    corpus_dir = get_corpus_dir(ui, corpus_id)
+    export_dir = corpus_dir / Path(app.config.get("SPARV_EXPORT_DIR"))
+    if mkdir:
+        ui.mkdir(str(export_dir))
+    return export_dir
+
+
+def get_work_dir(ui, corpus_id, mkdir=False):
+    """Get sparv workdir for given corpus."""
+    corpus_dir = get_corpus_dir(ui, corpus_id)
+    work_dir = corpus_dir / Path(app.config.get("SPARV_WORK_DIR"))
+    if mkdir:
+        ui.mkdir(str(work_dir))
+    return work_dir
+
+
+def get_source_dir(ui, corpus_id, mkdir=False):
+    """Get source dir for given corpus."""
+    corpus_dir = get_corpus_dir(ui, corpus_id)
+    source_dir = corpus_dir / Path(app.config.get("SPARV_SOURCE_DIR"))
+    if mkdir:
+        ui.mkdir(str(source_dir))
+    return source_dir
+
+
+def get_config_file(ui, corpus_id):
+    """Get path to corpus config file."""
+    corpus_dir = get_corpus_dir(ui, corpus_id)
+    return corpus_dir / Path(app.config.get("SPARV_CORPUS_CONFIG"))

@@ -6,7 +6,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request
 
-from minsb import exceptions, jobs, paths, queue, utils
+from minsb import exceptions, jobs, queue, utils
 from minsb.nextcloud import login, storage
 
 bp = Blueprint("sparv", __name__)
@@ -24,7 +24,7 @@ def run_sparv(ui, user, _corpora, corpus_id):
     files = [i.strip() for i in files.split(",") if i]
 
     # Get list of available source files to be stored in the job info
-    source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, ui=ui))
+    source_dir = str(storage.get_source_dir(ui, corpus_id))
     try:
         source_files = storage.list_contents(ui, source_dir)
     except Exception as e:
@@ -33,7 +33,7 @@ def run_sparv(ui, user, _corpora, corpus_id):
 
     # Check compatibility between source files and config
     try:
-        config_file = str(paths.get_config_file(domain="nc", corpus_id=corpus_id))
+        config_file = str(storage.get_config_file(ui, corpus_id))
         config_contents = storage.get_file_contents(ui, config_file)
         if source_files:
             compatible, resp = utils.config_compatible(config_contents, source_files[0])

@@ -13,8 +13,9 @@ import dateutil
 from flask import current_app as app
 from flask import g
 
-from minsb import exceptions, paths, utils
+from minsb import exceptions, utils
 from minsb.nextcloud import storage
+from minsb.sparv import utils as sparv_utils
 
 _status_count = count(0)
 
@@ -64,7 +65,7 @@ class Job():
         self.sparv_server = app.config.get("SPARV_SERVER")
         self.nohupfile = app.config.get("SPARV_NOHUP_FILE")
         self.runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
-        self.remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id))
+        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, corpus_id=self.corpus_id))
 
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
@@ -125,7 +126,7 @@ class Job():
 
     def change_id(self, new_corpus_id):
         """Change the corpus ID on the Sparv server and in cache."""
-        new_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=self.user, corpus_id=new_corpus_id))
+        new_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, new_corpus_id))
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"cd /home/{self.sparv_user} && mv {self.remote_corpus_dir} {new_corpus_dir}"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -142,8 +143,8 @@ class Job():
         self.set_status(Status.syncing_corpus)
 
         # Get relevant directories
-        nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=self.corpus_id))
-        local_user_dir = str(paths.get_corpus_dir(user=self.user, mkdir=True))
+        nc_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
+        local_user_dir = str(utils.get_corpus_dir(self.user, self.corpus_id, mkdir=True))
 
         # Check if required corpus contents are present
         corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)
@@ -174,7 +175,7 @@ class Job():
             raise Exception(f"Failed to download corpus '{self.corpus_id}' from the storage server! {e}")
 
         # Sync corpus config to Sparv server
-        p = subprocess.run(["rsync", "-av", paths.get_config_file(user=self.user, corpus_id=self.corpus_id),
+        p = subprocess.run(["rsync", "-av", utils.get_config_file(self.user, self.corpus_id),
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
@@ -183,7 +184,7 @@ class Job():
 
         # Sync corpus files to Sparv server
         # TODO: do this async!
-        local_source_dir = paths.get_source_dir(user=self.user, corpus_id=self.corpus_id)
+        local_source_dir = utils.get_source_dir(self.user, self.corpus_id)
         p = subprocess.run(["rsync", "-av", "--delete", local_source_dir,
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -268,7 +269,7 @@ class Job():
             return ""
 
         nohupfile = app.config.get("SPARV_NOHUP_FILE")
-        remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id))
+        remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, self.corpus_id))
 
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"cd /home/{self.sparv_user}/{remote_corpus_dir} && cat {nohupfile}"],
@@ -341,14 +342,14 @@ class Job():
 
     def sync_results(self, ui):
         """Sync exports from Sparv server to the storage server."""
-        local_corpus_dir = str(paths.get_corpus_dir(user=self.user, corpus_id=self.corpus_id, mkdir=True))
-        nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=self.corpus_id))
+        nc_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
+        local_corpus_dir = str(utils.get_corpus_dir(self.user, self.corpus_id, mkdir=True))
 
         corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)
         file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Get exports from Sparv
-        remote_export_dir = paths.get_export_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id)
+        remote_export_dir = sparv_utils.get_export_dir(self.user, self.corpus_id)
         p = subprocess.run(["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
@@ -356,13 +357,13 @@ class Job():
             return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 404
 
         # Get plain text sources from Sparv
-        remote_work_dir = paths.get_work_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id)
+        remote_work_dir = sparv_utils.get_work_dir(self.user, self.corpus_id)
         p = subprocess.run(["rsync", "-av", "--include=@text", "--include=*/", "--exclude=*", "--prune-empty-dirs",
                             f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # Transfer exports to the storage server
-        local_export_dir = paths.get_export_dir(user=self.user, corpus_id=self.corpus_id)
+        local_export_dir = utils.get_export_dir(self.user, self.corpus_id)
         try:
             storage.upload_dir(ui, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
@@ -370,7 +371,7 @@ class Job():
             raise Exception(f"Failed to upload exports to the storage server! {e}")
 
         # Transfer plain text sources to the storage server
-        local_work_dir = paths.get_work_dir(user=self.user, corpus_id=self.corpus_id)
+        local_work_dir = utils.get_work_dir(self.user, self.corpus_id)
         try:
             app.logger.warning(local_work_dir)
             storage.upload_dir(ui, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
@@ -459,7 +460,7 @@ class DefaultJob():
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_SERVER")
-        self.remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv-default", corpus_id=self.lang))
+        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir("", self.lang))
         self.config_file = app.config.get("SPARV_CORPUS_CONFIG")
 
     def list_languages(self):
