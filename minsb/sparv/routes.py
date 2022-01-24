@@ -38,7 +38,7 @@ def run_sparv(ui, user, _corpora, corpus_id):
         if source_files:
             compatible, resp = utils.config_compatible(config_contents, source_files[0])
             if not compatible:
-                return resp, 404
+                return resp, 400
     except Exception as e:
         app.logger.error(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e))
 
@@ -217,7 +217,7 @@ def make_status_response(job, ui):
 
     if status == jobs.Status.error:
         return utils.response("An error occurred while annotating", err=True, warnings=warnings,
-                              errors=errors, sparv_output=output, **job_attrs), 404
+                              errors=errors, sparv_output=output, **job_attrs), 500
 
     return utils.response("Cannot handle this Sparv status yet", warnings=warnings, errors=errors, sparv_output=output,
                           **job_attrs), 501

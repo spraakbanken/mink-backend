@@ -42,7 +42,7 @@ def create_corpus(ui, _user, corpora, corpus_id):
     """Create a new corpus."""
     # Check if corpus_id is valid
     if not bool(re.match(r"^[a-z0-9-]+$", corpus_id)):
-        return utils.response(f"Corpus ID '{corpus_id}' is invalid", err=True), 404
+        return utils.response(f"Corpus ID '{corpus_id}' is invalid", err=True), 400
 
     # Make sure corpus dir does not exist already
     if corpus_id in corpora:
@@ -54,7 +54,7 @@ def create_corpus(ui, _user, corpora, corpus_id):
         storage.get_source_dir(ui, corpus_id, mkdir=True)
         storage.get_export_dir(ui, corpus_id, mkdir=True)
         storage.get_work_dir(ui, corpus_id, mkdir=True)
-        return utils.response(f"Corpus '{corpus_id}' created successfully")
+        return utils.response(f"Corpus '{corpus_id}' created successfully"), 201
     except Exception as e:
         try:
             # Try to remove partially uploaded corpus data
@@ -174,12 +174,12 @@ def upload_sources(ui, _user, corpora, corpus_id):
             name = utils.check_file_ext(f.filename, app.config.get("SPARV_IMPORTER_MODULES", {}).keys())
             if not name:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid "
-                                       "file extension", err=True, file=f.filename, info="invalid file extension"), 404
+                                       "file extension", err=True, file=f.filename, info="invalid file extension"), 400
             compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir, ui)
             if not compatible:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to incompatible "
                                        "file extensions", err=True, file=f.filename, info="incompatible file extensions",
-                                       current_file_extension=current_ext, existing_file_extension=existing_ext), 404
+                                       current_file_extension=current_ext, existing_file_extension=existing_ext), 400
             file_contents = f.read()
             # Validate XML files
             if current_ext == ".xml":
@@ -211,7 +211,7 @@ def remove_sources(ui, _user, _corpora, corpus_id):
     remove_files = request.args.get("remove") or request.form.get("remove") or ""
     remove_files = [i.strip() for i in remove_files.split(",") if i]
     if not remove_files:
-        return utils.response("No files provided for removal", err=True), 404
+        return utils.response("No files provided for removal", err=True), 400
 
     source_dir = storage.get_source_dir(ui, corpus_id)
 
@@ -332,12 +332,12 @@ def upload_config(ui, _user, corpora, corpus_id):
         if source_files:
             compatible, resp = utils.config_compatible(config_contents, source_files[0])
             if not compatible:
-                return resp, 404
+                return resp, 400
 
         try:
             new_config = utils.set_corpus_id(config_contents, corpus_id)
             ui.put_file_contents(str(storage.get_config_file(ui, corpus_id)), new_config)
-            return utils.response(f"Config file successfully uploaded for '{corpus_id}'")
+            return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
 
@@ -347,10 +347,10 @@ def upload_config(ui, _user, corpora, corpus_id):
             if source_files:
                 compatible, resp = utils.config_compatible(config_txt, source_files[0])
                 if not compatible:
-                    return resp, 404
+                    return resp, 400
             new_config = utils.set_corpus_id(config_txt, corpus_id)
             ui.put_file_contents(str(storage.get_config_file(ui, corpus_id)), new_config)
-            return utils.response(f"Config file successfully uploaded for '{corpus_id}'")
+            return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
 
