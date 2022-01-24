@@ -144,7 +144,7 @@ class Job():
 
         # Get relevant directories
         nc_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
-        local_user_dir = str(utils.get_corpus_dir(self.user, self.corpus_id, mkdir=True))
+        local_user_dir = str(utils.get_corpora_dir(self.user, mkdir=True))
 
         # Check if required corpus contents are present
         corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)

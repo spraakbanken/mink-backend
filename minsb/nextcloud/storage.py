@@ -72,7 +72,7 @@ def upload_dir(ui, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=Fal
         delete: If set to True delete files that do not exist in local_dir.
     """
     local_file_index = []  # Used for file deletions
-    local_path_prefix = str(get_corpus_dir(ui, corpus_id))
+    local_path_prefix = str(utils.get_corpus_dir(user, corpus_id))
 
     for root, dirs, files in os.walk(local_dir):
         # Create missing directories

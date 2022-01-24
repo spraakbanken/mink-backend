@@ -28,8 +28,10 @@ def run_sparv(ui, user, _corpora, corpus_id):
     try:
         source_files = storage.list_contents(ui, source_dir)
     except Exception as e:
-        app.logger.error(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e))
-        source_files = None
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+
+    if not source_files:
+        return utils.response(f"No source files found for '{corpus_id}'", err=True), 500
 
     # Check compatibility between source files and config
     try:
@@ -40,20 +42,20 @@ def run_sparv(ui, user, _corpora, corpus_id):
             if not compatible:
                 return resp, 400
     except Exception as e:
-        app.logger.error(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e))
+        return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Queue job
     job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=source_files)
     try:
         job = queue.add(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 404
+        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Start syncing
     try:
         job.sync_to_sparv(ui)
     except Exception as e:
-        return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e)), 404
+        return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
