@@ -70,10 +70,12 @@ def create_app():
             shutil.rmtree(str(local_user_dir), ignore_errors=True)
         return response
 
-    # Register blueprints
-    from .views import general, nextcloud, sparv
-    app.register_blueprint(general.bp)
-    app.register_blueprint(nextcloud.bp)
-    app.register_blueprint(sparv.bp)
+    # Register routes from blueprints
+    from . import routes as general_routes
+    app.register_blueprint(general_routes.bp)
+    from .sparv import routes as sparv_routes
+    app.register_blueprint(sparv_routes.bp)
+    from .nextcloud import routes as nextcloud_routes
+    app.register_blueprint(nextcloud_routes.bp)
 
     return app
