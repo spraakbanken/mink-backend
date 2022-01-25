@@ -31,22 +31,27 @@ def main(infile):
             if "requestBody" in methodobj:
                 input_oas["paths"][path][method]["requestBody"] = remove_key(
                     methodobj.get("requestBody"), "description")
+            # Remove response headers
+            for response, responsobj in methodobj.get("responses", {}).items():
+                if "headers" in responsobj:
+                    input_oas["paths"][path][method]["responses"][response].pop("headers")
 
-    # Convert example to schemas
+    # Convert examples to schemas
     for path, pathobj in input_oas.get("paths", {}).items():
         for methodobj in pathobj.values():
-            for responseobj in methodobj.get("responses", {}).values():
-                example = responseobj.get("content", {}).get("application/json", {}).get("example", {})
-                if example:
-                    new_schema = {}
-                    new_schema["type"] = "object"
-                    new_schema["properties"] = {}
+            if methodobj:
+                for responseobj in methodobj.get("responses", {}).values():
+                    example = responseobj.get("content", {}).get("application/json", {}).get("example", {})
+                    if example:
+                        new_schema = {}
+                        new_schema["type"] = "object"
+                        new_schema["properties"] = {}
 
-                    for k, v in example.items():
-                        new_schema["properties"][k] = {}
-                        new_schema["properties"][k]["type"] = json_type(v)
-                        new_schema["properties"][k]["example"] = v
-                    responseobj["content"]["application/json"]["schema"] = new_schema
+                        for k, v in example.items():
+                            new_schema["properties"][k] = {}
+                            new_schema["properties"][k]["type"] = json_type(v)
+                            new_schema["properties"][k]["example"] = v
+                        responseobj["content"]["application/json"]["schema"] = new_schema
     input_oas["components"].pop("schemas")
 
     # Extend paths
@@ -60,8 +65,18 @@ def main(infile):
         input_oas["components"]["securitySchemes"][key] = value
 
     # Override some parameters
-    for key, value in info_yaml.get("parameters").items():
-        input_oas["components"]["parameters"][key] = value
+    try:
+        # OAS 3.0.0 from https://apitransform.com/
+        for key, value in info_yaml.get("parameters").items():
+            input_oas["components"]["parameters"][key] = value
+    except KeyError:
+        for key, value in info_yaml.get("parameters").items():
+            for path, pathobj in input_oas.get("paths", {}).items():
+                for method, methodobj in pathobj.items():
+                    if methodobj:
+                        for j, param in enumerate(methodobj.get("parameters", [])):
+                            if param.get("name", "") == key:
+                                input_oas["paths"][path][method]["parameters"][j] = value
 
 
     yamldump = yaml.dump(input_oas, sort_keys=False, allow_unicode=True)
