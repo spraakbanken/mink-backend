@@ -11,8 +11,11 @@ from pathlib import Path
 
 import dateutil
 from flask import current_app as app
+from flask import g
 
-from minsb import exceptions, paths, utils
+from minsb import exceptions, utils
+from minsb.nextcloud import storage
+from minsb.sparv import utils as sparv_utils
 
 _status_count = count(0)
 
@@ -25,11 +28,11 @@ class Status(IntEnum):
     """
 
     none = "Job does not exist"
-    syncing_corpus = "Syncing from Nextcloud to Sparv server"
+    syncing_corpus = "Syncing from the storage server to Sparv server"
     waiting = "Waiting to be run with Sparv"
     annotating = "Sparv annotation process is running"
     done_annotating = "Annotation process has finished"
-    syncing_results = "Syncing results from Sparv to Nextcloud"
+    syncing_results = "Syncing results from Sparv to the storage server"
     done = "Results have been synced to Nexcloud"
     error = "An error occurred"
     aborted = "Aborted by the user"
@@ -62,7 +65,7 @@ class Job():
         self.sparv_server = app.config.get("SPARV_SERVER")
         self.nohupfile = app.config.get("SPARV_NOHUP_FILE")
         self.runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
-        self.remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id))
+        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, corpus_id=self.corpus_id))
 
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
@@ -73,7 +76,7 @@ class Job():
         """Write a job item to the cache and filesystem."""
         dump = str(self)
         # Save in cache
-        utils.memcached_set(self.id, dump)
+        g.cache.set(self.id, dump)
         # Save backup to file system queue
         queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
         queue_dir.mkdir(exist_ok=True)
@@ -95,9 +98,8 @@ class Job():
                 raise exceptions.JobError("Job cannot be removed due to a running Sparv process!")
 
         # Remove from cache
-        mc = app.config.get("cache_client")
         try:
-            mc.delete(self.id)
+            g.cache.remove(self.id)
         except Exception as e:
             app.logger.error(f"Failed to delete job ID from cache client: {e}")
         # Remove backup from file system
@@ -124,7 +126,7 @@ class Job():
 
     def change_id(self, new_corpus_id):
         """Change the corpus ID on the Sparv server and in cache."""
-        new_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=self.user, corpus_id=new_corpus_id))
+        new_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, new_corpus_id))
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"cd /home/{self.sparv_user} && mv {self.remote_corpus_dir} {new_corpus_dir}"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -136,16 +138,16 @@ class Job():
         self.id = self.get_id(corpus_id=new_corpus_id)
         self.save()
 
-    def sync_to_sparv(self, oc):
-        """Sync corpus files from Nextcloud to the Sparv server."""
+    def sync_to_sparv(self, ui):
+        """Sync corpus files from storage server to the Sparv server."""
         self.set_status(Status.syncing_corpus)
 
         # Get relevant directories
-        nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=self.corpus_id))
-        local_user_dir = str(paths.get_corpus_dir(user=self.user, mkdir=True))
+        nc_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
+        local_user_dir = str(utils.get_corpora_dir(self.user, mkdir=True))
 
         # Check if required corpus contents are present
-        corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
+        corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)
         if not app.config.get("SPARV_CORPUS_CONFIG") in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.corpus_id}'!")
@@ -154,7 +156,7 @@ class Job():
             raise Exception(f"No input files provided for '{self.corpus_id}'!")
 
         # Create file index with timestamps
-        file_index = utils.create_file_index(corpus_contents, self.user)
+        file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Create user and corpus dir on Sparv server
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
@@ -164,16 +166,16 @@ class Job():
             self.set_status(Status.error)
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
 
-        # Download from Nextcloud to local tmp dir
+        # Download from storage server to local tmp dir
         # TODO: do this async?
         try:
-            utils.download_dir(oc, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
+            storage.download_dir(ui, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to download corpus '{self.corpus_id}' from Nextcloud! {e}")
+            raise Exception(f"Failed to download corpus '{self.corpus_id}' from the storage server! {e}")
 
         # Sync corpus config to Sparv server
-        p = subprocess.run(["rsync", "-av", paths.get_config_file(user=self.user, corpus_id=self.corpus_id),
+        p = subprocess.run(["rsync", "-av", utils.get_config_file(self.user, self.corpus_id),
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
@@ -182,7 +184,7 @@ class Job():
 
         # Sync corpus files to Sparv server
         # TODO: do this async!
-        local_source_dir = paths.get_source_dir(user=self.user, corpus_id=self.corpus_id)
+        local_source_dir = utils.get_source_dir(self.user, self.corpus_id)
         p = subprocess.run(["rsync", "-av", "--delete", local_source_dir,
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -267,7 +269,7 @@ class Job():
             return ""
 
         nohupfile = app.config.get("SPARV_NOHUP_FILE")
-        remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id))
+        remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, self.corpus_id))
 
         p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
                             f"cd /home/{self.sparv_user}/{remote_corpus_dir} && cat {nohupfile}"],
@@ -338,16 +340,16 @@ class Job():
         # Remove microseconds from timedelta object
         return str(delta - datetime.timedelta(microseconds=delta.microseconds))
 
-    def sync_results(self, oc):
-        """Sync exports from Sparv server to Nextcloud."""
-        local_corpus_dir = str(paths.get_corpus_dir(user=self.user, corpus_id=self.corpus_id, mkdir=True))
-        nc_corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=self.corpus_id))
+    def sync_results(self, ui):
+        """Sync exports from Sparv server to the storage server."""
+        nc_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
+        local_corpus_dir = str(utils.get_corpus_dir(self.user, self.corpus_id, mkdir=True))
 
-        corpus_contents = utils.list_contents(oc, nc_corpus_dir, exclude_dirs=False)
-        file_index = utils.create_file_index(corpus_contents, self.user)
+        corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)
+        file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Get exports from Sparv
-        remote_export_dir = paths.get_export_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id)
+        remote_export_dir = sparv_utils.get_export_dir(self.user, self.corpus_id)
         p = subprocess.run(["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
@@ -355,28 +357,28 @@ class Job():
             return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 404
 
         # Get plain text sources from Sparv
-        remote_work_dir = paths.get_work_dir(domain="sparv", user=self.user, corpus_id=self.corpus_id)
+        remote_work_dir = sparv_utils.get_work_dir(self.user, self.corpus_id)
         p = subprocess.run(["rsync", "-av", "--include=@text", "--include=*/", "--exclude=*", "--prune-empty-dirs",
                             f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # Transfer exports to Nextcloud
-        local_export_dir = paths.get_export_dir(user=self.user, corpus_id=self.corpus_id)
+        # Transfer exports to the storage server
+        local_export_dir = utils.get_export_dir(self.user, self.corpus_id)
         try:
-            utils.upload_dir(oc, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(ui, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to upload exports to Nextcloud! {e}")
+            raise Exception(f"Failed to upload exports to the storage server! {e}")
 
-        # Transfer plain text sources to Nextcloud
-        local_work_dir = paths.get_work_dir(user=self.user, corpus_id=self.corpus_id)
+        # Transfer plain text sources to the storage server
+        local_work_dir = utils.get_work_dir(self.user, self.corpus_id)
         try:
             app.logger.warning(local_work_dir)
-            utils.upload_dir(oc, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(ui, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             self.set_status(Status.error)
             app.logger.warning(e)
-            raise Exception(f"Failed to upload plain text sources to Nextcloud! {e}")
+            raise Exception(f"Failed to upload plain text sources to the storage server! {e}")
 
         self.set_status(Status.done)
 
@@ -428,8 +430,8 @@ class Job():
 def get_job(user, corpus_id, sparv_exports=None, files=None, available_files=None):
     """Get an existing job from the cache or create a new one."""
     job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files)
-    if utils.memcached_get(job.id) is not None:
-        return load_from_str(utils.memcached_get(job.id), sparv_exports=sparv_exports, files=files,
+    if g.cache.get(job.id) is not None:
+        return load_from_str(g.cache.get(job.id), sparv_exports=sparv_exports, files=files,
                              available_files=available_files)
     return job
 
@@ -458,7 +460,7 @@ class DefaultJob():
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_SERVER")
-        self.remote_corpus_dir = str(paths.get_corpus_dir(domain="sparv-default", corpus_id=self.lang))
+        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir("", self.lang))
         self.config_file = app.config.get("SPARV_CORPUS_CONFIG")
 
     def list_languages(self):

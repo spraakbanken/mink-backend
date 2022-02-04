@@ -8,14 +8,15 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request, send_file
 
-from minsb import jobs, paths, queue, utils
+from minsb import jobs, queue, utils
+from minsb.nextcloud import login, storage
 
 bp = Blueprint("nextcloud", __name__)
 
 
 @bp.route("/init", methods=["POST"])
-@utils.login(require_init=False, require_corpus_id=False, require_corpus_exists=False)
-def init(oc, _user, dir_listing):
+@login.login(require_init=False, require_corpus_id=False, require_corpus_exists=False)
+def init(ui, _user, dir_listing):
     """Create corpora directory."""
     try:
         corpora_dir = app.config.get("NC_CORPORA_DIR")
@@ -23,7 +24,7 @@ def init(oc, _user, dir_listing):
             # Corpora dir already exists
             return utils.response(f"Nothing to be done. Min Språkbank has already been initialized"), 200
         # Create corpora dir
-        corpora_dir = str(paths.get_corpora_dir(domain="nc", oc=oc, mkdir=True))
+        corpora_dir = storage.get_corpora_dir(ui, mkdir=True)
         # TODO: upload some info file?
         app.logger.debug(f"Initialized corpora dir '{corpora_dir}'")
         return utils.response("Min Språkbank successfully initialized"), 201
@@ -36,12 +37,12 @@ def init(oc, _user, dir_listing):
 # ------------------------------------------------------------------------------
 
 @bp.route("/create-corpus", methods=["POST"])
-@utils.login(require_corpus_exists=False)
-def create_corpus(oc, _user, corpora, corpus_id):
+@login.login(require_corpus_exists=False)
+def create_corpus(ui, _user, corpora, corpus_id):
     """Create a new corpus."""
     # Check if corpus_id is valid
     if not bool(re.match(r"^[a-z0-9-]+$", corpus_id)):
-        return utils.response(f"Corpus ID '{corpus_id}' is invalid", err=True), 404
+        return utils.response(f"Corpus ID '{corpus_id}' is invalid", err=True), 400
 
     # Make sure corpus dir does not exist already
     if corpus_id in corpora:
@@ -49,34 +50,34 @@ def create_corpus(oc, _user, corpora, corpus_id):
 
     # Create corpus dir with subdirs
     try:
-        corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True))
-        paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
-        paths.get_export_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
-        paths.get_work_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
-        return utils.response(f"Corpus '{corpus_id}' created successfully")
+        corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
+        storage.get_source_dir(ui, corpus_id, mkdir=True)
+        storage.get_export_dir(ui, corpus_id, mkdir=True)
+        storage.get_work_dir(ui, corpus_id, mkdir=True)
+        return utils.response(f"Corpus '{corpus_id}' created successfully"), 201
     except Exception as e:
         try:
             # Try to remove partially uploaded corpus data
-            oc.delete(corpus_dir)
+            storage.remove_dir(ui, corpus_dir)
         except Exception as err:
             app.logger.error(f"Failed to remove partially uploaded corpus data for '{corpus_id}'. {err}")
         return utils.response("Failed to create corpus dir", err=True, info=str(e)), 404
 
 
 @bp.route("/list-corpora", methods=["GET"])
-@utils.login(require_corpus_id=False, require_corpus_exists=False)
-def list_corpora(_oc, _user, corpora):
+@login.login(require_corpus_id=False, require_corpus_exists=False)
+def list_corpora(_ui, _user, corpora):
     """List all available corpora."""
     return utils.response("Listing available corpora", corpora=corpora)
 
 
 @bp.route("/remove-corpus", methods=["DELETE"])
-@utils.login()
-def remove_corpus(oc, user, _corpora, corpus_id):
+@login.login()
+def remove_corpus(ui, user, _corpora, corpus_id):
     """Remove corpus."""
     try:
-        corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
-        oc.delete(corpus_dir)
+        corpus_dir = str(storage.get_corpus_dir(ui, corpus_id))
+        storage.remove_dir(ui, corpus_dir)
     except Exception as e:
         return utils.response(f"Failed to remove corpus '{corpus_id}'", err=True, info=str(e)), 404
 
@@ -93,8 +94,8 @@ def remove_corpus(oc, user, _corpora, corpus_id):
 
 
 @bp.route("/rename-corpus", methods=["POST"])
-@utils.login()
-def rename_corpus(oc, user, corpora, corpus_id):
+@login.login()
+def rename_corpus(ui, user, corpora, corpus_id):
     """Rename corpus."""
     new_id = request.args.get("new_id") or request.form.get("new_id") or ""
 
@@ -111,16 +112,16 @@ def rename_corpus(oc, user, corpora, corpus_id):
         if jobs.Status.none < job.status < jobs.Status.done_annotating or job.status == jobs.Status.syncing_results:
             return utils.response("Cannot rename corpus while a job is running", err=True), 404
         # Rename on Nextcloud (NB: order of changes is relevant!)
-        corpus_dir = paths.get_corpus_dir(domain="nc", corpus_id=corpus_id)
+        corpus_dir = storage.get_corpus_dir(ui, corpus_id)
         new_corpus_dir = corpus_dir.parent.joinpath(new_id)
-        oc.move(str(corpus_dir), str(new_corpus_dir))
+        ui.move(str(corpus_dir), str(new_corpus_dir))
         nextcloud_success = True
 
         # Change ID in config file
-        config_file = str(paths.get_config_file(domain="nc", corpus_id=new_id))
-        config_contents = oc.get_file_contents(config_file)
+        config_file = str(storage.get_config_file(ui, new_id))
+        config_contents = ui.get_file_contents(config_file)
         new_config = utils.set_corpus_id(config_contents, new_id)
-        oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=new_id)), new_config)
+        ui.put_file_contents(str(storage.get_config_file(ui, new_id)), new_config)
         config_success = True
 
         # Rename corpus dir on Sparv server and job in cache
@@ -134,14 +135,14 @@ def rename_corpus(oc, user, corpora, corpus_id):
     except Exception as e:
         # Undo renaming if it succeeded partially (NB: order of changes is relevant!)
         if nextcloud_success:
-            corpus_dir = paths.get_corpus_dir(domain="nc", corpus_id=new_id)
+            corpus_dir = storage.get_corpus_dir(ui, new_id)
             reset_corpus_dir = corpus_dir.parent.joinpath(corpus_id)
-            oc.move(str(corpus_dir), str(reset_corpus_dir))
+            ui.move(str(corpus_dir), str(reset_corpus_dir))
         if config_success:
-            config_file = str(paths.get_config_file(domain="nc", corpus_id=corpus_id))
-            config_contents = oc.get_file_contents(config_file)
+            config_file = str(storage.get_config_file(ui, corpus_id))
+            config_contents = ui.get_file_contents(config_file)
             reset_config = utils.set_corpus_id(config_contents, corpus_id)
-            oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), reset_config)
+            ui.put_file_contents(str(storage.get_config_file(ui, corpus_id)), reset_config)
         if sparv_server_success:
             queue.remove(job)
             job.change_id(corpus_id)
@@ -155,8 +156,8 @@ def rename_corpus(oc, user, corpora, corpus_id):
 # ------------------------------------------------------------------------------
 
 @bp.route("/upload-sources", methods=["PUT"])
-@utils.login()
-def upload_sources(oc, _user, corpora, corpus_id):
+@login.login()
+def upload_sources(ui, _user, corpora, corpus_id):
     """Upload corpus source files.
 
     Attached files will be added to the corpus or replace existing ones.
@@ -168,51 +169,51 @@ def upload_sources(oc, _user, corpora, corpus_id):
 
     try:
         # Upload data
-        source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc)
+        source_dir = storage.get_source_dir(ui, corpus_id)
         for f in files[0]:
             name = utils.check_file_ext(f.filename, app.config.get("SPARV_IMPORTER_MODULES", {}).keys())
             if not name:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid "
-                                       "file extension", err=True, file=f.filename, info="invalid file extension"), 404
-            compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir, oc)
+                                       "file extension", err=True, file=f.filename, info="invalid file extension"), 400
+            compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir, ui)
             if not compatible:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to incompatible "
                                        "file extensions", err=True, file=f.filename, info="incompatible file extensions",
-                                       current_file_extension=current_ext, existing_file_extension=existing_ext), 404
+                                       current_file_extension=current_ext, existing_file_extension=existing_ext), 400
             file_contents = f.read()
             # Validate XML files
             if current_ext == ".xml":
                 if not utils.validate_xml(file_contents):
                     return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
                                           err=True, file=f.filename, info="invalid XML"), 404
-            oc.put_file_contents(str(source_dir / name), file_contents)
+            ui.put_file_contents(str(source_dir / name), file_contents)
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:
         return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 404
 
 
 @bp.route("/list-sources", methods=["GET"])
-@utils.login()
-def list_sources(oc, _user, corpora, corpus_id):
+@login.login()
+def list_sources(ui, _user, corpora, corpus_id):
     """List the available corpus source files."""
-    source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
+    source_dir = str(storage.get_source_dir(ui, corpus_id))
     try:
-        objlist = utils.list_contents(oc, source_dir)
+        objlist = storage.list_contents(ui, source_dir)
         return utils.response(f"Current source files for '{corpus_id}'", contents=objlist)
     except Exception as e:
         return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 404
 
 
 @bp.route("/remove-sources", methods=["DELETE"])
-@utils.login()
-def remove_sources(oc, _user, _corpora, corpus_id):
+@login.login()
+def remove_sources(ui, _user, _corpora, corpus_id):
     """Remove file paths listed in 'remove' (comma separated) from the corpus."""
     remove_files = request.args.get("remove") or request.form.get("remove") or ""
     remove_files = [i.strip() for i in remove_files.split(",") if i]
     if not remove_files:
-        return utils.response("No files provided for removal", err=True), 404
+        return utils.response("No files provided for removal", err=True), 400
 
-    source_dir = paths.get_source_dir(domain="nc", corpus_id=corpus_id)
+    source_dir = storage.get_source_dir(ui, corpus_id)
 
     # Remove files
     successes = []
@@ -220,7 +221,7 @@ def remove_sources(oc, _user, _corpora, corpus_id):
     for rf in remove_files:
         nc_path = str(source_dir / Path(rf))
         try:
-            oc.delete(nc_path)
+            storage.remove_dir(ui, nc_path)
             successes.append(rf)
         except Exception:
             fails.append(rf)
@@ -235,8 +236,8 @@ def remove_sources(oc, _user, _corpora, corpus_id):
 
 
 @bp.route("/download-sources", methods=["GET"])
-@utils.login()
-def download_sources(oc, user, _corpora, corpus_id):
+@login.login()
+def download_sources(ui, user, _corpora, corpus_id):
     """Download the corpus source files as a zip file.
 
     The parameter 'file' may be used to download a specific source file. This
@@ -247,16 +248,16 @@ def download_sources(oc, user, _corpora, corpus_id):
     download_file = request.args.get("file") or request.form.get("file") or ""
 
     # Check if there are any source files
-    nc_source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
-    source_contents = utils.list_contents(oc, nc_source_dir, exclude_dirs=False)
+    nc_source_dir = str(storage.get_source_dir(ui, corpus_id))
+    source_contents = storage.list_contents(ui, nc_source_dir, exclude_dirs=False)
     try:
-        source_contents = utils.list_contents(oc, nc_source_dir, exclude_dirs=False)
+        source_contents = storage.list_contents(ui, nc_source_dir, exclude_dirs=False)
         if source_contents == []:
             return utils.response(f"You have not uploaded any source files for corpus '{corpus_id}'", err=True), 404
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True, info=str(e)), 404
 
-    local_source_dir = paths.get_source_dir(user=user, corpus_id=corpus_id, mkdir=True)
+    local_source_dir = utils.get_source_dir(user, corpus_id, mkdir=True)
 
     # Download and zip file specified in args
     if download_file:
@@ -273,12 +274,12 @@ def download_sources(oc, user, _corpora, corpus_id):
             zipped = False if zipped.lower() == "false" else True
             if zipped:
                 outf = str(local_source_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
-                oc.get_file(full_download_file, local_path)
+                ui.get_file(full_download_file, local_path)
                 utils.create_zip(local_path, outf)
                 return send_file(outf, mimetype="application/zip")
             else:
                 outf = str(local_source_dir / Path(download_file_name))
-                oc.get_file(full_download_file, local_path)
+                ui.get_file(full_download_file, local_path)
                 # Determine content type
                 content_type = "application/xml"
                 for file_obj in source_contents:
@@ -293,7 +294,7 @@ def download_sources(oc, user, _corpora, corpus_id):
     try:
         zip_out = str(local_source_dir / f"{corpus_id}_source.zip")
         # Get files from Nextcloud
-        oc.get_directory_as_zip(nc_source_dir, zip_out)
+        ui.get_directory_as_zip(nc_source_dir, zip_out)
         return send_file(zip_out, mimetype="application/zip")
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True,
@@ -305,8 +306,8 @@ def download_sources(oc, user, _corpora, corpus_id):
 # ------------------------------------------------------------------------------
 
 @bp.route("/upload-config", methods=["PUT"])
-@utils.login()
-def upload_config(oc, _user, corpora, corpus_id):
+@login.login()
+def upload_config(ui, _user, corpora, corpus_id):
     """Upload a corpus config as file or plain text."""
     attached_files = list(request.files.values())
     config_txt = request.args.get("config") or request.form.get("config") or ""
@@ -315,8 +316,8 @@ def upload_config(oc, _user, corpora, corpus_id):
         return utils.response("Found both a config file and a plain text config but can only process one of these",
                               err=True), 404
 
-    source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
-    source_files = utils.list_contents(oc, str(source_dir))
+    source_dir = str(storage.get_source_dir(ui, corpus_id))
+    source_files = storage.list_contents(ui, str(source_dir))
 
     # Process uploaded config file
     if attached_files:
@@ -331,12 +332,12 @@ def upload_config(oc, _user, corpora, corpus_id):
         if source_files:
             compatible, resp = utils.config_compatible(config_contents, source_files[0])
             if not compatible:
-                return resp, 404
+                return resp, 400
 
         try:
             new_config = utils.set_corpus_id(config_contents, corpus_id)
-            oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), new_config)
-            return utils.response(f"Config file successfully uploaded for '{corpus_id}'")
+            ui.put_file_contents(str(storage.get_config_file(ui, corpus_id)), new_config)
+            return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
 
@@ -346,10 +347,10 @@ def upload_config(oc, _user, corpora, corpus_id):
             if source_files:
                 compatible, resp = utils.config_compatible(config_txt, source_files[0])
                 if not compatible:
-                    return resp, 404
+                    return resp, 400
             new_config = utils.set_corpus_id(config_txt, corpus_id)
-            oc.put_file_contents(str(paths.get_config_file(domain="nc", corpus_id=corpus_id)), new_config)
-            return utils.response(f"Config file successfully uploaded for '{corpus_id}'")
+            ui.put_file_contents(str(storage.get_config_file(ui, corpus_id)), new_config)
+            return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
 
@@ -358,16 +359,16 @@ def upload_config(oc, _user, corpora, corpus_id):
 
 
 @bp.route("/download-config", methods=["GET"])
-@utils.login()
-def download_config(oc, user, _corpora, corpus_id):
+@login.login()
+def download_config(ui, user, _corpora, corpus_id):
     """Download the corpus config file."""
-    nc_config_file = str(paths.get_config_file(domain="nc", corpus_id=corpus_id))
-    paths.get_source_dir(user=user, corpus_id=corpus_id, mkdir=True)
-    local_config_file = str(paths.get_config_file(user=user, corpus_id=corpus_id))
+    nc_config_file = str(storage.get_config_file(ui, corpus_id))
+    utils.get_source_dir(user, corpus_id, mkdir=True)
+    local_config_file = str(utils.get_config_file(user, corpus_id))
 
     try:
         # Get file from Nextcloud
-        oc.get_file(nc_config_file, local_file=local_config_file)
+        ui.get_file(nc_config_file, local_file=local_config_file)
         return send_file(local_config_file, mimetype="text/yaml")
     except Exception as e:
         return utils.response(f"Failed to download config file for corpus '{corpus_id}'", err=True, info=str(e)), 404
@@ -378,20 +379,20 @@ def download_config(oc, user, _corpora, corpus_id):
 # ------------------------------------------------------------------------------
 
 @bp.route("/list-exports", methods=["GET"])
-@utils.login()
-def list_exports(oc, _user, _corpora, corpus_id):
+@login.login()
+def list_exports(ui, _user, _corpora, corpus_id):
     """List exports available for download for a given corpus."""
-    path = str(paths.get_export_dir(domain="nc", corpus_id=corpus_id))
+    path = str(storage.get_export_dir(ui, corpus_id))
     try:
-        objlist = utils.list_contents(oc, path)
+        objlist = storage.list_contents(ui, path)
         return utils.response(f"Current export files for '{corpus_id}'", contents=objlist)
     except Exception as e:
         return utils.response(f"Failed to list files in '{corpus_id}'", err=True, info=str(e)), 404
 
 
 @bp.route("/download-exports", methods=["GET"])
-@utils.login()
-def download_export(oc, user, _corpora, corpus_id):
+@login.login()
+def download_export(ui, user, _corpora, corpus_id):
     """Download export files for a corpus as a zip file.
 
     The parameters 'file' and 'dir' may be used to download a specific export file
@@ -406,11 +407,11 @@ def download_export(oc, user, _corpora, corpus_id):
     if download_file and download_folder:
         return utils.response("The parameters 'dir' and 'file' must not be supplied simultaneously", err=True), 404
 
-    nc_export_dir = str(paths.get_export_dir(domain="nc", corpus_id=corpus_id))
-    local_corpus_dir = str(paths.get_corpus_dir(user=user, corpus_id=corpus_id, mkdir=True))
+    nc_export_dir = str(storage.get_export_dir(ui, corpus_id))
+    local_corpus_dir = str(utils.get_corpus_dir(user, corpus_id, mkdir=True))
 
     try:
-        export_contents = utils.list_contents(oc, nc_export_dir, exclude_dirs=False)
+        export_contents = storage.list_contents(ui, nc_export_dir, exclude_dirs=False)
         if export_contents == []:
             return utils.response(f"There are currently no exports available for corpus '{corpus_id}'", err=True), 404
     except Exception as e:
@@ -420,7 +421,7 @@ def download_export(oc, user, _corpora, corpus_id):
         try:
             zip_out = str(local_corpus_dir / Path(f"{corpus_id}_export.zip"))
             # Get files from Nextcloud
-            oc.get_directory_as_zip(nc_export_dir, zip_out)
+            ui.get_directory_as_zip(nc_export_dir, zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 404
@@ -435,7 +436,7 @@ def download_export(oc, user, _corpora, corpus_id):
                                   err=True), 404
         try:
             zip_out = str(local_corpus_dir / Path(f"{corpus_id}_{download_folder}.zip"))
-            oc.get_directory_as_zip(full_download_folder, zip_out)
+            ui.get_directory_as_zip(full_download_folder, zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e)), 404
@@ -455,12 +456,12 @@ def download_export(oc, user, _corpora, corpus_id):
             zipped = False if zipped.lower() == "false" else True
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
-                oc.get_file(full_download_file, local_path)
+                ui.get_file(full_download_file, local_path)
                 utils.create_zip(local_path, outf)
                 return send_file(outf, mimetype="application/zip")
             else:
                 outf = str(local_corpus_dir / Path(download_file_name))
-                oc.get_file(full_download_file, local_path)
+                ui.get_file(full_download_file, local_path)
                 # Determine content type
                 content_type = "application/xml"
                 for file_obj in export_contents:
@@ -473,14 +474,14 @@ def download_export(oc, user, _corpora, corpus_id):
 
 
 @bp.route("/remove-exports", methods=["DELETE"])
-@utils.login()
-def remove_exports(oc, user, _corpora, corpus_id):
+@login.login()
+def remove_exports(ui, user, _corpora, corpus_id):
     """Remove export files."""
     try:
         # Remove export dir from Nextcloud and create a new empty one
-        export_dir = str(paths.get_export_dir(domain="nc", corpus_id=corpus_id))
-        oc.delete(export_dir)
-        paths.get_export_dir(domain="nc", corpus_id=corpus_id, oc=oc, mkdir=True)
+        export_dir = str(storage.get_export_dir(ui, corpus_id))
+        storage.remove_dir(ui, export_dir)
+        storage.get_export_dir(ui, corpus_id, mkdir=True)
     except Exception as e:
         return utils.response(f"Failed to remove export files for corpus '{corpus_id}'", err=True, info=str(e)), 404
 
@@ -496,22 +497,22 @@ def remove_exports(oc, user, _corpora, corpus_id):
 
 
 @bp.route("/download-source-text", methods=["GET"])
-@utils.login()
-def download_source_text(oc, user, _corpora, corpus_id):
+@login.login()
+def download_source_text(ui, user, _corpora, corpus_id):
     """Get one of the source files in plain text.
 
     The source file name (including its file extension) must be specified in the 'file' parameter.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
 
-    nc_work_dir = str(paths.get_work_dir(domain="nc", corpus_id=corpus_id))
-    local_corpus_dir = str(paths.get_corpus_dir(user=user, corpus_id=corpus_id, mkdir=True))
+    nc_work_dir = str(storage.get_work_dir(ui, corpus_id))
+    local_corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
 
     if not download_file:
         return utils.response("Please specify the source file to download", err=True), 404
 
     try:
-        source_texts = utils.list_contents(oc, nc_work_dir, exclude_dirs=False)
+        source_texts = storage.list_contents(ui, nc_work_dir, exclude_dirs=False)
         if source_texts == []:
             return utils.response((f"There are currently no source texts for corpus '{corpus_id}'. "
                                     "You must run Sparv before you can view source texts."), err=True), 404
@@ -527,15 +528,15 @@ def download_source_text(oc, user, _corpora, corpus_id):
                                 err=True), 404
     try:
         local_path = Path(local_corpus_dir) / out_file_name
-        oc.get_file(full_download_path, local_path)
+        ui.get_file(full_download_path, local_path)
         return send_file(local_path, mimetype="text/plain")
     except Exception as e:
         return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e)), 404
 
 
 @bp.route("/check-changes", methods=["GET"])
-@utils.login()
-def check_changes(oc, user, _corpora, corpus_id):
+@login.login()
+def check_changes(ui, user, _corpora, corpus_id):
     """Check if config or source files have changed since the last job was started."""
     try:
         job = jobs.get_job(user, corpus_id)
@@ -544,9 +545,9 @@ def check_changes(oc, user, _corpora, corpus_id):
         started = dateutil.parser.isoparse(job.started)
 
         # Get currenct source files on Nextclouds
-        source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
+        source_dir = str(storage.get_source_dir(ui, corpus_id))
         try:
-            source_files = utils.list_contents(oc, source_dir)
+            source_files = storage.list_contents(ui, source_dir)
         except Exception as e:
             return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 404
         # Check for new source files
@@ -570,9 +571,9 @@ def check_changes(oc, user, _corpora, corpus_id):
 
         # Compare the config file modification time to the time stamp of the last job started
         changed_config = {}
-        corpus_dir = str(paths.get_corpus_dir(domain="nc", corpus_id=corpus_id))
-        corpus_files = utils.list_contents(oc, corpus_dir)
-        config_file = paths.get_config_file(domain="nc", corpus_id=corpus_id)
+        corpus_dir = str(storage.get_corpus_dir(ui, corpus_id))
+        corpus_files = storage.list_contents(ui, corpus_dir)
+        config_file = storage.get_config_file(ui, corpus_id)
         for f in corpus_files:
             if f.get("name") == config_file.name:
                 config_mod = dateutil.parser.isoparse(f.get("last_modified"))

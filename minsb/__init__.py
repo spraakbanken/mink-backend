@@ -9,7 +9,8 @@ from pathlib import Path
 from flask import Flask, g, request
 from flask_cors import CORS
 
-from minsb import queue, utils
+from minsb import queue
+from minsb.memcached.cache import Cache
 
 
 def create_app():
@@ -50,18 +51,15 @@ def create_app():
         log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper())
         logging.basicConfig(filename=logfile, level=log_level, format=logfmt, datefmt=datefmt)
 
-    # Connect to memcached and init job queue
+    # Connect to cache and init job queue
     with app.app_context():
-        utils.connect_to_memcached()
+        g.cache = Cache()
         queue.init_queue()
 
     @app.before_request
-    def before_request():
-        """Init variables in app context (as backup for memcached) and try to reconnect to memcached if necessary."""
-        g.queue_initialized = False
-        g.job_queue = {}
-        if app.config["cache_client"] is None:
-            utils.connect_to_memcached()
+    def init_cache():
+        """Init the cache before each request."""
+        g.cache = Cache()
 
     @app.after_request
     def cleanup(response):
@@ -72,10 +70,12 @@ def create_app():
             shutil.rmtree(str(local_user_dir), ignore_errors=True)
         return response
 
-    # Register blueprints
-    from .views import general, nextcloud, sparv
-    app.register_blueprint(general.bp)
-    app.register_blueprint(nextcloud.bp)
-    app.register_blueprint(sparv.bp)
+    # Register routes from blueprints
+    from . import routes as general_routes
+    app.register_blueprint(general_routes.bp)
+    from .sparv import routes as sparv_routes
+    app.register_blueprint(sparv_routes.bp)
+    from .nextcloud import routes as nextcloud_routes
+    app.register_blueprint(nextcloud_routes.bp)
 
     return app

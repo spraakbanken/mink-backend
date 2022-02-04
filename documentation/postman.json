@@ -23,49 +23,9 @@
 								"init"
 							]
 						},
-						"description": "Call this route before using Min SB for the first time. Creates a directory in your Nextcloud instance which will be used by Min SB.\n\n### Example\n\n```.bash\ncurl -X POST -u some_username '{{host}}/init'\n```"
+						"description": "Call this route before using Min SB for the first time. Creates a user directory on the storage server which will be used by Min SB.\n\n### Example\n\n```.bash\ncurl -X POST -u some_username '{{host}}/init'\n```"
 					},
 					"response": [
-						{
-							"name": "init Min SB 201",
-							"originalRequest": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/init",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"init"
-									]
-								}
-							},
-							"status": "CREATED",
-							"code": 201,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "76"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.9.5"
-								},
-								{
-									"key": "Date",
-									"value": "Wed, 08 Sep 2021 08:29:15 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Min Språkbank successfully initialized\"\n}"
-						},
 						{
 							"name": "init Min SB 200",
 							"originalRequest": {
@@ -105,6 +65,46 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Nothing to be done. Min Språkbank has already been initialized\"\n}"
+						},
+						{
+							"name": "init Min SB 201",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/init",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"init"
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "76"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.9.5"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 08 Sep 2021 08:29:15 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Min Språkbank successfully initialized\"\n}"
 						},
 						{
 							"name": "init Min SB 401",
@@ -179,9 +179,129 @@
 								}
 							]
 						},
-						"description": "Creates a new corpus on Nextcloud.\n\n### Example\n\n```.bash\ncurl -X POST -u some_username '{{host}}/create-corpus?corpus_id=some_corpus_name'\n```"
+						"description": "Creates a new corpus on the storage server.\n\n### Example\n\n```.bash\ncurl -X POST -u some_username '{{host}}/create-corpus?corpus_id=some_corpus_name'\n```"
 					},
 					"response": [
+						{
+							"name": "create corpus 201",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/create-corpus?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"create-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "80"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 24 Jan 2022 15:16:38 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'min-testkorpus' created successfully\"\n}"
+						},
+						{
+							"name": "create corpus 400",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"type": "file",
+											"src": [
+												"/home/anne/Downloads/testkorpus/dokument2.xml",
+												"/home/anne/Downloads/testkorpus/dokument1.xml"
+											]
+										}
+									]
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/create-corpus?corpus_id=min_testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"create-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min_testkorpus"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "72"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 10:21:21 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus ID 'min_testkorpus' is invalid\"\n}"
+						},
 						{
 							"name": "upload corpus 401",
 							"originalRequest": {
@@ -241,71 +361,7 @@
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
 						},
 						{
-							"name": "create corpus 200",
-							"originalRequest": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "formdata",
-									"formdata": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus",
-											"type": "text"
-										},
-										{
-											"key": "",
-											"type": "file",
-											"src": [
-												"/home/anne/Downloads/testkorpus/dokument2.xml",
-												"/home/anne/Downloads/testkorpus/dokument1.xml"
-											]
-										}
-									]
-								},
-								"url": {
-									"raw": "{{protocol}}://{{host}}/create-corpus?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"create-corpus"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "81"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 18 Mar 2021 10:18:47 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'min-testkorpus' created successfully\"\n}"
-						},
-						{
-							"name": "create corpus 404-exists",
+							"name": "create corpus 404",
 							"originalRequest": {
 								"method": "POST",
 								"header": [],
@@ -367,70 +423,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpus' already exists\"\n}"
-						},
-						{
-							"name": "create corpus 404-invalid",
-							"originalRequest": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "formdata",
-									"formdata": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus",
-											"type": "text"
-										},
-										{
-											"key": "",
-											"type": "file",
-											"src": [
-												"/home/anne/Downloads/testkorpus/dokument2.xml",
-												"/home/anne/Downloads/testkorpus/dokument1.xml"
-											]
-										}
-									]
-								},
-								"url": {
-									"raw": "{{protocol}}://{{host}}/create-corpus?corpus_id=min_testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"create-corpus"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min_testkorpus"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "72"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 18 Mar 2021 10:21:21 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus ID 'min_testkorpus' is invalid\"\n}"
 						}
 					]
 				},
@@ -619,52 +611,6 @@
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'min-testkorpus' successfully removed\"\n}"
 						},
 						{
-							"name": "remove corpus 404",
-							"originalRequest": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/remove-corpus?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"remove-corpus"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "73"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 25 Feb 2021 15:50:42 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpus' does not exist\"\n}"
-						},
-						{
 							"name": "remove corpus 401",
 							"originalRequest": {
 								"method": "DELETE",
@@ -709,6 +655,283 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
+						},
+						{
+							"name": "remove corpus 404",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/remove-corpus?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "73"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 25 Feb 2021 15:50:42 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpus' does not exist\"\n}"
+						}
+					]
+				},
+				{
+					"name": "rename corpus",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{host}}/rename-corpus?corpus_id=min-testkorpus&new_id=din-testkorpus",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"rename-corpus"
+							],
+							"query": [
+								{
+									"key": "corpus_id",
+									"value": "min-testkorpus"
+								},
+								{
+									"key": "new_id",
+									"value": "din-testkorpus"
+								}
+							]
+						},
+						"description": "Changes the name of a corpus on the storage server, the Sparv server and in the corpus config.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username '{{host}}/rename-corpus?corpus_id=some_corpus_name&new_id=din-testkorpus'\n```"
+					},
+					"response": [
+						{
+							"name": "rename corpus 400 identical",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/rename-corpus?corpus_id=min-testkorpus&new_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"rename-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "new_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "BAD REQUEST",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "83"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 17 Dec 2021 16:30:10 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The new ID must not be the same as the current ID\"\n}"
+						},
+						{
+							"name": "rename corpus 400 no ID",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/rename-corpus?corpus_id=din-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"rename-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "din-testkorpus"
+										},
+										{
+											"key": "new_id",
+											"value": "din-testkorpus",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "BAD REQUEST",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "63"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 17 Dec 2021 16:31:06 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No new corpus ID was provided\"\n}"
+						},
+						{
+							"name": "rename corpus 401",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/remove-corpus?corpus_id=min-testkorpus&new_id=din-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "new_id",
+											"value": "din-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 02 Mar 2021 14:07:34 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
+						},
+						{
+							"name": "remove corpus 404",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/rename-corpus?corpus_id=min-testkorpus&new_id=din-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"rename-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "new_id",
+											"value": "din-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "73"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 25 Feb 2021 15:50:42 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpus' does not exist\"\n}"
 						}
 					]
 				}
@@ -751,7 +974,7 @@
 								}
 							]
 						},
-						"description": "Uploads the attached files as corpus source files to Nextcloud. When uploading a file with a name that already exists it will be replaced.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"files[]=@/absolute/path/to/localfile1.txt\" -F \"files[]=@/absolute/path/to/localfile2.txt\" '{{host}}/upload-sources?corpus_id=some_corpus_name'\n```"
+						"description": "Uploads the attached files as corpus source files to the storage server. When uploading a file with a name that already exists it will be replaced.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"files[]=@/absolute/path/to/localfile1.txt\" -F \"files[]=@/absolute/path/to/localfile2.txt\" '{{host}}/upload-sources?corpus_id=some_corpus_name'\n```"
 					},
 					"response": [
 						{
@@ -814,6 +1037,62 @@
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to 'min-testkorpus'\"\n}"
 						},
 						{
+							"name": "upload sources 400",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "",
+											"type": "file",
+											"src": "/home/anne/Downloads/text.txt"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/upload-sources?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"upload-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "208"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 01 Dec 2021 14:28:20 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to 'min-testkorpus' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\"\n}"
+						},
+						{
 							"name": "upload sources 401",
 							"originalRequest": {
 								"method": "PUT",
@@ -871,62 +1150,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
-						},
-						{
-							"name": "upload sources 404 incompatible",
-							"originalRequest": {
-								"method": "PUT",
-								"header": [],
-								"body": {
-									"mode": "formdata",
-									"formdata": [
-										{
-											"key": "",
-											"type": "file",
-											"src": "/home/anne/Downloads/text.txt"
-										}
-									]
-								},
-								"url": {
-									"raw": "{{protocol}}://{{host}}/upload-sources?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"upload-sources"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "208"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/2.0.2 Python/3.9.7"
-								},
-								{
-									"key": "Date",
-									"value": "Wed, 01 Dec 2021 14:28:20 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to 'min-testkorpus' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\"\n}"
 						},
 						{
 							"name": "upload sources 404",
@@ -1184,7 +1407,7 @@
 								}
 							]
 						},
-						"description": "Downloads corpus source files from Nextcloud as zip file.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/download-sources?corpus_id=some_corpus_name' --output some_corpus_name_sources.zip\n```"
+						"description": "Downloads corpus source files from the storage server as zip file.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/download-sources?corpus_id=some_corpus_name' --output some_corpus_name_sources.zip\n```"
 					},
 					"response": [
 						{
@@ -1422,6 +1645,52 @@
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for 'min-testkorpus' successfully removed\"\n}"
 						},
 						{
+							"name": "remove sources 400",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/remove-sources?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "64"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 10:39:37 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No files provided for removal\"\n}"
+						},
+						{
 							"name": "remove sources 401",
 							"originalRequest": {
 								"method": "DELETE",
@@ -1470,52 +1739,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
-						},
-						{
-							"name": "remove sources 404",
-							"originalRequest": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/remove-sources?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"remove-sources"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "64"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 18 Mar 2021 10:39:37 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No files provided for removal\"\n}"
 						},
 						{
 							"name": "remove sources 404",
@@ -1609,7 +1832,7 @@
 					},
 					"response": [
 						{
-							"name": "upload config 200",
+							"name": "upload config 201",
 							"originalRequest": {
 								"method": "PUT",
 								"header": [],
@@ -1640,8 +1863,8 @@
 									]
 								}
 							},
-							"status": "OK",
-							"code": 200,
+							"status": "Created",
+							"code": 201,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -1663,6 +1886,62 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Config file successfully uploaded for 'min-testkorpus'\"\n}"
+						},
+						{
+							"name": "upload config 400-incompatible",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "",
+											"type": "file",
+											"src": "/home/anne/Downloads/testkorpus/config.yaml"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/upload-config?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"upload-config"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "177"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 08 Dec 2021 15:46:11 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The importer in your config file is not compatible with your source files\",\n    \"current_importer\": \"text_import\",\n    \"expected_importer\": \"xml_import\"\n}"
 						},
 						{
 							"name": "upload config 401",
@@ -2338,7 +2617,7 @@
 								}
 							]
 						},
-						"description": "Removes all export files for the corpus from Nextcloud. Will attempt to remove exports from the Sparv server, too, but won't crash if this fails.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username \n '{{host}}/remove-exports?corpus_id=some_corpus_name'\n```"
+						"description": "Removes all export files for the corpus from the storage server. Will attempt to remove exports from the Sparv server, too, but won't crash if this fails.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username \n '{{host}}/remove-exports?corpus_id=some_corpus_name'\n```"
 					},
 					"response": [
 						{
@@ -2673,6 +2952,60 @@
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-26T13:39:09+00:00\",\n            \"size:\": 1396,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-26T13:39:08+00:00\",\n            \"size:\": 115,\n            \"path\": \"/Min Språkbank/min-testkorpus/source/dokument2.xml\"\n        }\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"last_run_started\": \"2021-11-26T13:46:30+00:00\",\n    \"last_run_completed\": \"2021-11-26T14:50:31+01:00\",\n    \"priority\": 1\n}"
 						},
 						{
+							"name": "run Sparv 400-incompatible",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"run-sparv"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "exports",
+											"value": "csv_export:csv,stats_export:freq_list,xml_export:pretty"
+										},
+										{
+											"key": "files",
+											"value": "dokument1,dokument2"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "177"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 08 Dec 2021 16:11:38 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The importer in your config file is not compatible with your source files\",\n    \"current_importer\": \"text_import\",\n    \"expected_importer\": \"xml_import\"\n}"
+						},
+						{
 							"name": "run Sparv 401",
 							"originalRequest": {
 								"method": "PUT",
@@ -2771,6 +3104,60 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpuss' does not exist\"\n}"
+						},
+						{
+							"name": "run Sparv 500",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/run-sparv?corpus_id=min-testkorpus&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"run-sparv"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "exports",
+											"value": "csv_export:csv,stats_export:freq_list,xml_export:pretty"
+										},
+										{
+											"key": "files",
+											"value": "dokument1,dokument2"
+										}
+									]
+								}
+							},
+							"status": "INTERNAL SERVER ERROR",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "76"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 24 Jan 2022 15:49:04 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No source files found for 'min-testkorpus'\"\n}"
 						}
 					]
 				},
@@ -2789,7 +3176,7 @@
 								"check-status"
 							]
 						},
-						"description": "Checks the status of the user's annotation jobs and reports it in the `job_status` field for each job.\n\nWhen the `corpus_id` parameter is supplied only the job corresponding to that corpus ID is reported.\n\nThe different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation process has been started successfully a percentage of the completed annotation progress will be shown in the `progress` field.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/check-status'\n```"
+						"description": "Checks the status of the user's annotation jobs and reports it in the `job_status` field for each job.\n\nThis requests needs to be made once the corpus is done processing in order for the results to be synced to the storage server.\n\nWhen the `corpus_id` parameter is supplied only the job corresponding to that corpus ID is reported.\n\nThe different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation process has been started successfully a percentage of the completed annotation progress will be shown in the `progress` field.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username '{{host}}/check-status'\n```"
 					},
 					"response": [
 						{
@@ -2878,6 +3265,52 @@
 								"method": "GET",
 								"header": [],
 								"url": {
+									"raw": "{{protocol}}://{{host}}/check-status?corpus_id=min-korpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-status"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-korpus"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "68"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 24 Jan 2022 15:36:48 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-korpus' does not exist\"\n}"
+						},
+						{
+							"name": "check status 500",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
 									"raw": "{{protocol}}://{{host}}/check-status?corpus_id=min-testkorpus",
 									"protocol": "{{protocol}}",
 									"host": [
@@ -2894,8 +3327,8 @@
 									]
 								}
 							},
-							"status": "NOT FOUND",
-							"code": 404,
+							"status": "Internal Server Error",
+							"code": 500,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -2991,52 +3424,6 @@
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully aborted running job for 'min-testkorpus'\",\n    \"job_status\": \"aborted\"\n}"
 						},
 						{
-							"name": "abort job 401",
-							"originalRequest": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/abort-job?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"abort-job"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "UNAUTHORIZED",
-							"code": 401,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "84"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Fri, 05 Mar 2021 10:34:38 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
-						},
-						{
 							"name": "abort job 200-no-job",
 							"originalRequest": {
 								"method": "POST",
@@ -3081,6 +3468,52 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"No running job found for 'min-testkorpus'\"\n}"
+						},
+						{
+							"name": "abort job 401",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/abort-job?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"abort-job"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 05 Mar 2021 10:34:38 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
 						}
 					]
 				},
@@ -3517,19 +3950,19 @@
 								},
 								{
 									"key": "Content-Length",
-									"value": "825"
+									"value": "843"
 								},
 								{
 									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
 								},
 								{
 									"key": "Date",
-									"value": "Mon, 08 Mar 2021 13:32:04 GMT"
+									"value": "Mon, 24 Jan 2022 15:38:09 GMT"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing existing job status codes\",\n    \"status_codes\": [\n        {\n            \"code\": 0,\n            \"name\": \"none\",\n            \"description\": \"Job does not exist\"\n        },\n        {\n            \"code\": 1,\n            \"name\": \"syncing_corpus\",\n            \"description\": \"Syncing from Nextcloud to Sparv server\"\n        },\n        {\n            \"code\": 2,\n            \"name\": \"waiting\",\n            \"description\": \"Waiting to be run with Sparv\"\n        },\n        {\n            \"code\": 3,\n            \"name\": \"annotating\",\n            \"description\": \"Sparv annotation process is running\"\n        },\n        {\n            \"code\": 4,\n            \"name\": \"done_annotating\",\n            \"description\": \"Annotation process has finished\"\n        },\n        {\n            \"code\": 5,\n            \"name\": \"syncing_results\",\n            \"description\": \"Syncing results from Sparv to Nextcloud\"\n        },\n        {\n            \"code\": 6,\n            \"name\": \"done\",\n            \"description\": \"Results have been synced to Nexcloud\"\n        },\n        {\n            \"code\": 7,\n            \"name\": \"error\",\n            \"description\": \"An error occurred\"\n        },\n        {\n            \"code\": 8,\n            \"name\": \"aborted\",\n            \"description\": \"Aborted by the user\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing existing job status codes\",\n    \"status_codes\": [\n        {\n            \"code\": 0,\n            \"name\": \"none\",\n            \"description\": \"Job does not exist\"\n        },\n        {\n            \"code\": 1,\n            \"name\": \"syncing_corpus\",\n            \"description\": \"Syncing from the storage server to Sparv server\"\n        },\n        {\n            \"code\": 2,\n            \"name\": \"waiting\",\n            \"description\": \"Waiting to be run with Sparv\"\n        },\n        {\n            \"code\": 3,\n            \"name\": \"annotating\",\n            \"description\": \"Sparv annotation process is running\"\n        },\n        {\n            \"code\": 4,\n            \"name\": \"done_annotating\",\n            \"description\": \"Annotation process has finished\"\n        },\n        {\n            \"code\": 5,\n            \"name\": \"syncing_results\",\n            \"description\": \"Syncing results from Sparv to the storage server\"\n        },\n        {\n            \"code\": 6,\n            \"name\": \"done\",\n            \"description\": \"Results have been synced to Nexcloud\"\n        },\n        {\n            \"code\": 7,\n            \"name\": \"error\",\n            \"description\": \"An error occurred\"\n        },\n        {\n            \"code\": 8,\n            \"name\": \"aborted\",\n            \"description\": \"Aborted by the user\"\n        }\n    ]\n}"
 						}
 					]
 				},

@@ -6,14 +6,15 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request
 
-from minsb import exceptions, jobs, paths, queue, utils
+from minsb import exceptions, jobs, queue, utils
+from minsb.nextcloud import login, storage
 
 bp = Blueprint("sparv", __name__)
 
 
 @bp.route("/run-sparv", methods=["PUT"])
-@utils.login()
-def run_sparv(oc, user, _corpora, corpus_id):
+@login.login()
+def run_sparv(ui, user, _corpora, corpus_id):
     """Run Sparv on given corpus."""
     # Parse requested exports
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
@@ -23,40 +24,42 @@ def run_sparv(oc, user, _corpora, corpus_id):
     files = [i.strip() for i in files.split(",") if i]
 
     # Get list of available source files to be stored in the job info
-    source_dir = str(paths.get_source_dir(domain="nc", corpus_id=corpus_id, oc=oc))
+    source_dir = str(storage.get_source_dir(ui, corpus_id))
     try:
-        source_files = utils.list_contents(oc, source_dir)
+        source_files = storage.list_contents(ui, source_dir)
     except Exception as e:
-        app.logger.error(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e))
-        source_files = None
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+
+    if not source_files:
+        return utils.response(f"No source files found for '{corpus_id}'", err=True), 500
 
     # Check compatibility between source files and config
     try:
-        config_file = str(paths.get_config_file(domain="nc", corpus_id=corpus_id))
-        config_contents = oc.get_file_contents(config_file)
+        config_file = str(storage.get_config_file(ui, corpus_id))
+        config_contents = storage.get_file_contents(ui, config_file)
         if source_files:
             compatible, resp = utils.config_compatible(config_contents, source_files[0])
             if not compatible:
-                return resp, 404
+                return resp, 400
     except Exception as e:
-        app.logger.error(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e))
+        return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Queue job
     job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=source_files)
     try:
         job = queue.add(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 404
+        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Start syncing
     try:
-        job.sync_to_sparv(oc)
+        job.sync_to_sparv(ui)
     except Exception as e:
-        return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e)), 404
+        return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return make_status_response(job, oc)
+    return make_status_response(job, ui)
 
 
 @bp.route("/advance-queue", methods=["PUT"])
@@ -97,8 +100,8 @@ def advance_queue():
 
 
 @bp.route("/check-status", methods=["GET"])
-@utils.login(require_corpus_id=False)
-def check_status(oc, user, corpora):
+@login.login(require_corpus_id=False)
+def check_status(ui, user, corpora):
     """Check the annotation status for all jobs belonging to a user or a given corpus."""
     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if corpus_id:
@@ -107,7 +110,7 @@ def check_status(oc, user, corpora):
             if corpus_id not in corpora:
                 return utils.response(f"Corpus '{corpus_id}' does not exist", err=True), 404
             job = jobs.get_job(user, corpus_id)
-            return make_status_response(job, oc)
+            return make_status_response(job, ui)
         except Exception as e:
             return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 404
 
@@ -116,7 +119,7 @@ def check_status(oc, user, corpora):
         job_list = []
         user_jobs = queue.get_user_jobs(user)
         for job in user_jobs:
-            resp = make_status_response(job, oc)
+            resp = make_status_response(job, ui)
             if isinstance(resp, tuple):
                 resp = resp[0]
             job_status = {"corpus_id": job.corpus_id}
@@ -129,8 +132,8 @@ def check_status(oc, user, corpora):
 
 
 @bp.route("/abort-job", methods=["POST"])
-@utils.login()
-def abort_job(_oc, user, _corpora, corpus_id):
+@login.login()
+def abort_job(_ui, user, _corpora, corpus_id):
     """Try to abort a running job."""
     job = jobs.get_job(user, corpus_id)
     # No job
@@ -151,8 +154,8 @@ def abort_job(_oc, user, _corpora, corpus_id):
 
 
 @bp.route("/clear-annotations", methods=["DELETE"])
-@utils.login()
-def clear_annotations(oc, user, _corpora, corpus_id):
+@login.login()
+def clear_annotations(_ui, user, _corpora, corpus_id):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
     job = jobs.get_job(user, corpus_id)
@@ -166,7 +169,7 @@ def clear_annotations(oc, user, _corpora, corpus_id):
         return utils.response("Failed to clear annotations", err=True, info=str(e)), 404
 
 
-def make_status_response(job, oc):
+def make_status_response(job, ui):
     """Check the annotation status for a given corpus and return response."""
     status = job.status
     job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports, "available_files": job.available_files}
@@ -200,9 +203,9 @@ def make_status_response(job, oc):
     # If done annotating, retrieve exports from Sparv
     if status == jobs.Status.done_annotating:
         try:
-            job.sync_results(oc)
+            job.sync_results(ui)
         except Exception as e:
-            return utils.response("Sparv was run successfully but exports failed to upload to Nextcloud",
+            return utils.response("Sparv was run successfully but exports failed to upload to the storage server",
                                   err=True, info=str(e)), 404
         return utils.response("Sparv was run successfully! Starting to sync results",
                               warnings=warnings, errors=errors, sparv_output=output, **job_attrs)
@@ -216,7 +219,7 @@ def make_status_response(job, oc):
 
     if status == jobs.Status.error:
         return utils.response("An error occurred while annotating", err=True, warnings=warnings,
-                              errors=errors, sparv_output=output, **job_attrs), 404
+                              errors=errors, sparv_output=output, **job_attrs), 500
 
     return utils.response("Cannot handle this Sparv status yet", warnings=warnings, errors=errors, sparv_output=output,
                           **job_attrs), 501
