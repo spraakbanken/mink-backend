@@ -61,6 +61,7 @@ securitySchemes:
     type: apiKey
     in: query
     name: secret_key
+# Overriding these is only necessary because params cannot be made optional in Postman
 parameters:
     exports:
       name: exports
@@ -78,6 +79,14 @@ parameters:
       schema:
         type: string
         example: dokument1,document2
+    zip:
+      name: zip
+      in: query
+      required: false
+      style: form
+      schema:
+        type: string
+        example: 'true'
 
 security:
   - basicAuth: []
@@ -136,3 +145,81 @@ paths:
         schema:
           type: string
           example: swe
+  /download-exports:
+    get:
+      security: []
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      - name: zip
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: 'true'
+      - name: file
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: /Min Språkbank/min-testkorpus/export/csv/dokument2.csv
+      - name: dir
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: csv
+  /download-sources:
+    get:
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      - name: file
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: dokument1.xml
+      - name: zip
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: 'true'
+  /upload-config:
+    put:
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      - name: config
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: 'metadata:\n    id: min-testkorpus\nimport:\n    document_annotation:
+            text\n    importer: xml_import:parse\nexport:\n    annotations:\n        -
+            <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        -
+            <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -
+            dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        -
+            text:id\n        - text:date\n        - text:forfattare as author'

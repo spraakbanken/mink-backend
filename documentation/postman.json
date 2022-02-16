@@ -153,16 +153,6 @@
 					"request": {
 						"method": "POST",
 						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "corpus_id",
-									"value": "min-testkorpus",
-									"type": "text"
-								}
-							]
-						},
 						"url": {
 							"raw": "{{protocol}}://{{host}}/create-corpus?corpus_id=min-testkorpus",
 							"protocol": "{{protocol}}",
@@ -561,7 +551,7 @@
 								}
 							]
 						},
-						"description": "Removes a corpus from Nextcloud. Will attempt to abort any running job for this corpus and also remove it from the Sparv server.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username '{{host}}/remove-corpus?corpus_id=some_corpus_name'\n```"
+						"description": "Removes a corpus from the storage server. Will attempt to abort any running job for this corpus and also remove it from the Sparv server.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username '{{host}}/remove-corpus?corpus_id=some_corpus_name'\n```"
 					},
 					"response": [
 						{
@@ -707,7 +697,7 @@
 				{
 					"name": "rename corpus",
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [],
 						"url": {
 							"raw": "{{protocol}}://{{host}}/rename-corpus?corpus_id=min-testkorpus&new_id=din-testkorpus",
@@ -729,7 +719,7 @@
 								}
 							]
 						},
-						"description": "Changes the name of a corpus on the storage server, the Sparv server and in the corpus config.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username '{{host}}/rename-corpus?corpus_id=some_corpus_name&new_id=din-testkorpus'\n```"
+						"description": "Changes the name of a corpus on the storage server, the Sparv server and in the corpus config.\n\n### Example\n\n```.bash\ncurl -X POST -u some_username '{{host}}/rename-corpus?corpus_id=some_corpus_name&new_id=din-testkorpus'\n```"
 					},
 					"response": [
 						{
@@ -884,7 +874,7 @@
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
 						},
 						{
-							"name": "remove corpus 404",
+							"name": "rename corpus 404",
 							"originalRequest": {
 								"method": "POST",
 								"header": [],
@@ -1407,71 +1397,9 @@
 								}
 							]
 						},
-						"description": "Downloads corpus source files from the storage server as zip file.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/download-sources?corpus_id=some_corpus_name' --output some_corpus_name_sources.zip\n```"
+						"description": "Downloads corpus source files from the storage server as zip file.\n\nThe parameter `file` may be used to download a specific source file. This parameter must either be a file name or an absolute path on the Storage server. The `zip` parameter may be set to `false` in combination the the `file` param to avoid zipping the file to be downloaded.\n\n### Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/download-sources?corpus_id=some_corpus_name' --output some_corpus_name_sources.zip\n```"
 					},
 					"response": [
-						{
-							"name": "download sources 200",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/download-corpus?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"download-corpus"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "raw",
-							"header": [
-								{
-									"key": "Content-Length",
-									"value": "1887"
-								},
-								{
-									"key": "Content-Type",
-									"value": "application/zip"
-								},
-								{
-									"key": "Last-Modified",
-									"value": "Mon, 08 Mar 2021 10:48:04 GMT"
-								},
-								{
-									"key": "Cache-Control",
-									"value": "public, max-age=43200"
-								},
-								{
-									"key": "Expires",
-									"value": "Mon, 08 Mar 2021 22:48:04 GMT"
-								},
-								{
-									"key": "ETag",
-									"value": "\"1615200484.3949053-1887-2028545723\""
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 08 Mar 2021 10:48:04 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "PK\u0003\u0004\u0014\u0000\u0000\u0000\u0000\u0000\u0001VhR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000source/PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�{bR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0014\u0000\u0000\u0000source/dokument1.xml<dokument>\n\t<text forfattare=\"Sparvutvecklare\" date=\"2020-03-11\" id=\"1\">\nHej! Det här är en korpus.\n\nAstrid Lindgren är född i Vimmerby 1907.\n\nOch här kommer den tredje meningen i ett nytt stycke.\n\nSista meningen är kort och innehåller en sammansättningsform: födelsedagskalas.\n\t</text>\n\n\t<text forfattare=\"Wikipedia\" date=\"2020-03-16\" id=\"2\">\nSpråkbanken är en forskningsenhet vid Göteborgs universitet. Den inrättades som en nationell resurs 1975, som ett direkt resultat av Sture Alléns pionjärinsatser inom svensk korpuslingvistik under 1960-talet. Språkbankens uppdrag blev och är fortfarande att samla in, förädla och tillgängliggöra språkresurser åt forskare och allmänheten, och att bedriva forskning och utveckling som främjar sån användning.\n\nI Språkbanken finns en unik kompetens vad gäller svenska textkorpusar, parallellkorpusar, svenska elektroniska lexikonresurser samt språkteknologiska verktyg för att bearbeta, annotera och visa upp textkorpusar. Huvuddelen av materialet är modernt, men ambitionen är att resurserna ska avspegla hela den skrivna svenskans historia - från medeltida fornsvenska till modern svenska - med alla dess genrer. Huvuddelen av resurserna, korpusar och lexikon, är fritt åtkomliga för sökning via webbgränssnitt.\n\t</text>\n\n\t<text id=\"1\">Hej <i> på dig. Kan vi</i> hantera överlappande taggar?</text>\n</dokument>\nPK\u0007\b�\t\u0000Wt\u0005\u0000\u0000t\u0005\u0000\u0000PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�{bR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0014\u0000\u0000\u0000source/dokument2.xml<text>\nHej! Det här är en annan text.\n\nDen är jättekort. Den har bara tre meningar och ingen metadata.\n</text>\nPK\u0007\b�\u001dx�s\u0000\u0000\u0000s\u0000\u0000\u0000PK\u0001\u0002-\u0003\u0014\u0000\u0000\u0000\u0000\u0000\u0001VhR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0010\u0000�A\u0000\u0000\u0000\u0000source/PK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�{bR�\t\u0000Wt\u0005\u0000\u0000t\u0005\u0000\u0000\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000��%\u0000\u0000\u0000source/dokument1.xmlPK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�{bR�\u001dx�s\u0000\u0000\u0000s\u0000\u0000\u0000\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000���\u0005\u0000\u0000source/dokument2.xmlPK\u0005\u0006\u0000\u0000\u0000\u0000\u0003\u0000\u0003\u0000�\u0000\u0000\u0000�\u0006\u0000\u0000\u0000\u0000"
-						},
 						{
 							"name": "download sources 401",
 							"originalRequest": {
@@ -1563,6 +1491,68 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpuss' does not exist\"\n}"
+						},
+						{
+							"name": "download sources 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/download-corpus?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"download-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "raw",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "1887"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/zip"
+								},
+								{
+									"key": "Last-Modified",
+									"value": "Mon, 08 Mar 2021 10:48:04 GMT"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "public, max-age=43200"
+								},
+								{
+									"key": "Expires",
+									"value": "Mon, 08 Mar 2021 22:48:04 GMT"
+								},
+								{
+									"key": "ETag",
+									"value": "\"1615200484.3949053-1887-2028545723\""
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 08 Mar 2021 10:48:04 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "PK\u0003\u0004\u0014\u0000\u0000\u0000\u0000\u0000\u0001VhR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000source/PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�{bR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0014\u0000\u0000\u0000source/dokument1.xml<dokument>\n\t<text forfattare=\"Sparvutvecklare\" date=\"2020-03-11\" id=\"1\">\nHej! Det här är en korpus.\n\nAstrid Lindgren är född i Vimmerby 1907.\n\nOch här kommer den tredje meningen i ett nytt stycke.\n\nSista meningen är kort och innehåller en sammansättningsform: födelsedagskalas.\n\t</text>\n\n\t<text forfattare=\"Wikipedia\" date=\"2020-03-16\" id=\"2\">\nSpråkbanken är en forskningsenhet vid Göteborgs universitet. Den inrättades som en nationell resurs 1975, som ett direkt resultat av Sture Alléns pionjärinsatser inom svensk korpuslingvistik under 1960-talet. Språkbankens uppdrag blev och är fortfarande att samla in, förädla och tillgängliggöra språkresurser åt forskare och allmänheten, och att bedriva forskning och utveckling som främjar sån användning.\n\nI Språkbanken finns en unik kompetens vad gäller svenska textkorpusar, parallellkorpusar, svenska elektroniska lexikonresurser samt språkteknologiska verktyg för att bearbeta, annotera och visa upp textkorpusar. Huvuddelen av materialet är modernt, men ambitionen är att resurserna ska avspegla hela den skrivna svenskans historia - från medeltida fornsvenska till modern svenska - med alla dess genrer. Huvuddelen av resurserna, korpusar och lexikon, är fritt åtkomliga för sökning via webbgränssnitt.\n\t</text>\n\n\t<text id=\"1\">Hej <i> på dig. Kan vi</i> hantera överlappande taggar?</text>\n</dokument>\nPK\u0007\b�\t\u0000Wt\u0005\u0000\u0000t\u0005\u0000\u0000PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�{bR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0014\u0000\u0000\u0000source/dokument2.xml<text>\nHej! Det här är en annan text.\n\nDen är jättekort. Den har bara tre meningar och ingen metadata.\n</text>\nPK\u0007\b�\u001dx�s\u0000\u0000\u0000s\u0000\u0000\u0000PK\u0001\u0002-\u0003\u0014\u0000\u0000\u0000\u0000\u0000\u0001VhR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0010\u0000�A\u0000\u0000\u0000\u0000source/PK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�{bR�\t\u0000Wt\u0005\u0000\u0000t\u0005\u0000\u0000\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000��%\u0000\u0000\u0000source/dokument1.xmlPK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�{bR�\u001dx�s\u0000\u0000\u0000s\u0000\u0000\u0000\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000���\u0005\u0000\u0000source/dokument2.xmlPK\u0005\u0006\u0000\u0000\u0000\u0000\u0003\u0000\u0003\u0000�\u0000\u0000\u0000�\u0006\u0000\u0000\u0000\u0000"
 						}
 					]
 				},
@@ -1591,7 +1581,7 @@
 								}
 							]
 						},
-						"description": "Remove the source files given in the `remove` query parameter (or in the `remove` key in the uploaded form) from the corpus. Files are provided as a comma-separated list of paths relative to the source directory.\n\nIf any files could not be removed they will be listed in the error response.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username \n '{{host}}/remove-sources?corpus_id=some_corpus_name&remove=dokument1.xml,dokument2.xml'\n```"
+						"description": "Remove the source files given in the `remove` parameter from the corpus. Files are provided as a comma-separated list of paths relative to the source directory.\n\nIf any files could not be removed they will be listed in the error response.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username \n '{{host}}/remove-sources?corpus_id=some_corpus_name&remove=dokument1.xml,dokument2.xml'\n```"
 					},
 					"response": [
 						{
@@ -1813,7 +1803,7 @@
 							]
 						},
 						"url": {
-							"raw": "{{protocol}}://{{host}}/upload-config?corpus_id=min-testkorpus",
+							"raw": "{{protocol}}://{{host}}/upload-config?corpus_id=min-testkorpus&config=metadata:\\n    id: min-testkorpus\\nimport:\\n    document_annotation: text\\n    importer: xml_import:parse\\nexport:\\n    annotations:\\n        - <sentence>:misc.id\\n        - <token:baseform>\\n        - <token:pos>\\n        - <token>:sensaldo.sentiment_label\\n        - SWE_DEFAULT.swener\\n    source_annotations:\\n        - dokument as document\\n        - text:forfattare as author\\n        - ...\\ncsv_export:\\n    source_annotations:\\n        - text:id\\n        - text:date\\n        - text:forfattare as author",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{host}}"
@@ -1825,10 +1815,14 @@
 								{
 									"key": "corpus_id",
 									"value": "min-testkorpus"
+								},
+								{
+									"key": "config",
+									"value": "metadata:\\n    id: min-testkorpus\\nimport:\\n    document_annotation: text\\n    importer: xml_import:parse\\nexport:\\n    annotations:\\n        - <sentence>:misc.id\\n        - <token:baseform>\\n        - <token:pos>\\n        - <token>:sensaldo.sentiment_label\\n        - SWE_DEFAULT.swener\\n    source_annotations:\\n        - dokument as document\\n        - text:forfattare as author\\n        - ...\\ncsv_export:\\n    source_annotations:\\n        - text:id\\n        - text:date\\n        - text:forfattare as author"
 								}
 							]
 						},
-						"description": "Uploads a corpus configuration, either as a file or as plain with the `config` parameter. The config must be in yaml format. Read more about corpus config files in [the Sparv Pipeline documentation](https://spraakbanken.gu.se/sparv/#/user-manual/corpus-configuration).\n\nIf a config file already exists for the given corpus it will be replaced by the newly uploaded one.\n\nPlease note that comments may be removed from your config on upload.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"files[]=@/absolute/path/to/config.yaml;type=text/yaml\" '{{host}}/upload-config?corpus_id=some_corpus_name'\n```"
+						"description": "Uploads a corpus configuration, either as a file or as plain text with the `config` parameter. The config must be in yaml format. Read more about corpus config files in [the Sparv Pipeline documentation](https://spraakbanken.gu.se/sparv/#/user-manual/corpus-configuration).\n\nIf a config file already exists for the given corpus it will be replaced by the newly uploaded one.\n\nPlease note that any yaml comments may be removed from your config upon upload.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"files[]=@/absolute/path/to/config.yaml;type=text/yaml\" '{{host}}/upload-config?corpus_id=some_corpus_name'\n```"
 					},
 					"response": [
 						{
@@ -2437,9 +2431,55 @@
 								}
 							]
 						},
-						"description": "Downloads all available export files created by Sparv.\n\nThe parameters `file` and `dir` may be used to download a specific export file\nor a directory of export files. These parameters must be supplied as absolute\nNextcloud paths or paths relative to the export directory. Only one of these parameter may be applied at a time.\n\nThe `zip` parameter may be set to `false` in combination the the `file` parameter to avoid zipping the file to be downloaded. If `zip` is used without the `file` parameter it will have no effect.\n\n### Examples\n\n```.bash\ncurl -X GET -u some_username '{{host}}/download-exports?corpus_id=some_corpus_name' --output some_corpus_name.zip\n```\n\n```.bash\ncurl -X GET -u some_username '{{host}}/download-exports?corpus_id=some_corpus_name&file=/Min Språkbank/some_corpus_name/export/csv/dokument1.csv&zip=false' --output dokument1.csv\n```"
+						"description": "Downloads all available export files created by Sparv.\n\nThe parameters `file` and `dir` may be used to download a specific export file or a directory of export files. These parameters must be supplied as absolute paths on the storage server or paths relative to the export directory. Only one of these parameters may be applied at a time.\n\nThe `zip` parameter may be set to `false` in combination the the `file` parameter to avoid zipping the file to be downloaded. If `zip` is used without the `file` parameter it will have no effect.\n\n### Examples\n\n```.bash\ncurl -X GET -u some_username '{{host}}/download-exports?corpus_id=some_corpus_name' --output some_corpus_name.zip\n```\n\n```.bash\ncurl -X GET -u some_username '{{host}}/download-exports?corpus_id=some_corpus_name&file=/Min Språkbank/some_corpus_name/export/csv/dokument1.csv&zip=false' --output dokument1.csv\n```"
 					},
 					"response": [
+						{
+							"name": "download exports 401",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/download-exports?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"download-exports"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 02 Mar 2021 14:15:13 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
+						},
 						{
 							"name": "download exports 200",
 							"originalRequest": {
@@ -2501,52 +2541,6 @@
 							],
 							"cookie": [],
 							"body": "PK\u0003\u0004\u0014\u0000\u0000\u0000\u0000\u0000�qbR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000export/PK\u0003\u0004\u0014\u0000\u0000\u0000\u0000\u0000�qbR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000b\u0000\u0000\u0000export/csv/PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�jZR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0018\u0000\u0000\u0000export/csv/dokument1.csvtoken\tbaseform\tpos\tsentiment_label\n# text.date = 2020-03-11\n# text.author = Sparvutvecklare\n# text.id = 1\n# sentence.id = b1ac\nHej\t|hej|\tIN\t\n!\t|\tMAD\t\n\n# sentence.id = b142\nDet\t|den|den här|\tPN\t\nhär\t|här|den här:1|\tAB\t\när\t|vara|\tVB\tneutral\nen\t|en|\tDT\t\nkorpus\t|korpus|\tNN\t\n.\t|\tMAD\t\n\n# sentence.id = b196\n# ne.ex = ENAMEX\n# ne.name = Astrid Lindgren\n# ne.subtype = HUM\n# ne.type = PRS\nAstrid\t|Astrid|\tPM\t\nLindgren\t|Lindgren|\tPM\t\när\t|vara|\tVB\tneutral\nfödd\t|föda|född|\tPC\tneutral\ni\t|i|\tPP\t\n# ne.ex = ENAMEX\n# ne.name = Vimmerby\n# ne.subtype = PPL\n# ne.type = LOC\nVimmerby\t|Vimmerby|\tPM\t\n# ne.ex = TIMEX\n# ne.name = 1907\n# ne.subtype = DAT\n# ne.type = TME\n1907\t|\tRG\t\n.\t|\tMAD\t\n\n# sentence.id = b175\nOch\t|och|\tKN\t\nhär\t|här|\tAB\t\nkommer\t|komma|\tVB\tneutral\nden\t|den|en|\tDT\t\ntredje\t|\tRO\t\nmeningen\t|mening|\tNN\tneutral\ni\t|i|\tPP\t\nett\t|en|\tDT\t\nnytt\t|ny|\tJJ\tneutral\nstycke\t|stycke|\tNN\tneutral\n.\t|\tMAD\t\n\n# sentence.id = b16a\nSista\t|sista|\tJJ\tneutral\nmeningen\t|mening|\tNN\tneutral\när\t|vara|\tVB\tneutral\nkort\t|kort|\tJJ\tneutral\noch\t|och|\tKN\t\ninnehåller\t|innehålla|\tVB\tneutral\nen\t|en|\tDT\t\nsammansättningsform\t|\tNN\t\n:\t|\tMID\t\nfödelsedagskalas\t|födelsedagskalas|\tNN\t\n.\t|\tMAD\t\n\n# text.date = 2020-03-16\n# text.author = Wikipedia\n# text.id = 2\n# sentence.id = b110\nSpråkbanken\t|språkbank|\tNN\t\när\t|vara|\tVB\tneutral\nen\t|en|\tDT\t\nforskningsenhet\t|\tNN\t\nvid\t|vid|\tPP\t\n# ne.ex = ENAMEX\n# ne.name = Göteborgs universitet\n# ne.subtype = EDU\n# ne.type = ORG\nGöteborgs\t|Göteborg|Göteborgs universitet|\tPM\t\nuniversitet\t|universitet|Göteborgs universitet:6|\tNN\t\n.\t|\tMAD\t\n\n# sentence.id = b122\nDen\t|den|\tPN\t\ninrättades\t|inrätta|\tVB\tneutral\nsom\t|\tKN\t\nen\t|en|\tDT\t\nnationell\t|nationell|\tJJ\tneutral\nresurs\t|resurs|\tNN\tpositive\n1975\t|\tRG\t\n,\t|\tMID\t\nsom\t|\tKN\t\nett\t|en|\tDT\t\ndirekt\t|direkt|\tJJ\tneutral\nresultat\t|resultat|\tNN\tneutral\nav\t|av|\tPP\t\n# ne.ex = ENAMEX\n# ne.name = Sture Alléns\n# ne.subtype = HUM\n# ne.type = PRS\nSture\t|Sture|\tPM\t\nAlléns\t|\tPM\t\npionjärinsatser\t|\tNN\t\ninom\t|inom|\tPP\t\nsvensk\t|svensk|\tJJ\tneutral\nkorpuslingvistik\t|korpuslingvistik|\tNN\t\n# ne.ex = TIMEX\n# ne.name = under 1960-talet\n# ne.subtype = DAT\n# ne.type = TME\nunder\t|under|\tPP\t\n1960-talet\t|1960-tal|\tNN\t\n.\t|\tMAD\t\n\n# sentence.id = b1c1\nSpråkbankens\t|språkbank|\tNN\t\nuppdrag\t|uppdrag|\tNN\tneutral\nblev\t|bli|\tVB\tneutral\noch\t|och|\tKN\t\när\t|vara|\tVB\tneutral\nfortfarande\t|fortfarande|\tAB\t\natt\t|att|\tIE\t\nsamla\t|samla|\tVB\tneutral\nin\t|in|\tPL\t\n,\t|\tMID\t\nförädla\t|förädla|\tVB\t\noch\t|och|\tKN\t\ntillgängliggöra\t|tillgängliggöra|\tVB\t\nspråkresurser\t|språkresurs|\tNN\t\nåt\t|åt|\tPP\t\nforskare\t|forskare|\tNN\tneutral\noch\t|och|\tKN\t\nallmänheten\t|allmänhet|\tNN\tneutral\n,\t|\tMID\t\noch\t|och|\tKN\t\natt\t|att|\tIE\t\nbedriva\t|bedriva|\tVB\tneutral\nforskning\t|forskning|\tNN\tneutral\noch\t|och|\tKN\t\nutveckling\t|utveckling|\tNN\tneutral\nsom\t|\tHP\t\nfrämjar\t|främja|\tVB\tpositive\nsån\t|sån|\tJJ\t\nanvändning\t|användning|\tNN\tneutral\n.\t|\tMAD\t\n\n# sentence.id = b1cd\nI\t|i|\tPP\t\nSpråkbanken\t|Språkbanken|\tPM\t\nfinns\t|finna|finnas|\tVB\tneutral\nen\t|en|\tDT\t\nunik\t|unik|\tJJ\tneutral\nkompetens\t|kompetens|\tNN\tpositive\nvad\t|vad|vad för|\tHP\t\ngäller\t|gälla|\tVB\tneutral\nsvenska\t|svensk|\tJJ\tneutral\ntextkorpusar\t|textkorpus|\tNN\t\n,\t|\tMID\t\nparallellkorpusar\t|\tNN\t\n,\t|\tMID\t\nsvenska\t|svensk|\tJJ\tneutral\nelektroniska\t|elektronisk|\tJJ\tneutral\nlexikonresurser\t|lexikonresurs|\tNN\t\nsamt\t|samt|\tKN\t\nspråkteknologiska\t|\tJJ\t\nverktyg\t|verktyg|\tNN\t\nför\t|för|vad för:7|\tPP\t\natt\t|att|\tIE\t\nbearbeta\t|bearbeta|\tVB\t\n,\t|\tMID\t\nannotera\t|annotera|\tVB\t\noch\t|och|\tKN\t\nvisa\t|visa|visa upp|\tVB\tneutral\nupp\t|upp|visa upp:26|\tPL\t\ntextkorpusar\t|textkorpus|\tNN\t\n.\t|\tMAD\t\n\n# sentence.id = b15f\nHuvuddelen\t|huvuddel|\tNN\t\nav\t|av|\tPP\t\nmaterialet\t|material|\tNN\tneutral\när\t|vara|\tVB\tneutral\nmodernt\t|modern|\tJJ\tpositive\n,\t|\tMID\t\nmen\t|men|\tKN\t\nambitionen\t|ambition|\tNN\tneutral\när\t|vara|\tVB\tneutral\natt\t|att|\tSN\t\nresurserna\t|resurs|\tNN\tpositive\nska\t|skola|\tVB\tneutral\navspegla\t|avspegla|\tVB\t\nhela\t|hel|\tJJ\tneutral\nden\t|den|en|\tDT\t\nskrivna\t|skriva|\tPC\tneutral\nsvenskans\t|svenska|\tNN\tneutral\nhistoria\t|historia|\tNN\tneutral\n-\t|\tMID\t\nfrån\t|från|\tPP\t\nmedeltida\t|medeltida|\tJJ\t\nfornsvenska\t|\tNN\t\ntill\t|till|\tPP\t\nmodern\t|modern|\tJJ\tpositive\nsvenska\t|svenska|\tNN\tneutral\n-\t|\tMID\t\nmed\t|med|\tPP\t\nalla\t|all|\tDT\t\ndess\t|den|\tPS\t\ngenrer\t|genre|\tNN\t\n.\t|\tMAD\t\n\n# sentence.id = b13b\nHuvuddelen\t|huvuddel|\tNN\t\nav\t|av|\tPP\t\nresurserna\t|resurs|\tNN\tpositive\n,\t|\tMID\t\nkorpusar\t|korpus|\tNN\t\noch\t|och|\tKN\t\nlexikon\t|lexikon|\tNN\t\n,\t|\tMID\t\när\t|vara|\tVB\tneutral\nfritt\t|fri|\tAB\tpositive\nåtkomliga\t|åtkomlig|\tJJ\t\nför\t|för|\tPP\t\nsökning\t|sökning|\tNN\t\nvia\t|via|\tPP\t\nwebbgränssnitt\t|\tNN\t\n.\t|\tMAD\t\n\n# text.date = \n# text.author = \n# text.id = 1\n# sentence.id = b100\nHej\t|hej|\tIN\t\npå\t|på|\tPP\t\ndig\t|du|\tPN\t\n.\t|\tMAD\t\n\n# sentence.id = b1f4\nKan\t|kunna|\tVB\tneutral\nvi\t|vi|\tPN\t\nhantera\t|hantera|\tVB\tneutral\növerlappande\t|överlappa|\tPC\t\ntaggar\t|tagg|\tNN\t\n?\t|\tMAD\t\nPK\u0007\bY�\"��\u0012\u0000\u0000�\u0012\u0000\u0000PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�kZR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0018\u0000\u0000\u0000export/csv/dokument2.csvtoken\tbaseform\tpos\tsentiment_label\n# text\n# sentence.id = e00a\nHej\t|hej|\tIN\t\n!\t|\tMAD\t\n\n# sentence.id = e089\nDet\t|den|den här|\tPN\t\nhär\t|här|den här:1|\tAB\t\när\t|vara|\tVB\tneutral\nen\t|en|en annan|\tDT\t\nannan\t|annan|en annan:4|\tJJ\t\ntext\t|text|\tNN\tneutral\n.\t|\tMAD\t\n\n# sentence.id = e0b6\nDen\t|den|\tPN\t\när\t|vara|\tVB\tneutral\njättekort\t|\tJJ\t\n.\t|\tMAD\t\n\n# sentence.id = e0be\nDen\t|den|\tPN\t\nhar\t|ha|\tVB\tneutral\nbara\t|bara|\tAB\t\ntre\t|tre|\tRG\t\nmeningar\t|mening|\tNN\tneutral\noch\t|och|\tKN\t\ningen\t|ingen|\tDT\t\nmetadata\t|metadata|\tNN\t\n.\t|\tMAD\t\nPK\u0007\b�7þ\u000e\u0002\u0000\u0000\u000e\u0002\u0000\u0000PK\u0003\u0004\u0014\u0000\u0000\u0000\u0000\u0000�qbR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0016\u0000\u0000\u0000export/frequency_list/PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�kZR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000(\u0000\u0000\u0000export/frequency_list/stats_mini-swe.csvtoken\tPOS\tlemma\tSALDO sense\tlemgram\tcompound\tcount\r\n.\tMAD\t\t\t\t\t14\r\när\tVB.PRS.AKT\tvara\tvara..1\tvara..vb.1\t\t10\r\noch\tKN\toch\toch..1\toch..kn.1\t\t9\r\n,\tMID\t\t\t\t\t9\r\nen\tDT.UTR.SIN.IND\ten\tden..1\ten..al.1\t\t6\r\nHej\tIN\thej\thej..1\thej..in.1\t\t3\r\nDen\tPN.UTR.SIN.DEF.SUB+OBJ\tden\tden..2\tden..pn.1\t\t3\r\nav\tPP\tav\tav..1\tav..pp.1\t\t3\r\natt\tIE\tatt\tatt..1\tatt..sn.1\t\t3\r\n!\tMAD\t\t\t\t\t2\r\nDet\tPN.NEU.SIN.DEF.SUB+OBJ\tden\tden..2\tden..pn.1\t\t2\r\nhär\tAB\thär\tden_här..1\thär..ab.1\t\t2\r\ni\tPP\ti\ti..2\ti..pp.1\t\t2\r\nden\tDT.UTR.SIN.DEF\tden\tden..1\tden..pn.1\t\t2\r\nmeningen\tNN.UTR.SIN.DEF.NOM\tmening\tmening..1\tmening..nn.1\t\t2\r\nett\tDT.NEU.SIN.IND\ten\tden..1\ten..al.1\t\t2\r\nsom\tKN\t\t\t\t\t2\r\nsvenska\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\tsvensk\tsvensk..1\tsvensk..av.1\t\t2\r\ntextkorpusar\tNN.UTR.PLU.IND.NOM\ttextkorpus\ttextkorpus..1\ttextkorpus..nn.1\t\t2\r\nför\tPP\tför\tför..1\tför..pp.1\t\t2\r\nHuvuddelen\tNN.UTR.SIN.DEF.NOM\thuvuddel\thuvuddel..1\thuvuddel..nn.1\t\t2\r\nresurserna\tNN.UTR.PLU.DEF.NOM\tresurs\tresurs..1\tresurs..nn.1\t\t2\r\n-\tMID\t\t\t\t\t2\r\nkorpus\tNN.UTR.SIN.IND.NOM\tkorpus\tkorpus..1\tkorpus..nn.1\t\t1\r\nAstrid\tPM.NOM\tAstrid\tAstrid..1\tAstrid..pm.1\t\t1\r\nLindgren\tPM.NOM\tLindgren\tLindgren..1\tLindgren..pm.1\t\t1\r\nfödd\tPC.PRF.UTR.SIN.IND.NOM\tföda\tfödd..1\tföda..vb.1\t\t1\r\nVimmerby\tPM.NOM\tVimmerby\tVimmerby..1\tVimmerby..pm.1\t\t1\r\n1907\tRG.NOM\t\t\t\t\t1\r\nOch\tKN\toch\toch..1\toch..kn.1\t\t1\r\nhär\tAB\thär\thär..1\thär..ab.1\t\t1\r\nkommer\tVB.PRS.AKT\tkomma\tkomma..1\tkomma..vb.1\t\t1\r\ntredje\tRO.NOM\t\t\t\t\t1\r\nnytt\tJJ.POS.NEU.SIN.IND.NOM\tny\tny..1\tny..av.1\t\t1\r\nstycke\tNN.NEU.SIN.IND.NOM\tstycke\tstycke..1\tstycke..nn.1\t\t1\r\nSista\tJJ.SUV.UTR+NEU.SIN+PLU.DEF.NOM\tsista\tsista..1\tsista..av.1\t\t1\r\nkort\tJJ.POS.UTR.SIN.IND.NOM\tkort\tkort..1\tkort..av.1\t\t1\r\ninnehåller\tVB.PRS.AKT\tinnehålla\tinnehålla..1\tinnehålla..vb.1\t\t1\r\nsammansättningsform\tNN.UTR.SIN.IND.NOM\t\t\t\tsammansättning..nn.1+form..nn.1\t1\r\n:\tMID\t\t\t\t\t1\r\nfödelsedagskalas\tNN.NEU.SIN.IND.NOM\tfödelsedagskalas\tfödelsedagskalas..1\tfödelsedagskalas..nn.1\t\t1\r\nSpråkbanken\tNN.UTR.SIN.DEF.NOM\tspråkbank\tspråkbank..1\tspråkbank..nn.1\t\t1\r\nforskningsenhet\tNN.UTR.SIN.IND.NOM\t\t\t\tforskning..nn.1+enhet..nn.1\t1\r\nvid\tPP\tvid\tvid..1\tvid..pp.1\t\t1\r\nGöteborgs\tPM.GEN\tGöteborg\tGöteborg..1\tGöteborg..pm.1\t\t1\r\nuniversitet\tNN.NEU.SIN.IND.NOM\tuniversitet\tGöteborgs_universitet..1\tuniversitet..nn.1\t\t1\r\ninrättades\tVB.PRT.SFO\tinrätta\tinrätta..1\tinrätta..vb.1\t\t1\r\nnationell\tJJ.POS.UTR.SIN.IND.NOM\tnationell\tnationell..1\tnationell..av.1\t\t1\r\nresurs\tNN.UTR.SIN.IND.NOM\tresurs\tresurs..1\tresurs..nn.1\t\t1\r\n1975\tRG.NOM\t\t\t\t\t1\r\ndirekt\tJJ.POS.NEU.SIN.IND.NOM\tdirekt\tdirekt..1\tdirekt..av.1\t\t1\r\nresultat\tNN.NEU.SIN.IND.NOM\tresultat\tresultat..1\tresultat..nn.1\t\t1\r\nSture\tPM.NOM\tSture\tSture..1\tSture..pm.1\t\t1\r\nAlléns\tPM.GEN\t\t\t\t\t1\r\npionjärinsatser\tNN.UTR.PLU.IND.NOM\t\t\t\tpionjär..nn.1+insats..nn.1\t1\r\ninom\tPP\tinom\tinom..1\tinom..pp.1\t\t1\r\nsvensk\tJJ.POS.UTR.SIN.IND.NOM\tsvensk\tsvensk..1\tsvensk..av.1\t\t1\r\nkorpuslingvistik\tNN.UTR.SIN.IND.NOM\tkorpuslingvistik\tkorpuslingvistik..1\tkorpuslingvistik..nn.1\t\t1\r\nunder\tPP\tunder\tunder..1\tunder..pp.1\t\t1\r\n1960-talet\tNN.NEU.SIN.DEF.NOM\t1960-tal\tnittonhundrasextiotalet..1\t_1960-tal..nn.1\t\t1\r\nSpråkbankens\tNN.UTR.SIN.DEF.GEN\tspråkbank\tspråkbank..1\tspråkbank..nn.1\t\t1\r\nuppdrag\tNN.NEU.SIN.IND.NOM\tuppdrag\tuppdrag..1\tuppdrag..nn.1\t\t1\r\nblev\tVB.PRT.AKT\tbli\tbli..1\tbli..vb.1\t\t1\r\nfortfarande\tAB\tfortfarande\tfortfarande..1\tfortfarande..ab.1\t\t1\r\nsamla\tVB.INF.AKT\tsamla\tsamla..2\tsamla..vb.1\t\t1\r\nin\tPL\tin\tin..1\tin..ab.1\t\t1\r\nförädla\tVB.INF.AKT\tförädla\tförädla..1\tförädla..vb.1\t\t1\r\ntillgängliggöra\tVB.INF.AKT\ttillgängliggöra\ttillgängliggöra..1\ttillgängliggöra..vb.1\t\t1\r\nspråkresurser\tNN.UTR.PLU.IND.NOM\tspråkresurs\tspråkresurs..1\tspråkresurs..nn.1\t\t1\r\nåt\tPP\tåt\tåt..1\tåt..pp.1\t\t1\r\nforskare\tNN.UTR.PLU.IND.NOM\tforskare\tforskare..1\tforskare..nn.1\t\t1\r\nallmänheten\tNN.UTR.SIN.DEF.NOM\tallmänhet\tallmänhet..1\tallmänhet..nn.1\t\t1\r\nbedriva\tVB.INF.AKT\tbedriva\tbedriva..1\tbedriva..vb.1\t\t1\r\nforskning\tNN.UTR.SIN.IND.NOM\tforskning\tforskning..1\tforskning..nn.1\t\t1\r\nutveckling\tNN.UTR.SIN.IND.NOM\tutveckling\tutveckling..1\tutveckling..nn.1\t\t1\r\nsom\tHP.-.-.-\t\t\t\t\t1\r\nfrämjar\tVB.PRS.AKT\tfrämja\tfrämja..1\tfrämja..vb.1\t\t1\r\nsån\tJJ.POS.UTR.SIN.IND.NOM\tsån\tsådan..1\tsån..pn.1\t\t1\r\nanvändning\tNN.UTR.SIN.IND.NOM\tanvändning\tanvändning..1\tanvändning..nn.1\t\t1\r\nI\tPP\ti\ti..2\ti..pp.1\t\t1\r\nSpråkbanken\tPM.NOM\tSpråkbanken\tSpråkbanken..1\tSpråkbanken..pm.1\t\t1\r\nfinns\tVB.PRS.SFO\tfinna\tfinna..1\tfinna..vb.1\t\t1\r\nunik\tJJ.POS.UTR.SIN.IND.NOM\tunik\tunik..1\tunik..av.1\t\t1\r\nkompetens\tNN.UTR.SIN.IND.NOM\tkompetens\tkompetens..1\tkompetens..nn.1\t\t1\r\nvad\tHP.NEU.SIN.IND\tvad\tvad..1\tvad..pn.1\t\t1\r\ngäller\tVB.PRS.AKT\tgälla\tgälla..1\tgälla..vb.1\t\t1\r\nparallellkorpusar\tNN.UTR.PLU.IND.NOM\t\t\t\tparallell..nn.1+korpus..nn.1\t1\r\nelektroniska\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\telektronisk\telektronisk..1\telektronisk..av.1\t\t1\r\nlexikonresurser\tNN.UTR.PLU.IND.NOM\tlexikonresurs\tlexikonresurs..1\tlexikonresurs..nn.1\t\t1\r\nsamt\tKN\tsamt\tsamt..1\tsamt..kn.1\t\t1\r\nspråkteknologiska\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\t\t\t\tspråk..nn.1+teknologisk..av.1\t1\r\nverktyg\tNN.NEU.PLU.IND.NOM\tverktyg\tverktyg..1\tverktyg..nn.1\t\t1\r\nbearbeta\tVB.INF.AKT\tbearbeta\tbearbeta..1\tbearbeta..vb.1\t\t1\r\nannotera\tVB.INF.AKT\tannotera\tannotera..1\tannotera..vb.1\t\t1\r\nvisa\tVB.INF.AKT\tvisa\tvisa..1\tvisa..vb.1\t\t1\r\nupp\tPL\tupp\tupp..1\tupp..ab.1\t\t1\r\nmaterialet\tNN.NEU.SIN.DEF.NOM\tmaterial\tmaterial..1\tmaterial..nn.1\t\t1\r\nmodernt\tJJ.POS.NEU.SIN.IND.NOM\tmodern\tmodern..1\tmodern..av.1\t\t1\r\nmen\tKN\tmen\tmen..1\tmen..kn.1\t\t1\r\nambitionen\tNN.UTR.SIN.DEF.NOM\tambition\tambition..1\tambition..nn.1\t\t1\r\natt\tSN\tatt\tatt..1\tatt..sn.1\t\t1\r\nska\tVB.PRS.AKT\tskola\tskola..4\tskola..vb.2\t\t1\r\navspegla\tVB.INF.AKT\tavspegla\tavspegla..1\tavspegla..vb.1\t\t1\r\nhela\tJJ.POS.UTR+NEU.SIN.DEF.NOM\thel\thel..1\thel..av.1\t\t1\r\nskrivna\tPC.PRF.UTR+NEU.SIN.DEF.NOM\tskriva\tskriva..1\tskriva..vb.1\t\t1\r\nsvenskans\tNN.UTR.SIN.DEF.GEN\tsvenska\tsvenska..2\tsvenska..nn.1\t\t1\r\nhistoria\tNN.UTR.SIN.IND.NOM\thistoria\thistoria..1\thistoria..nn.1\t\t1\r\nfrån\tPP\tfrån\tfrån..1\tfrån..pp.1\t\t1\r\nmedeltida\tJJ.POS.UTR+NEU.SIN+PLU.IND+DEF.NOM\tmedeltida\tmedeltida..1\tmedeltida..av.1\t\t1\r\nfornsvenska\tNN.UTR.SIN.IND.NOM\t\t\t\tforn..av.1+svenska..nn.1\t1\r\ntill\tPP\ttill\ttill..1\ttill..pp.1\t\t1\r\nmodern\tJJ.POS.UTR.SIN.IND.NOM\tmodern\tmodern..1\tmodern..av.1\t\t1\r\nsvenska\tNN.UTR.SIN.IND.NOM\tsvenska\tsvenska..1\tsvenska..nn.1\t\t1\r\nmed\tPP\tmed\tmed..1\tmed..pp.1\t\t1\r\nalla\tDT.UTR+NEU.PLU.IND+DEF\tall\tall..1\tall..pn.1\t\t1\r\ndess\tPS.UTR+NEU.SIN+PLU.DEF\tden\tden..2\tden..pn.1\t\t1\r\ngenrer\tNN.UTR.PLU.IND.NOM\tgenre\tgenre..1\tgenre..nn.1\t\t1\r\nkorpusar\tNN.UTR.PLU.IND.NOM\tkorpus\tkorpus..1\tkorpus..nn.1\t\t1\r\nlexikon\tNN.NEU.PLU.IND.NOM\tlexikon\tlexikon..1\tlexikon..nn.1\t\t1\r\nfritt\tAB.POS\tfri\tfri..2\tfri..av.1\t\t1\r\nåtkomliga\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\tåtkomlig\tåtkomlig..1\tåtkomlig..av.1\t\t1\r\nsökning\tNN.UTR.SIN.IND.NOM\tsökning\tsökning..1\tsökning..nn.1\t\t1\r\nvia\tPP\tvia\tvia..1\tvia..pp.1\t\t1\r\nwebbgränssnitt\tNN.NEU.PLU.IND.NOM\t\t\t\twebb..nn.1+gränssnitt..nn.1\t1\r\npå\tPP\tpå\tpå..1\tpå..pp.1\t\t1\r\ndig\tPN.UTR.SIN.DEF.OBJ\tdu\tdu..1\tdu..pn.1\t\t1\r\nKan\tVB.PRS.AKT\tkunna\tkunna..1\tkunna..vb.1\t\t1\r\nvi\tPN.UTR.PLU.DEF.SUB\tvi\tvi..1\tvi..pn.1\t\t1\r\nhantera\tVB.INF.AKT\thantera\thantera..1\thantera..vb.1\t\t1\r\növerlappande\tPC.PRS.UTR+NEU.SIN+PLU.IND+DEF.NOM\töverlappa\töverlappa..1\töverlappa..vb.1\t\t1\r\ntaggar\tNN.UTR.PLU.IND.NOM\ttagg\ttagg..1\ttagg..nn.1\t\t1\r\n?\tMAD\t\t\t\t\t1\r\nannan\tJJ.POS.UTR.SIN.IND.NOM\tannan\tannan..1\tannan..pn.1\t\t1\r\ntext\tNN.UTR.SIN.IND.NOM\ttext\ttext..1\ttext..nn.1\t\t1\r\njättekort\tJJ.POS.UTR.SIN.IND.NOM\t\t\t\tjätte..nn.1+kort..av.1\t1\r\nhar\tVB.PRS.AKT\tha\tha..1\tha..vb.1\t\t1\r\nbara\tAB\tbara\tbara..1\tbara..ab.1\t\t1\r\ntre\tRG.NOM\ttre\ttre..1\ttre..nl.1\t\t1\r\nmeningar\tNN.UTR.PLU.IND.NOM\tmening\tmening..1\tmening..nn.1\t\t1\r\ningen\tDT.UTR.SIN.IND\tingen\tingen..1\tingen..pn.1\t\t1\r\nmetadata\tNN.UTR.SIN.IND.NOM\tmetadata\tmetadata..1\tmetadata..nn.1\t\t1\r\nPK\u0007\b�s.[�\u001d\u0000\u0000�\u001d\u0000\u0000PK\u0003\u0004\u0014\u0000\u0000\u0000\u0000\u0000�qbR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0012\u0000\u0000\u0000export/xml_pretty/PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�jZR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&\u0000\u0000\u0000export/xml_pretty/dokument1_export.xml<?xml version='1.0' encoding='UTF-8'?>\n<document>\n  <text author=\"Sparvutvecklare\" date=\"2020-03-11\" id=\"1\">\n    <sentence id=\"b1ac\">\n      <token baseform=\"|hej|\" pos=\"IN\">Hej</token>\n      <token baseform=\"|\" pos=\"MAD\">!</token>\n    </sentence>\n    <sentence id=\"b142\">\n      <token baseform=\"|den|den här|\" pos=\"PN\">Det</token>\n      <token baseform=\"|här|den här:1|\" pos=\"AB\">här</token>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"|korpus|\" pos=\"NN\">korpus</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b196\">\n      <ne ex=\"ENAMEX\" name=\"Astrid Lindgren\" subtype=\"HUM\" type=\"PRS\">\n        <token baseform=\"|Astrid|\" pos=\"PM\">Astrid</token>\n        <token baseform=\"|Lindgren|\" pos=\"PM\">Lindgren</token>\n      </ne>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"|föda|född|\" pos=\"PC\" sentiment_label=\"neutral\">född</token>\n      <token baseform=\"|i|\" pos=\"PP\">i</token>\n      <ne ex=\"ENAMEX\" name=\"Vimmerby\" subtype=\"PPL\" type=\"LOC\">\n        <token baseform=\"|Vimmerby|\" pos=\"PM\">Vimmerby</token>\n      </ne>\n      <ne ex=\"TIMEX\" name=\"1907\" subtype=\"DAT\" type=\"TME\">\n        <token baseform=\"|\" pos=\"RG\">1907</token>\n      </ne>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b175\">\n      <token baseform=\"|och|\" pos=\"KN\">Och</token>\n      <token baseform=\"|här|\" pos=\"AB\">här</token>\n      <token baseform=\"|komma|\" pos=\"VB\" sentiment_label=\"neutral\">kommer</token>\n      <token baseform=\"|den|en|\" pos=\"DT\">den</token>\n      <token baseform=\"|\" pos=\"RO\">tredje</token>\n      <token baseform=\"|mening|\" pos=\"NN\" sentiment_label=\"neutral\">meningen</token>\n      <token baseform=\"|i|\" pos=\"PP\">i</token>\n      <token baseform=\"|en|\" pos=\"DT\">ett</token>\n      <token baseform=\"|ny|\" pos=\"JJ\" sentiment_label=\"neutral\">nytt</token>\n      <token baseform=\"|stycke|\" pos=\"NN\" sentiment_label=\"neutral\">stycke</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b16a\">\n      <token baseform=\"|sista|\" pos=\"JJ\" sentiment_label=\"neutral\">Sista</token>\n      <token baseform=\"|mening|\" pos=\"NN\" sentiment_label=\"neutral\">meningen</token>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"|kort|\" pos=\"JJ\" sentiment_label=\"neutral\">kort</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"|innehålla|\" pos=\"VB\" sentiment_label=\"neutral\">innehåller</token>\n      <token baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"|\" pos=\"NN\">sammansättningsform</token>\n      <token baseform=\"|\" pos=\"MID\">:</token>\n      <token baseform=\"|födelsedagskalas|\" pos=\"NN\">födelsedagskalas</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n  </text>\n  <text author=\"Wikipedia\" date=\"2020-03-16\" id=\"2\">\n    <sentence id=\"b110\">\n      <token baseform=\"|språkbank|\" pos=\"NN\">Språkbanken</token>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"|\" pos=\"NN\">forskningsenhet</token>\n      <token baseform=\"|vid|\" pos=\"PP\">vid</token>\n      <ne ex=\"ENAMEX\" name=\"Göteborgs universitet\" subtype=\"EDU\" type=\"ORG\">\n        <token baseform=\"|Göteborg|Göteborgs universitet|\" pos=\"PM\">Göteborgs</token>\n        <token baseform=\"|universitet|Göteborgs universitet:6|\" pos=\"NN\">universitet</token>\n      </ne>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b122\">\n      <token baseform=\"|den|\" pos=\"PN\">Den</token>\n      <token baseform=\"|inrätta|\" pos=\"VB\" sentiment_label=\"neutral\">inrättades</token>\n      <token baseform=\"|\" pos=\"KN\">som</token>\n      <token baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"|nationell|\" pos=\"JJ\" sentiment_label=\"neutral\">nationell</token>\n      <token baseform=\"|resurs|\" pos=\"NN\" sentiment_label=\"positive\">resurs</token>\n      <token baseform=\"|\" pos=\"RG\">1975</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|\" pos=\"KN\">som</token>\n      <token baseform=\"|en|\" pos=\"DT\">ett</token>\n      <token baseform=\"|direkt|\" pos=\"JJ\" sentiment_label=\"neutral\">direkt</token>\n      <token baseform=\"|resultat|\" pos=\"NN\" sentiment_label=\"neutral\">resultat</token>\n      <token baseform=\"|av|\" pos=\"PP\">av</token>\n      <ne ex=\"ENAMEX\" name=\"Sture Alléns\" subtype=\"HUM\" type=\"PRS\">\n        <token baseform=\"|Sture|\" pos=\"PM\">Sture</token>\n        <token baseform=\"|\" pos=\"PM\">Alléns</token>\n      </ne>\n      <token baseform=\"|\" pos=\"NN\">pionjärinsatser</token>\n      <token baseform=\"|inom|\" pos=\"PP\">inom</token>\n      <token baseform=\"|svensk|\" pos=\"JJ\" sentiment_label=\"neutral\">svensk</token>\n      <token baseform=\"|korpuslingvistik|\" pos=\"NN\">korpuslingvistik</token>\n      <ne ex=\"TIMEX\" name=\"under 1960-talet\" subtype=\"DAT\" type=\"TME\">\n        <token baseform=\"|under|\" pos=\"PP\">under</token>\n        <token baseform=\"|1960-tal|\" pos=\"NN\">1960-talet</token>\n      </ne>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b1c1\">\n      <token baseform=\"|språkbank|\" pos=\"NN\">Språkbankens</token>\n      <token baseform=\"|uppdrag|\" pos=\"NN\" sentiment_label=\"neutral\">uppdrag</token>\n      <token baseform=\"|bli|\" pos=\"VB\" sentiment_label=\"neutral\">blev</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"|fortfarande|\" pos=\"AB\">fortfarande</token>\n      <token baseform=\"|att|\" pos=\"IE\">att</token>\n      <token baseform=\"|samla|\" pos=\"VB\" sentiment_label=\"neutral\">samla</token>\n      <token baseform=\"|in|\" pos=\"PL\">in</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|förädla|\" pos=\"VB\">förädla</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"|tillgängliggöra|\" pos=\"VB\">tillgängliggöra</token>\n      <token baseform=\"|språkresurs|\" pos=\"NN\">språkresurser</token>\n      <token baseform=\"|åt|\" pos=\"PP\">åt</token>\n      <token baseform=\"|forskare|\" pos=\"NN\" sentiment_label=\"neutral\">forskare</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"|allmänhet|\" pos=\"NN\" sentiment_label=\"neutral\">allmänheten</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"|att|\" pos=\"IE\">att</token>\n      <token baseform=\"|bedriva|\" pos=\"VB\" sentiment_label=\"neutral\">bedriva</token>\n      <token baseform=\"|forskning|\" pos=\"NN\" sentiment_label=\"neutral\">forskning</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"|utveckling|\" pos=\"NN\" sentiment_label=\"neutral\">utveckling</token>\n      <token baseform=\"|\" pos=\"HP\">som</token>\n      <token baseform=\"|främja|\" pos=\"VB\" sentiment_label=\"positive\">främjar</token>\n      <token baseform=\"|sån|\" pos=\"JJ\">sån</token>\n      <token baseform=\"|användning|\" pos=\"NN\" sentiment_label=\"neutral\">användning</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b1cd\">\n      <token baseform=\"|i|\" pos=\"PP\">I</token>\n      <token baseform=\"|Språkbanken|\" pos=\"PM\">Språkbanken</token>\n      <token baseform=\"|finna|finnas|\" pos=\"VB\" sentiment_label=\"neutral\">finns</token>\n      <token baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"|unik|\" pos=\"JJ\" sentiment_label=\"neutral\">unik</token>\n      <token baseform=\"|kompetens|\" pos=\"NN\" sentiment_label=\"positive\">kompetens</token>\n      <token baseform=\"|vad|vad för|\" pos=\"HP\">vad</token>\n      <token baseform=\"|gälla|\" pos=\"VB\" sentiment_label=\"neutral\">gäller</token>\n      <token baseform=\"|svensk|\" pos=\"JJ\" sentiment_label=\"neutral\">svenska</token>\n      <token baseform=\"|textkorpus|\" pos=\"NN\">textkorpusar</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|\" pos=\"NN\">parallellkorpusar</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|svensk|\" pos=\"JJ\" sentiment_label=\"neutral\">svenska</token>\n      <token baseform=\"|elektronisk|\" pos=\"JJ\" sentiment_label=\"neutral\">elektroniska</token>\n      <token baseform=\"|lexikonresurs|\" pos=\"NN\">lexikonresurser</token>\n      <token baseform=\"|samt|\" pos=\"KN\">samt</token>\n      <token baseform=\"|\" pos=\"JJ\">språkteknologiska</token>\n      <token baseform=\"|verktyg|\" pos=\"NN\">verktyg</token>\n      <token baseform=\"|för|vad för:7|\" pos=\"PP\">för</token>\n      <token baseform=\"|att|\" pos=\"IE\">att</token>\n      <token baseform=\"|bearbeta|\" pos=\"VB\">bearbeta</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|annotera|\" pos=\"VB\">annotera</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"|visa|visa upp|\" pos=\"VB\" sentiment_label=\"neutral\">visa</token>\n      <token baseform=\"|upp|visa upp:26|\" pos=\"PL\">upp</token>\n      <token baseform=\"|textkorpus|\" pos=\"NN\">textkorpusar</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b15f\">\n      <token baseform=\"|huvuddel|\" pos=\"NN\">Huvuddelen</token>\n      <token baseform=\"|av|\" pos=\"PP\">av</token>\n      <token baseform=\"|material|\" pos=\"NN\" sentiment_label=\"neutral\">materialet</token>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"|modern|\" pos=\"JJ\" sentiment_label=\"positive\">modernt</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|men|\" pos=\"KN\">men</token>\n      <token baseform=\"|ambition|\" pos=\"NN\" sentiment_label=\"neutral\">ambitionen</token>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"|att|\" pos=\"SN\">att</token>\n      <token baseform=\"|resurs|\" pos=\"NN\" sentiment_label=\"positive\">resurserna</token>\n      <token baseform=\"|skola|\" pos=\"VB\" sentiment_label=\"neutral\">ska</token>\n      <token baseform=\"|avspegla|\" pos=\"VB\">avspegla</token>\n      <token baseform=\"|hel|\" pos=\"JJ\" sentiment_label=\"neutral\">hela</token>\n      <token baseform=\"|den|en|\" pos=\"DT\">den</token>\n      <token baseform=\"|skriva|\" pos=\"PC\" sentiment_label=\"neutral\">skrivna</token>\n      <token baseform=\"|svenska|\" pos=\"NN\" sentiment_label=\"neutral\">svenskans</token>\n      <token baseform=\"|historia|\" pos=\"NN\" sentiment_label=\"neutral\">historia</token>\n      <token baseform=\"|\" pos=\"MID\">-</token>\n      <token baseform=\"|från|\" pos=\"PP\">från</token>\n      <token baseform=\"|medeltida|\" pos=\"JJ\">medeltida</token>\n      <token baseform=\"|\" pos=\"NN\">fornsvenska</token>\n      <token baseform=\"|till|\" pos=\"PP\">till</token>\n      <token baseform=\"|modern|\" pos=\"JJ\" sentiment_label=\"positive\">modern</token>\n      <token baseform=\"|svenska|\" pos=\"NN\" sentiment_label=\"neutral\">svenska</token>\n      <token baseform=\"|\" pos=\"MID\">-</token>\n      <token baseform=\"|med|\" pos=\"PP\">med</token>\n      <token baseform=\"|all|\" pos=\"DT\">alla</token>\n      <token baseform=\"|den|\" pos=\"PS\">dess</token>\n      <token baseform=\"|genre|\" pos=\"NN\">genrer</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b13b\">\n      <token baseform=\"|huvuddel|\" pos=\"NN\">Huvuddelen</token>\n      <token baseform=\"|av|\" pos=\"PP\">av</token>\n      <token baseform=\"|resurs|\" pos=\"NN\" sentiment_label=\"positive\">resurserna</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|korpus|\" pos=\"NN\">korpusar</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"|lexikon|\" pos=\"NN\">lexikon</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"|fri|\" pos=\"AB\" sentiment_label=\"positive\">fritt</token>\n      <token baseform=\"|åtkomlig|\" pos=\"JJ\">åtkomliga</token>\n      <token baseform=\"|för|\" pos=\"PP\">för</token>\n      <token baseform=\"|sökning|\" pos=\"NN\">sökning</token>\n      <token baseform=\"|via|\" pos=\"PP\">via</token>\n      <token baseform=\"|\" pos=\"NN\">webbgränssnitt</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n  </text>\n  <text id=\"1\">\n    <sentence id=\"b100\">\n      <token baseform=\"|hej|\" pos=\"IN\">Hej</token>\n      <i sparv.overlap=\"b1-1\">\n        <token baseform=\"|på|\" pos=\"PP\">på</token>\n        <token baseform=\"|du|\" pos=\"PN\">dig</token>\n        <token baseform=\"|\" pos=\"MAD\">.</token>\n      </i>\n    </sentence>\n    <i sparv.overlap=\"b1-1\">\n      <sentence id=\"b1f4\" sparv.overlap=\"b1-2\">\n        <token baseform=\"|kunna|\" pos=\"VB\" sentiment_label=\"neutral\">Kan</token>\n        <token baseform=\"|vi|\" pos=\"PN\">vi</token>\n      </sentence>\n    </i>\n    <sentence id=\"b1f4\" sparv.overlap=\"b1-2\">\n      <token baseform=\"|hantera|\" pos=\"VB\" sentiment_label=\"neutral\">hantera</token>\n      <token baseform=\"|överlappa|\" pos=\"PC\">överlappande</token>\n      <token baseform=\"|tagg|\" pos=\"NN\">taggar</token>\n      <token baseform=\"|\" pos=\"MAD\">?</token>\n    </sentence>\n  </text>\n</document>\nPK\u0007\bu:��[3\u0000\u0000[3\u0000\u0000PK\u0003\u0004\n\u0000\b\u0000\u0000\u0000�kZR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&\u0000\u0000\u0000export/xml_pretty/dokument2_export.xml<?xml version='1.0' encoding='UTF-8'?>\n<text>\n  <sentence id=\"e00a\">\n    <token baseform=\"|hej|\" pos=\"IN\">Hej</token>\n    <token baseform=\"|\" pos=\"MAD\">!</token>\n  </sentence>\n  <sentence id=\"e089\">\n    <token baseform=\"|den|den här|\" pos=\"PN\">Det</token>\n    <token baseform=\"|här|den här:1|\" pos=\"AB\">här</token>\n    <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n    <token baseform=\"|en|en annan|\" pos=\"DT\">en</token>\n    <token baseform=\"|annan|en annan:4|\" pos=\"JJ\">annan</token>\n    <token baseform=\"|text|\" pos=\"NN\" sentiment_label=\"neutral\">text</token>\n    <token baseform=\"|\" pos=\"MAD\">.</token>\n  </sentence>\n  <sentence id=\"e0b6\">\n    <token baseform=\"|den|\" pos=\"PN\">Den</token>\n    <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n    <token baseform=\"|\" pos=\"JJ\">jättekort</token>\n    <token baseform=\"|\" pos=\"MAD\">.</token>\n  </sentence>\n  <sentence id=\"e0be\">\n    <token baseform=\"|den|\" pos=\"PN\">Den</token>\n    <token baseform=\"|ha|\" pos=\"VB\" sentiment_label=\"neutral\">har</token>\n    <token baseform=\"|bara|\" pos=\"AB\">bara</token>\n    <token baseform=\"|tre|\" pos=\"RG\">tre</token>\n    <token baseform=\"|mening|\" pos=\"NN\" sentiment_label=\"neutral\">meningar</token>\n    <token baseform=\"|och|\" pos=\"KN\">och</token>\n    <token baseform=\"|ingen|\" pos=\"DT\">ingen</token>\n    <token baseform=\"|metadata|\" pos=\"NN\">metadata</token>\n    <token baseform=\"|\" pos=\"MAD\">.</token>\n  </sentence>\n</text>\nPK\u0007\b\b+�&�\u0005\u0000\u0000�\u0005\u0000\u0000PK\u0001\u0002-\u0003\u0014\u0000\u0000\u0000\u0000\u0000�qbR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0010\u0000�A\u0000\u0000\u0000\u0000export/PK\u0001\u0002-\u0003\u0014\u0000\u0000\u0000\u0000\u0000�qbR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0010\u0000�A%\u0000\u0000\u0000export/csv/PK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�jZRY�\"��\u0012\u0000\u0000�\u0012\u0000\u0000\u0018\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000��N\u0000\u0000\u0000export/csv/dokument1.csvPK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�kZR�7þ\u000e\u0002\u0000\u0000\u000e\u0002\u0000\u0000\u0018\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000��]\u0013\u0000\u0000export/csv/dokument2.csvPK\u0001\u0002-\u0003\u0014\u0000\u0000\u0000\u0000\u0000�qbR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0016\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0010\u0000�A�\u0015\u0000\u0000export/frequency_list/PK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�kZR�s.[�\u001d\u0000\u0000�\u001d\u0000\u0000(\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000���\u0015\u0000\u0000export/frequency_list/stats_mini-swe.csvPK\u0001\u0002-\u0003\u0014\u0000\u0000\u0000\u0000\u0000�qbR\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0012\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0010\u0000�A44\u0000\u0000export/xml_pretty/PK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�jZRu:��[3\u0000\u0000[3\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000��d4\u0000\u0000export/xml_pretty/dokument1_export.xmlPK\u0001\u0002-\u0003\n\u0000\b\u0000\u0000\u0000�kZR\b+�&�\u0005\u0000\u0000�\u0005\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000��\u0013h\u0000\u0000export/xml_pretty/dokument2_export.xmlPK\u0005\u0006\u0000\u0000\u0000\u0000\t\u0000\t\u0000|\u0002\u0000\u0000\u001fn\u0000\u0000\u0000\u0000"
-						},
-						{
-							"name": "download exports 401",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/download-exports?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"download-exports"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										}
-									]
-								}
-							},
-							"status": "UNAUTHORIZED",
-							"code": 401,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "84"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Tue, 02 Mar 2021 14:15:13 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"HTTP error: 401\"\n}"
 						},
 						{
 							"name": "download exports 404",
@@ -2894,7 +2888,7 @@
 								}
 							]
 						},
-						"description": "Adds an annotation job to the queue. The requested export formats may be supplied as a comma-separated list to the `exports` query parameter or the `exports` key in the form. If no export formats are specified, some standard exports will be generated.\n\nThe `files` parameter can be used to run the pipeline on a part of the corpus. The key to `files` is a comma-separated list of file names without file extensions, e.g. `files=dokument1,dokument2`.\n\nThere can only be one annotation job for each corpus at a time. A job must finish annotating and syncing to Nextcloud or aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"corpus_id=some_corpus_name\" -F \"exports=csv_export:csv,stats_export:freq_list,xml_export:pretty\" '{{host}}/run-sparv'\n```"
+						"description": "Adds an annotation job to the queue. The requested export formats may be supplied as a comma-separated list to the `exports` parameter. If no export formats are specified, some standard exports will be generated.\n\nThe `files` parameter can be used to run the pipeline on a part of the corpus. The key to `files` is a comma-separated list of file names without file extensions, e.g. `files=dokument1,dokument2`.\n\nThere can only be one annotation job for each corpus at a time. A job must finish annotating and syncing to the storage server or be aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -u some_username -F \"corpus_id=some_corpus_name\" -F \"exports=csv_export:csv,stats_export:freq_list,xml_export:pretty\" '{{host}}/run-sparv'\n```"
 					},
 					"response": [
 						{
@@ -3424,7 +3418,7 @@
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully aborted running job for 'min-testkorpus'\",\n    \"job_status\": \"aborted\"\n}"
 						},
 						{
-							"name": "abort job 200-no-job",
+							"name": "abort job 200 no job",
 							"originalRequest": {
 								"method": "POST",
 								"header": [],
@@ -3542,57 +3536,6 @@
 					},
 					"response": [
 						{
-							"name": "clear annotations 200",
-							"originalRequest": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/clear-annotations?corpus_id=min-testkorpus",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"clear-annotations"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "min-testkorpus"
-										},
-										{
-											"key": "",
-											"value": "",
-											"disabled": true
-										}
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "171"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.5"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 04 Feb 2021 15:14:15 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Annotations for 'min-testkorpus' successfully removed\",\n    \"sparv_output\": \"'export' directory removed\\n'sparv-workdir' directory removed\"\n}"
-						},
-						{
 							"name": "clear annotations 401",
 							"originalRequest": {
 								"method": "DELETE",
@@ -3693,6 +3636,57 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'min-testkorpuss' does not exist\"\n}"
+						},
+						{
+							"name": "clear annotations 200",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/clear-annotations?corpus_id=min-testkorpus",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"clear-annotations"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "min-testkorpus"
+										},
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "171"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.5"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 04 Feb 2021 15:14:15 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Annotations for 'min-testkorpus' successfully removed\",\n    \"sparv_output\": \"'export' directory removed\\n'sparv-workdir' directory removed\"\n}"
 						}
 					]
 				},
@@ -4145,46 +4139,6 @@
 					},
 					"response": [
 						{
-							"name": "advance queue 200",
-							"originalRequest": {
-								"method": "PUT",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{host}}/advance-queue",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"advance-queue"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "62"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 11 Mar 2021 14:43:12 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Queue advancing completed\"\n}"
-						},
-						{
 							"name": "advance queue 401",
 							"originalRequest": {
 								"method": "PUT",
@@ -4223,6 +4177,46 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to confirm secret key for protected route\"\n}"
+						},
+						{
+							"name": "advance queue 200",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/advance-queue",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"advance-queue"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "62"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 11 Mar 2021 14:43:12 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Queue advancing completed\"\n}"
 						}
 					]
 				}
