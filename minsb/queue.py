@@ -50,6 +50,9 @@ def add(job):
         queue.pop(queue.index(job.id))
     queue.append(job.id)
     g.cache.set_job_queue(queue)
+    all_jobs = g.cache.get_all_jobs()
+    all_jobs.append(job.id)
+    g.cache.set_all_jobs(all_jobs)
     app.logger.debug(f"Queue in cache: {g.cache.get_job_queue()}")
     return job
 
@@ -64,10 +67,14 @@ def get():
 def remove(job):
     """Remove job item from queue, e.g. when a job is aborted or a corpus is deleted."""
     queue = g.cache.get_job_queue()
-
     if job.id in queue:
         queue.pop(queue.index(job.id))
         g.cache.set_job_queue(queue)
+
+    all_jobs = g.cache.get_all_jobs()
+    if job.id in all_jobs:
+        all_jobs.pop(all_jobs.index(job.id))
+        g.cache.set_all_jobs(all_jobs)
 
 
 def get_priority(job):

@@ -20,9 +20,9 @@ class Cache():
         This is done before each request (app context g cannot be stored in between requests).
         """
         g.queue_initialized = False
-        g.job_queue = []
+        g.job_queue = []  # Active jobs
         g.jobs_dict = {}
-        g.all_jobs = []
+        g.all_jobs = []  # All jobs, including those with status done, error and aborted
         self.client = None
         self.connect()
 
@@ -83,7 +83,6 @@ class Cache():
     def get_all_jobs(self):
         """Get list of all jobs from memcached (or app context)."""
         queue.init_queue()
-
         if self.client is not None:
             return self.client.get("all_jobs")
         else:
