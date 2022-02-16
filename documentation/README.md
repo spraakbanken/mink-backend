@@ -11,7 +11,6 @@ If APITransform is not working, the conversion can be done with
 In order to keep the semi automatic documentation process intact you will need to import the collection `postman.json` 
 into Postman. There you can add and edit requests. To update the OAS follow the following steps:
 
-1. Export Postman collection.
-2. Convert to OAS using https://apitransform.com/convert/ and save result as `oas.json`
-3. Adapt information in `info.yaml`
-4. Run `python update-oas.py path/to/oas.json` (with venv activated)
+1. Export Postman collection (v2.1)
+2. Adapt information in `info.yaml`
+3. Run `python update-oas.py path/to/postman-collection.json` (with venv activated)

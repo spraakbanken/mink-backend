@@ -1,8 +1,9 @@
 """Add info from INFO_YAML to infile and output OUTPUT_FILE."""
 
 import argparse
-import json
+from pathlib import Path
 
+import requests  # https://docs.python-requests.org/en/master/
 import yaml
 
 INFO_YAML = "info.yaml"
@@ -10,11 +11,28 @@ OUTPUT_FILE = "../minsb/static/oas.yaml"
 HOST = "https://ws.spraakbanken.gu.se/ws/min-sb"
 
 
-def main(infile):
-    """Add info from INFO_YAML to infile and output OUTPUT_FILE."""
-    with open(infile) as f:
-        input_oas = json.load(f)
+def convert_from_postman(filepath):
+    """Convert postman json export to oas with https://apitransform.com/."""
+    # curl -X POST --form file="@/path/to/postman.json" 'https://nofxupu264.execute-api.us-east-1.amazonaws.com/production/api-transformation/'
+    upload_url = "https://nofxupu264.execute-api.us-east-1.amazonaws.com/production/api-transformation/"
+    files = {
+        "file": ("postman.json", open(filepath, "rb"), "application/json"),
+    }
+    response = requests.post(upload_url, files=files)
+    download_url = response.json().get("message")
 
+    response = requests.get(download_url)
+    oas = response.json()
+
+    # Copy new version of postman collection into this folder
+    destination = Path("postman.json")
+    destination.write_bytes(Path(filepath).read_bytes())
+
+    return oas
+
+
+def update(input_oas):
+    """Add info from INFO_YAML to input_oas and output OUTPUT_FILE."""
     with open(INFO_YAML) as f:
         info_yaml = yaml.load(f, Loader=yaml.FullLoader)
 
@@ -118,4 +136,5 @@ if __name__ == "__main__":
     parser.add_argument("input", type=str, help="The input OAS file (in json)")
     args = parser.parse_args()
 
-    main(args.input)
+    oas = convert_from_postman(args.input)
+    update(oas)
