@@ -33,7 +33,7 @@ def list_contents(ui, directory, exclude_dirs=True):
             full_path = str(Path(full_path) / elem.get_name())
         objlist.append(
             {"name": elem.get_name(), "type": elem.get_content_type(),
-             "last_modified": last_modified, "size:": elem.get_size(), "path": full_path})
+             "last_modified": last_modified, "size": elem.get_size(), "path": full_path})
     if exclude_dirs:
         objlist = [i for i in objlist if i.get("type") != "httpd/unix-directory"]
     return objlist

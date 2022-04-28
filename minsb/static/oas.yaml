@@ -649,12 +649,12 @@ paths:
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2021-11-17T15:20:54+00:00'
-                      'size:': 1396
+                      'size': 1396
                       path: /Min Språkbank/min-testkorpus/source/dokument1.xml
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2021-11-17T15:20:54+00:00'
-                      'size:': 115
+                      'size': 115
                       path: /Min Språkbank/min-testkorpus/source/dokument2.xml
               example:
                 status: success
@@ -1129,27 +1129,27 @@ paths:
                     - name: dokument1.csv
                       type: text/csv
                       last_modified: '2021-11-17T15:25:26+00:00'
-                      'size:': 4809
+                      'size': 4809
                       path: /Min Språkbank/min-testkorpus/export/csv/dokument1.csv
                     - name: dokument2.csv
                       type: text/csv
                       last_modified: '2021-11-17T15:25:29+00:00'
-                      'size:': 526
+                      'size': 526
                       path: /Min Språkbank/min-testkorpus/export/csv/dokument2.csv
                     - name: stats_min-testkorpus.csv
                       type: text/csv
                       last_modified: '2021-11-17T15:25:27+00:00'
-                      'size:': 10728
+                      'size': 10728
                       path: /Min Språkbank/min-testkorpus/export/frequency_list/stats_min-testkorpus.csv
                     - name: dokument1_export.xml
                       type: application/xml
                       last_modified: '2021-11-17T15:25:29+00:00'
-                      'size:': 13147
+                      'size': 13147
                       path: /Min Språkbank/min-testkorpus/export/xml_pretty/dokument1_export.xml
                     - name: dokument2_export.xml
                       type: application/xml
                       last_modified: '2021-11-17T15:25:28+00:00'
-                      'size:': 1464
+                      'size': 1464
                       path: /Min Språkbank/min-testkorpus/export/xml_pretty/dokument2_export.xml
               example:
                 status: success
@@ -1478,12 +1478,12 @@ paths:
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2021-11-26T13:39:09+00:00'
-                      'size:': 1396
+                      'size': 1396
                       path: /Min Språkbank/min-testkorpus/source/dokument1.xml
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2021-11-26T13:39:08+00:00'
-                      'size:': 115
+                      'size': 115
                       path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                   files:
                     type: array
@@ -1660,12 +1660,12 @@ paths:
                       - name: dokument1.xml
                         type: application/xml
                         last_modified: '2021-11-16T13:39:09+00:00'
-                        'size:': 1396
+                        'size': 1396
                         path: /Min Språkbank/min-testkorpus/source/dokument1.xml
                       - name: dokument2.xml
                         type: application/xml
                         last_modified: '2021-11-16T13:39:08+00:00'
-                        'size:': 115
+                        'size': 115
                         path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                       last_run_started: '2021-11-17T09:28:32+00:00'
                       time_taken: 0:00:42
@@ -1687,12 +1687,12 @@ paths:
                       - name: dokument1.xml
                         type: application/xml
                         last_modified: '2021-11-19T13:39:09+00:00'
-                        'size:': 1396
+                        'size': 1396
                         path: /Min Språkbank/min-testkorpus/source/dokument1.xml
                       - name: dokument2.xml
                         type: application/xml
                         last_modified: '2021-11-19T13:39:08+00:00'
-                        'size:': 115
+                        'size': 115
                         path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                       files:
                       - dokument1
@@ -1711,12 +1711,12 @@ paths:
                       - name: dokument1.xml
                         type: application/xml
                         last_modified: '2021-11-19T10:39:09+00:00'
-                        'size:': 1396
+                        'size': 1396
                         path: /Min Språkbank/min-testkorpus/source/dokument1.xml
                       - name: dokument2.xml
                         type: application/xml
                         last_modified: '2021-11-19T10:39:08+00:00'
-                        'size:': 115
+                        'size': 115
                         path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                       last_run_started: '2021-11-19T10:54:10+00:00'
                       time_taken: 0:10:32
@@ -1729,12 +1729,12 @@ paths:
                       - name: dokument1.xml
                         type: application/xml
                         last_modified: '2021-11-29T13:39:09+00:00'
-                        'size:': 1396
+                        'size': 1396
                         path: /Min Språkbank/min-testkorpus/source/dokument1.xml
                       - name: dokument2.xml
                         type: application/xml
                         last_modified: '2021-11-29T13:39:08+00:00'
-                        'size:': 115
+                        'size': 115
                         path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                       priority: 1
               example:
@@ -1999,7 +1999,7 @@ paths:
                       name: config.yaml
                       type: application/yaml
                       last_modified: '2021-11-25T15:52:17+00:00'
-                      'size:': 848
+                      'size': 848
                       path: /Min Språkbank/min-testkorpus/config.yaml
                   added_sources:
                     type: array
@@ -2007,7 +2007,7 @@ paths:
                     - name: dokument4.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:35:30+00:00'
-                      'size:': 461
+                      'size': 461
                       path: /Min Språkbank/min-testkorpus/source/dokument4.xml
                   changed_sources:
                     type: array
@@ -2015,12 +2015,12 @@ paths:
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2021-11-25T15:56:51+00:00'
-                      'size:': 1396
+                      'size': 1396
                       path: /Min Språkbank/min-testkorpus/source/dokument1.xml
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2021-11-25T15:56:51+00:00'
-                      'size:': 115
+                      'size': 115
                       path: /Min Språkbank/min-testkorpus/source/dokument2.xml
                   deleted_sources:
                     type: array
@@ -2028,7 +2028,7 @@ paths:
                     - name: dokument3.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:22:54+00:00'
-                      'size:': 41
+                      'size': 41
                       path: /Min Språkbank/min-testkorpus/source/dokument3.xml
                   last_run_started:
                     type: string
