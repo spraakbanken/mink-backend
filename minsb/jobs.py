@@ -289,10 +289,10 @@ class Job():
                     if matchobj.group(1) == "PROGRESS":
                         progress = msg
                     elif matchobj.group(1) == "WARNING":
-                        warnings.append = matchobj.group(1) + " " + msg
+                        warnings.append(matchobj.group(1) + " " + msg)
                         latest_msg = warnings
                     elif matchobj.group(1) == "ERROR":
-                        errors.append = matchobj.group(1) + " " + msg
+                        errors.append(matchobj.group(1) + " " + msg)
                         latest_msg = errors
                 elif re.match(r"\s{8,}.+", line):
                     latest_msg.append(line.strip())
