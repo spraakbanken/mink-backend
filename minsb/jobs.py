@@ -62,7 +62,7 @@ class Job():
         self.available_files = available_files or []
 
         self.sparv_user = app.config.get("SPARV_USER")
-        self.sparv_server = app.config.get("SPARV_SERVER")
+        self.sparv_server = app.config.get("SPARV_HOST")
         self.nohupfile = app.config.get("SPARV_NOHUP_FILE")
         self.runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
         self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, corpus_id=self.corpus_id))
@@ -459,7 +459,7 @@ class DefaultJob():
         self.lang = language
 
         self.sparv_user = app.config.get("SPARV_USER")
-        self.sparv_server = app.config.get("SPARV_SERVER")
+        self.sparv_server = app.config.get("SPARV_HOST")
         self.remote_corpus_dir = str(sparv_utils.get_corpus_dir("", self.lang))
         self.config_file = app.config.get("SPARV_CORPUS_CONFIG")
 

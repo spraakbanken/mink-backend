@@ -9,6 +9,7 @@ from pathlib import Path
 from flask import Flask, g, request
 from flask_cors import CORS
 
+from minsb.sb_auth.login import read_jwt_key
 from minsb import queue
 from minsb.memcached.cache import Cache
 
@@ -51,10 +52,13 @@ def create_app():
         log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper())
         logging.basicConfig(filename=logfile, level=log_level, format=logfmt, datefmt=datefmt)
 
-    # Connect to cache and init job queue
     with app.app_context():
+        # Connect to cache and init job queue
         g.cache = Cache()
         queue.init_queue()
+
+        # Save JWT key in memory
+        read_jwt_key()
 
     @app.before_request
     def init_cache():

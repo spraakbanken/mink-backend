@@ -8,7 +8,9 @@ LOG_LEVEL = "INFO"   # Log level for the application
 # Nextcloud settings
 NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"  # Nextcloud domain
 NC_CORPORA_DIR = "Min Språkbank"  # Directory on Nextcloud where the corpora are stored
-NC_STATUS_FILE = "status.json"    # File where a job status is stored
+
+# sb-auth settings
+SBAUTH_PUBKEY_FILE = "pubkey.pem"
 
 # Sparv specific strings and settings
 SPARV_SOURCE_DIR = "source"
@@ -24,7 +26,7 @@ SPARV_IMPORTER_MODULES = {  # File extensions for corpus input and the modules t
 }
 
 # Settings for the server where Sparv is run
-SPARV_SERVER = ""  # Define this in instance/config.py!
+SPARV_HOST = ""  # Define this in instance/config.py!
 SPARV_USER = ""    # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
 SPARV_DEFAULT_CORPORA_DIR = "min-sb-data/default"  # Dir for running listings like 'sparv run -l'

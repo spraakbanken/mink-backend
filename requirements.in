@@ -1,7 +1,9 @@
 apscheduler
+cryptography
 flask
 flask_cors
 gevent
+pyjwt
 pymemcache
 pyocclient
 python-dateutil
