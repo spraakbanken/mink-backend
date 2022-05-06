@@ -506,7 +506,7 @@ def download_source_text(ui, user, _corpora, corpus_id):
     download_file = request.args.get("file") or request.form.get("file") or ""
 
     nc_work_dir = str(storage.get_work_dir(ui, corpus_id))
-    local_corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
+    local_corpus_dir = str(utils.get_corpus_dir(user, corpus_id, mkdir=True))
 
     if not download_file:
         return utils.response("Please specify the source file to download", err=True), 404
