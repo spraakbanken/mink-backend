@@ -5,12 +5,17 @@ Can be overridden with config.py in instance folder.
 
 LOG_LEVEL = "INFO"   # Log level for the application
 
+# Prefix used when creating new resources
+RESOURCE_PREFIX = "minsb-"
+
 # Nextcloud settings
 NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"  # Nextcloud domain
 NC_CORPORA_DIR = "Min Språkbank"  # Directory on Nextcloud where the corpora are stored
 
 # sb-auth settings
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
+SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/resource/"
+SBAUTH_API_KEY = ""
 
 # Sparv specific strings and settings
 SPARV_SOURCE_DIR = "source"
@@ -42,6 +47,7 @@ SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"          # Temporary Sparv run script crea
 TMP_DIR = "tmp"                      # Temporary file storage
 MEMCACHED_SOCKET = "memcached.sock"  # Memcached socket file
 QUEUE_DIR = "queue"                  # Directory for storing job files
+CORPUS_REGISTRY = "corpus_registry.txt" # File for storing corpus IDs
 
 # Settings for queue manager
 MIN_SB_URL = "https://ws.spraakbanken.gu.se/ws/min-sb"  # URL for min-sb API

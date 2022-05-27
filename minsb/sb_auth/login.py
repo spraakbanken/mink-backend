@@ -6,14 +6,14 @@ import time
 from pathlib import Path
 
 import jwt
+import requests
 from flask import current_app as app
 from flask import request
 
-from minsb import utils
-from minsb.nextcloud import storage
+from minsb import exceptions, utils
 
 
-def login(require_init=True, require_corpus_id=True, require_corpus_exists=True):
+def login(require_init=False, require_corpus_id=True, require_corpus_exists=True):
     """Attempt to login on sb-auth.
 
     Optionally require that Min SB is initialized, corpus ID was provided and corpus exists.
@@ -31,48 +31,27 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                 return utils.response("No authorization token provided", err=True), 401
 
             try:
-                permissions = []
-                user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
-                if user_token["exp"] < time.time():
-                    return utils.response("The provided JWT has expired", err=True), 401
-                import json
-                print(json.dumps(user_token, ensure_ascii=True, indent=4))
-                user = user_token["name"]
-                email = user_token["email"]
-                if "scope" in user_token and "corpora" in user_token["scope"]:
-                    for corpus, level in user_token["scope"]["corpora"].items():
-                        if user_token["levels"]["READ"] <= level:
-                            permissions.append(corpus)
+                user, corpora = _get_corpora(auth_token)
                 user = shlex.quote(user)
-                if not require_init:
-                    return function(None, user, permissions, *args, **kwargs)
 
-                return function(None, user, permissions, *args, **kwargs)
+                if not require_corpus_id:
+                    return function(None, user, corpora, auth_token, *args, **kwargs)
 
-                # Check if Min SB was initialized
-                try:
-                    corpora = storage.list_corpora(ui)
-                except Exception as e:
-                    return utils.response("Failed to access corpora dir. "
-                                    "Make sure Min Språkbank is initialized", err=True, info=str(e)), 401
+                # Check if corpus ID was provided
+                corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+                if not corpus_id:
+                    return utils.response("No corpus ID provided", err=True), 404
+                corpus_id = shlex.quote(corpus_id)
 
-            #     if not require_corpus_id:
-            #         return function(ui, user, corpora, *args, **kwargs)
+                if not require_corpus_exists:
+                    return function(None, user, corpora, corpus_id, auth_token)
 
-            #     # Check if corpus ID was provided
-            #     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
-            #     if not corpus_id:
-            #         return utils.response("No corpus ID provided", err=True), 404
-            #     corpus_id = shlex.quote(corpus_id)
+                # Check if corpus exists
+                if corpus_id not in corpora:
+                    return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have permission to edit it",
+                                          err=True), 404
 
-            #     if not require_corpus_exists:
-            #         return function(ui, user, corpora, corpus_id)
-
-            #     # Check if corpus exists
-            #     if corpus_id not in corpora:
-            #         return utils.response(f"Corpus '{corpus_id}' does not exist", err=True), 404
-
-            #     return function(ui, user, corpora, corpus_id)
+                return function(None, user, corpora, corpus_id, auth_token)
 
             except Exception as e:
                 return utils.response("Failed to authenticate", err=True, info=str(e)), 401
@@ -85,5 +64,57 @@ def read_jwt_key():
     app.config["JWT_KEY"] = open(Path(app.instance_path) / app.config.get("SBAUTH_PUBKEY_FILE")).read()
 
 
-def _get_permissions(auth_header, auth_token):
-    """Check validity of auth_token and get user permissions."""
+def _get_corpora(auth_token):
+    """Check validity of auth_token and get corpora that user is admin for."""
+    corpora = []
+    user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
+    if user_token["exp"] < time.time():
+        return utils.response("The provided JWT has expired", err=True), 401
+
+    # import json
+    # print(json.dumps(user_token, ensure_ascii=True, indent=4))
+
+    if "scope" in user_token and "corpora" in user_token["scope"]:
+        for corpus, level in user_token["scope"]["corpora"].items():
+            if user_token["levels"]["ADMIN"] <= level:
+                corpora.append(corpus)
+    user = user_token["name"]
+    return user, corpora
+
+
+def create_resource(auth_token, resource_id):
+    """Create a new resource in sb-auth."""
+    # TODO: not working yet. Error in sb-auth?
+    url = app.config.get("SBAUTH_URL") + resource_id
+    api_key = app.config.get("SBAUTH_API_KEY")
+    headers = {"Authorization": f"apikey {api_key}", "Content-Type": "application/json"}
+    data = {"jwt": auth_token}
+    try:
+        # curl  https://spraakbanken.gu.se/auth/resources/resource/<resursnamn> -XPOST -H "Authorization: apikey <den hemliga API-nyckeln>" -d '{"jwt": "<JWT för användare som ska vara ADMIN på resursen>"}'
+        r = requests.post(url, headers=headers, data=data)
+        print(r.url)
+        print(r.request.headers)
+        status = r.status_code
+        print(status)
+        print(r.json())
+    except Exception as e:
+        raise(e)
+    if status != 200:
+        raise exceptions.CorpusExists
+
+
+
+def remove_resource(auth_token, resource_id):
+    """Remove a resource from sb-auth."""
+    # TODO: not finished
+    url = app.config.get("SBAUTH_URL") + resource_id
+    api_key = app.config.get("SBAUTH_API_KEY")
+    headers = {"Authorization": f"apikey {api_key}"}
+    data = {"jwt": {auth_token}}
+    try:
+        # curl  https://spraakbanken.gu.se/auth/resources/resource/<resource_id> -XDELETE -H "Authorization: apikey <secret key>"
+        r = requests.delete(url, headers=headers, data=data)
+    except Exception as e:
+        # TODO: what now?
+        print(e)
+    pass

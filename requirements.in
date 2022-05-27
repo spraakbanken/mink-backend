@@ -8,3 +8,5 @@ pymemcache
 pyocclient
 python-dateutil
 pyyaml
+requests
+shortuuid

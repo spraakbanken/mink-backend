@@ -14,8 +14,8 @@ from flask import current_app as app
 from flask import g
 
 from minsb import exceptions, utils
-from minsb.nextcloud import storage
 from minsb.sparv import utils as sparv_utils
+from minsb.sparv import storage
 
 _status_count = count(0)
 
@@ -33,7 +33,9 @@ class Status(IntEnum):
     annotating = "Sparv annotation process is running"
     done_annotating = "Annotation process has finished"
     syncing_results = "Syncing results from Sparv to the storage server"
-    done = "Results have been synced to Nexcloud"
+    done_syncing = "Results have been synced to storage server"
+    installing = "Corpus is being installed"
+    done_installing = "Corpus is done installing"
     error = "An error occurred"
     aborted = "Aborted by the user"
 
@@ -65,7 +67,7 @@ class Job():
         self.sparv_server = app.config.get("SPARV_HOST")
         self.nohupfile = app.config.get("SPARV_NOHUP_FILE")
         self.runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
-        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, corpus_id=self.corpus_id))
+        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, corpus_id))
 
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
@@ -76,7 +78,7 @@ class Job():
         """Write a job item to the cache and filesystem."""
         dump = str(self)
         # Save in cache
-        g.cache.set(self.id, dump)
+        g.cache.set_job(self.id, dump)
         # Save backup to file system queue
         queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
         queue_dir.mkdir(exist_ok=True)
@@ -99,7 +101,7 @@ class Job():
 
         # Remove from cache
         try:
-            g.cache.remove(self.id)
+            g.cache.remove_job(self.id)
         except Exception as e:
             app.logger.error(f"Failed to delete job ID from cache client: {e}")
         # Remove backup from file system
@@ -192,7 +194,6 @@ class Job():
             self.set_status(Status.error)
             raise Exception(f"Failed to copy corpus files to Sparv server! {p.stderr.decode()}")
 
-        # TODO: Set this status when done syncing
         self.set_status(Status.waiting)
 
     def run_sparv(self):
@@ -328,7 +329,7 @@ class Job():
         now = datetime.datetime.now(datetime.timezone.utc)
         if self.status == Status.annotating:
             delta = now - started
-        elif self.status in (Status.done_annotating, Status.syncing_results, Status.done):
+        elif self.status in (Status.done_annotating, Status.syncing_results, Status.done_syncing):
             delta = dateutil.parser.isoparse(self.completed) - started
         elif self.status in (Status.error, Status.aborted):
             nohup_timestamp = self.get_nohup_timestamp()
@@ -380,7 +381,7 @@ class Job():
             app.logger.warning(e)
             raise Exception(f"Failed to upload plain text sources to the storage server! {e}")
 
-        self.set_status(Status.done)
+        self.set_status(Status.done_syncing)
 
     def remove_from_sparv(self):
         """Remove corpus dir from the Sparv server and abort running job if necessary."""
@@ -430,8 +431,8 @@ class Job():
 def get_job(user, corpus_id, sparv_exports=None, files=None, available_files=None):
     """Get an existing job from the cache or create a new one."""
     job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files)
-    if g.cache.get(job.id) is not None:
-        return load_from_str(g.cache.get(job.id), sparv_exports=sparv_exports, files=files,
+    if g.cache.get_job(job.id) is not None:
+        return load_from_str(g.cache.get_job(job.id), sparv_exports=sparv_exports, files=files,
                              available_files=available_files)
     return job
 
@@ -460,7 +461,7 @@ class DefaultJob():
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_HOST")
-        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir("", self.lang))
+        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.lang, default_dir=True))
         self.config_file = app.config.get("SPARV_CORPUS_CONFIG")
 
     def list_languages(self):

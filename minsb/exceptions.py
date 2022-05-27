@@ -17,3 +17,9 @@ class ProcessNotFound(JobError):
     """Exception used for when a process could not be found."""
 
     pass
+
+
+class CorpusExists(Exception):
+    """Exception used for when a corpus ID already exists."""
+
+    pass

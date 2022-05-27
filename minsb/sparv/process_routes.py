@@ -7,7 +7,8 @@ from flask import current_app as app
 from flask import request
 
 from minsb import exceptions, jobs, queue, utils
-from minsb.nextcloud import login, storage
+from minsb.sparv import storage
+from minsb.sb_auth import login
 
 bp = Blueprint("sparv", __name__)
 
@@ -136,13 +137,12 @@ def check_status(ui, user, corpora):
 def abort_job(_ui, user, _corpora, corpus_id):
     """Try to abort a running job."""
     job = jobs.get_job(user, corpus_id)
-    # No job
-    if job.status in (jobs.Status.none, jobs.Status.done, jobs.Status.error,
-                      jobs.Status.aborted):
-        return utils.response(f"No running job found for '{corpus_id}'")
     # Syncing
     if job.status in (jobs.Status.syncing_corpus, jobs.Status.syncing_results):
         return utils.response(f"Cannot abort job while syncing files", job_status=job.status.name), 404
+    # No job
+    if job.status not in (jobs.Status.waiting, jobs.Status.annotating, jobs.Status.installing):
+        return utils.response(f"No running job found for '{corpus_id}'")
     # Running job, try to abort
     try:
         job.abort_sparv()
@@ -159,7 +159,7 @@ def clear_annotations(_ui, user, _corpora, corpus_id):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
     job = jobs.get_job(user, corpus_id)
-    if jobs.Status.none < job.status < jobs.Status.done_annotating:
+    if job.status in (jobs.Status.waiting, jobs.Status.annotating, jobs.Status.installing):
         return utils.response("Cannot clear annotations while a job is running", err=True), 404
 
     try:
@@ -213,7 +213,7 @@ def make_status_response(job, ui):
     if status == jobs.Status.syncing_results:
         return utils.response("Result files are being synced from the Sparv server", **job_attrs)
 
-    if status == jobs.Status.done:
+    if status == jobs.Status.done_syncing:
         return utils.response("Corpus is done processing and the results have been synced", warnings=warnings,
                               errors=errors, sparv_output=output, **job_attrs)
 

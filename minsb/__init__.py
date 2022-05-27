@@ -10,7 +10,7 @@ from flask import Flask, g, request
 from flask_cors import CORS
 
 from minsb.sb_auth.login import read_jwt_key
-from minsb import queue
+from minsb import corpus_registry, queue
 from minsb.memcached.cache import Cache
 
 
@@ -55,7 +55,8 @@ def create_app():
     with app.app_context():
         # Connect to cache and init job queue
         g.cache = Cache()
-        queue.init_queue()
+        queue.init()
+        corpus_registry.init()
 
         # Save JWT key in memory
         read_jwt_key()
@@ -77,9 +78,9 @@ def create_app():
     # Register routes from blueprints
     from . import routes as general_routes
     app.register_blueprint(general_routes.bp)
-    from .sparv import routes as sparv_routes
-    app.register_blueprint(sparv_routes.bp)
-    from .nextcloud import routes as nextcloud_routes
-    app.register_blueprint(nextcloud_routes.bp)
+    from .sparv import process_routes
+    app.register_blueprint(process_routes.bp)
+    from .sparv import storage_routes
+    app.register_blueprint(storage_routes.bp)
 
     return app
