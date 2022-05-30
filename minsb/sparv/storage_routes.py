@@ -89,64 +89,6 @@ def remove_corpus(ui, user, _corpora, corpus_id, auth_token):
     return utils.response(f"Corpus '{corpus_id}' successfully removed")
 
 
-@bp.route("/rename-corpus", methods=["POST"])
-@login.login()
-def rename_corpus(ui, user, corpora, corpus_id, auth_token):
-    """Rename corpus."""
-    new_id = request.args.get("new_id") or request.form.get("new_id") or ""
-
-    if not new_id:
-        return utils.response("No new corpus ID was provided", err=True), 400
-    if new_id == corpus_id:
-        return utils.response("The new ID must not be the same as the current ID", err=True), 400
-    if new_id in corpora:
-        return utils.response("The chosen ID already exists", err=True), 400
-
-    nextcloud_success = sparv_server_success = config_success = False
-    try:
-        job = jobs.get_job(user, corpus_id)
-        if jobs.Status.none < job.status < jobs.Status.done_annotating or job.status == jobs.Status.syncing_results:
-            return utils.response("Cannot rename corpus while a job is running", err=True), 404
-        # Rename on Nextcloud (NB: order of changes is relevant!)
-        corpus_dir = storage.get_corpus_dir(ui, corpus_id)
-        new_corpus_dir = corpus_dir.parent.joinpath(new_id)
-        ui.move(str(corpus_dir), str(new_corpus_dir))
-        nextcloud_success = True
-
-        # Change ID in config file
-        config_file = str(storage.get_config_file(ui, new_id))
-        config_contents = ui.get_file_contents(config_file)
-        new_config = utils.set_corpus_id(config_contents, new_id)
-        ui.put_file_contents(str(storage.get_config_file(ui, new_id)), new_config)
-        config_success = True
-
-        # Rename corpus dir on Sparv server and job in cache
-        if queue.get_priority(job) != -1:
-            queue.remove(job)
-            job.change_id(new_id)
-            queue.add(job)
-            sparv_server_success = True
-
-        return utils.response(f"Successfully renamed corpus to '{new_id}'")
-    except Exception as e:
-        # Undo renaming if it succeeded partially (NB: order of changes is relevant!)
-        if nextcloud_success:
-            corpus_dir = storage.get_corpus_dir(ui, new_id)
-            reset_corpus_dir = corpus_dir.parent.joinpath(corpus_id)
-            ui.move(str(corpus_dir), str(reset_corpus_dir))
-        if config_success:
-            config_file = str(storage.get_config_file(ui, corpus_id))
-            config_contents = ui.get_file_contents(config_file)
-            reset_config = utils.set_corpus_id(config_contents, corpus_id)
-            ui.put_file_contents(str(storage.get_config_file(ui, corpus_id)), reset_config)
-        if sparv_server_success:
-            queue.remove(job)
-            job.change_id(corpus_id)
-            queue.add(job)
-
-        return utils.response("Failed to rename corpus", err=True, info=str(e)), 404
-
-
 # ------------------------------------------------------------------------------
 # Source file operations
 # ------------------------------------------------------------------------------
