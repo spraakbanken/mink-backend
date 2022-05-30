@@ -128,10 +128,10 @@ def _get_login():
     host = app.config.get("SPARV_HOST")
     return user, host
 
+
 def _is_valid_path(path):
     """Check that path points to a corpus dir (or a descendant) and not to e.g. the entire Sparv data dir."""
-    # TODO
-    return True
+    return get_corpora_dir(None) in Path(path).parents
 
 
 ################################################################################
