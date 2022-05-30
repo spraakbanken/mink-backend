@@ -47,7 +47,7 @@ SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"          # Temporary Sparv run script crea
 TMP_DIR = "tmp"                      # Temporary file storage
 MEMCACHED_SOCKET = "memcached.sock"  # Memcached socket file
 QUEUE_DIR = "queue"                  # Directory for storing job files
-CORPUS_REGISTRY = "corpus_registry.txt" # File for storing corpus IDs
+CORPUS_REGISTRY = "corpus_registry"  # Directory for storing corpus IDs
 
 # Settings for queue manager
 MIN_SB_URL = "https://ws.spraakbanken.gu.se/ws/min-sb"  # URL for min-sb API
