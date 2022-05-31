@@ -94,9 +94,10 @@ def create_resource(auth_token, resource_id):
         status = r.status_code
     except Exception as e:
         raise(e)
-    # TODO: what status is returned if corpus ID exists?
-    if status != 200:
+    if status == 400:
         raise exceptions.CorpusExists
+    elif status != 201:
+        raise Exception(status)
 
 
 def remove_resource(auth_token, resource_id):
