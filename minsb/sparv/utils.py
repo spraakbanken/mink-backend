@@ -12,10 +12,10 @@ def get_corpora_dir(default_dir=False):
     return Path(app.config.get("SPARV_CORPORA_DIR"))
 
 
-def get_corpus_dir(corpus_id, default_dir=False):
+def get_corpus_dir(corpus_id: str, default_dir: bool = False) -> Path:
     """Get dir for given corpus."""
     corpora_dir = get_corpora_dir(default_dir=default_dir)
-    corpus_dir = corpora_dir / Path(corpus_id)
+    corpus_dir = corpora_dir / corpus_id[len(app.config.get("RESOURCE_PREFIX"))] / corpus_id
     return corpus_dir
 
 
