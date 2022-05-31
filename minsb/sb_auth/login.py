@@ -1,6 +1,7 @@
 """Login functions."""
 
 import functools
+import json
 import shlex
 import time
 from pathlib import Path
@@ -84,24 +85,18 @@ def _get_corpora(auth_token):
 
 def create_resource(auth_token, resource_id):
     """Create a new resource in sb-auth."""
-    # TODO: not working yet. Error in sb-auth?
     url = app.config.get("SBAUTH_URL") + resource_id
     api_key = app.config.get("SBAUTH_API_KEY")
     headers = {"Authorization": f"apikey {api_key}", "Content-Type": "application/json"}
     data = {"jwt": auth_token}
     try:
-        # curl  https://spraakbanken.gu.se/auth/resources/resource/<resursnamn> -XPOST -H "Authorization: apikey <den hemliga API-nyckeln>" -d '{"jwt": "<JWT för användare som ska vara ADMIN på resursen>"}'
-        r = requests.post(url, headers=headers, data=data)
-        print(r.url)
-        print(r.request.headers)
+        r = requests.post(url, headers=headers, data=json.dumps(data))
         status = r.status_code
-        print(status)
-        print(r.json())
     except Exception as e:
         raise(e)
+    # TODO: what status is returned if corpus ID exists?
     if status != 200:
         raise exceptions.CorpusExists
-
 
 
 def remove_resource(auth_token, resource_id):
@@ -110,10 +105,10 @@ def remove_resource(auth_token, resource_id):
     url = app.config.get("SBAUTH_URL") + resource_id
     api_key = app.config.get("SBAUTH_API_KEY")
     headers = {"Authorization": f"apikey {api_key}"}
-    data = {"jwt": {auth_token}}
+    data = {"jwt": auth_token}
     try:
         # curl  https://spraakbanken.gu.se/auth/resources/resource/<resource_id> -XDELETE -H "Authorization: apikey <secret key>"
-        r = requests.delete(url, headers=headers, data=data)
+        r = requests.delete(url, headers=headers, data=json.dumps(data))
     except Exception as e:
         # TODO: what now?
         print(e)
