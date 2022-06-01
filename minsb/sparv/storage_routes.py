@@ -55,8 +55,10 @@ def create_corpus(ui, _user, corpora, auth_token):
             storage.remove_dir(ui, corpus_dir)
         except Exception as err:
             app.logger.error(f"Failed to remove partially uploaded corpus data for '{corpus_id}'. {err}")
-        # TODO: remove from sb-auth
-        # remove_resource(auth_token, corpus_id)
+        try:
+            login.remove_resource(auth_token, corpus_id)
+        except Exception as err:
+            app.logger.error(f"Failed to remove corpus '{corpus_id}' from auth system. {err}")
         return utils.response("Failed to create corpus dir", err=True, info=str(e)), 500
 
 
@@ -69,20 +71,26 @@ def list_corpora(_ui, _user, corpora, auth_token):
 
 @bp.route("/remove-corpus", methods=["DELETE"])
 @login.login()
-def remove_corpus(ui, user, _corpora, corpus_id, auth_token):
+def remove_corpus(_ui, user, corpora, corpus_id, auth_token):
     """Remove corpus."""
     try:
-        corpus_dir = str(storage.get_corpus_dir(ui, corpus_id))
-        storage.remove_dir(ui, corpus_dir)
+        # Remove from auth system
+        login.remove_resource(auth_token, corpus_id)
     except Exception as e:
-        return utils.response(f"Failed to remove corpus '{corpus_id}'", err=True, info=str(e)), 500
-
+        return utils.response(f"Failed to remove corpus '{corpus_id}' from auth system", err=True, info=str(e)), 500
     try:
-        # Try to safely remove files from Sparv server and remove the job
+        # Remove from storage
+        corpus_dir = str(storage.get_corpus_dir(_ui, corpus_id))
+        storage.remove_dir(_ui, corpus_dir)
+    except Exception as e:
+        app.logger.error(f"Failed to remove corpus '{corpus_id}' from storage", err=True, info=str(e))
+    try:
+        # Remove job
         job = jobs.get_job(user, corpus_id)
-        job.remove_from_sparv()
         queue.remove(job)
         job.remove()
+        # Remove from corpus registry
+        corpus_registry.remove(corpus_id)
     except Exception as e:
         app.logger.error(f"Failed to remove corpus '{corpus_id}'. {e}")
 

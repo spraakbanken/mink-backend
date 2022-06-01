@@ -98,6 +98,9 @@ def create_resource(auth_token, resource_id):
         raise exceptions.CorpusExists
     elif status != 201:
         raise Exception(status)
+    else:
+        message = r.json()
+        raise Exception(message)
 
 
 def remove_resource(auth_token, resource_id):
@@ -108,9 +111,10 @@ def remove_resource(auth_token, resource_id):
     headers = {"Authorization": f"apikey {api_key}"}
     data = {"jwt": auth_token}
     try:
-        # curl  https://spraakbanken.gu.se/auth/resources/resource/<resource_id> -XDELETE -H "Authorization: apikey <secret key>"
         r = requests.delete(url, headers=headers, data=json.dumps(data))
+        status = r.status_code
     except Exception as e:
-        # TODO: what now?
-        print(e)
-    pass
+        raise(e)
+    if status != 204:
+        message = r.json()
+        raise Exception(message)
