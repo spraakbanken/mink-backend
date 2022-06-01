@@ -42,7 +42,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                     corpora = storage.list_corpora(ui)
                 except Exception as e:
                     return utils.response("Failed to access corpora dir. "
-                                    "Make sure Min Språkbank is initialized", err=True, info=str(e)), 401
+                                          "Make sure Min Språkbank is initialized", err=True, info=str(e)), 401
 
                 if not require_corpus_id:
                     return function(ui, user, corpora, *args, **kwargs)
@@ -50,7 +50,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                 # Check if corpus ID was provided
                 corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
                 if not corpus_id:
-                    return utils.response("No corpus ID provided", err=True), 404
+                    return utils.response("No corpus ID provided", err=True), 400
                 corpus_id = shlex.quote(corpus_id)
 
                 if not require_corpus_exists:
@@ -58,7 +58,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
 
                 # Check if corpus exists
                 if corpus_id not in corpora:
-                    return utils.response(f"Corpus '{corpus_id}' does not exist", err=True), 404
+                    return utils.response(f"Corpus '{corpus_id}' does not exist", err=True), 400
 
                 return function(ui, user, corpora, corpus_id)
 

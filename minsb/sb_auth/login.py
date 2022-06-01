@@ -41,7 +41,7 @@ def login(require_init=False, require_corpus_id=True, require_corpus_exists=True
                 # Check if corpus ID was provided
                 corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
                 if not corpus_id:
-                    return utils.response("No corpus ID provided", err=True), 404
+                    return utils.response("No corpus ID provided", err=True), 400
                 corpus_id = shlex.quote(corpus_id)
 
                 if not require_corpus_exists:
@@ -50,7 +50,7 @@ def login(require_init=False, require_corpus_id=True, require_corpus_exists=True
                 # Check if corpus exists
                 if corpus_id not in corpora:
                     return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have permission to edit it",
-                                          err=True), 404
+                                          err=True), 400
 
                 return function(None, user, corpora, corpus_id, auth_token)
 

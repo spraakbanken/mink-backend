@@ -113,7 +113,7 @@ def check_status(ui, user, corpora):
             job = jobs.get_job(user, corpus_id)
             return make_status_response(job, ui)
         except Exception as e:
-            return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 404
+            return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 500
 
     try:
         # Get all job statuses for user
@@ -129,7 +129,7 @@ def check_status(ui, user, corpora):
             job_list.append(job_status)
         return utils.response("Listing jobs", jobs=job_list)
     except Exception as e:
-        return utils.response("Failed to get job statuses", err=True, info=str(e)), 404
+        return utils.response("Failed to get job statuses", err=True, info=str(e)), 500
 
 
 @bp.route("/abort-job", methods=["POST"])
@@ -139,7 +139,7 @@ def abort_job(_ui, user, _corpora, corpus_id):
     job = jobs.get_job(user, corpus_id)
     # Syncing
     if job.status in (jobs.Status.syncing_corpus, jobs.Status.syncing_results):
-        return utils.response(f"Cannot abort job while syncing files", job_status=job.status.name), 404
+        return utils.response(f"Cannot abort job while syncing files", job_status=job.status.name), 503
     # No job
     if job.status not in (jobs.Status.waiting, jobs.Status.annotating, jobs.Status.installing):
         return utils.response(f"No running job found for '{corpus_id}'")
@@ -149,7 +149,7 @@ def abort_job(_ui, user, _corpora, corpus_id):
     except exceptions.ProcessNotRunning:
         return utils.response(f"No running job found for '{corpus_id}'")
     except Exception as e:
-        return utils.response(f"Failed to abort job for '{corpus_id}'", err=True, info=str(e)), 404
+        return utils.response(f"Failed to abort job for '{corpus_id}'", err=True, info=str(e)), 500
     return utils.response(f"Successfully aborted running job for '{corpus_id}'", job_status=job.status.name)
 
 
@@ -160,13 +160,13 @@ def clear_annotations(_ui, user, _corpora, corpus_id):
     # Check if there is an active job
     job = jobs.get_job(user, corpus_id)
     if job.status in (jobs.Status.waiting, jobs.Status.annotating, jobs.Status.installing):
-        return utils.response("Cannot clear annotations while a job is running", err=True), 404
+        return utils.response("Cannot clear annotations while a job is running", err=True), 503
 
     try:
         sparv_output = job.clean()
         return utils.response(f"Annotations for '{corpus_id}' successfully removed", sparv_output=sparv_output)
     except Exception as e:
-        return utils.response("Failed to clear annotations", err=True, info=str(e)), 404
+        return utils.response("Failed to clear annotations", err=True, info=str(e)), 500
 
 
 def make_status_response(job, ui):
@@ -183,7 +183,7 @@ def make_status_response(job, ui):
         job_attrs["time_taken"] = job.time_taken
 
     if status == jobs.Status.none:
-        return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.name, err=True), 404
+        return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.name)
 
     if status == jobs.Status.syncing_corpus:
         return utils.response("Corpus files are being synced to the Sparv server", **job_attrs)
@@ -206,7 +206,7 @@ def make_status_response(job, ui):
             job.sync_results(ui)
         except Exception as e:
             return utils.response("Sparv was run successfully but exports failed to upload to the storage server",
-                                  err=True, info=str(e)), 404
+                                  err=True, info=str(e)), 500
         return utils.response("Sparv was run successfully! Starting to sync results",
                               warnings=warnings, errors=errors, sparv_output=output, **job_attrs)
 
@@ -232,7 +232,7 @@ def sparv_languages():
         job = jobs.DefaultJob()
         languages = job.list_languages()
     except Exception as e:
-        return utils.response("Failed to retrieve languages listing", err=True, info=str(e)), 404
+        return utils.response("Failed to retrieve languages listing", err=True, info=str(e)), 500
     return utils.response("Listing languages available in Sparv", languages=languages)
 
 
@@ -244,5 +244,5 @@ def sparv_exports():
         job = jobs.DefaultJob(language=language)
         exports = job.list_exports()
     except Exception as e:
-        return utils.response("Failed to retrieve exports listing", err=True, info=str(e)), 404
+        return utils.response("Failed to retrieve exports listing", err=True, info=str(e)), 500
     return utils.response("Listing exports available in Sparv", language=language, exports=exports)

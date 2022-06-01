@@ -355,7 +355,7 @@ class Job():
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
             self.set_status(Status.error)
-            return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 404
+            return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 500
 
         # Get plain text sources from Sparv
         remote_work_dir = sparv_utils.get_work_dir(self.user, self.corpus_id)
