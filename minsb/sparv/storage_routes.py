@@ -73,26 +73,33 @@ def list_corpora(_ui, _user, corpora, auth_token):
 @login.login()
 def remove_corpus(_ui, user, corpora, corpus_id, auth_token):
     """Remove corpus."""
-    try:
-        # Remove from auth system
-        login.remove_resource(auth_token, corpus_id)
-    except Exception as e:
-        return utils.response(f"Failed to remove corpus '{corpus_id}' from auth system", err=True, info=str(e)), 500
+    # TODO: Uninstall corpus (if installed) using Sparv
     try:
         # Remove from storage
         corpus_dir = str(storage.get_corpus_dir(_ui, corpus_id))
         storage.remove_dir(_ui, corpus_dir)
     except Exception as e:
-        app.logger.error(f"Failed to remove corpus '{corpus_id}' from storage", err=True, info=str(e))
+        return utils.response(f"Failed to remove corpus '{corpus_id}' from storage", err=True, info=str(e)), 500
+
     try:
         # Remove job
         job = jobs.get_job(user, corpus_id)
         queue.remove(job)
         job.remove()
+    except Exception as e:
+        return utils.response(f"Failed to remove job for corpus '{corpus_id}'. {e}", err=True, info=str(e)), 500
+
+    try:
+        # Remove from auth system
+        login.remove_resource(auth_token, corpus_id)
+    except Exception as e:
+        return utils.response(f"Failed to remove corpus '{corpus_id}' from auth system", err=True, info=str(e)), 500
+
+    try:
         # Remove from corpus registry
         corpus_registry.remove(corpus_id)
     except Exception as e:
-        app.logger.error(f"Failed to remove corpus '{corpus_id}'. {e}")
+        app.logger.error(f"Failed to remove corpus '{corpus_id}' from corpus registry: {e}")
 
     return utils.response(f"Corpus '{corpus_id}' successfully removed")
 
