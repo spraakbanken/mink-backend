@@ -95,9 +95,7 @@ def create_resource(auth_token, resource_id):
     if status == 400:
         raise exceptions.CorpusExists
     elif status != 201:
-        raise Exception(status)
-    else:
-        message = r.json()
+        message = r.content
         raise Exception(message)
 
 
