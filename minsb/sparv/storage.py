@@ -1,6 +1,7 @@
 """Functions related to storage on Sparv server."""
 
 import os
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -117,8 +118,8 @@ def remove_dir(_ui, dirpath):
         raise Exception(f"You don't have permission to remove '{dirpath}'")
 
     p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && rm -r {dirpath}"],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        f"cd /home/{user} && rm -r {shlex.quote(dirpath)}"],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
         raise Exception(f"Failed to remove corpus dir on Sparv server {p.stderr.decode()}")
 
