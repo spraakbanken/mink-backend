@@ -32,6 +32,11 @@ def create_app():
     if instance_config_path.is_file():
         app.config.from_pyfile(str(instance_config_path))
 
+    # Make sure required config variables are set
+    for var in ("SPARV_HOST", "SPARV_USER"):
+        if not app.config.get(var):
+            raise ValueError(f"{var!r} is not set.")
+
     # Configure logger
     logfmt = "%(asctime)-15s - %(levelname)s: %(message)s"
     datefmt = "%Y-%m-%d %H:%M:%S"
