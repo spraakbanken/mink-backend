@@ -99,17 +99,19 @@ def create_resource(auth_token, resource_id):
         raise Exception(message)
 
 
-def remove_resource(auth_token, resource_id):
+def remove_resource(resource_id):
     """Remove a resource from sb-auth."""
     url = app.config.get("SBAUTH_URL") + resource_id
     api_key = app.config.get("SBAUTH_API_KEY")
     headers = {"Authorization": f"apikey {api_key}"}
-    data = {"jwt": auth_token}
     try:
-        r = requests.delete(url, headers=headers, data=json.dumps(data))
+        r = requests.delete(url, headers=headers)
         status = r.status_code
     except Exception as e:
         raise(e)
-    if status != 204:
-        message = r.json()
+    if status == 400:
+        # Corpus does not exist
+        return
+    elif status != 204:
+        message = r.content
         raise Exception(message)

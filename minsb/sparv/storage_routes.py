@@ -56,7 +56,7 @@ def create_corpus(ui, _user, corpora, auth_token):
         except Exception as err:
             app.logger.error(f"Failed to remove partially uploaded corpus data for '{corpus_id}'. {err}")
         try:
-            login.remove_resource(auth_token, corpus_id)
+            login.remove_resource(corpus_id)
         except Exception as err:
             app.logger.error(f"Failed to remove corpus '{corpus_id}' from auth system. {err}")
         return utils.response("Failed to create corpus dir", err=True, info=str(e)), 500
@@ -91,7 +91,7 @@ def remove_corpus(_ui, user, corpora, corpus_id, auth_token):
 
     try:
         # Remove from auth system
-        login.remove_resource(auth_token, corpus_id)
+        login.remove_resource(corpus_id)
     except Exception as e:
         return utils.response(f"Failed to remove corpus '{corpus_id}' from auth system", err=True, info=str(e)), 500
 
