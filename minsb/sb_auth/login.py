@@ -44,10 +44,11 @@ def login(require_init=False, require_corpus_id=True, require_corpus_exists=True
                     return utils.response("No corpus ID provided", err=True), 400
                 corpus_id = shlex.quote(corpus_id)
 
+                # Check if corpus exists
                 if not require_corpus_exists:
                     return function(None, user, corpora, corpus_id, auth_token)
 
-                # Check if corpus exists
+                # Check if user is admin for corpus
                 if corpus_id not in corpora:
                     return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have permission to edit it",
                                           err=True), 400
@@ -71,9 +72,6 @@ def _get_corpora(auth_token):
     user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
     if user_token["exp"] < time.time():
         return utils.response("The provided JWT has expired", err=True), 401
-
-    # import json
-    # print(json.dumps(user_token, ensure_ascii=True, indent=4))
 
     if "scope" in user_token and "corpora" in user_token["scope"]:
         for corpus, level in user_token["scope"]["corpora"].items():
@@ -105,7 +103,6 @@ def create_resource(auth_token, resource_id):
 
 def remove_resource(auth_token, resource_id):
     """Remove a resource from sb-auth."""
-    # TODO: not finished
     url = app.config.get("SBAUTH_URL") + resource_id
     api_key = app.config.get("SBAUTH_API_KEY")
     headers = {"Authorization": f"apikey {api_key}"}
