@@ -18,7 +18,7 @@ def list_contents(_ui, directory, exclude_dirs=True):
 
     user, host = _get_login()
     p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && find {directory} -exec ls -lgGd --time-style=long-iso {{}} \\;"
+                        f"cd /home/{user} && find {directory} -exec ls -lgGd --time-style=long-iso {{}} \\; "
                         f"-exec file --mime-type {{}} \\;"],
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
@@ -27,7 +27,9 @@ def list_contents(_ui, directory, exclude_dirs=True):
     contents = p.stdout.decode()
     for line in contents.split("\n"):
         content_type = ""
-        if line.startswith("./"):
+        if not line.strip():
+            continue
+        elif line.startswith(directory):
             content_type = line.split(": ")[-1]
         else:
             permissions, _, size, date, time, obj_path = line.split()
@@ -40,6 +42,44 @@ def list_contents(_ui, directory, exclude_dirs=True):
                 {"name": name, "type": content_type,
                 "last_modified": mod_time, "size": size, "path": obj_path})
     return objlist
+
+
+def download_file(_ui, remote_file_path, local_file):
+    """Download a file from the Sparv server."""
+    if not _is_valid_path(remote_file_path):
+        raise Exception(f"You don't have permission to download '{remote_file_path}'")
+
+    user, host = _get_login()
+    p = subprocess.run(["rsync", f"{user}@{host}:{remote_file_path}", f"{local_file}"],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.stderr:
+        raise Exception(f"Failed to download '{remote_file_path}': {p.stderr.decode()}")
+
+
+def get_file_contents(_ui, filepath):
+    """Get contents of file at 'filepath'."""
+    user, host = _get_login()
+    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
+                        f"cd /home/{user} && cat {filepath}"],
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.stderr:
+        raise Exception(f"Failed to retrieve contents for '{filepath}': {p.stderr.decode()}")
+
+    return p.stdout.decode()
+
+
+def write_file_contents(_ui, filepath: str, file_contents):
+    """Write contents to a new file on the Sparv server."""
+    if not _is_valid_path(filepath):
+        raise Exception(f"You don't have permission to edit '{filepath}'")
+
+    file_contents = file_contents.decode("UTF-8")
+    user, host = _get_login()
+    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
+                        f"cd /home/{user} && echo '{file_contents}' >'{filepath}'"],
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.stderr:
+        raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
 
 def download_dir(_ui, remote_dir, local_dir, _corpus_id, _file_index):
@@ -55,18 +95,6 @@ def download_dir(_ui, remote_dir, local_dir, _corpus_id, _file_index):
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
         raise Exception(f"Failed to download '{remote_dir}': {p.stderr.decode()}")
-
-
-def get_file_contents(_ui, filepath):
-    """Get contents of file at 'filepath'."""
-    user, host = _get_login()
-    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && cat {filepath}"],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if p.stderr:
-        raise Exception(f"Failed to retrieve contents for '{filepath}': {p.stderr.decode()}")
-
-    return p.stdout.decode()
 
 
 def upload_dir(_ui, remote_dir, local_dir, _corpus_id, _user, _file_index, delete=False):

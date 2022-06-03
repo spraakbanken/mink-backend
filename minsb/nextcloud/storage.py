@@ -39,6 +39,21 @@ def list_contents(ui, directory, exclude_dirs=True):
     return objlist
 
 
+def download_file(ui, remote_file_path, local_file):
+    """Download a file from Nextcloud."""
+    ui.get_file(remote_file_path, local_file=local_file)
+
+
+def get_file_contents(ui, filepath):
+    """Get contents of file at 'filepath'."""
+    return ui.get_file_contents(filepath)
+
+
+def write_file_contents(ui, nc_path: str, file_contents):
+    """Upload a file to Nextcloud."""
+    ui.put_file_contents(nc_path, file_contents)
+
+
 def download_dir(ui, nc_dir, local_dir, corpus_id, file_index):
     """Download directory as zip, unzip and update timestamps."""
     zipf = os.path.join(local_dir, corpus_id) + ".zip"
@@ -52,11 +67,6 @@ def download_dir(ui, nc_dir, local_dir, corpus_id, file_index):
             full_path = os.path.join(root, f)
             timestamp = file_index.get(full_path)
             os.utime(full_path, (timestamp, timestamp))
-
-
-def get_file_contents(ui, filepath):
-    """Get contents of file at 'filepath'."""
-    return ui.get_file_contents(filepath)
 
 
 def upload_dir(ui, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=False):

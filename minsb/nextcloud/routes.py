@@ -128,7 +128,7 @@ def upload_sources(ui, _user, corpora, corpus_id):
                 if not utils.validate_xml(file_contents):
                     return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
                                           err=True, file=f.filename, info="invalid XML"), 400
-            ui.put_file_contents(str(source_dir / name), file_contents)
+            storage.write_file_contents(ui, str(source_dir / name), file_contents)
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:
         return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 500
@@ -216,12 +216,12 @@ def download_sources(ui, user, _corpora, corpus_id):
             zipped = False if zipped.lower() == "false" else True
             if zipped:
                 outf = str(local_source_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
-                ui.get_file(full_download_file, local_path)
+                storage.download_file(ui, full_download_file, local_path)
                 utils.create_zip(local_path, outf)
                 return send_file(outf, mimetype="application/zip")
             else:
                 outf = str(local_source_dir / Path(download_file_name))
-                ui.get_file(full_download_file, local_path)
+                storage.download_file(ui, full_download_file, local_path)
                 # Determine content type
                 content_type = "application/xml"
                 for file_obj in source_contents:
@@ -278,7 +278,7 @@ def upload_config(ui, _user, corpora, corpus_id):
 
         try:
             new_config = utils.set_corpus_id(config_contents, corpus_id)
-            ui.put_file_contents(str(storage.get_config_file(ui, corpus_id)), new_config)
+            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
@@ -291,7 +291,7 @@ def upload_config(ui, _user, corpora, corpus_id):
                 if not compatible:
                     return resp, 400
             new_config = utils.set_corpus_id(config_txt, corpus_id)
-            ui.put_file_contents(str(storage.get_config_file(ui, corpus_id)), new_config)
+            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
@@ -310,7 +310,7 @@ def download_config(ui, user, _corpora, corpus_id):
 
     try:
         # Get file from Nextcloud
-        ui.get_file(nc_config_file, local_file=local_config_file)
+        storage.download_file(ui, nc_config_file, local_config_file)
         return send_file(local_config_file, mimetype="text/yaml")
     except Exception as e:
         return utils.response(f"Failed to download config file for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -398,12 +398,12 @@ def download_export(ui, user, _corpora, corpus_id):
             zipped = False if zipped.lower() == "false" else True
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
-                ui.get_file(full_download_file, local_path)
+                storage.download_file(ui, full_download_file, local_path)
                 utils.create_zip(local_path, outf)
                 return send_file(outf, mimetype="application/zip")
             else:
                 outf = str(local_corpus_dir / Path(download_file_name))
-                ui.get_file(full_download_file, local_path)
+                storage.download_file(ui, full_download_file, local_path)
                 # Determine content type
                 content_type = "application/xml"
                 for file_obj in export_contents:
@@ -470,7 +470,7 @@ def download_source_text(ui, user, _corpora, corpus_id):
                               err=True), 404
     try:
         local_path = Path(local_corpus_dir) / out_file_name
-        ui.get_file(full_download_path, local_path)
+        storage.download_file(ui, full_download_path, local_path)
         return send_file(local_path, mimetype="text/plain")
     except Exception as e:
         return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e)), 500

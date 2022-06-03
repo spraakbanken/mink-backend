@@ -12,7 +12,7 @@ from flask import Response
 from flask import current_app as app
 from flask import request
 
-from minsb.nextcloud import storage
+from minsb.sparv import storage
 
 
 def response(msg, err=False, **kwargs):
