@@ -1,5 +1,6 @@
 """Functions related to storage on Sparv server."""
 
+import mimetypes
 import os
 import shlex
 import subprocess
@@ -18,29 +19,25 @@ def list_contents(_ui, directory, exclude_dirs=True):
 
     user, host = _get_login()
     p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && find {directory} -exec ls -lgGd --time-style=long-iso {{}} \\; "
-                        f"-exec file --mime-type {{}} \\;"],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        f"cd /home/{user} && find {directory} -exec ls -lgGd --time-style=long-iso {{}} \\;"],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
         raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
 
     contents = p.stdout.decode()
     for line in contents.split("\n"):
-        content_type = ""
         if not line.strip():
             continue
-        elif line.startswith(directory):
-            content_type = line.split(": ")[-1]
-        else:
-            permissions, _, size, date, time, obj_path = line.split()
-            name = Path(obj_path).name
-            mod_time = parse(f"{date} {time}").isoformat()
-            if permissions.startswith("d"):
-                if exclude_dirs:
-                    continue
-            objlist.append(
-                {"name": name, "type": content_type,
-                "last_modified": mod_time, "size": size, "path": obj_path})
+        permissions, _, size, date, time, obj_path = line.split()
+        f = Path(obj_path)
+        mod_time = parse(f"{date} {time}").isoformat()
+        if permissions.startswith("d"):
+            if exclude_dirs:
+                continue
+        objlist.append({
+            "name": f.name, "type": mimetypes.guess_type(f)[0] or "unknown",
+            "last_modified": mod_time, "size": size, "path": obj_path
+        })
     return objlist
 
 
