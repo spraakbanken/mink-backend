@@ -350,7 +350,7 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
     The parameters 'file' and 'dir' may be used to download a specific export file
     or a directory of export files. These parameters must be supplied as absolute
     Nextcloud paths or paths relative to the export directory.
-    The `zip` parameter may be set to `false` in combination the the `file` param
+    The `zip` parameter may be set to `false` in combination with the `file` param
     to avoid zipping the file to be downloaded.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
@@ -360,7 +360,8 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
         return utils.response("The parameters 'dir' and 'file' must not be supplied simultaneously", err=True), 400
 
     storage_export_dir = str(storage.get_export_dir(ui, corpus_id))
-    local_corpus_dir = str(utils.get_corpus_dir(user, corpus_id, mkdir=True))
+    local_corpus_dir = utils.get_corpus_dir(user, corpus_id, mkdir=True)
+    local_export_dir = utils.get_export_dir(user, corpus_id, mkdir=True)
 
     try:
         export_contents = storage.list_contents(ui, storage_export_dir, exclude_dirs=False)
@@ -369,11 +370,12 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
     except Exception as e:
         return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500
 
+    # Download all export files
     if not (download_file or download_folder):
         try:
-            zip_out = str(local_corpus_dir / Path(f"{corpus_id}_export.zip"))
+            zip_out = str(local_corpus_dir / f"{corpus_id}_export.zip")
             # Get files from storage server
-            ui.get_directory_as_zip(storage_export_dir, zip_out)
+            storage.download_dir(ui, storage_export_dir, local_export_dir, corpus_id, zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -381,17 +383,19 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
     # Download and zip folder specified in args
     if download_folder:
         full_download_folder = download_folder
-        if not download_folder("/").startswith(storage_export_dir):
+        download_folder_name = Path(download_folder).name
+        if not download_folder.lstrip("/").startswith(storage_export_dir):
             full_download_folder = str(Path(storage_export_dir) / download_folder)
         if full_download_folder not in [i.get("path") for i in export_contents]:
             return utils.response(f"The folder '{download_folder}' you are trying to download does not exist",
                                   err=True), 404
         try:
-            zip_out = str(local_corpus_dir / Path(f"{corpus_id}_{download_folder}.zip"))
-            ui.get_directory_as_zip(full_download_folder, zip_out)
+            zip_out = str(local_corpus_dir / f"{corpus_id}_{download_folder_name}.zip")
+            storage.download_dir(ui, full_download_folder, local_export_dir, corpus_id,
+                                 zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
-            utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e)), 500
 
     # Download and zip file specified in args
     if download_file:
@@ -403,7 +407,7 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
         try:
-            local_path = Path(local_corpus_dir) / download_file_name
+            local_path = local_corpus_dir / download_file_name
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
             zipped = False if zipped.lower() == "false" else True
             if zipped:
