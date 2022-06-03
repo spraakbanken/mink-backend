@@ -15,7 +15,7 @@ bp = Blueprint("sparv", __name__)
 
 @bp.route("/run-sparv", methods=["PUT"])
 @login.login()
-def run_sparv(ui, user, _corpora, corpus_id):
+def run_sparv(ui, user, _corpora, corpus_id, auth_token):
     """Run Sparv on given corpus."""
     # Parse requested exports
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
@@ -52,11 +52,17 @@ def run_sparv(ui, user, _corpora, corpus_id):
     except Exception as e:
         return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 500
 
-    # Start syncing
-    try:
-        job.sync_to_sparv(ui)
-    except Exception as e:
-        return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e)), 500
+    # Check that all required files are present
+    job.check_requirements(ui)
+
+    if storage.local:
+        job.set_status(jobs.Status.waiting)
+    else:
+        # Sync files
+        try:
+            job.sync_to_sparv(ui)
+        except Exception as e:
+            return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)

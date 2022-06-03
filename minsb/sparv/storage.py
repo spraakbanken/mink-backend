@@ -13,6 +13,8 @@ from flask import current_app as app
 from minsb import utils
 from minsb.sparv import utils as sparv_utils
 
+local = True
+
 
 def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     """List files in directory on Sparv server recursively."""

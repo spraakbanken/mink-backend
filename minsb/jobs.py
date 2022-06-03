@@ -4,6 +4,7 @@ import datetime
 import hashlib
 import json
 import re
+import shlex
 import subprocess
 from enum import IntEnum
 from itertools import count
@@ -67,7 +68,7 @@ class Job():
         self.sparv_server = app.config.get("SPARV_HOST")
         self.nohupfile = app.config.get("SPARV_NOHUP_FILE")
         self.runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
-        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, corpus_id))
+        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(corpus_id))
 
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
@@ -128,10 +129,8 @@ class Job():
 
     def change_id(self, new_corpus_id):
         """Change the corpus ID on the Sparv server and in cache."""
-        new_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, new_corpus_id))
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"cd /home/{self.sparv_user} && mv {self.remote_corpus_dir} {new_corpus_dir}"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        new_corpus_dir = str(sparv_utils.get_corpus_dir(new_corpus_id))
+        p = utils.ssh_run(f"mv {shlex.quote(self.remote_corpus_dir)} {shlex.quote(new_corpus_dir)}")
         if p.stderr:
             app.logger.debug(f"Failed to rename corpus on Sparv server: '{p.stderr.decode()}'")
 
@@ -140,16 +139,11 @@ class Job():
         self.id = self.get_id(corpus_id=new_corpus_id)
         self.save()
 
-    def sync_to_sparv(self, ui):
-        """Sync corpus files from storage server to the Sparv server."""
-        self.set_status(Status.syncing_corpus)
+    def check_requirements(self, ui):
+        """Check if required corpus contents are present."""
 
-        # Get relevant directories
-        nc_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
-        local_user_dir = str(utils.get_corpora_dir(self.user, mkdir=True))
-
-        # Check if required corpus contents are present
-        corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)
+        remote_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
+        corpus_contents = storage.list_contents(ui, remote_corpus_dir, exclude_dirs=False)
         if not app.config.get("SPARV_CORPUS_CONFIG") in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.corpus_id}'!")
@@ -157,13 +151,21 @@ class Job():
             self.set_status(Status.error)
             raise Exception(f"No input files provided for '{self.corpus_id}'!")
 
+    def sync_to_sparv(self, ui):
+        """Sync corpus files from storage server to the Sparv server."""
+        self.set_status(Status.syncing_corpus)
+
+        # Get relevant directories
+        remote_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
+        local_user_dir = utils.get_corpora_dir(self.user, mkdir=True)
+
         # Create file index with timestamps
+        corpus_contents = storage.list_contents(ui, remote_corpus_dir, exclude_dirs=False)
         file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Create user and corpus dir on Sparv server
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"cd /home/{self.sparv_user} && mkdir -p {self.remote_corpus_dir} && "
-                            f"rm -f {self.nohupfile} {self.runscript}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
+                          f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)}")
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
@@ -171,7 +173,7 @@ class Job():
         # Download from storage server to local tmp dir
         # TODO: do this async?
         try:
-            storage.download_dir(ui, nc_corpus_dir, local_user_dir, self.corpus_id, file_index)
+            storage.download_dir(ui, remote_corpus_dir, local_user_dir, self.corpus_id, file_index)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to download corpus '{self.corpus_id}' from the storage server! {e}")
@@ -204,12 +206,10 @@ class Job():
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
         if self.files:
             sparv_command += f" --file {' '.join(self.files)}"
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            (f"cd /home/{self.sparv_user}/{self.remote_corpus_dir}"
-                             f" && echo '{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' > {self.runscript}"
-                             f" && chmod +x {self.runscript} && ./{self.runscript}")],
-                           # f" && nohup {sparv_command} > {nohupfile} 2>&1 & echo $!")],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
+                          f"echo '{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' "
+                          f"> {shlex.quote(self.runscript)}"
+                          f" && chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -230,8 +230,7 @@ class Job():
         if not self.pid:
             raise exceptions.ProcessNotFound("Failed to abort job because no process ID was found!")
 
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"kill -SIGTERM {self.pid}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"kill -SIGTERM {self.pid}")
         if p.returncode == 0:
             self.set_pid(None)
             self.set_status(Status.aborted)
@@ -243,8 +242,7 @@ class Job():
         if not self.pid:
             return False
 
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"kill -0 {self.pid}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"kill -0 {self.pid}")
         if p.returncode == 0:
             self.set_status(Status.annotating)
             return True
@@ -255,7 +253,10 @@ class Job():
             if (progress == "100%" or misc.startswith("Nothing to be done.")):
                 self.completed = self.get_nohup_timestamp()
                 self.set_pid(None)
-                self.set_status(Status.done_annotating)
+                if storage.local:
+                    self.set_status(Status.done_syncing)
+                else:
+                    self.set_status(Status.done_annotating)
             else:
                 if errors:
                     app.logger.debug(f"Error in Sparv: {errors}")
@@ -270,11 +271,9 @@ class Job():
             return ""
 
         nohupfile = app.config.get("SPARV_NOHUP_FILE")
-        remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.user, self.corpus_id))
+        remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.corpus_id))
 
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"cd /home/{self.sparv_user}/{remote_corpus_dir} && cat {nohupfile}"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"cd {shlex.quote(remote_corpus_dir)} && cat {shlex.quote(nohupfile)}")
 
         stdout = p.stdout.decode().strip() if p.stdout else ""
         progress = warnings = errors = misc = ""
@@ -308,10 +307,7 @@ class Job():
 
     def get_nohup_timestamp(self):
         """Get the last modification time of the nohup file."""
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            (f"cd /home/{self.sparv_user}/{self.remote_corpus_dir}"
-                            f" && date -r {self.nohupfile} -R")],
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && date -r {shlex.quote(self.nohupfile)} -R")
         out = p.stdout.decode() if p.stdout else ""
         try:
             return dateutil.parser.parse(out.strip()).isoformat()
@@ -392,19 +388,17 @@ class Job():
         except Exception as e:
             raise e
 
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"rm -rf /home/{self.sparv_user}/{self.remote_corpus_dir}"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"rm -rf {shlex.quote(self.remote_corpus_dir)}")
         if p.stderr:
             app.logger.error(f"Failed to remove corpus dir '{self.remote_corpus_dir}'!")
 
     def clean(self):
         """Remove annotation and export files from Sparv server by running 'sparv clean --all'."""
+        sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = app.config.get("SPARV_COMMAND") + " clean --all"
-        p = subprocess.run([
-            "ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-            f"cd /home/{self.sparv_user}/{self.remote_corpus_dir} && rm -f {self.nohupfile} {self.runscript} && "
-            f"{sparv_command}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
+                          f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)} && "
+                          f"{sparv_env} {sparv_command}")
 
         if p.stderr:
             raise Exception(p.stderr.decode())
@@ -415,11 +409,9 @@ class Job():
 
     def clean_export(self):
         """Remove export files from Sparv server by running 'sparv clean --export'."""
+        sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = app.config.get("SPARV_COMMAND") + " clean --export"
-        p = subprocess.run([
-            "ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-            f"cd /home/{self.sparv_user}/{self.remote_corpus_dir} && "
-            f"{sparv_command}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
         if p.stderr:
             raise Exception(p.stderr.decode())
 
@@ -467,18 +459,15 @@ class DefaultJob():
     def list_languages(self):
         """List the languages available in Sparv."""
         # Create and corpus dir with config file on Sparv server
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"cd /home/{self.sparv_user} && mkdir -p {self.remote_corpus_dir} && "
-                            f"echo 'metadata:\n  language: {self.lang}'>{self.remote_corpus_dir}/{self.config_file}"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
+                          f"echo 'metadata:\n  language: {self.lang}' > "
+                          f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}")
         if p.stderr:
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
 
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} languages"
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"cd /home/{self.sparv_user}/{self.remote_corpus_dir} && {sparv_env} {sparv_command}"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -496,18 +485,15 @@ class DefaultJob():
     def list_exports(self):
         """List the available exports for the current language."""
         # Create and corpus dir with config file on Sparv server
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"cd /home/{self.sparv_user} && mkdir -p {self.remote_corpus_dir} && "
-                            f"echo 'metadata:\n  language: {self.lang}'>{self.remote_corpus_dir}/{self.config_file}"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
+                          f"echo 'metadata:\n  language: {self.lang}' > "
+                          f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}")
         if p.stderr:
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
 
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} run -l"
-        p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{self.sparv_user}@{self.sparv_server}",
-                            f"cd /home/{self.sparv_user}/{self.remote_corpus_dir} && {sparv_env} {sparv_command}"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""

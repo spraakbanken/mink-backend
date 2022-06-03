@@ -9,6 +9,8 @@ from flask import current_app as app
 
 from minsb import utils
 
+local = False
+
 
 def list_corpora(ui):
     """List the available corpora in the corpora dir."""
