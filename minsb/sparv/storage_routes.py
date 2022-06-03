@@ -500,17 +500,21 @@ def check_changes(ui, user, _corpora, corpus_id, auth_token):
             return utils.response(f"Corpus '{corpus_id}' has not been run")
         started = dateutil.parser.isoparse(job.started)
 
-        # Get currenct source files on storage server
+        # Get current source files on storage server
         source_dir = str(storage.get_source_dir(ui, corpus_id))
         try:
             source_files = storage.list_contents(ui, source_dir)
         except Exception as e:
             return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+        source_file_paths = [f["path"] for f in source_files]
+        available_file_paths = [f["path"] for f in job.available_files]
+
         # Check for new source files
         added_sources = []
         for sf in source_files:
-            if sf not in job.available_files:
+            if sf["path"] not in available_file_paths:
                 added_sources.append(sf)
+
         # Compare all source files modification time to the time stamp of the last job started
         changed_sources = []
         for sf in source_files:
@@ -519,10 +523,11 @@ def check_changes(ui, user, _corpora, corpus_id, auth_token):
             mod = dateutil.parser.isoparse(sf.get("last_modified"))
             if mod > started:
                 changed_sources.append(sf)
+
         # Check for deleted source files
         deleted_sources = []
         for fileobj in job.available_files:
-            if fileobj not in source_files:
+            if fileobj["path"] not in source_file_paths:
                 deleted_sources.append(fileobj)
 
         # Compare the config file modification time to the time stamp of the last job started
