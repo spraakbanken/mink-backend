@@ -121,7 +121,7 @@ def set_corpus_id(config, corpus_id):
 # Get local paths
 ################################################################################
 
-def get_corpora_dir(user, mkdir=False):
+def get_corpora_dir(user: str, mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
     corpora_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / Path(user)
     if mkdir:
@@ -129,7 +129,7 @@ def get_corpora_dir(user, mkdir=False):
     return corpora_dir
 
 
-def get_corpus_dir(user, corpus_id, mkdir=False):
+def get_corpus_dir(user: str, corpus_id: str, mkdir: bool = False) -> Path:
     """Get dir for given corpus."""
     corpora_dir = get_corpora_dir(user, mkdir=mkdir)
     corpus_dir = corpora_dir / Path(corpus_id)
@@ -138,7 +138,7 @@ def get_corpus_dir(user, corpus_id, mkdir=False):
     return corpus_dir
 
 
-def get_export_dir(user, corpus_id, mkdir=False):
+def get_export_dir(user: str, corpus_id: str, mkdir: bool = False) -> Path:
     """Get export dir for given corpus."""
     corpus_dir = get_corpus_dir(user, corpus_id, mkdir=mkdir)
     export_dir = corpus_dir / Path(app.config.get("SPARV_EXPORT_DIR"))
@@ -147,7 +147,7 @@ def get_export_dir(user, corpus_id, mkdir=False):
     return export_dir
 
 
-def get_work_dir(user, corpus_id, mkdir=False):
+def get_work_dir(user: str, corpus_id: str, mkdir: bool = False) -> Path:
     """Get sparv workdir for given corpus."""
     corpus_dir = get_corpus_dir(user, corpus_id, mkdir=mkdir)
     work_dir = corpus_dir / Path(app.config.get("SPARV_WORK_DIR"))
@@ -156,7 +156,7 @@ def get_work_dir(user, corpus_id, mkdir=False):
     return work_dir
 
 
-def get_source_dir(user, corpus_id, mkdir=False):
+def get_source_dir(user: str, corpus_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given corpus."""
     corpus_dir = get_corpus_dir(user, corpus_id, mkdir=mkdir)
     source_dir = corpus_dir / Path(app.config.get("SPARV_SOURCE_DIR"))
@@ -165,7 +165,7 @@ def get_source_dir(user, corpus_id, mkdir=False):
     return source_dir
 
 
-def get_config_file(user, corpus_id):
+def get_config_file(user: str, corpus_id: str) -> Path:
     """Get path to corpus config file."""
     corpus_dir = get_corpus_dir(user, corpus_id)
     return corpus_dir / Path(app.config.get("SPARV_CORPUS_CONFIG"))
