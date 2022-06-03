@@ -108,7 +108,7 @@ def advance_queue():
 
 @bp.route("/check-status", methods=["GET"])
 @login.login(require_corpus_id=False)
-def check_status(ui, user, corpora):
+def check_status(ui, user, corpora, auth_token):
     """Check the annotation status for all jobs belonging to a user or a given corpus."""
     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if corpus_id:
@@ -140,7 +140,7 @@ def check_status(ui, user, corpora):
 
 @bp.route("/abort-job", methods=["POST"])
 @login.login()
-def abort_job(_ui, user, _corpora, corpus_id):
+def abort_job(_ui, user, _corpora, corpus_id, auth_token):
     """Try to abort a running job."""
     job = jobs.get_job(user, corpus_id)
     # Syncing
@@ -161,7 +161,7 @@ def abort_job(_ui, user, _corpora, corpus_id):
 
 @bp.route("/clear-annotations", methods=["DELETE"])
 @login.login()
-def clear_annotations(_ui, user, _corpora, corpus_id):
+def clear_annotations(_ui, user, _corpora, corpus_id, auth_token):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
     job = jobs.get_job(user, corpus_id)
