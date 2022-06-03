@@ -79,7 +79,7 @@ def write_file_contents(_ui, filepath: str, file_contents):
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
 
-def download_dir(_ui, remote_dir, local_dir, _corpus_id, _file_index):
+def download_dir(_ui, remote_dir, local_dir, corpus_id, file_index=None, zipped=False, zippath=None):
     """Download remote_dir on Sparv server to local_dir by rsyncing."""
     if not _is_valid_path(remote_dir):
         raise Exception(f"You don't have permission to download '{remote_dir}'")
@@ -87,11 +87,20 @@ def download_dir(_ui, remote_dir, local_dir, _corpus_id, _file_index):
     if not local_dir.is_dir():
         raise Exception(f"'{local_dir}' is not a directory")
 
+    if zipped and zippath is None:
+        raise Exception("Parameter zippath needs to be supplied when 'zipped=True'")
+
     user, host = _get_login()
-    p = subprocess.run(["rsync", "--recursive", f"{local_dir}/", f"{user}@{host}:{remote_dir}"],
+    p = subprocess.run(["rsync", "--recursive", f"{user}@{host}:{remote_dir}/", f"{local_dir}"],
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
         raise Exception(f"Failed to download '{remote_dir}': {p.stderr.decode()}")
+
+    if not zipped:
+        return local_dir
+
+    utils.create_zip(local_dir, zippath)
+    return zippath
 
 
 def upload_dir(_ui, remote_dir, local_dir, _corpus_id, _user, _file_index, delete=False):

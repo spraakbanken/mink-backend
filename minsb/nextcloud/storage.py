@@ -54,19 +54,26 @@ def write_file_contents(ui, nc_path: str, file_contents):
     ui.put_file_contents(nc_path, file_contents)
 
 
-def download_dir(ui, nc_dir, local_dir, corpus_id, file_index):
+def download_dir(ui, nc_dir, local_dir, corpus_id, file_index=None, zipped=False, zippath=None):
     """Download directory as zip, unzip and update timestamps."""
-    zipf = os.path.join(local_dir, corpus_id) + ".zip"
-    ui.get_directory_as_zip(nc_dir, zipf)
-    with zipfile.ZipFile(zipf, "r") as f:
+    if zipped and zippath is None:
+        raise Exception("Parameter zippath needs to be supplied when 'zipped=True'")
+
+    ui.get_directory_as_zip(nc_dir, zippath)
+    if zipped:
+        return zippath
+
+    with zipfile.ZipFile(zippath, "r") as f:
         f.extractall(local_dir)
 
-    # Change timestamps of local files
-    for (root, _dirs, files) in os.walk(os.path.join(local_dir, corpus_id)):
-        for f in files:
-            full_path = os.path.join(root, f)
-            timestamp = file_index.get(full_path)
-            os.utime(full_path, (timestamp, timestamp))
+    if file_index is not None:
+        # Change timestamps of local files
+        for (root, _dirs, files) in os.walk(os.path.join(local_dir, corpus_id)):
+            for f in files:
+                full_path = os.path.join(root, f)
+                timestamp = file_index.get(full_path)
+                os.utime(full_path, (timestamp, timestamp))
+    return local_dir
 
 
 def upload_dir(ui, nc_dir, local_dir, corpus_id, user, nc_file_index, delete=False):

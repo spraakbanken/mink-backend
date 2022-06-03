@@ -191,7 +191,6 @@ def download_sources(ui, user, _corpora, corpus_id):
 
     # Check if there are any source files
     nc_source_dir = str(storage.get_source_dir(ui, corpus_id))
-    source_contents = storage.list_contents(ui, nc_source_dir, exclude_dirs=False)
     try:
         source_contents = storage.list_contents(ui, nc_source_dir, exclude_dirs=False)
         if source_contents == []:
@@ -236,7 +235,7 @@ def download_sources(ui, user, _corpora, corpus_id):
     try:
         zip_out = str(local_source_dir / f"{corpus_id}_source.zip")
         # Get files from Nextcloud
-        ui.get_directory_as_zip(nc_source_dir, zip_out)
+        storage.download_dir(ui, nc_source_dir, local_source_dir, corpus_id, zipped=True, zippath=zip_out)
         return send_file(zip_out, mimetype="application/zip")
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True,
@@ -363,7 +362,7 @@ def download_export(ui, user, _corpora, corpus_id):
         try:
             zip_out = str(local_corpus_dir / Path(f"{corpus_id}_export.zip"))
             # Get files from Nextcloud
-            ui.get_directory_as_zip(nc_export_dir, zip_out)
+            storage.download_dir(ui, nc_export_dir, local_corpus_dir, corpus_id, zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -378,7 +377,7 @@ def download_export(ui, user, _corpora, corpus_id):
                                   err=True), 404
         try:
             zip_out = str(local_corpus_dir / Path(f"{corpus_id}_{download_folder}.zip"))
-            ui.get_directory_as_zip(full_download_folder, zip_out)
+            storage.download_dir(ui, full_download_folder, local_corpus_dir, corpus_id, zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e)), 500

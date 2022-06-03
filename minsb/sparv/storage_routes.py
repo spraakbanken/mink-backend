@@ -172,9 +172,9 @@ def remove_sources(ui, _user, _corpora, corpus_id, auth_token):
     successes = []
     fails = []
     for rf in remove_files:
-        nc_path = str(source_dir / Path(rf))
+        storage_path = str(source_dir / Path(rf))
         try:
-            storage.remove_dir(ui, nc_path)
+            storage.remove_dir(ui, storage_path)
             successes.append(rf)
         except Exception:
             fails.append(rf)
@@ -194,30 +194,30 @@ def download_sources(ui, user, _corpora, corpus_id, auth_token):
     """Download the corpus source files as a zip file.
 
     The parameter 'file' may be used to download a specific source file. This
-    parameter must either be a file name or an absolute Nextcloud path. The `zip`
+    parameter must either be a file name or a path on the storage server. The `zip`
     parameter may be set to `false` in combination the the `file` param to avoid
     zipping the file to be downloaded.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
 
     # Check if there are any source files
-    nc_source_dir = str(storage.get_source_dir(ui, corpus_id))
-    source_contents = storage.list_contents(ui, nc_source_dir, exclude_dirs=False)
+    storage_source_dir = str(storage.get_source_dir(ui, corpus_id))
     try:
-        source_contents = storage.list_contents(ui, nc_source_dir, exclude_dirs=False)
+        source_contents = storage.list_contents(ui, storage_source_dir, exclude_dirs=False)
         if source_contents == []:
             return utils.response(f"You have not uploaded any source files for corpus '{corpus_id}'", err=True), 404
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True, info=str(e)), 500
 
     local_source_dir = utils.get_source_dir(user, corpus_id, mkdir=True)
+    local_corpus_dir = utils.get_corpus_dir(user, corpus_id, mkdir=True)
 
     # Download and zip file specified in args
     if download_file:
         full_download_file = download_file
         download_file_name = Path(download_file).name
-        if not download_file.lstrip("/").startswith(nc_source_dir):
-            full_download_file = "/" + str(Path(nc_source_dir) / download_file)
+        if not download_file.lstrip("/").startswith(storage_source_dir):
+            full_download_file = "/" + str(Path(storage_source_dir) / download_file)
         if full_download_file not in [i.get("path") for i in source_contents]:
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
@@ -245,9 +245,9 @@ def download_sources(ui, user, _corpora, corpus_id, auth_token):
 
     # Download all files as zip archive
     try:
-        zip_out = str(local_source_dir / f"{corpus_id}_source.zip")
-        # Get files from Nextcloud
-        ui.get_directory_as_zip(nc_source_dir, zip_out)
+        zip_out = str(local_corpus_dir / f"{corpus_id}_source.zip")
+        # Get files from storage server
+        storage.download_dir(ui, storage_source_dir, local_source_dir, corpus_id, zipped=True, zippath=zip_out)
         return send_file(zip_out, mimetype="application/zip")
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True,
@@ -315,13 +315,13 @@ def upload_config(ui, _user, corpora, corpus_id, auth_token):
 @login.login()
 def download_config(ui, user, _corpora, corpus_id, auth_token):
     """Download the corpus config file."""
-    nc_config_file = str(storage.get_config_file(ui, corpus_id))
+    storage_config_file = str(storage.get_config_file(ui, corpus_id))
     utils.get_source_dir(user, corpus_id, mkdir=True)
     local_config_file = str(utils.get_config_file(user, corpus_id))
 
     try:
         # Get file from storage
-        storage.download_file(ui, nc_config_file, local_config_file)
+        storage.download_file(ui, storage_config_file, local_config_file)
         return send_file(local_config_file, mimetype="text/yaml")
     except Exception as e:
         return utils.response(f"Failed to download config file for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -360,11 +360,11 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
     if download_file and download_folder:
         return utils.response("The parameters 'dir' and 'file' must not be supplied simultaneously", err=True), 400
 
-    nc_export_dir = str(storage.get_export_dir(ui, corpus_id))
+    storage_export_dir = str(storage.get_export_dir(ui, corpus_id))
     local_corpus_dir = str(utils.get_corpus_dir(user, corpus_id, mkdir=True))
 
     try:
-        export_contents = storage.list_contents(ui, nc_export_dir, exclude_dirs=False)
+        export_contents = storage.list_contents(ui, storage_export_dir, exclude_dirs=False)
         if export_contents == []:
             return utils.response(f"There are currently no exports available for corpus '{corpus_id}'", err=True), 404
     except Exception as e:
@@ -373,8 +373,8 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
     if not (download_file or download_folder):
         try:
             zip_out = str(local_corpus_dir / Path(f"{corpus_id}_export.zip"))
-            # Get files from Nextcloud
-            ui.get_directory_as_zip(nc_export_dir, zip_out)
+            # Get files from storage server
+            ui.get_directory_as_zip(storage_export_dir, zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -382,8 +382,8 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
     # Download and zip folder specified in args
     if download_folder:
         full_download_folder = download_folder
-        if not download_folder("/").startswith(nc_export_dir):
-            full_download_folder = "/" + str(Path(nc_export_dir) / download_folder)
+        if not download_folder("/").startswith(storage_export_dir):
+            full_download_folder = "/" + str(Path(storage_export_dir) / download_folder)
         if full_download_folder not in [i.get("path") for i in export_contents]:
             return utils.response(f"The folder '{download_folder}' you are trying to download does not exist",
                                   err=True), 404
@@ -398,8 +398,8 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
     if download_file:
         full_download_file = download_file
         download_file_name = Path(download_file).name
-        if not download_file.lstrip("/").startswith(nc_export_dir):
-            full_download_file = "/" + str(Path(nc_export_dir) / download_file)
+        if not download_file.lstrip("/").startswith(storage_export_dir):
+            full_download_file = "/" + str(Path(storage_export_dir) / download_file)
         if full_download_file not in [i.get("path") for i in export_contents]:
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
@@ -431,7 +431,7 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
 def remove_exports(ui, user, _corpora, corpus_id, auth_token):
     """Remove export files."""
     try:
-        # Remove export dir from Nextcloud and create a new empty one
+        # Remove export dir from storage server and create a new empty one
         export_dir = str(storage.get_export_dir(ui, corpus_id))
         storage.remove_dir(ui, export_dir)
         storage.get_export_dir(ui, corpus_id, mkdir=True)
@@ -458,14 +458,14 @@ def download_source_text(ui, user, _corpora, corpus_id, auth_token):
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
 
-    nc_work_dir = str(storage.get_work_dir(ui, corpus_id))
+    storage_work_dir = str(storage.get_work_dir(ui, corpus_id))
     local_corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
 
     if not download_file:
         return utils.response("Please specify the source file to download", err=True), 400
 
     try:
-        source_texts = storage.list_contents(ui, nc_work_dir, exclude_dirs=False)
+        source_texts = storage.list_contents(ui, storage_work_dir, exclude_dirs=False)
         if source_texts == []:
             return utils.response((f"There are currently no source texts for corpus '{corpus_id}'. "
                                     "You must run Sparv before you can view source texts."), err=True), 404
@@ -474,7 +474,7 @@ def download_source_text(ui, user, _corpora, corpus_id, auth_token):
 
     # Download file specified in args
     download_file_stem = Path(download_file).stem
-    full_download_path = "/" + str(Path(nc_work_dir) / download_file_stem / app.config.get("SPARV_PLAIN_TEXT_FILE"))
+    full_download_path = "/" + str(Path(storage_work_dir) / download_file_stem / app.config.get("SPARV_PLAIN_TEXT_FILE"))
     out_file_name = download_file_stem + "_plain.txt"
     if full_download_path not in [i.get("path") for i in source_texts]:
         return utils.response(f"The source text for the file '{download_file}' does not exist",
@@ -497,7 +497,7 @@ def check_changes(ui, user, _corpora, corpus_id, auth_token):
             return utils.response(f"Corpus '{corpus_id}' has not been run")
         started = dateutil.parser.isoparse(job.started)
 
-        # Get currenct source files on Nextclouds
+        # Get currenct source files on storage server
         source_dir = str(storage.get_source_dir(ui, corpus_id))
         try:
             source_files = storage.list_contents(ui, source_dir)
