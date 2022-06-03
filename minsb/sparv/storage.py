@@ -70,7 +70,6 @@ def write_file_contents(_ui, filepath: str, file_contents):
     if not _is_valid_path(filepath):
         raise Exception(f"You don't have permission to edit '{filepath}'")
 
-    file_contents = file_contents.decode("UTF-8")
     user, host = _get_login()
     p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
                         f"cd /home/{user} && echo '{file_contents}' >'{filepath}'"],

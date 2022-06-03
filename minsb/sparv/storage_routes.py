@@ -139,7 +139,7 @@ def upload_sources(ui, _user, corpora, corpus_id, auth_token):
                 if not utils.validate_xml(file_contents):
                     return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
                                           err=True, file=f.filename, info="invalid XML"), 400
-            storage.write_file_contents(ui, str(source_dir / name), file_contents)
+            storage.write_file_contents(ui, str(source_dir / name), file_contents.decode("UTF-8"))
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:
         return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 500
