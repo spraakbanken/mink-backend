@@ -5,6 +5,7 @@ import os
 import shlex
 import subprocess
 from pathlib import Path
+from typing import Union
 
 from dateutil.parser import parse
 from flask import current_app as app
@@ -13,14 +14,11 @@ from minsb import utils
 from minsb.sparv import utils as sparv_utils
 
 
-def list_contents(_ui, directory, exclude_dirs=True):
+def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     """List files in directory on Sparv server recursively."""
     objlist = []
 
-    user, host = _get_login()
-    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && find {directory} -exec ls -lgGd --time-style=long-iso {{}} \\;"],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = utils.ssh_run(f"find {shlex.quote(str(directory))} -exec ls -lgGd --time-style=long-iso {{}} \\;")
     if p.stderr:
         raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
 
@@ -44,7 +42,7 @@ def list_contents(_ui, directory, exclude_dirs=True):
     return objlist
 
 
-def download_file(_ui, remote_file_path, local_file):
+def download_file(_ui, remote_file_path: str, local_file: Path):
     """Download a file from the Sparv server."""
     if not _is_valid_path(remote_file_path):
         raise Exception(f"You don't have permission to download '{remote_file_path}'")
@@ -58,10 +56,7 @@ def download_file(_ui, remote_file_path, local_file):
 
 def get_file_contents(_ui, filepath):
     """Get contents of file at 'filepath'."""
-    user, host = _get_login()
-    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && cat {filepath}"],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = utils.ssh_run(f"cat {shlex.quote(str(filepath))}")
     if p.stderr:
         raise Exception(f"Failed to retrieve contents for '{filepath}': {p.stderr.decode()}")
 
@@ -73,10 +68,7 @@ def write_file_contents(_ui, filepath: str, file_contents):
     if not _is_valid_path(filepath):
         raise Exception(f"You don't have permission to edit '{filepath}'")
 
-    user, host = _get_login()
-    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && echo '{file_contents}' >'{filepath}'"],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = utils.ssh_run(f"echo {shlex.quote(file_contents)} >{shlex.quote(str(filepath))}")
     if p.stderr:
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
@@ -145,19 +137,14 @@ def create_file_index(contents, user):
     return file_index
 
 
-def remove_dir(_ui, dirpath):
+def remove_dir(_ui, path):
     """Remove directory on 'path' from Sparv server."""
-    user = app.config.get("SPARV_USER")
-    host = app.config.get("SPARV_HOST")
+    if not _is_valid_path(path):
+        raise Exception(f"You don't have permission to remove '{path}'")
 
-    if not _is_valid_path(dirpath):
-        raise Exception(f"You don't have permission to remove '{dirpath}'")
-
-    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && test -d {shlex.quote(dirpath)} && rm -r {shlex.quote(dirpath)}"],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = utils.ssh_run(f"test -d {shlex.quote(str(path))} && rm -r {shlex.quote(str(path))}")
     if p.stderr:
-        raise Exception(f"Failed to remove corpus dir on Sparv server {p.stderr.decode()}")
+        raise Exception(f"Failed to remove corpus dir on Sparv server: {p.stderr.decode()}")
 
 
 def _get_login():
@@ -204,7 +191,7 @@ def get_work_dir(_ui, corpus_id, _mkdir):
     return sparv_utils.get_work_dir(corpus_id)
 
 
-def get_source_dir(_ui, corpus_id, mkdir=False):
+def get_source_dir(_ui, corpus_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given corpus."""
     source_dir = sparv_utils.get_source_dir(corpus_id)
     if mkdir:
@@ -219,9 +206,6 @@ def get_config_file(_ui, corpus_id):
 
 def _make_dir(dirpath):
     """Create directory on Sparv server."""
-    user, host = _get_login()
-    p = subprocess.run(["ssh", "-i", "~/.ssh/id_rsa", f"{user}@{host}",
-                        f"cd /home/{user} && mkdir -p {dirpath}"],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = utils.ssh_run(f"mkdir -p {shlex.quote(str(dirpath))}")
     if p.stderr:
         raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")

@@ -2,7 +2,6 @@
 
 import functools
 import json
-import shlex
 import time
 from pathlib import Path
 
@@ -33,7 +32,6 @@ def login(require_init=False, require_corpus_id=True, require_corpus_exists=True
 
             try:
                 user, corpora = _get_corpora(auth_token)
-                user = shlex.quote(user)
 
                 if not require_corpus_id:
                     return function(None, user, corpora, auth_token, *args, **kwargs)
@@ -42,7 +40,6 @@ def login(require_init=False, require_corpus_id=True, require_corpus_exists=True
                 corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
                 if not corpus_id:
                     return utils.response("No corpus ID provided", err=True), 400
-                corpus_id = shlex.quote(corpus_id)
 
                 # Check if corpus exists
                 if not require_corpus_exists:
