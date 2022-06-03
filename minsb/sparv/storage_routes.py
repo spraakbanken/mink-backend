@@ -14,6 +14,7 @@ from minsb.sparv import storage
 
 bp = Blueprint("sparv_storage", __name__)
 
+
 # ------------------------------------------------------------------------------
 # Corpus operations
 # ------------------------------------------------------------------------------
@@ -224,22 +225,20 @@ def download_sources(ui, user, _corpora, corpus_id, auth_token):
         try:
             local_path = local_source_dir / download_file_name
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
-            zipped = False if zipped.lower() == "false" else True
+            zipped = not zipped.lower() == "false"
+            storage.download_file(ui, full_download_file, local_path)
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
-                storage.download_file(ui, full_download_file, local_path)
                 utils.create_zip(local_path, outf)
                 return send_file(outf, mimetype="application/zip")
             else:
-                outf = str(local_corpus_dir / Path(download_file_name))
-                storage.download_file(ui, full_download_file, local_path)
                 # Determine content type
                 content_type = "application/xml"
                 for file_obj in source_contents:
                     if file_obj.get("name") == download_file_name:
                         content_type = file_obj.get("type")
                         break
-                return send_file(outf, mimetype=content_type)
+                return send_file(local_path, mimetype=content_type)
         except Exception as e:
             return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 500
 
