@@ -462,7 +462,7 @@ def download_source_text(ui, user, _corpora, corpus_id, auth_token):
     download_file = request.args.get("file") or request.form.get("file") or ""
 
     storage_work_dir = str(storage.get_work_dir(ui, corpus_id))
-    local_corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
+    local_corpus_dir = str(utils.get_corpus_dir(user, corpus_id, mkdir=True))
 
     if not download_file:
         return utils.response("Please specify the source file to download", err=True), 400
@@ -471,13 +471,14 @@ def download_source_text(ui, user, _corpora, corpus_id, auth_token):
         source_texts = storage.list_contents(ui, storage_work_dir, exclude_dirs=False)
         if source_texts == []:
             return utils.response((f"There are currently no source texts for corpus '{corpus_id}'. "
-                                    "You must run Sparv before you can view source texts."), err=True), 404
+                                   "You must run Sparv before you can view source texts."), err=True), 404
     except Exception as e:
         return utils.response(f"Failed to download source text for corpus '{corpus_id}'", err=True, info=str(e)), 500
 
     # Download file specified in args
     download_file_stem = Path(download_file).stem
-    full_download_path = str(Path(storage_work_dir) / download_file_stem / app.config.get("SPARV_PLAIN_TEXT_FILE"))
+    full_download_path = str(Path(storage_work_dir) / Path(download_file).parent / download_file_stem /
+                             app.config.get("SPARV_PLAIN_TEXT_FILE"))
     out_file_name = download_file_stem + "_plain.txt"
     if full_download_path not in [i.get("path") for i in source_texts]:
         return utils.response(f"The source text for the file '{download_file}' does not exist",

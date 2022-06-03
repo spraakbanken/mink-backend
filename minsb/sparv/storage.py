@@ -198,9 +198,12 @@ def get_export_dir(_ui, corpus_id, mkdir=False):
     return export_dir
 
 
-def get_work_dir(_ui, corpus_id, _mkdir):
+def get_work_dir(_ui, corpus_id, mkdir=False):
     """Get sparv workdir for given corpus."""
-    return sparv_utils.get_work_dir(corpus_id)
+    work_dir = sparv_utils.get_work_dir(corpus_id)
+    if mkdir:
+        _make_dir(work_dir)
+    return work_dir
 
 
 def get_source_dir(_ui, corpus_id: str, mkdir: bool = False) -> Path:
