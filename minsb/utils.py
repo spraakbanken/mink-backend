@@ -4,6 +4,7 @@ import functools
 import json
 import os
 import shlex
+import subprocess
 import zipfile
 from pathlib import Path
 
@@ -33,6 +34,15 @@ def gatekeeper(function):
             return response("Failed to confirm secret key for protected route", err=True), 401
         return function(*args, **kwargs)
     return decorator
+
+
+def ssh_run(command):
+    """Execute 'command' on server and return process."""
+    user = app.config.get("SPARV_USER")
+    host = app.config.get("SPARV_HOST")
+    p = subprocess.run(["ssh", "-i", app.config.get("SSH_KEY"), f"{user}@{host}", command],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return p
 
 
 def create_zip(inpath, outpath):

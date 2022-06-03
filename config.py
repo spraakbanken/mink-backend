@@ -31,6 +31,7 @@ SPARV_IMPORTER_MODULES = {  # File extensions for corpus input and the modules t
 }
 
 # Settings for the server where Sparv is run
+SSH_KEY = "~/.ssh/id_rsa"
 SPARV_HOST = ""  # Define this in instance/config.py!
 SPARV_USER = ""    # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
