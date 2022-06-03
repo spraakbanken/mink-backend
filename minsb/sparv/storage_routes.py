@@ -175,7 +175,7 @@ def remove_sources(ui, _user, _corpora, corpus_id, auth_token):
     for rf in remove_files:
         storage_path = str(source_dir / Path(rf))
         try:
-            storage.remove_dir(ui, storage_path)
+            storage.remove_file(ui, storage_path)
             successes.append(rf)
         except Exception:
             fails.append(rf)

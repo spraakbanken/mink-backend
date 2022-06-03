@@ -147,6 +147,16 @@ def remove_dir(_ui, path):
         raise Exception(f"Failed to remove corpus dir on Sparv server: {p.stderr.decode()}")
 
 
+def remove_file(_ui, path):
+    """Remove file on 'path' from Sparv server."""
+    if not _is_valid_path(path):
+        raise Exception(f"You don't have permission to remove '{path}'")
+
+    p = utils.ssh_run(f"test -f {shlex.quote(str(path))} && rm {shlex.quote(str(path))}")
+    if p.stderr:
+        raise Exception(f"Failed to remove file '{path}' on Sparv server: {p.stderr.decode()}")
+
+
 def _get_login():
     user = app.config.get("SPARV_USER")
     host = app.config.get("SPARV_HOST")
