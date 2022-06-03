@@ -31,11 +31,14 @@ def list_contents(_ui, directory, exclude_dirs=True):
         permissions, _, size, date, time, obj_path = line.split()
         f = Path(obj_path)
         mod_time = parse(f"{date} {time}").isoformat()
-        if permissions.startswith("d"):
+        is_dir = permissions.startswith("d")
+        mimetype = mimetypes.guess_type(f)[0] or "unknown"
+        if is_dir:
             if exclude_dirs:
                 continue
+            mimetype = "directory"
         objlist.append({
-            "name": f.name, "type": mimetypes.guess_type(f)[0] or "unknown",
+            "name": f.name, "type": mimetype,
             "last_modified": mod_time, "size": size, "path": obj_path
         })
     return objlist
