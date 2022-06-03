@@ -18,7 +18,7 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     """List files in directory on Sparv server recursively."""
     objlist = []
 
-    p = utils.ssh_run(f"find {shlex.quote(str(directory))} -exec ls -lgGd --time-style=long-iso {{}} \\;")
+    p = utils.ssh_run(f"find {shlex.quote(str(directory))} -exec ls -lgGd --time-style=full-iso {{}} \\;")
     if p.stderr:
         raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
 
@@ -26,9 +26,9 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     for line in contents.split("\n"):
         if not line.strip():
             continue
-        permissions, _, size, date, time, obj_path = line.split()
+        permissions, _, size, date, time, tz, obj_path = line.split()
         f = Path(obj_path)
-        mod_time = parse(f"{date} {time}").isoformat()
+        mod_time = parse(f"{date} {time} {tz}").isoformat(timespec="seconds")
         is_dir = permissions.startswith("d")
         mimetype = mimetypes.guess_type(f)[0] or "unknown"
         if is_dir:

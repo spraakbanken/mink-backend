@@ -198,7 +198,7 @@ class Job():
 
     def run_sparv(self):
         """Start a Sparv annotation process."""
-        self.started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+        self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
         self.completed = None
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
