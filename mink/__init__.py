@@ -9,9 +9,9 @@ from pathlib import Path
 from flask import Flask, g, request
 from flask_cors import CORS
 
-from minsb.sb_auth.login import read_jwt_key
-from minsb import corpus_registry, queue
-from minsb.memcached.cache import Cache
+from mink.sb_auth.login import read_jwt_key
+from mink import corpus_registry, queue
+from mink.memcached.cache import Cache
 
 
 def create_app():
@@ -46,7 +46,7 @@ def create_app():
     else:
         today = time.strftime("%Y-%m-%d")
         logdir = Path("instance") / "logs"
-        logfile = logdir / f"minsb-{today}.log"
+        logfile = logdir / f"mink-{today}.log"
         logdir.mkdir(exist_ok=True)
         # Create log file if it does not exist
         if not logfile.is_file():

@@ -10,7 +10,7 @@ import requests
 from flask import current_app as app
 from flask import request
 
-from minsb import exceptions, utils
+from mink import exceptions, utils
 
 
 def login(require_init=False, require_corpus_id=True, require_corpus_exists=True):

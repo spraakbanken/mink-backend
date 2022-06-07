@@ -14,9 +14,9 @@ import dateutil
 from flask import current_app as app
 from flask import g
 
-from minsb import exceptions, utils
-from minsb.sparv import utils as sparv_utils
-from minsb.sparv import storage
+from mink import exceptions, utils
+from mink.sparv import utils as sparv_utils
+from mink.sparv import storage
 
 _status_count = count(0)
 

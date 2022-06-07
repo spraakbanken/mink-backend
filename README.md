@@ -1,6 +1,6 @@
 # min-sb-backend
 
-Flask application serving as a backend to Min Språkbank.
+Flask application serving as a backend to Mink.
 
 
 ## Prerequisites

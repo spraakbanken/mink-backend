@@ -7,7 +7,7 @@ import requests  # https://docs.python-requests.org/en/master/
 import yaml
 
 INFO_YAML = "info.yaml"
-OUTPUT_FILE = "../minsb/static/oas.yaml"
+OUTPUT_FILE = "../mink/static/oas.yaml"
 HOST = "https://ws.spraakbanken.gu.se/ws/min-sb"
 
 

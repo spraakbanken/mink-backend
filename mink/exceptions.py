@@ -1,4 +1,4 @@
-"""Exceptions for Min Språkbank."""
+"""Exceptions for Mink."""
 
 
 class JobError(Exception):

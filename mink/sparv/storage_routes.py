@@ -1,35 +1,18 @@
-"""Routes related to Nextcloud."""
+"""Routes related to storage on Sparv server."""
 
-import re
 from pathlib import Path
 
 import dateutil
+import shortuuid
 from flask import Blueprint
 from flask import current_app as app
 from flask import request, send_file
 
-from minsb import jobs, queue, utils
-from minsb.nextcloud import login, storage
+from mink import corpus_registry, exceptions, jobs, queue, utils
+from mink.sb_auth import login
+from mink.sparv import storage
 
-bp = Blueprint("nextcloud", __name__)
-
-
-@bp.route("/init", methods=["POST"])
-@login.login(require_init=False, require_corpus_id=False, require_corpus_exists=False)
-def init(ui, _user, dir_listing):
-    """Create corpora directory."""
-    try:
-        corpora_dir = app.config.get("NC_CORPORA_DIR")
-        if corpora_dir in [e.get_name() for e in dir_listing]:
-            # Corpora dir already exists
-            return utils.response(f"Nothing to be done. Min Språkbank has already been initialized"), 200
-        # Create corpora dir
-        corpora_dir = storage.get_corpora_dir(ui, mkdir=True)
-        # TODO: upload some info file?
-        app.logger.debug(f"Initialized corpora dir '{corpora_dir}'")
-        return utils.response("Min Språkbank successfully initialized"), 201
-    except Exception as e:
-        return utils.response("Failed to initialize corpora dir", err=True, info=str(e)), 500
+bp = Blueprint("sparv_storage", __name__)
 
 
 # ------------------------------------------------------------------------------
@@ -37,23 +20,35 @@ def init(ui, _user, dir_listing):
 # ------------------------------------------------------------------------------
 
 @bp.route("/create-corpus", methods=["POST"])
-@login.login(require_corpus_exists=False)
-def create_corpus(ui, _user, corpora, corpus_id):
+@login.login(require_corpus_exists=False, require_corpus_id=False)
+def create_corpus(ui, _user, corpora, auth_token):
     """Create a new corpus."""
-    # Check if corpus_id is valid
-    if not bool(re.match(r"^[a-z0-9-]+$", corpus_id)):
-        return utils.response(f"Corpus ID '{corpus_id}' is invalid", err=True), 400
-
-    # Make sure corpus dir does not exist already
-    if corpus_id in corpora:
-        return utils.response(f"Corpus '{corpus_id}' already exists", err=True), 400
+    # Create corpus ID
+    corpus_id = None
+    prefix = app.config.get("RESOURCE_PREFIX")
+    tries = 1
+    while corpus_id is None:
+        # Give up after 3 tries
+        if tries > 3:
+            return utils.response("Failed to create resource", err=True), 500
+        tries += 1
+        corpus_id = f"{prefix}{shortuuid.uuid()[:10]}"
+        corpora = corpus_registry.get_all()
+        if corpus_id in corpora:
+            corpus_id = None
+        try:
+            login.create_resource(auth_token, corpus_id)
+        except exceptions.CorpusExists:
+            # Corpus ID is in use, try to create another one
+            corpus_id = None
+        except Exception as e:
+            return utils.response("Failed to create resource", err=True, info=str(e)), 500
 
     # Create corpus dir with subdirs
     try:
         corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
         storage.get_source_dir(ui, corpus_id, mkdir=True)
-        storage.get_export_dir(ui, corpus_id, mkdir=True)
-        storage.get_work_dir(ui, corpus_id, mkdir=True)
+        corpus_registry.add(corpus_id)
         return utils.response(f"Corpus '{corpus_id}' created successfully"), 201
     except Exception as e:
         try:
@@ -61,34 +56,51 @@ def create_corpus(ui, _user, corpora, corpus_id):
             storage.remove_dir(ui, corpus_dir)
         except Exception as err:
             app.logger.error(f"Failed to remove partially uploaded corpus data for '{corpus_id}'. {err}")
+        try:
+            login.remove_resource(corpus_id)
+        except Exception as err:
+            app.logger.error(f"Failed to remove corpus '{corpus_id}' from auth system. {err}")
         return utils.response("Failed to create corpus dir", err=True, info=str(e)), 500
 
 
 @bp.route("/list-corpora", methods=["GET"])
 @login.login(require_corpus_id=False, require_corpus_exists=False)
-def list_corpora(_ui, _user, corpora):
+def list_corpora(_ui, _user, corpora, auth_token):
     """List all available corpora."""
     return utils.response("Listing available corpora", corpora=corpora)
 
 
 @bp.route("/remove-corpus", methods=["DELETE"])
 @login.login()
-def remove_corpus(ui, user, _corpora, corpus_id):
+def remove_corpus(_ui, user, corpora, corpus_id, auth_token):
     """Remove corpus."""
+    # TODO: Uninstall corpus (if installed) using Sparv
     try:
-        corpus_dir = str(storage.get_corpus_dir(ui, corpus_id))
-        storage.remove_dir(ui, corpus_dir)
+        # Remove from storage
+        corpus_dir = str(storage.get_corpus_dir(_ui, corpus_id))
+        storage.remove_dir(_ui, corpus_dir)
     except Exception as e:
-        return utils.response(f"Failed to remove corpus '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to remove corpus '{corpus_id}' from storage", err=True, info=str(e)), 500
 
     try:
-        # Try to safely remove files from Sparv server and remove the job
+        # Remove job
         job = jobs.get_job(user, corpus_id)
-        job.remove_from_sparv()
         queue.remove(job)
         job.remove()
     except Exception as e:
-        app.logger.error(f"Failed to remove corpus '{corpus_id}'. {e}")
+        return utils.response(f"Failed to remove job for corpus '{corpus_id}'. {e}", err=True, info=str(e)), 500
+
+    try:
+        # Remove from auth system
+        login.remove_resource(corpus_id)
+    except Exception as e:
+        return utils.response(f"Failed to remove corpus '{corpus_id}' from auth system", err=True, info=str(e)), 500
+
+    try:
+        # Remove from corpus registry
+        corpus_registry.remove(corpus_id)
+    except Exception as e:
+        app.logger.error(f"Failed to remove corpus '{corpus_id}' from corpus registry: {e}")
 
     return utils.response(f"Corpus '{corpus_id}' successfully removed")
 
@@ -99,7 +111,7 @@ def remove_corpus(ui, user, _corpora, corpus_id):
 
 @bp.route("/upload-sources", methods=["PUT"])
 @login.login()
-def upload_sources(ui, _user, corpora, corpus_id):
+def upload_sources(ui, _user, corpora, corpus_id, auth_token):
     """Upload corpus source files.
 
     Attached files will be added to the corpus or replace existing ones.
@@ -116,19 +128,19 @@ def upload_sources(ui, _user, corpora, corpus_id):
             name = utils.check_file_ext(f.filename, app.config.get("SPARV_IMPORTER_MODULES", {}).keys())
             if not name:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid "
-                                       "file extension", err=True, file=f.filename, info="invalid file extension"), 400
+                                      "file extension", err=True, file=f.filename, info="invalid file extension"), 400
             compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir, ui)
             if not compatible:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to incompatible "
-                                       "file extensions", err=True, file=f.filename, info="incompatible file extensions",
-                                       current_file_extension=current_ext, existing_file_extension=existing_ext), 400
+                                      "file extensions", err=True, file=f.filename, info="incompatible file extensions",
+                                      current_file_extension=current_ext, existing_file_extension=existing_ext), 400
             file_contents = f.read()
             # Validate XML files
             if current_ext == ".xml":
                 if not utils.validate_xml(file_contents):
                     return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
                                           err=True, file=f.filename, info="invalid XML"), 400
-            storage.write_file_contents(ui, str(source_dir / name), file_contents)
+            storage.write_file_contents(ui, str(source_dir / name), file_contents.decode("UTF-8"))
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:
         return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 500
@@ -136,7 +148,7 @@ def upload_sources(ui, _user, corpora, corpus_id):
 
 @bp.route("/list-sources", methods=["GET"])
 @login.login()
-def list_sources(ui, _user, corpora, corpus_id):
+def list_sources(ui, _user, corpora, corpus_id, auth_token):
     """List the available corpus source files."""
     source_dir = str(storage.get_source_dir(ui, corpus_id))
     try:
@@ -148,7 +160,7 @@ def list_sources(ui, _user, corpora, corpus_id):
 
 @bp.route("/remove-sources", methods=["DELETE"])
 @login.login()
-def remove_sources(ui, _user, _corpora, corpus_id):
+def remove_sources(ui, _user, _corpora, corpus_id, auth_token):
     """Remove file paths listed in 'remove' (comma separated) from the corpus."""
     remove_files = request.args.get("remove") or request.form.get("remove") or ""
     remove_files = [i.strip() for i in remove_files.split(",") if i]
@@ -161,9 +173,9 @@ def remove_sources(ui, _user, _corpora, corpus_id):
     successes = []
     fails = []
     for rf in remove_files:
-        nc_path = str(source_dir / Path(rf))
+        storage_path = str(source_dir / Path(rf))
         try:
-            storage.remove_dir(ui, nc_path)
+            storage.remove_file(ui, storage_path)
             successes.append(rf)
         except Exception:
             fails.append(rf)
@@ -179,63 +191,62 @@ def remove_sources(ui, _user, _corpora, corpus_id):
 
 @bp.route("/download-sources", methods=["GET"])
 @login.login()
-def download_sources(ui, user, _corpora, corpus_id):
+def download_sources(ui, user, _corpora, corpus_id, auth_token):
     """Download the corpus source files as a zip file.
 
     The parameter 'file' may be used to download a specific source file. This
-    parameter must either be a file name or an absolute Nextcloud path. The `zip`
+    parameter must either be a file name or a path on the storage server. The `zip`
     parameter may be set to `false` in combination the the `file` param to avoid
     zipping the file to be downloaded.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
 
     # Check if there are any source files
-    nc_source_dir = str(storage.get_source_dir(ui, corpus_id))
+    storage_source_dir = str(storage.get_source_dir(ui, corpus_id))
     try:
-        source_contents = storage.list_contents(ui, nc_source_dir, exclude_dirs=False)
+        source_contents = storage.list_contents(ui, storage_source_dir, exclude_dirs=False)
         if source_contents == []:
             return utils.response(f"You have not uploaded any source files for corpus '{corpus_id}'", err=True), 404
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True, info=str(e)), 500
 
     local_source_dir = utils.get_source_dir(user, corpus_id, mkdir=True)
+    local_corpus_dir = utils.get_corpus_dir(user, corpus_id, mkdir=True)
 
     # Download and zip file specified in args
     if download_file:
         full_download_file = download_file
         download_file_name = Path(download_file).name
-        if not download_file.lstrip("/").startswith(nc_source_dir):
-            full_download_file = "/" + str(Path(nc_source_dir) / download_file)
+        if not download_file.lstrip("/").startswith(storage_source_dir):
+            full_download_file = str(Path(storage_source_dir) / download_file)
         if full_download_file not in [i.get("path") for i in source_contents]:
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
         try:
             local_path = local_source_dir / download_file_name
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
-            zipped = False if zipped.lower() == "false" else True
+            zipped = not zipped.lower() == "false"
+            storage.download_file(ui, full_download_file, local_path)
             if zipped:
-                outf = str(local_source_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
-                storage.download_file(ui, full_download_file, local_path)
+                outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
                 utils.create_zip(local_path, outf)
                 return send_file(outf, mimetype="application/zip")
             else:
-                outf = str(local_source_dir / Path(download_file_name))
-                storage.download_file(ui, full_download_file, local_path)
                 # Determine content type
                 content_type = "application/xml"
                 for file_obj in source_contents:
                     if file_obj.get("name") == download_file_name:
                         content_type = file_obj.get("type")
                         break
-                return send_file(outf, mimetype=content_type)
+                return send_file(local_path, mimetype=content_type)
         except Exception as e:
             return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 500
 
     # Download all files as zip archive
     try:
-        zip_out = str(local_source_dir / f"{corpus_id}_source.zip")
-        # Get files from Nextcloud
-        storage.download_dir(ui, nc_source_dir, local_source_dir, corpus_id, zipped=True, zippath=zip_out)
+        zip_out = str(local_corpus_dir / f"{corpus_id}_source.zip")
+        # Get files from storage server
+        storage.download_dir(ui, storage_source_dir, local_source_dir, corpus_id, zipped=True, zippath=zip_out)
         return send_file(zip_out, mimetype="application/zip")
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True,
@@ -248,7 +259,7 @@ def download_sources(ui, user, _corpora, corpus_id):
 
 @bp.route("/upload-config", methods=["PUT"])
 @login.login()
-def upload_config(ui, _user, corpora, corpus_id):
+def upload_config(ui, _user, corpora, corpus_id, auth_token):
     """Upload a corpus config as file or plain text."""
     attached_files = list(request.files.values())
     config_txt = request.args.get("config") or request.form.get("config") or ""
@@ -301,15 +312,15 @@ def upload_config(ui, _user, corpora, corpus_id):
 
 @bp.route("/download-config", methods=["GET"])
 @login.login()
-def download_config(ui, user, _corpora, corpus_id):
+def download_config(ui, user, _corpora, corpus_id, auth_token):
     """Download the corpus config file."""
-    nc_config_file = str(storage.get_config_file(ui, corpus_id))
+    storage_config_file = str(storage.get_config_file(ui, corpus_id))
     utils.get_source_dir(user, corpus_id, mkdir=True)
     local_config_file = str(utils.get_config_file(user, corpus_id))
 
     try:
-        # Get file from Nextcloud
-        storage.download_file(ui, nc_config_file, local_config_file)
+        # Get file from storage
+        storage.download_file(ui, storage_config_file, local_config_file)
         return send_file(local_config_file, mimetype="text/yaml")
     except Exception as e:
         return utils.response(f"Failed to download config file for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -321,7 +332,7 @@ def download_config(ui, user, _corpora, corpus_id):
 
 @bp.route("/list-exports", methods=["GET"])
 @login.login()
-def list_exports(ui, _user, _corpora, corpus_id):
+def list_exports(ui, _user, _corpora, corpus_id, auth_token):
     """List exports available for download for a given corpus."""
     path = str(storage.get_export_dir(ui, corpus_id))
     try:
@@ -333,13 +344,13 @@ def list_exports(ui, _user, _corpora, corpus_id):
 
 @bp.route("/download-exports", methods=["GET"])
 @login.login()
-def download_export(ui, user, _corpora, corpus_id):
+def download_export(ui, user, _corpora, corpus_id, auth_token):
     """Download export files for a corpus as a zip file.
 
     The parameters 'file' and 'dir' may be used to download a specific export file
     or a directory of export files. These parameters must be supplied as absolute
     Nextcloud paths or paths relative to the export directory.
-    The `zip` parameter may be set to `false` in combination the the `file` param
+    The `zip` parameter may be set to `false` in combination with the `file` param
     to avoid zipping the file to be downloaded.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
@@ -348,21 +359,23 @@ def download_export(ui, user, _corpora, corpus_id):
     if download_file and download_folder:
         return utils.response("The parameters 'dir' and 'file' must not be supplied simultaneously", err=True), 400
 
-    nc_export_dir = str(storage.get_export_dir(ui, corpus_id))
-    local_corpus_dir = str(utils.get_corpus_dir(user, corpus_id, mkdir=True))
+    storage_export_dir = str(storage.get_export_dir(ui, corpus_id))
+    local_corpus_dir = utils.get_corpus_dir(user, corpus_id, mkdir=True)
+    local_export_dir = utils.get_export_dir(user, corpus_id, mkdir=True)
 
     try:
-        export_contents = storage.list_contents(ui, nc_export_dir, exclude_dirs=False)
+        export_contents = storage.list_contents(ui, storage_export_dir, exclude_dirs=False)
         if export_contents == []:
             return utils.response(f"There are currently no exports available for corpus '{corpus_id}'", err=True), 404
     except Exception as e:
         return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500
 
+    # Download all export files
     if not (download_file or download_folder):
         try:
-            zip_out = str(local_corpus_dir / Path(f"{corpus_id}_export.zip"))
-            # Get files from Nextcloud
-            storage.download_dir(ui, nc_export_dir, local_corpus_dir, corpus_id, zipped=True, zippath=zip_out)
+            zip_out = str(local_corpus_dir / f"{corpus_id}_export.zip")
+            # Get files from storage server
+            storage.download_dir(ui, storage_export_dir, local_export_dir, corpus_id, zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -370,29 +383,31 @@ def download_export(ui, user, _corpora, corpus_id):
     # Download and zip folder specified in args
     if download_folder:
         full_download_folder = download_folder
-        if not download_folder("/").startswith(nc_export_dir):
-            full_download_folder = "/" + str(Path(nc_export_dir) / download_folder)
+        download_folder_name = Path(download_folder).name
+        if not download_folder.lstrip("/").startswith(storage_export_dir):
+            full_download_folder = str(Path(storage_export_dir) / download_folder)
         if full_download_folder not in [i.get("path") for i in export_contents]:
             return utils.response(f"The folder '{download_folder}' you are trying to download does not exist",
                                   err=True), 404
         try:
-            zip_out = str(local_corpus_dir / Path(f"{corpus_id}_{download_folder}.zip"))
-            storage.download_dir(ui, full_download_folder, local_corpus_dir, corpus_id, zipped=True, zippath=zip_out)
+            zip_out = str(local_corpus_dir / f"{corpus_id}_{download_folder_name}.zip")
+            storage.download_dir(ui, full_download_folder, local_export_dir, corpus_id,
+                                 zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
-            utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e)), 500
 
     # Download and zip file specified in args
     if download_file:
         full_download_file = download_file
         download_file_name = Path(download_file).name
-        if not download_file.lstrip("/").startswith(nc_export_dir):
-            full_download_file = "/" + str(Path(nc_export_dir) / download_file)
+        if not download_file.lstrip("/").startswith(storage_export_dir):
+            full_download_file = str(Path(storage_export_dir) / download_file)
         if full_download_file not in [i.get("path") for i in export_contents]:
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
         try:
-            local_path = Path(local_corpus_dir) / download_file_name
+            local_path = local_corpus_dir / download_file_name
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
             zipped = False if zipped.lower() == "false" else True
             if zipped:
@@ -416,10 +431,10 @@ def download_export(ui, user, _corpora, corpus_id):
 
 @bp.route("/remove-exports", methods=["DELETE"])
 @login.login()
-def remove_exports(ui, user, _corpora, corpus_id):
+def remove_exports(ui, user, _corpora, corpus_id, auth_token):
     """Remove export files."""
     try:
-        # Remove export dir from Nextcloud and create a new empty one
+        # Remove export dir from storage server and create a new empty one
         export_dir = str(storage.get_export_dir(ui, corpus_id))
         storage.remove_dir(ui, export_dir)
         storage.get_export_dir(ui, corpus_id, mkdir=True)
@@ -439,21 +454,21 @@ def remove_exports(ui, user, _corpora, corpus_id):
 
 @bp.route("/download-source-text", methods=["GET"])
 @login.login()
-def download_source_text(ui, user, _corpora, corpus_id):
+def download_source_text(ui, user, _corpora, corpus_id, auth_token):
     """Get one of the source files in plain text.
 
     The source file name (including its file extension) must be specified in the 'file' parameter.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
 
-    nc_work_dir = str(storage.get_work_dir(ui, corpus_id))
-    local_corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
+    storage_work_dir = str(storage.get_work_dir(ui, corpus_id))
+    local_corpus_dir = str(utils.get_corpus_dir(user, corpus_id, mkdir=True))
 
     if not download_file:
         return utils.response("Please specify the source file to download", err=True), 400
 
     try:
-        source_texts = storage.list_contents(ui, nc_work_dir, exclude_dirs=False)
+        source_texts = storage.list_contents(ui, storage_work_dir, exclude_dirs=False)
         if source_texts == []:
             return utils.response((f"There are currently no source texts for corpus '{corpus_id}'. "
                                    "You must run Sparv before you can view source texts."), err=True), 404
@@ -462,7 +477,8 @@ def download_source_text(ui, user, _corpora, corpus_id):
 
     # Download file specified in args
     download_file_stem = Path(download_file).stem
-    full_download_path = "/" + str(Path(nc_work_dir) / download_file_stem / app.config.get("SPARV_PLAIN_TEXT_FILE"))
+    full_download_path = str(Path(storage_work_dir) / Path(download_file).parent / download_file_stem /
+                             app.config.get("SPARV_PLAIN_TEXT_FILE"))
     out_file_name = download_file_stem + "_plain.txt"
     if full_download_path not in [i.get("path") for i in source_texts]:
         return utils.response(f"The source text for the file '{download_file}' does not exist",
@@ -477,7 +493,7 @@ def download_source_text(ui, user, _corpora, corpus_id):
 
 @bp.route("/check-changes", methods=["GET"])
 @login.login()
-def check_changes(ui, user, _corpora, corpus_id):
+def check_changes(ui, user, _corpora, corpus_id, auth_token):
     """Check if config or source files have changed since the last job was started."""
     try:
         job = jobs.get_job(user, corpus_id)
@@ -485,17 +501,21 @@ def check_changes(ui, user, _corpora, corpus_id):
             return utils.response(f"Corpus '{corpus_id}' has not been run")
         started = dateutil.parser.isoparse(job.started)
 
-        # Get currenct source files on Nextclouds
+        # Get current source files on storage server
         source_dir = str(storage.get_source_dir(ui, corpus_id))
         try:
             source_files = storage.list_contents(ui, source_dir)
         except Exception as e:
             return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+        source_file_paths = [f["path"] for f in source_files]
+        available_file_paths = [f["path"] for f in job.available_files]
+
         # Check for new source files
         added_sources = []
         for sf in source_files:
-            if sf not in job.available_files:
+            if sf["path"] not in available_file_paths:
                 added_sources.append(sf)
+
         # Compare all source files modification time to the time stamp of the last job started
         changed_sources = []
         for sf in source_files:
@@ -504,10 +524,11 @@ def check_changes(ui, user, _corpora, corpus_id):
             mod = dateutil.parser.isoparse(sf.get("last_modified"))
             if mod > started:
                 changed_sources.append(sf)
+
         # Check for deleted source files
         deleted_sources = []
         for fileobj in job.available_files:
-            if fileobj not in source_files:
+            if fileobj["path"] not in source_file_paths:
                 deleted_sources.append(fileobj)
 
         # Compare the config file modification time to the time stamp of the last job started

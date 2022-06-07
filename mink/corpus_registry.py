@@ -9,7 +9,7 @@ from typing import List
 from flask import current_app as app
 from flask import g
 
-from minsb import exceptions
+from mink import exceptions
 
 
 def init() -> None:

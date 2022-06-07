@@ -10,8 +10,8 @@ from typing import Union
 from dateutil.parser import parse
 from flask import current_app as app
 
-from minsb import utils
-from minsb.sparv import utils as sparv_utils
+from mink import utils
+from mink.sparv import utils as sparv_utils
 
 local = True
 

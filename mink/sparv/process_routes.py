@@ -6,9 +6,9 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request
 
-from minsb import exceptions, jobs, queue, utils
-from minsb.sparv import storage
-from minsb.sb_auth import login
+from mink import exceptions, jobs, queue, utils
+from mink.sparv import storage
+from mink.sb_auth import login
 
 bp = Blueprint("sparv", __name__)
 

@@ -1,6 +1,6 @@
 """Script for advancing the job queue with scheduled jobs.
 
-This scheduler will make a call to the 'advance-queue' route of the min-sb API.
+This scheduler will make a call to the 'advance-queue' route of the mink API.
 """
 
 import logging

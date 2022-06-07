@@ -7,7 +7,7 @@ from pathlib import Path
 from dateutil.parser import parse
 from flask import current_app as app
 
-from minsb import utils
+from mink import utils
 
 local = False
 

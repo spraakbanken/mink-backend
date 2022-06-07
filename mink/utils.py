@@ -13,7 +13,7 @@ from flask import Response
 from flask import current_app as app
 from flask import request
 
-from minsb.sparv import storage
+from mink.sparv import storage
 
 
 def response(msg, err=False, **kwargs):

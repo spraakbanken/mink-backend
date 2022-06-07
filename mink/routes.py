@@ -7,7 +7,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, url_for
 
-from minsb import utils
+from mink import utils
 
 bp = Blueprint("general", __name__)
 
@@ -64,7 +64,7 @@ def api_doc():
 @bp.route("/status-codes")
 def status_codes():
     """Show existing job status codes."""
-    from minsb.jobs import Status
+    from mink.jobs import Status
     status_codes = []
     for s in Status:
         status_codes.append({"code": s._value_, "name": s.name, "description": s.desc})

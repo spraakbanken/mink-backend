@@ -7,8 +7,8 @@ import owncloud
 from flask import current_app as app
 from flask import request
 
-from minsb import utils
-from minsb.nextcloud import storage
+from mink import utils
+from mink.nextcloud import storage
 
 
 def login(require_init=True, require_corpus_id=True, require_corpus_exists=True):
@@ -42,7 +42,7 @@ def login(require_init=True, require_corpus_id=True, require_corpus_exists=True)
                     corpora = storage.list_corpora(ui)
                 except Exception as e:
                     return utils.response("Failed to access corpora dir. "
-                                          "Make sure Min Språkbank is initialized", err=True, info=str(e)), 401
+                                          "Make sure Mink is initialized", err=True, info=str(e)), 401
 
                 if not require_corpus_id:
                     return function(ui, user, corpora, *args, **kwargs)
