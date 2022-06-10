@@ -196,7 +196,7 @@ def download_sources(ui, user, _corpora, corpus_id, auth_token):
 
     The parameter 'file' may be used to download a specific source file. This
     parameter must either be a file name or a path on the storage server. The `zip`
-    parameter may be set to `false` in combination the the `file` param to avoid
+    parameter may be set to `false` in combination with the `file` param to avoid
     zipping the file to be downloaded.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
@@ -215,11 +215,9 @@ def download_sources(ui, user, _corpora, corpus_id, auth_token):
 
     # Download and zip file specified in args
     if download_file:
-        full_download_file = download_file
         download_file_name = Path(download_file).name
-        if not download_file.lstrip("/").startswith(storage_source_dir):
-            full_download_file = str(Path(storage_source_dir) / download_file)
-        if full_download_file not in [i.get("path") for i in source_contents]:
+        full_download_file = str(Path(storage_source_dir) / download_file)
+        if download_file not in [i.get("path") for i in source_contents]:
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
         try:
@@ -382,11 +380,9 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
 
     # Download and zip folder specified in args
     if download_folder:
-        full_download_folder = download_folder
         download_folder_name = Path(download_folder).name
-        if not download_folder.lstrip("/").startswith(storage_export_dir):
-            full_download_folder = str(Path(storage_export_dir) / download_folder)
-        if full_download_folder not in [i.get("path") for i in export_contents]:
+        full_download_folder = str(Path(storage_export_dir) / download_folder)
+        if download_folder not in [i.get("path") for i in export_contents]:
             return utils.response(f"The folder '{download_folder}' you are trying to download does not exist",
                                   err=True), 404
         try:
@@ -399,17 +395,15 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
 
     # Download and zip file specified in args
     if download_file:
-        full_download_file = download_file
         download_file_name = Path(download_file).name
-        if not download_file.lstrip("/").startswith(storage_export_dir):
-            full_download_file = str(Path(storage_export_dir) / download_file)
-        if full_download_file not in [i.get("path") for i in export_contents]:
+        full_download_file = str(Path(storage_export_dir) / download_file)
+        if download_file not in [i.get("path") for i in export_contents]:
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
         try:
             local_path = local_corpus_dir / download_file_name
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
-            zipped = False if zipped.lower() == "false" else True
+            zipped = not zipped.lower() == "false"
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
                 storage.download_file(ui, full_download_file, local_path)

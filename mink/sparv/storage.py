@@ -19,9 +19,9 @@ local = True
 def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     """List files in directory on Sparv server recursively."""
     objlist = []
-
-    p = utils.ssh_run(f"test -d {shlex.quote(str(directory))} && "
-                      f"find {shlex.quote(str(directory))} -exec ls -lgGd --time-style=full-iso {{}} \\;")
+    directory_quoted = shlex.quote(str(directory))
+    p = utils.ssh_run(f"test -d {directory_quoted} && cd {directory_quoted} && "
+                      f"find * -exec ls -lgGd --time-style=full-iso {{}} \\;")
     if p.stderr:
         raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
 
