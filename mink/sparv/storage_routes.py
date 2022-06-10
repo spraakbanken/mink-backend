@@ -53,7 +53,7 @@ def create_corpus(ui, _user, corpora, auth_token):
     except Exception as e:
         try:
             # Try to remove partially uploaded corpus data
-            storage.remove_dir(ui, corpus_dir)
+            storage.remove_dir(ui, corpus_dir, corpus_id)
         except Exception as err:
             app.logger.error(f"Failed to remove partially uploaded corpus data for '{corpus_id}'. {err}")
         try:
@@ -78,7 +78,7 @@ def remove_corpus(_ui, user, corpora, corpus_id, auth_token):
     try:
         # Remove from storage
         corpus_dir = str(storage.get_corpus_dir(_ui, corpus_id))
-        storage.remove_dir(_ui, corpus_dir)
+        storage.remove_dir(_ui, corpus_dir, corpus_id)
     except Exception as e:
         return utils.response(f"Failed to remove corpus '{corpus_id}' from storage", err=True, info=str(e)), 500
 
@@ -140,7 +140,7 @@ def upload_sources(ui, _user, corpora, corpus_id, auth_token):
                 if not utils.validate_xml(file_contents):
                     return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
                                           err=True, file=f.filename, info="invalid XML"), 400
-            storage.write_file_contents(ui, str(source_dir / name), file_contents.decode("UTF-8"))
+            storage.write_file_contents(ui, str(source_dir / name), file_contents.decode("UTF-8"), corpus_id)
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:
         return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 500
@@ -175,7 +175,7 @@ def remove_sources(ui, _user, _corpora, corpus_id, auth_token):
     for rf in remove_files:
         storage_path = str(source_dir / Path(rf))
         try:
-            storage.remove_file(ui, storage_path)
+            storage.remove_file(ui, storage_path, corpus_id)
             successes.append(rf)
         except Exception:
             fails.append(rf)
@@ -224,7 +224,7 @@ def download_sources(ui, user, _corpora, corpus_id, auth_token):
             local_path = local_source_dir / download_file_name
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
             zipped = not zipped.lower() == "false"
-            storage.download_file(ui, full_download_file, local_path)
+            storage.download_file(ui, full_download_file, local_path, corpus_id)
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
                 utils.create_zip(local_path, outf)
@@ -286,7 +286,7 @@ def upload_config(ui, _user, corpora, corpus_id, auth_token):
 
         try:
             new_config = utils.set_corpus_id(config_contents, corpus_id)
-            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config)
+            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config, corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
@@ -299,7 +299,7 @@ def upload_config(ui, _user, corpora, corpus_id, auth_token):
                 if not compatible:
                     return resp, 400
             new_config = utils.set_corpus_id(config_txt, corpus_id)
-            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config)
+            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config, corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
@@ -314,11 +314,11 @@ def download_config(ui, user, _corpora, corpus_id, auth_token):
     """Download the corpus config file."""
     storage_config_file = str(storage.get_config_file(ui, corpus_id))
     utils.get_source_dir(user, corpus_id, mkdir=True)
-    local_config_file = str(utils.get_config_file(user, corpus_id))
+    local_config_file = utils.get_config_file(user, corpus_id)
 
     try:
         # Get file from storage
-        storage.download_file(ui, storage_config_file, local_config_file)
+        storage.download_file(ui, storage_config_file, local_config_file, corpus_id)
         return send_file(local_config_file, mimetype="text/yaml")
     except Exception as e:
         return utils.response(f"Failed to download config file for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -408,12 +408,12 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
             zipped = not zipped.lower() == "false"
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
-                storage.download_file(ui, full_download_file, local_path)
+                storage.download_file(ui, full_download_file, local_path, corpus_id)
                 utils.create_zip(local_path, outf)
                 return send_file(outf, mimetype="application/zip")
             else:
                 outf = str(local_corpus_dir / Path(download_file_name))
-                storage.download_file(ui, full_download_file, local_path)
+                storage.download_file(ui, full_download_file, local_path, corpus_id)
                 # Determine content type
                 content_type = "application/xml"
                 for file_obj in export_contents:
@@ -432,7 +432,7 @@ def remove_exports(ui, user, _corpora, corpus_id, auth_token):
     try:
         # Remove export dir from storage server and create a new empty one
         export_dir = str(storage.get_export_dir(ui, corpus_id))
-        storage.remove_dir(ui, export_dir)
+        storage.remove_dir(ui, export_dir, corpus_id)
         storage.get_export_dir(ui, corpus_id, mkdir=True)
     except Exception as e:
         return utils.response(f"Failed to remove export files for corpus '{corpus_id}'", err=True, info=str(e)), 500
@@ -481,7 +481,7 @@ def download_source_text(ui, user, _corpora, corpus_id, auth_token):
                               err=True), 404
     try:
         local_path = Path(local_corpus_dir) / out_file_name
-        storage.download_file(ui, full_download_path, local_path)
+        storage.download_file(ui, full_download_path, local_path, corpus_id)
         return send_file(local_path, mimetype="text/plain")
     except Exception as e:
         return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e)), 500

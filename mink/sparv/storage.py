@@ -45,9 +45,9 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     return objlist
 
 
-def download_file(_ui, remote_file_path: str, local_file: Path):
+def download_file(_ui, remote_file_path: str, local_file: Path, corpus_id: str):
     """Download a file from the Sparv server."""
-    if not _is_valid_path(remote_file_path):
+    if not _is_valid_path(remote_file_path, corpus_id):
         raise Exception(f"You don't have permission to download '{remote_file_path}'")
 
     user, host = _get_login()
@@ -66,9 +66,9 @@ def get_file_contents(_ui, filepath):
     return p.stdout.decode()
 
 
-def write_file_contents(_ui, filepath: str, file_contents):
+def write_file_contents(_ui, filepath: str, file_contents: str, corpus_id: str):
     """Write contents to a new file on the Sparv server."""
-    if not _is_valid_path(filepath):
+    if not _is_valid_path(filepath, corpus_id):
         raise Exception(f"You don't have permission to edit '{filepath}'")
 
     p = utils.ssh_run(f"echo {shlex.quote(file_contents)} >{shlex.quote(str(filepath))}")
@@ -78,7 +78,7 @@ def write_file_contents(_ui, filepath: str, file_contents):
 
 def download_dir(_ui, remote_dir, local_dir, corpus_id, file_index=None, zipped=False, zippath=None):
     """Download remote_dir on Sparv server to local_dir by rsyncing."""
-    if not _is_valid_path(remote_dir):
+    if not _is_valid_path(remote_dir, corpus_id):
         raise Exception(f"You don't have permission to download '{remote_dir}'")
 
     if not local_dir.is_dir():
@@ -100,15 +100,16 @@ def download_dir(_ui, remote_dir, local_dir, corpus_id, file_index=None, zipped=
     return zippath
 
 
-def upload_dir(_ui, remote_dir, local_dir, _corpus_id, _user, _file_index, delete=False):
+def upload_dir(_ui, remote_dir, local_dir, corpus_id, _user, _file_index, delete=False):
     """Upload local dir to remote_dir on Sparv server by rsyncing.
 
     Args:
         remote_dir: Directory on Sparv to upload to.
         local_dir: Local directory to upload.
         delete: If set to True delete files that do not exist in local_dir.
+        corpus_id: Corpus ID.
     """
-    if not _is_valid_path(remote_dir):
+    if not _is_valid_path(remote_dir, corpus_id):
         raise Exception(f"You don't have permission to edit '{remote_dir}'")
 
     if not local_dir.is_dir():
@@ -140,9 +141,9 @@ def create_file_index(contents, user):
     return file_index
 
 
-def remove_dir(_ui, path):
+def remove_dir(_ui, path, corpus_id: str):
     """Remove directory on 'path' from Sparv server."""
-    if not _is_valid_path(path):
+    if not _is_valid_path(path, corpus_id):
         raise Exception(f"You don't have permission to remove '{path}'")
 
     p = utils.ssh_run(f"test -d {shlex.quote(str(path))} && rm -r {shlex.quote(str(path))}")
@@ -150,9 +151,9 @@ def remove_dir(_ui, path):
         raise Exception(f"Failed to remove corpus dir on Sparv server: {p.stderr.decode()}")
 
 
-def remove_file(_ui, path):
+def remove_file(_ui, path, corpus_id: str):
     """Remove file on 'path' from Sparv server."""
-    if not _is_valid_path(path):
+    if not _is_valid_path(path, corpus_id):
         raise Exception(f"You don't have permission to remove '{path}'")
 
     p = utils.ssh_run(f"test -f {shlex.quote(str(path))} && rm {shlex.quote(str(path))}")
@@ -166,22 +167,14 @@ def _get_login():
     return user, host
 
 
-def _is_valid_path(path):
-    """Check that path points to a corpus dir (or a descendant) and not to e.g. the entire Sparv data dir."""
-    return get_corpora_dir(None) in Path(path).parents
+def _is_valid_path(path, corpus_id: str):
+    """Check that path points to a certain corpus dir (or a descendant)."""
+    return get_corpus_dir(None, corpus_id).resolve() in Path(path).resolve().parents
 
 
 ################################################################################
 # Get paths on Sparv server
 ################################################################################
-
-def get_corpora_dir(_ui, mkdir=False):
-    """Get corpora directory."""
-    corpora_dir = sparv_utils.get_corpora_dir()
-    if mkdir:
-        _make_dir(corpora_dir)
-    return corpora_dir
-
 
 def get_corpus_dir(_ui, corpus_id, mkdir=False):
     """Get dir for given corpus."""
