@@ -97,9 +97,9 @@ class Cache():
     def set_all_jobs(self, value):
         """Set list of all jobs in memcached (or app context)."""
         if self.client is not None:
-            self.client.set("all_jobs", value)
+            self.client.set("all_jobs", list(set(value)))
         else:
-            g.all_jobs = value
+            g.all_jobs = list(set(value))
 
     def get_job(self, job):
         """Get 'job' from memcached (or from job_queue in app context) and return it."""
