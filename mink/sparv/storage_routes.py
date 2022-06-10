@@ -48,6 +48,7 @@ def create_corpus(ui, _user, corpora, auth_token):
     try:
         corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
         storage.get_source_dir(ui, corpus_id, mkdir=True)
+        storage.get_export_dir(ui, corpus_id, mkdir=True)
         corpus_registry.add(corpus_id)
         return utils.response(f"Corpus '{corpus_id}' created successfully"), 201
     except Exception as e:
