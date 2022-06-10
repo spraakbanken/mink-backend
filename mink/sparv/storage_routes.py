@@ -380,14 +380,15 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
 
     # Download and zip folder specified in args
     if download_folder:
-        download_folder_name = Path(download_folder).name
+        download_folder_name = "_".join(Path(download_folder).parts)
         full_download_folder = str(Path(storage_export_dir) / download_folder)
         if download_folder not in [i.get("path") for i in export_contents]:
             return utils.response(f"The folder '{download_folder}' you are trying to download does not exist",
                                   err=True), 404
         try:
             zip_out = str(local_corpus_dir / f"{corpus_id}_{download_folder_name}.zip")
-            storage.download_dir(ui, full_download_folder, local_export_dir, corpus_id,
+            (local_export_dir / download_folder).mkdir(exist_ok=True)
+            storage.download_dir(ui, full_download_folder, local_export_dir / download_folder, corpus_id,
                                  zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
@@ -401,7 +402,8 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
                                   err=True), 404
         try:
-            local_path = local_corpus_dir / download_file_name
+            local_path = local_export_dir / download_file
+            (local_export_dir / download_file).parent.mkdir(exist_ok=True)
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
             zipped = not zipped.lower() == "false"
             if zipped:
