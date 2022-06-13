@@ -64,7 +64,7 @@ def read_jwt_key():
 
 
 def _get_corpora(auth_token):
-    """Check validity of auth_token and get corpora that user is admin for."""
+    """Check validity of auth_token and get mink corpora that user is admin for."""
     corpora = []
     user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
     if user_token["exp"] < time.time():
@@ -74,8 +74,10 @@ def _get_corpora(auth_token):
         for corpus, level in user_token["scope"]["corpora"].items():
             if user_token["levels"]["ADMIN"] <= level:
                 corpora.append(corpus)
+    prefix = app.config.get("RESOURCE_PREFIX")
+    mink_corpora = [c for c in corpora if c.startswith(prefix)]
     user = user_token["name"]
-    return user, corpora
+    return user, mink_corpora
 
 
 def create_resource(auth_token, resource_id):
