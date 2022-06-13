@@ -1,6 +1,7 @@
 """General utility functions."""
 
 import functools
+import gzip
 import json
 import os
 import shlex
@@ -43,6 +44,16 @@ def ssh_run(command):
     p = subprocess.run(["ssh", "-i", app.config.get("SSH_KEY"), f"{user}@{host}", command],
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return p
+
+
+def uncompress_gzip(inpath, outpath=None):
+    """Uncompress file with with gzip and safe to outpath (or inpath if no outpath is given."""
+    with gzip.open(inpath, "rb") as z:
+        data = z.read()
+        if outpath is None:
+            outpath = inpath
+        with open(outpath, "wb") as f:
+            f.write(data)
 
 
 def create_zip(inpath, outpath):
@@ -103,17 +114,23 @@ def config_compatible(config, source_file):
                             err=True, current_importer=current_importer, expected_importer=expected_importer)
 
 
-def set_corpus_id(config, corpus_id):
-    """Set the correct corpus_id in a corpus config."""
+def standardize_config(config, corpus_id):
+    """Set the correct corpus ID and remove the compression setting in the corpus config."""
     config_yaml = yaml.load(config, Loader=yaml.FullLoader)
 
-    # If corpus_id already has correct value, do nothing
-    if config_yaml.get("metadata", {}).get("id") == corpus_id:
-        return config
+    # Set correct corpus ID
+    if config_yaml.get("metadata", {}).get("id") != corpus_id:
+        if not config_yaml.get("metadata"):
+            config_yaml["metadata"] = {}
+        config_yaml["metadata"]["id"] = corpus_id
 
-    if not config_yaml.get("metadata"):
-        config_yaml["metadata"] = {}
-    config_yaml["metadata"]["id"] = corpus_id
+    # Remove the compression setting in order to use the standard one given by the default config
+    if config_yaml.get("sparv", {}).get("compression") != None:
+        config_yaml["sparv"].pop("compression")
+        # Remove entire Sparv section if empty
+        if not config_yaml.get("sparv", {}):
+            config_yaml.pop("sparv")
+
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True)
 
 

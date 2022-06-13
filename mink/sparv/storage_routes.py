@@ -285,7 +285,7 @@ def upload_config(ui, _user, corpora, corpus_id, auth_token):
                 return resp, 400
 
         try:
-            new_config = utils.set_corpus_id(config_contents, corpus_id)
+            new_config = utils.standardize_config(config_contents, corpus_id)
             storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config, corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
@@ -298,7 +298,7 @@ def upload_config(ui, _user, corpora, corpus_id, auth_token):
                 compatible, resp = utils.config_compatible(config_txt, source_files[0])
                 if not compatible:
                     return resp, 400
-            new_config = utils.set_corpus_id(config_txt, corpus_id)
+            new_config = utils.standardize_config(config_txt, corpus_id)
             storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config, corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
@@ -473,15 +473,17 @@ def download_source_text(ui, user, _corpora, corpus_id, auth_token):
 
     # Download file specified in args
     download_file_stem = Path(download_file).stem
-    full_download_path = str(Path(storage_work_dir) / Path(download_file).parent / download_file_stem /
-                             app.config.get("SPARV_PLAIN_TEXT_FILE"))
-    out_file_name = download_file_stem + "_plain.txt"
-    if full_download_path not in [i.get("path") for i in source_texts]:
+    short_path = str(Path(download_file_stem) / app.config.get("SPARV_PLAIN_TEXT_FILE"))
+    if short_path not in [i.get("path") for i in source_texts]:
         return utils.response(f"The source text for the file '{download_file}' does not exist",
                               err=True), 404
     try:
+        full_download_path = str(Path(storage_work_dir) / Path(download_file).parent / download_file_stem /
+                                app.config.get("SPARV_PLAIN_TEXT_FILE"))
+        out_file_name = download_file_stem + "_plain.txt"
         local_path = Path(local_corpus_dir) / out_file_name
         storage.download_file(ui, full_download_path, local_path, corpus_id)
+        utils.uncompress_gzip(local_path)
         return send_file(local_path, mimetype="text/plain")
     except Exception as e:
         return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e)), 500

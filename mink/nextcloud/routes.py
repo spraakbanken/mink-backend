@@ -276,7 +276,7 @@ def upload_config(ui, _user, corpora, corpus_id):
                 return resp, 400
 
         try:
-            new_config = utils.set_corpus_id(config_contents, corpus_id)
+            new_config = utils.standardize_config(config_contents, corpus_id)
             storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
@@ -289,7 +289,7 @@ def upload_config(ui, _user, corpora, corpus_id):
                 compatible, resp = utils.config_compatible(config_txt, source_files[0])
                 if not compatible:
                     return resp, 400
-            new_config = utils.set_corpus_id(config_txt, corpus_id)
+            new_config = utils.standardize_config(config_txt, corpus_id)
             storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
