@@ -2,13 +2,14 @@
 
 import functools
 import json
+import re
 import time
 from pathlib import Path
 
 import jwt
 import requests
 from flask import current_app as app
-from flask import request
+from flask import g, request
 
 from mink import exceptions, utils
 
@@ -32,6 +33,8 @@ def login(require_init=False, require_corpus_id=True, require_corpus_exists=True
 
             try:
                 user, corpora = _get_corpora(auth_token)
+                # Store user ID in app context for cleanup
+                g.user = user
 
                 if not require_corpus_id:
                     return function(None, user, corpora, auth_token, *args, **kwargs)
@@ -74,7 +77,7 @@ def _get_corpora(auth_token):
         for corpus, level in user_token["scope"]["corpora"].items():
             if level >= user_token["levels"]["ADMIN"] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
                 corpora.append(corpus)
-    user = user_token["name"]
+    user = re.sub(r"[^\w\-_\.]", "", (user_token["idp"] + "-" + user_token["sub"]))
     return user, corpora
 
 
