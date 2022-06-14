@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
     # Start scheduler
     scheduler = BlockingScheduler()
-    scheduler.add_executor("processpool")
+    scheduler.add_executor("threadpool", max_workers=1)
     scheduler.add_job(advance_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
     scheduler.add_job(ping_healthchecks, "interval", [config], minutes=config.get("PING_FREQUENCY", 60))
 
