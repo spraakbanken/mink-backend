@@ -33,7 +33,7 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
         f = Path(obj_path)
         mod_time = parse(f"{date} {time} {tz}").isoformat(timespec="seconds")
         is_dir = permissions.startswith("d")
-        mimetype = mimetypes.guess_type(f)[0] or "unknown"
+        mimetype = mimetypes.guess_type(str(f))[0] or "unknown"
         if is_dir:
             if exclude_dirs:
                 continue
