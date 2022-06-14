@@ -49,7 +49,7 @@ def create_corpus(ui, _user, corpora, auth_token):
         corpus_dir = str(storage.get_corpus_dir(ui, corpus_id, mkdir=True))
         storage.get_source_dir(ui, corpus_id, mkdir=True)
         corpus_registry.add(corpus_id)
-        return utils.response(f"Corpus '{corpus_id}' created successfully"), 201
+        return utils.response(f"Corpus '{corpus_id}' created successfully", corpus_id=corpus_id), 201
     except Exception as e:
         try:
             # Try to remove partially uploaded corpus data
