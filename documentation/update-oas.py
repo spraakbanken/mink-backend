@@ -138,3 +138,8 @@ if __name__ == "__main__":
 
     oas = convert_from_postman(args.input)
     update(oas)
+
+    # # Use this if run with https://apitransform.com/
+    # with open(args.input) as f:
+    #     oas = yaml.load(f, Loader=yaml.FullLoader)
+    # update(oas)

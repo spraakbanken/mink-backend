@@ -17,10 +17,6 @@ info:
     5. <a href="#operation/checkstatus">Check the status</a>
     6. <a href="#operation/downloadexports">Download export files</a>
 
-    Please note that the user needs to make a `/check-status` call after the annotation process in order for the export
-    files to be synced to the storage server. This is due to authentication restrictions. Once the annotation process
-    with Sparv is complete and a `/check-status` call is made, the export files will by synced automatically.
-
     # Parameters
     Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
     The following two examples will thus result in the same response:
@@ -49,9 +45,13 @@ servers:
     description: Test server
 
 securitySchemes:
-  basicAuth:
+  bearerAuth:
     type: http
-    scheme: basic
+    scheme: bearer
+    bearerFormat: JWT
+#   basicAuth:
+#     type: http
+#     scheme: basic
   ApiKeyAuth:
     type: apiKey
     in: query
@@ -84,7 +84,7 @@ parameters:
         example: 'true'
 
 security:
-  - basicAuth: []
+  - bearerAuth: []
 
 tags:
   - name: Manage Corpora

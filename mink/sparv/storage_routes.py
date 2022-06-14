@@ -345,11 +345,9 @@ def list_exports(ui, _user, _corpora, corpus_id, auth_token):
 def download_export(ui, user, _corpora, corpus_id, auth_token):
     """Download export files for a corpus as a zip file.
 
-    The parameters 'file' and 'dir' may be used to download a specific export file
-    or a directory of export files. These parameters must be supplied as absolute
-    Nextcloud paths or paths relative to the export directory.
-    The `zip` parameter may be set to `false` in combination with the `file` param
-    to avoid zipping the file to be downloaded.
+    The parameters 'file' and 'dir' may be used to download a specific export file or a directory of export files. These
+    parameters must be supplied as  paths relative to the export directory. The `zip` parameter may be set to `false` in
+    combination with the `file` param to avoid zipping the file to be downloaded.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
     download_folder = request.args.get("dir") or request.form.get("dir") or ""

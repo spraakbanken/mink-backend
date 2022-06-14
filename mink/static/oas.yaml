@@ -1,7 +1,4 @@
 openapi: 3.0.0
-servers:
-- url: https://ws.spraakbanken.gu.se/ws/min-sb
-  description: Test server
 info:
   title: Min SB API
   version: 0.0.dev0
@@ -30,16 +27,6 @@ info:
     5. <a href="#operation/checkstatus">Check the status</a>
 
     6. <a href="#operation/downloadexports">Download export files</a>
-
-
-    Please note that the user needs to make a `/check-status` call after the annotation
-    process in order for the export
-
-    files to be synced to the storage server. This is due to authentication restrictions.
-    Once the annotation process
-
-    with Sparv is complete and a `/check-status` call is made, the export files will
-    by synced automatically.
 
 
     # Parameters
@@ -78,81 +65,14 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
+servers:
+- url: https://ws.spraakbanken.gu.se/ws/min-sb
+  description: Test server
 paths:
-  /init:
-    post:
-      summary: init Min SB
-      description: 'Call this route before using Min SB for the first time. Creates
-        a user directory on the storage server which will be used by Min SB.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X POST -u some_username ''{{host}}/init''
-
-        ```'
-      operationId: initMinSB
-      parameters: []
-      responses:
-        '200':
-          description: init Min SB 200
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Nothing to be done. Mink has already been initialized
-              example:
-                status: success
-                message: Nothing to be done. Mink has already been initialized
-        '201':
-          description: init Min SB 201
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Mink successfully initialized
-              example:
-                status: success
-                message: Mink successfully initialized
-        '401':
-          description: init Min SB 401
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate
-                info: 'HTTP error: 401'
-      tags:
-      - Manage Corpora
   /create-corpus:
     post:
+      tags:
+      - Manage Corpora
       summary: create corpus
       description: 'Creates a new corpus on the storage server.
 
@@ -162,17 +82,14 @@ paths:
 
         ```.bash
 
-        curl -X POST -u some_username ''{{host}}/create-corpus?corpus_id=some_corpus_name''
+        curl -X POST -u some_username ''{{host}}/create-corpus''
 
         ```'
       operationId: createcorpus
-      parameters:
-      - $ref: '#/components/parameters/corpus_id'
+      parameters: []
       responses:
-        '200':
-          description: ''
         '201':
-          description: create corpus 201
+          description: CREATED
           content:
             application/json:
               schema:
@@ -183,28 +100,16 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Corpus 'min-testkorpus' created successfully
+                    example: Corpus 'mink-dXH6E6wTFf' created successfully
+                  corpus_id:
+                    type: string
+                    example: mink-dXH6E6wTFf
               example:
                 status: success
-                message: Corpus 'min-testkorpus' created successfully
-        '400':
-          description: create corpus 400
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus ID 'min_testkorpus' is invalid
-              example:
-                status: error
-                message: Corpus ID 'min_testkorpus' is invalid
+                message: Corpus 'mink-dXH6E6wTFf' created successfully
+                corpus_id: mink-dXH6E6wTFf
         '401':
-          description: upload corpus 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -218,13 +123,13 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: create corpus 404
+                info: Signature verification failed
+        '500':
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -235,14 +140,15 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpus' already exists
+                    example: Failed to create resource
               example:
                 status: error
-                message: Corpus 'min-testkorpus' already exists
-      tags:
-      - Manage Corpora
+                message: Failed to create resource
+      deprecated: false
   /list-corpora:
     get:
+      tags:
+      - Manage Corpora
       summary: list corpora
       description: 'Lists the names of previously uploaded corpora.
 
@@ -259,7 +165,7 @@ paths:
       parameters: []
       responses:
         '200':
-          description: list corpora 200
+          description: OK
           content:
             application/json:
               schema:
@@ -274,13 +180,13 @@ paths:
                   corpora:
                     type: array
                     example: &id001
-                    - min-testkorpus
+                    - mink-dXH6E6wTFf
               example:
                 status: success
                 message: Listing available corpora
                 corpora: *id001
         '401':
-          description: list corpora 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -294,15 +200,16 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-      tags:
-      - Manage Corpora
+                info: Signature verification failed
+      deprecated: false
   /remove-corpus:
     delete:
+      tags:
+      - Manage Corpora
       summary: remove corpus
       description: 'Removes a corpus from the storage server. Will attempt to abort
         any running job for this corpus and also remove it from the Sparv server.
@@ -320,14 +227,16 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
         style: form
+        explode: true
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       responses:
         '200':
-          description: remove corpus 200
+          description: OK
           content:
             application/json:
               schema:
@@ -338,78 +247,12 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Corpus 'min-testkorpus' successfully removed
+                    example: Corpus 'mink-dXH6E6wTFf' successfully removed
               example:
                 status: success
-                message: Corpus 'min-testkorpus' successfully removed
-        '401':
-          description: remove corpus 401
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: remove corpus 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpus' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpus' does not exist
-      tags:
-      - Manage Corpora
-  /rename-corpus:
-    post:
-      summary: rename corpus
-      description: 'Changes the name of a corpus on the storage server, the Sparv
-        server and in the corpus config.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X POST -u some_username ''{{host}}/rename-corpus?corpus_id=some_corpus_name&new_id=din-testkorpus''
-
-        ```'
-      operationId: renamecorpus
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      - $ref: '#/components/parameters/new_id'
-      responses:
-        '200':
-          description: ''
+                message: Corpus 'mink-dXH6E6wTFf' successfully removed
         '400':
-          description: rename corpus 400 no ID
+          description: BAD REQUEST
           content:
             application/json:
               schema:
@@ -420,12 +263,14 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: No new corpus ID was provided
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
               example:
                 status: error
-                message: No new corpus ID was provided
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
         '401':
-          description: rename corpus 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -439,31 +284,16 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: rename corpus 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpus' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpus' does not exist
-      tags:
-      - Manage Corpora
+                info: Signature verification failed
+      deprecated: false
   /upload-sources:
     put:
+      tags:
+      - Manage Sources
       summary: upload sources
       description: 'Uploads the attached files as corpus source files to the storage
         server. When uploading a file with a name that already exists it will be replaced.
@@ -482,14 +312,16 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
         style: form
+        explode: true
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       responses:
         '200':
-          description: upload sources 200
+          description: OK
           content:
             application/json:
               schema:
@@ -500,12 +332,12 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Source files successfully added to 'min-testkorpus'
+                    example: Source files successfully added to 'mink-dXH6E6wTFf'
               example:
                 status: success
-                message: Source files successfully added to 'min-testkorpus'
+                message: Source files successfully added to 'mink-dXH6E6wTFf'
         '400':
-          description: upload sources 400
+          description: NOT FOUND
           content:
             application/json:
               schema:
@@ -516,7 +348,7 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to upload some source files to 'min-testkorpus'
+                    example: Failed to upload some source files to 'mink-dXH6E6wTFf'
                       due to incompatible file extensions
                   file:
                     type: string
@@ -532,14 +364,14 @@ paths:
                     example: .xml
               example:
                 status: error
-                message: Failed to upload some source files to 'min-testkorpus' due
+                message: Failed to upload some source files to 'mink-dXH6E6wTFf' due
                   to incompatible file extensions
                 file: text.txt
                 info: incompatible file extensions
                 current_file_extension: .txt
                 existing_file_extension: .xml
         '401':
-          description: upload sources 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -553,49 +385,16 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: upload sources 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpuss' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpuss' does not exist
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-              - file
-              properties:
-                file:
-                  type: string
-                  format: binary
-            example:
-            - key: ''
-              type: file
-              src:
-              - /home/anne/Downloads/testkorpus/source/dokument1.xml
-              - /home/anne/Downloads/testkorpus/source/dokument2.xml
-      tags:
-      - Manage Sources
+                info: Signature verification failed
+      deprecated: false
   /list-sources:
     get:
+      tags:
+      - Manage Sources
       summary: list sources
       description: 'Lists the available corpus source files.
 
@@ -612,14 +411,16 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
         style: form
+        explode: true
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       responses:
         '200':
-          description: list sources 200
+          description: OK
           content:
             application/json:
               schema:
@@ -630,26 +431,44 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Current source files for 'min-testkorpus'
+                    example: Current source files for 'mink-dXH6E6wTFf'
                   contents:
                     type: array
                     example: &id002
                     - name: dokument1.xml
                       type: application/xml
-                      last_modified: '2021-11-17T15:20:54+00:00'
-                      'size': 1396
-                      path: /Mink/min-testkorpus/source/dokument1.xml
+                      last_modified: '2022-06-10T17:05:18+02:00'
+                      size: '1397'
+                      path: dokument1.xml
                     - name: dokument2.xml
                       type: application/xml
-                      last_modified: '2021-11-17T15:20:54+00:00'
-                      'size': 115
-                      path: /Mink/min-testkorpus/source/dokument2.xml
+                      last_modified: '2022-06-10T17:05:16+02:00'
+                      size: '116'
+                      path: dokument2.xml
               example:
                 status: success
-                message: Current source files for 'min-testkorpus'
+                message: Current source files for 'mink-dXH6E6wTFf'
                 contents: *id002
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
         '401':
-          description: list sources 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -663,31 +482,16 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: list sources 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpuss' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpuss' does not exist
-      tags:
-      - Manage Sources
+                info: Signature verification failed
+      deprecated: false
   /download-sources:
     get:
+      tags:
+      - Manage Sources
       summary: download sources
       description: "Downloads corpus source files from the storage server as zip file.\n\
         \nThe parameter `file` may be used to download a specific source file. This\
@@ -712,7 +516,8 @@ paths:
         schema:
           type: string
           example: dokument1.xml
-      - name: zip
+      - &id014
+        name: zip
         in: query
         required: false
         style: form
@@ -721,12 +526,96 @@ paths:
           example: 'true'
       responses:
         '200':
-          description: download sources 200
+          description: OK
           content:
             application/zip:
-              schema: {}
+              schema:
+                type: string
+                example: "PK\x03\x04\x14\0\0\0\0\0\x01VhR\0\0\0\0\0\0\0\0\0\0\0\0\a\
+                  \0\0\0source/PK\x03\x04\n\0\b\0\0\0�{bR\0\0\0\0\0\0\0\0\0\0\0\0\x14\
+                  \0\0\0source/dokument1.xml<dokument>\n\t<text forfattare=\"Sparvutvecklare\"\
+                  \ date=\"2020-03-11\" id=\"1\">\nHej! Det här är en korpus.\n\n\
+                  Astrid Lindgren är född i Vimmerby 1907.\n\nOch här kommer den tredje\
+                  \ meningen i ett nytt stycke.\n\nSista meningen är kort och innehåller\
+                  \ en sammansättningsform: födelsedagskalas.\n\t</text>\n\n\t<text\
+                  \ forfattare=\"Wikipedia\" date=\"2020-03-16\" id=\"2\">\nSpråkbanken\
+                  \ är en forskningsenhet vid Göteborgs universitet. Den inrättades\
+                  \ som en nationell resurs 1975, som ett direkt resultat av Sture\
+                  \ Alléns pionjärinsatser inom svensk korpuslingvistik under 1960-talet.\
+                  \ Språkbankens uppdrag blev och är fortfarande att samla in, förädla\
+                  \ och tillgängliggöra språkresurser åt forskare och allmänheten,\
+                  \ och att bedriva forskning och utveckling som främjar sån användning.\n\
+                  \nI Språkbanken finns en unik kompetens vad gäller svenska textkorpusar,\
+                  \ parallellkorpusar, svenska elektroniska lexikonresurser samt språkteknologiska\
+                  \ verktyg för att bearbeta, annotera och visa upp textkorpusar.\
+                  \ Huvuddelen av materialet är modernt, men ambitionen är att resurserna\
+                  \ ska avspegla hela den skrivna svenskans historia - från medeltida\
+                  \ fornsvenska till modern svenska - med alla dess genrer. Huvuddelen\
+                  \ av resurserna, korpusar och lexikon, är fritt åtkomliga för sökning\
+                  \ via webbgränssnitt.\n\t</text>\n\n\t<text id=\"1\">Hej <i> på\
+                  \ dig. Kan vi</i> hantera överlappande taggar?</text>\n</dokument>\n\
+                  PK\a\b�\t\0Wt\x05\0\0t\x05\0\0PK\x03\x04\n\0\b\0\0\0�{bR\0\0\0\0\
+                  \0\0\0\0\0\0\0\0\x14\0\0\0source/dokument2.xml<text>\nHej! Det här\
+                  \ är en annan text.\n\nDen är jättekort. Den har bara tre meningar\
+                  \ och ingen metadata.\n</text>\nPK\a\b�\x1Dx�s\0\0\0s\0\0\0PK\x01\
+                  \x02-\x03\x14\0\0\0\0\0\x01VhR\0\0\0\0\0\0\0\0\0\0\0\0\a\0\0\0\0\
+                  \0\0\0\0\0\x10\0�A\0\0\0\0source/PK\x01\x02-\x03\n\0\b\0\0\0�{bR�\t\
+                  \0Wt\x05\0\0t\x05\0\0\x14\0\0\0\0\0\0\0\0\0\0\0��%\0\0\0source/dokument1.xmlPK\x01\
+                  \x02-\x03\n\0\b\0\0\0�{bR�\x1Dx�s\0\0\0s\0\0\0\x14\0\0\0\0\0\0\0\
+                  \0\0\0\0���\x05\0\0source/dokument2.xmlPK\x05\x06\0\0\0\0\x03\0\x03\
+                  \0�\0\0\0�\x06\0\0\0\0"
+              example: "PK\x03\x04\x14\0\0\0\0\0\x01VhR\0\0\0\0\0\0\0\0\0\0\0\0\a\0\
+                \0\0source/PK\x03\x04\n\0\b\0\0\0�{bR\0\0\0\0\0\0\0\0\0\0\0\0\x14\0\
+                \0\0source/dokument1.xml<dokument>\n\t<text forfattare=\"Sparvutvecklare\"\
+                \ date=\"2020-03-11\" id=\"1\">\nHej! Det här är en korpus.\n\nAstrid\
+                \ Lindgren är född i Vimmerby 1907.\n\nOch här kommer den tredje meningen\
+                \ i ett nytt stycke.\n\nSista meningen är kort och innehåller en sammansättningsform:\
+                \ födelsedagskalas.\n\t</text>\n\n\t<text forfattare=\"Wikipedia\"\
+                \ date=\"2020-03-16\" id=\"2\">\nSpråkbanken är en forskningsenhet\
+                \ vid Göteborgs universitet. Den inrättades som en nationell resurs\
+                \ 1975, som ett direkt resultat av Sture Alléns pionjärinsatser inom\
+                \ svensk korpuslingvistik under 1960-talet. Språkbankens uppdrag blev\
+                \ och är fortfarande att samla in, förädla och tillgängliggöra språkresurser\
+                \ åt forskare och allmänheten, och att bedriva forskning och utveckling\
+                \ som främjar sån användning.\n\nI Språkbanken finns en unik kompetens\
+                \ vad gäller svenska textkorpusar, parallellkorpusar, svenska elektroniska\
+                \ lexikonresurser samt språkteknologiska verktyg för att bearbeta,\
+                \ annotera och visa upp textkorpusar. Huvuddelen av materialet är\
+                \ modernt, men ambitionen är att resurserna ska avspegla hela den\
+                \ skrivna svenskans historia - från medeltida fornsvenska till modern\
+                \ svenska - med alla dess genrer. Huvuddelen av resurserna, korpusar\
+                \ och lexikon, är fritt åtkomliga för sökning via webbgränssnitt.\n\
+                \t</text>\n\n\t<text id=\"1\">Hej <i> på dig. Kan vi</i> hantera överlappande\
+                \ taggar?</text>\n</dokument>\nPK\a\b�\t\0Wt\x05\0\0t\x05\0\0PK\x03\
+                \x04\n\0\b\0\0\0�{bR\0\0\0\0\0\0\0\0\0\0\0\0\x14\0\0\0source/dokument2.xml<text>\n\
+                Hej! Det här är en annan text.\n\nDen är jättekort. Den har bara tre\
+                \ meningar och ingen metadata.\n</text>\nPK\a\b�\x1Dx�s\0\0\0s\0\0\
+                \0PK\x01\x02-\x03\x14\0\0\0\0\0\x01VhR\0\0\0\0\0\0\0\0\0\0\0\0\a\0\
+                \0\0\0\0\0\0\0\0\x10\0�A\0\0\0\0source/PK\x01\x02-\x03\n\0\b\0\0\0\
+                �{bR�\t\0Wt\x05\0\0t\x05\0\0\x14\0\0\0\0\0\0\0\0\0\0\0��%\0\0\0source/dokument1.xmlPK\x01\
+                \x02-\x03\n\0\b\0\0\0�{bR�\x1Dx�s\0\0\0s\0\0\0\x14\0\0\0\0\0\0\0\0\
+                \0\0\0���\x05\0\0source/dokument2.xmlPK\x05\x06\0\0\0\0\x03\0\x03\0\
+                �\0\0\0�\x06\0\0\0\0"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
         '401':
-          description: download sources 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -740,13 +629,13 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
+                info: Signature verification failed
         '404':
-          description: download sources 404
+          description: NOT FOUND
           content:
             application/json:
               schema:
@@ -757,14 +646,17 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist
+                    example: The file 'dokument5.xml' you are trying to download does
+                      not exist
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist
-      tags:
-      - Manage Sources
+                message: The file 'dokument5.xml' you are trying to download does
+                  not exist
+      deprecated: false
   /remove-sources:
     delete:
+      tags:
+      - Manage Sources
       summary: remove sources
       description: "Remove the source files given in the `remove` parameter from the\
         \ corpus. Files are provided as a comma-separated list of paths relative to\
@@ -776,15 +668,25 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
         style: form
+        explode: true
         schema:
           type: string
-          example: min-testkorpus
-      - $ref: '#/components/parameters/remove'
+          example: mink-dXH6E6wTFf
+      - name: remove
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: dokument1.xml,dokument2.xml
       responses:
         '200':
-          description: remove sources 200
+          description: OK
           content:
             application/json:
               schema:
@@ -795,12 +697,12 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Source files for 'min-testkorpus' successfully removed
+                    example: Source files for 'mink-dXH6E6wTFf' successfully removed
               example:
                 status: success
-                message: Source files for 'min-testkorpus' successfully removed
+                message: Source files for 'mink-dXH6E6wTFf' successfully removed
         '400':
-          description: remove sources 400
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -816,7 +718,7 @@ paths:
                 status: error
                 message: No files provided for removal
         '401':
-          description: remove sources 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -830,13 +732,13 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
+                info: Signature verification failed
         '404':
-          description: remove sources 404
+          description: NOT FOUND
           content:
             application/json:
               schema:
@@ -847,7 +749,7 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to remove some source files form 'min-testkorpus'.
+                    example: Failed to remove some source files form 'mink-dXH6E6wTFf'.
                   failed:
                     type: array
                     example: &id003
@@ -858,13 +760,14 @@ paths:
                     - dokument1.xml
               example:
                 status: error
-                message: Failed to remove some source files form 'min-testkorpus'.
+                message: Failed to remove some source files form 'mink-dXH6E6wTFf'.
                 failed: *id003
                 succeeded: *id004
-      tags:
-      - Manage Sources
+      deprecated: false
   /upload-config:
     put:
+      tags:
+      - Manage Config
       summary: upload config
       description: 'Uploads a corpus configuration, either as a file or as plain text
         with the `config` parameter. The config must be in yaml format. Read more
@@ -909,10 +812,8 @@ paths:
             dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        -
             text:id\n        - text:date\n        - text:forfattare as author'
       responses:
-        '200':
-          description: ''
         '201':
-          description: upload config 201
+          description: CREATED
           content:
             application/json:
               schema:
@@ -923,12 +824,12 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Config file successfully uploaded for 'min-testkorpus'
+                    example: Config file successfully uploaded for 'mink-dXH6E6wTFf'
               example:
                 status: success
-                message: Config file successfully uploaded for 'min-testkorpus'
+                message: Config file successfully uploaded for 'mink-dXH6E6wTFf'
         '400':
-          description: upload config 400-incompatible
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -954,7 +855,7 @@ paths:
                 current_importer: text_import
                 expected_importer: xml_import
         '401':
-          description: upload config 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -968,47 +869,16 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: upload config 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpuss' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpuss' does not exist
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-              - file
-              properties:
-                file:
-                  type: string
-                  format: binary
-            example:
-            - key: ''
-              type: file
-              src: /home/anne/Downloads/testkorpus/config.yaml
-      tags:
-      - Manage Config
+                info: Signature verification failed
+      deprecated: false
   /download-config:
     get:
+      tags:
+      - Manage Config
       summary: download config
       description: 'Downloads the corpus config file (in yaml format).
 
@@ -1025,19 +895,53 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
         style: form
+        explode: true
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       responses:
         '200':
-          description: download config 200
+          description: OK
           content:
             text/yaml; charset=utf-8:
-              schema: {}
+              schema:
+                type: string
+                example: "metadata:\n  id: mink-dXH6E6wTFf\nimport:\n  text_annotation:\
+                  \ text\n  importer: xml_import:parse\nexport:\n  annotations:\n\
+                  \  - <sentence>:misc.id\n  - <token:baseform>\n  - <token:pos>\n\
+                  \  - <token>:sensaldo.sentiment_label\n  - SWE_DEFAULT.swener\n\
+                  \  source_annotations:\n  - dokument as document\n  - text:forfattare\
+                  \ as author\n  - '...'\ncsv_export:\n  source_annotations:\n  -\
+                  \ text:id\n  - text:date\n  - text:forfattare as author\n\n"
+              example: "metadata:\n  id: mink-dXH6E6wTFf\nimport:\n  text_annotation:\
+                \ text\n  importer: xml_import:parse\nexport:\n  annotations:\n  -\
+                \ <sentence>:misc.id\n  - <token:baseform>\n  - <token:pos>\n  - <token>:sensaldo.sentiment_label\n\
+                \  - SWE_DEFAULT.swener\n  source_annotations:\n  - dokument as document\n\
+                \  - text:forfattare as author\n  - '...'\ncsv_export:\n  source_annotations:\n\
+                \  - text:id\n  - text:date\n  - text:forfattare as author\n\n"
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
         '401':
-          description: download config 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -1051,360 +955,21 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: download config 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpuss' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpuss' does not exist
-      tags:
-      - Manage Config
-  /list-exports:
-    get:
-      summary: list exports
-      description: 'Lists the available export files created by Sparv.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X GET -u some_username ''{{host}}/list-exports?corpus_id=some_corpus_name''
-
-        ```'
-      operationId: listexports
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      responses:
-        '200':
-          description: list exports 200
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Current export files for 'min-testkorpus'
-                  contents:
-                    type: array
-                    example: &id005
-                    - name: dokument1.csv
-                      type: text/csv
-                      last_modified: '2021-11-17T15:25:26+00:00'
-                      'size': 4809
-                      path: /Mink/min-testkorpus/export/csv/dokument1.csv
-                    - name: dokument2.csv
-                      type: text/csv
-                      last_modified: '2021-11-17T15:25:29+00:00'
-                      'size': 526
-                      path: /Mink/min-testkorpus/export/csv/dokument2.csv
-                    - name: stats_min-testkorpus.csv
-                      type: text/csv
-                      last_modified: '2021-11-17T15:25:27+00:00'
-                      'size': 10728
-                      path: /Mink/min-testkorpus/export/frequency_list/stats_min-testkorpus.csv
-                    - name: dokument1_export.xml
-                      type: application/xml
-                      last_modified: '2021-11-17T15:25:29+00:00'
-                      'size': 13147
-                      path: /Mink/min-testkorpus/export/xml_pretty/dokument1_export.xml
-                    - name: dokument2_export.xml
-                      type: application/xml
-                      last_modified: '2021-11-17T15:25:28+00:00'
-                      'size': 1464
-                      path: /Mink/min-testkorpus/export/xml_pretty/dokument2_export.xml
-              example:
-                status: success
-                message: Current export files for 'min-testkorpus'
-                contents: *id005
-        '401':
-          description: list exports 401
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: list exports 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpuss' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpuss' does not exist
-      tags:
-      - Manage Exports
-  /download-exports:
-    get:
-      summary: download exports
-      description: 'Downloads all available export files created by Sparv.
-
-
-        The parameters `file` and `dir` may be used to download a specific export
-        file or a directory of export files. These parameters must be supplied as
-        absolute paths on the storage server or paths relative to the export directory.
-        Only one of these parameters may be applied at a time.
-
-
-        The `zip` parameter may be set to `false` in combination the the `file` parameter
-        to avoid zipping the file to be downloaded. If `zip` is used without the `file`
-        parameter it will have no effect.
-
-
-        ### Examples
-
-
-        ```.bash
-
-        curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name''
-        --output some_corpus_name.zip
-
-        ```
-
-
-        ```.bash
-
-        curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name&file=/Min
-        Språkbank/some_corpus_name/export/csv/dokument1.csv&zip=false'' --output dokument1.csv
-
-        ```'
-      operationId: downloadexports
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      - name: zip
-        in: query
-        required: false
-        style: form
-        schema:
-          type: string
-          example: 'true'
-      - name: file
-        in: query
-        required: false
-        style: form
-        schema:
-          type: string
-          example: /Mink/min-testkorpus/export/csv/dokument2.csv
-      - name: dir
-        in: query
-        required: false
-        style: form
-        schema:
-          type: string
-          example: csv
-      responses:
-        '200':
-          description: download exports 200
-          content:
-            application/zip:
-              schema: {}
-        '401':
-          description: download exports 401
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: download exports 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpuss' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpuss' does not exist
-      tags:
-      - Manage Exports
-      security: []
-  /remove-exports:
-    delete:
-      summary: remove exports
-      description: "Removes all export files for the corpus from the storage server.\
-        \ Will attempt to remove exports from the Sparv server, too, but won't crash\
-        \ if this fails.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username\
-        \ \n '{{host}}/remove-exports?corpus_id=some_corpus_name'\n```"
-      operationId: removeexports
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      responses:
-        '200':
-          description: remove exports 200
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Export files for corpus 'min-testkorpus' successfully
-                      removed
-              example:
-                status: success
-                message: Export files for corpus 'min-testkorpus' successfully removed
-        '401':
-          description: remove exports 401
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate
-                info: 'HTTP error: 401'
-      tags:
-      - Manage Exports
-  /download-source-text:
-    get:
-      summary: download source text
-      description: "Downloads one of the source files in plain text. The plain text\
-        \ is extracted by Sparv and therefore it can only be requested after a completed\
-        \ Sparv job. \n    \nThe source file name (including its file extension) must\
-        \ be specified in the `file` parameter.\n\n### Example\n\n```.bash\ncurl -X\
-        \ GET -u some_username '{{host}}/download-source-text?corpus_id=some_corpus_name?file=dokument1.xml'\
-        \ --output dokument1_plain.txt\n```"
-      operationId: downloadsourcetext
-      parameters:
-      - name: corpus_id
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: min-testkorpus
-      - name: file
-        in: query
-        required: true
-        style: form
-        schema:
-          type: string
-          example: dokument1.xml
-      responses:
-        '200':
-          description: download source text 200
-          content:
-            text/plain; charset=utf-8:
-              schema: {}
-        '401':
-          description: download source text 401
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Failed to authenticate
-                  info:
-                    type: string
-                    example: 'HTTP error: 401'
-              example:
-                status: error
-                message: Failed to authenticate
-                info: 'HTTP error: 401'
-      tags:
-      - Manage Exports
+                info: Signature verification failed
+      deprecated: false
   /run-sparv:
     put:
+      tags:
+      - Process Corpus
       summary: run Sparv
       description: 'Adds an annotation job to the queue. The requested export formats
         may be supplied as a comma-separated list to the `exports` parameter. If no
-        export formats are specified, some standard exports will be generated.
+        export formats are specified, the `xml_export:pretty` export will be generated
+        by default.
 
 
         The `files` parameter can be used to run the pipeline on a part of the corpus.
@@ -1430,16 +995,30 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: mink-dXH6E6wTFf
+      - name: exports
+        in: query
+        required: false
         style: form
         schema:
           type: string
-          example: min-testkorpus
-      - $ref: '#/components/parameters/exports'
-      - $ref: '#/components/parameters/files'
+          example: csv_export:csv,stats_export:freq_list,xml_export:pretty
+      - name: files
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: dokument1,document2
       responses:
         '200':
-          description: run Sparv 200
+          description: OK
           content:
             application/json:
               schema:
@@ -1456,34 +1035,28 @@ paths:
                     example: waiting
                   sparv_exports:
                     type: array
-                    example: &id006
+                    example: &id005
                     - csv_export:csv
                     - stats_export:freq_list
                     - xml_export:pretty
                   available_files:
                     type: array
-                    example: &id007
-                    - name: dokument1.xml
-                      type: application/xml
-                      last_modified: '2021-11-26T13:39:09+00:00'
-                      'size': 1396
-                      path: /Mink/min-testkorpus/source/dokument1.xml
+                    example: &id006
                     - name: dokument2.xml
                       type: application/xml
-                      last_modified: '2021-11-26T13:39:08+00:00'
-                      'size': 115
-                      path: /Mink/min-testkorpus/source/dokument2.xml
+                      last_modified: '2022-06-10T15:05:37+02:00'
+                      size: '116'
+                      path: mink-data/d/mink-dXH6E6wTFf/source/dokument2.xml
+                    - name: dokument1.xml
+                      type: application/xml
+                      last_modified: '2022-06-10T15:05:38+02:00'
+                      size: '1397'
+                      path: mink-data/d/mink-dXH6E6wTFf/source/dokument1.xml
                   files:
                     type: array
-                    example: &id008
+                    example: &id007
                     - dokument1
                     - dokument2
-                  last_run_started:
-                    type: string
-                    example: '2021-11-26T13:46:30+00:00'
-                  last_run_completed:
-                    type: string
-                    example: '2021-11-26T14:50:31+01:00'
                   priority:
                     type: integer
                     example: 1
@@ -1491,14 +1064,12 @@ paths:
                 status: success
                 message: Job has been queued
                 job_status: waiting
-                sparv_exports: *id006
-                available_files: *id007
-                files: *id008
-                last_run_started: '2021-11-26T13:46:30+00:00'
-                last_run_completed: '2021-11-26T14:50:31+01:00'
+                sparv_exports: *id005
+                available_files: *id006
+                files: *id007
                 priority: 1
         '400':
-          description: run Sparv 400-incompatible
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -1524,7 +1095,7 @@ paths:
                 current_importer: text_import
                 expected_importer: xml_import
         '401':
-          description: run Sparv 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -1538,29 +1109,13 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: run Sparv 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpuss' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpuss' does not exist
+                info: Signature verification failed
         '500':
-          description: run Sparv 500
+          description: INTERNAL SERVER ERROR
           content:
             application/json:
               schema:
@@ -1571,14 +1126,15 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: No source files found for 'min-testkorpus'
+                    example: No source files found for 'mink-dXH6E6wTFf'
               example:
                 status: error
-                message: No source files found for 'min-testkorpus'
-      tags:
-      - Process Corpus
+                message: No source files found for 'mink-dXH6E6wTFf'
+      deprecated: false
   /check-status:
     get:
+      tags:
+      - Process Corpus
       summary: check status
       description: 'Checks the status of the user''s annotation jobs and reports it
         in the `job_status` field for each job.
@@ -1616,7 +1172,7 @@ paths:
           example: min-testkorpus
       responses:
         '200':
-          description: check status 200
+          description: OK
           content:
             application/json:
               schema:
@@ -1630,8 +1186,8 @@ paths:
                     example: Listing jobs
                   jobs:
                     type: array
-                    example: &id009
-                    - corpus_id: min-testkorpus
+                    example: &id008
+                    - corpus_id: mink-KuuMLW3oyy
                       message: An error occurred while annotating
                       sparv_output: "Sparv exited with the following error messages:\n\
                         \nThe following output files were expected but are missing:\n\
@@ -1648,16 +1204,16 @@ paths:
                       - name: dokument1.xml
                         type: application/xml
                         last_modified: '2021-11-16T13:39:09+00:00'
-                        'size': 1396
-                        path: /Mink/min-testkorpus/source/dokument1.xml
+                        size: 1396
+                        path: dokument1.xml
                       - name: dokument2.xml
                         type: application/xml
                         last_modified: '2021-11-16T13:39:08+00:00'
-                        'size': 115
-                        path: /Mink/min-testkorpus/source/dokument2.xml
+                        size: 115
+                        path: dokument2.xml
                       last_run_started: '2021-11-17T09:28:32+00:00'
                       time_taken: 0:00:42
-                    - corpus_id: min-testkorpus2
+                    - corpus_id: mink-dXH6E6wTFf
                       message: Corpus is done processing and the results have been
                         synced
                       sparv_output: 'The exported files can be found in the following
@@ -1675,20 +1231,20 @@ paths:
                       - name: dokument1.xml
                         type: application/xml
                         last_modified: '2021-11-19T13:39:09+00:00'
-                        'size': 1396
-                        path: /Mink/min-testkorpus/source/dokument1.xml
+                        size: 1396
+                        path: dokument1.xml
                       - name: dokument2.xml
                         type: application/xml
                         last_modified: '2021-11-19T13:39:08+00:00'
-                        'size': 115
-                        path: /Mink/min-testkorpus/source/dokument2.xml
+                        size: 115
+                        path: dokument2.xml
                       files:
                       - dokument1
                       - dokument2
                       last_run_started: '2021-11-19T13:27:50+00:00'
                       last_run_completed: '2021-11-19T15:16:15+01:00'
                       time_taken: '1:48:25'
-                    - corpus_id: min-testkorpus3
+                    - corpus_id: mink-EiYu8MJxUi
                       message: Sparv is running
                       progress: 18%
                       job_status: annotating
@@ -1699,16 +1255,16 @@ paths:
                       - name: dokument1.xml
                         type: application/xml
                         last_modified: '2021-11-19T10:39:09+00:00'
-                        'size': 1396
-                        path: /Mink/min-testkorpus/source/dokument1.xml
+                        size: 1396
+                        path: dokument1.xml
                       - name: dokument2.xml
                         type: application/xml
                         last_modified: '2021-11-19T10:39:08+00:00'
-                        'size': 115
-                        path: /Mink/min-testkorpus/source/dokument2.xml
+                        size: 115
+                        path: dokument2.xml
                       last_run_started: '2021-11-19T10:54:10+00:00'
                       time_taken: 0:10:32
-                    - corpus_id: min-testkorpus4
+                    - corpus_id: mink-nEyfev2RDM
                       message: Job has been queued
                       job_status: waiting
                       sparv_exports:
@@ -1717,20 +1273,38 @@ paths:
                       - name: dokument1.xml
                         type: application/xml
                         last_modified: '2021-11-29T13:39:09+00:00'
-                        'size': 1396
-                        path: /Mink/min-testkorpus/source/dokument1.xml
+                        size: 1396
+                        path: dokument1.xml
                       - name: dokument2.xml
                         type: application/xml
                         last_modified: '2021-11-29T13:39:08+00:00'
-                        'size': 115
-                        path: /Mink/min-testkorpus/source/dokument2.xml
+                        size: 115
+                        path: dokument2.xml
                       priority: 1
               example:
                 status: success
                 message: Listing jobs
-                jobs: *id009
+                jobs: *id008
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
         '401':
-          description: check status 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -1744,29 +1318,13 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: check status 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-korpus' does not exist
-              example:
-                status: error
-                message: Corpus 'min-korpus' does not exist
+                info: Signature verification failed
         '500':
-          description: check status 500
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -1794,10 +1352,11 @@ paths:
                   There can be many reasons for this. Please make sure that there\
                   \ are no problems \nwith the corpus configuration file, like misspelled\
                   \ annotation names or \nreferences to non-existent source annotations."
-      tags:
-      - Process Corpus
+      deprecated: false
   /abort-job:
     post:
+      tags:
+      - Process Corpus
       summary: abort job
       description: 'Attempts to abort a running Sparv job.
 
@@ -1814,14 +1373,16 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
         style: form
+        explode: true
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       responses:
         '200':
-          description: abort job 200 no job
+          description: OK
           content:
             application/json:
               schema:
@@ -1832,12 +1393,34 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: No running job found for 'min-testkorpus'
+                    example: Successfully aborted running job for 'mink-dXH6E6wTFf'
+                  job_status:
+                    type: string
+                    example: aborted
               example:
                 status: success
-                message: No running job found for 'min-testkorpus'
+                message: Successfully aborted running job for 'mink-dXH6E6wTFf'
+                job_status: aborted
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
         '401':
-          description: abort job 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -1851,15 +1434,16 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-      tags:
-      - Process Corpus
+                info: Signature verification failed
+      deprecated: false
   /clear-annotations:
     delete:
+      tags:
+      - Process Corpus
       summary: clear annotations
       description: "Clears the annotation and export directory for the provided corpus\
         \ on the Sparv server. This is useful if you want to process a previously\
@@ -1870,14 +1454,16 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
         style: form
+        explode: true
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       responses:
         '200':
-          description: clear annotations 200
+          description: OK
           content:
             application/json:
               schema:
@@ -1888,20 +1474,36 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Annotations for 'min-testkorpus' successfully removed
+                    example: Annotations for 'mink-dXH6E6wTFf' successfully removed
                   sparv_output:
                     type: string
-                    example: '''export'' directory removed
-
+                    example: '''export'' directory removed, ''logs'' directory removed,
                       ''sparv-workdir'' directory removed'
               example:
                 status: success
-                message: Annotations for 'min-testkorpus' successfully removed
-                sparv_output: '''export'' directory removed
-
+                message: Annotations for 'mink-dXH6E6wTFf' successfully removed
+                sparv_output: '''export'' directory removed, ''logs'' directory removed,
                   ''sparv-workdir'' directory removed'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
         '401':
-          description: clear annotations 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -1915,31 +1517,16 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: clear annotations 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'min-testkorpuss' does not exist
-              example:
-                status: error
-                message: Corpus 'min-testkorpuss' does not exist
-      tags:
-      - Process Corpus
+                info: Signature verification failed
+      deprecated: false
   /check-changes:
     get:
+      tags:
+      - Process Corpus
       summary: check changes
       description: "Checks if any source files were changed, added or deleted since\
         \ the last Sparv run. Also checks if the config file was modified. \n\n###\
@@ -1949,14 +1536,16 @@ paths:
       parameters:
       - name: corpus_id
         in: query
+        description: ''
         required: true
         style: form
+        explode: true
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       responses:
         '200':
-          description: check changes 200
+          description: OK
           content:
             application/json:
               schema:
@@ -1967,7 +1556,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Your input for the corpus 'min-testkorpus' has changed
+                    example: Your input for the corpus 'mink-dXH6E6wTFf' has changed
                       since the last run
                   config_changed:
                     type: integer
@@ -1983,59 +1572,77 @@ paths:
                     example: true
                   changed_config:
                     type: object
-                    example: &id010
+                    example: &id009
                       name: config.yaml
                       type: application/yaml
                       last_modified: '2021-11-25T15:52:17+00:00'
-                      'size': 848
-                      path: /Mink/min-testkorpus/config.yaml
+                      size: 848
+                      path: config.yaml
                   added_sources:
                     type: array
-                    example: &id011
+                    example: &id010
                     - name: dokument4.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:35:30+00:00'
-                      'size': 461
-                      path: /Mink/min-testkorpus/source/dokument4.xml
+                      size: 461
+                      path: dokument4.xml
                   changed_sources:
                     type: array
-                    example: &id012
+                    example: &id011
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2021-11-25T15:56:51+00:00'
-                      'size': 1396
-                      path: /Mink/min-testkorpus/source/dokument1.xml
+                      size: 1396
+                      path: dokument1.xml
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2021-11-25T15:56:51+00:00'
-                      'size': 115
-                      path: /Mink/min-testkorpus/source/dokument2.xml
+                      size: 115
+                      path: dokument2.xml
                   deleted_sources:
                     type: array
-                    example: &id013
+                    example: &id012
                     - name: dokument3.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:22:54+00:00'
-                      'size': 41
-                      path: /Mink/min-testkorpus/source/dokument3.xml
+                      size: 41
+                      path: dokument3.xml
                   last_run_started:
                     type: string
                     example: '2021-11-19T14:16:10+00:00'
               example:
                 status: success
-                message: Your input for the corpus 'min-testkorpus' has changed since
+                message: Your input for the corpus 'mink-dXH6E6wTFf' has changed since
                   the last run
                 config_changed: true
                 sources_added: true
                 sources_changed: true
                 sources_deleted: true
-                changed_config: *id010
-                added_sources: *id011
-                changed_sources: *id012
-                deleted_sources: *id013
+                changed_config: *id009
+                added_sources: *id010
+                changed_sources: *id011
+                deleted_sources: *id012
                 last_run_started: '2021-11-19T14:16:10+00:00'
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
         '401':
-          description: check changes 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -2049,13 +1656,97 @@ paths:
                     example: Failed to authenticate
                   info:
                     type: string
-                    example: 'HTTP error: 401'
+                    example: Signature verification failed
               example:
                 status: error
                 message: Failed to authenticate
-                info: 'HTTP error: 401'
-        '404':
-          description: check changes 404
+                info: Signature verification failed
+      deprecated: false
+  /list-exports:
+    get:
+      tags:
+      - Manage Exports
+      summary: list exports
+      description: 'Lists the available export files created by Sparv.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X GET -u some_username ''{{host}}/list-exports?corpus_id=some_corpus_name''
+
+        ```'
+      operationId: listexports
+      parameters:
+      - name: corpus_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: mink-dXH6E6wTFf
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Current export files for 'mink-dXH6E6wTFf'
+                  contents:
+                    type: array
+                    example: &id013
+                    - name: dokument1.csv
+                      type: text/csv
+                      last_modified: '2022-06-10T16:07:33+02:00'
+                      size: '4'
+                      path: csv/dokument1.csv
+                    - name: dokument2.csv
+                      type: text/csv
+                      last_modified: '2022-06-10T16:07:41+02:00'
+                      size: '5'
+                      path: csv/dokument2.csv
+                    - name: dokument2.csv
+                      type: text/csv
+                      last_modified: '2022-06-10T17:54:15+02:00'
+                      size: '538'
+                      path: csv_export/dokument2.csv
+                    - name: dokument1.csv
+                      type: text/csv
+                      last_modified: '2022-06-10T17:55:37+02:00'
+                      size: '4876'
+                      path: csv_export/dokument1.csv
+                    - name: stats_mink-dXH6E6wTFf.csv
+                      type: text/csv
+                      last_modified: '2022-06-10T17:55:39+02:00'
+                      size: '10838'
+                      path: stats_export.frequency_list/stats_mink-dXH6E6wTFf.csv
+                    - name: dokument2_export.xml
+                      type: application/xml
+                      last_modified: '2022-06-10T17:55:37+02:00'
+                      size: '1497'
+                      path: xml_export.pretty/dokument2_export.xml
+                    - name: dokument1_export.xml
+                      type: application/xml
+                      last_modified: '2022-06-10T17:55:38+02:00'
+                      size: '13429'
+                      path: xml_export.pretty/dokument1_export.xml
+              example:
+                status: success
+                message: Current export files for 'mink-dXH6E6wTFf'
+                contents: *id013
+        '400':
+          description: BAD REQUEST
           content:
             application/json:
               schema:
@@ -2066,14 +1757,1263 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'min-testkorpuss' does not exist
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
               example:
                 status: error
-                message: Corpus 'min-testkorpuss' does not exist
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+      deprecated: false
+  /download-exports:
+    get:
       tags:
-      - Process Corpus
+      - Manage Exports
+      summary: download exports
+      description: 'Downloads all available export files created by Sparv.
+
+
+        The parameters `file` and `dir` may be used to download a specific export
+        file or a directory of export files. These parameters must be supplied as
+        paths relative to the export directory. Only one of these parameters may be
+        applied at a time.
+
+
+        The `zip` parameter may be set to `false` in combination the the `file` parameter
+        to avoid zipping the file to be downloaded. If `zip` is used without the `file`
+        parameter it will have no effect.
+
+
+        ### Examples
+
+
+        ```.bash
+
+        curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name''
+        --output some_corpus_name.zip
+
+        ```
+
+
+        ```.bash
+
+        curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name&file=csv/dokument1.csv&zip=false''
+        --output dokument1.csv
+
+        ```'
+      operationId: downloadexports
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: min-testkorpus
+      - *id014
+      - name: file
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: /Mink/min-testkorpus/export/csv/dokument2.csv
+      - name: dir
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: csv
+      responses:
+        '200':
+          description: OK
+          content:
+            application/zip:
+              schema:
+                type: string
+                example: "PK\x03\x04\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\a\0\
+                  \0\0export/PK\x03\x04\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\v\
+                  \0\0\0export/csv/PK\x03\x04\n\0\b\0\0\0�jZR\0\0\0\0\0\0\0\0\0\0\0\
+                  \0\x18\0\0\0export/csv/dokument1.csvtoken\tbaseform\tpos\tsentiment_label\n\
+                  # text.date = 2020-03-11\n# text.author = Sparvutvecklare\n# text.id\
+                  \ = 1\n# sentence.id = b1ac\nHej\t|hej|\tIN\t\n!\t|\tMAD\t\n\n#\
+                  \ sentence.id = b142\nDet\t|den|den här|\tPN\t\nhär\t|här|den här:1|\t\
+                  AB\t\när\t|vara|\tVB\tneutral\nen\t|en|\tDT\t\nkorpus\t|korpus|\t\
+                  NN\t\n.\t|\tMAD\t\n\n# sentence.id = b196\n# ne.ex = ENAMEX\n# ne.name\
+                  \ = Astrid Lindgren\n# ne.subtype = HUM\n# ne.type = PRS\nAstrid\t\
+                  |Astrid|\tPM\t\nLindgren\t|Lindgren|\tPM\t\när\t|vara|\tVB\tneutral\n\
+                  född\t|föda|född|\tPC\tneutral\ni\t|i|\tPP\t\n# ne.ex = ENAMEX\n\
+                  # ne.name = Vimmerby\n# ne.subtype = PPL\n# ne.type = LOC\nVimmerby\t\
+                  |Vimmerby|\tPM\t\n# ne.ex = TIMEX\n# ne.name = 1907\n# ne.subtype\
+                  \ = DAT\n# ne.type = TME\n1907\t|\tRG\t\n.\t|\tMAD\t\n\n# sentence.id\
+                  \ = b175\nOch\t|och|\tKN\t\nhär\t|här|\tAB\t\nkommer\t|komma|\t\
+                  VB\tneutral\nden\t|den|en|\tDT\t\ntredje\t|\tRO\t\nmeningen\t|mening|\t\
+                  NN\tneutral\ni\t|i|\tPP\t\nett\t|en|\tDT\t\nnytt\t|ny|\tJJ\tneutral\n\
+                  stycke\t|stycke|\tNN\tneutral\n.\t|\tMAD\t\n\n# sentence.id = b16a\n\
+                  Sista\t|sista|\tJJ\tneutral\nmeningen\t|mening|\tNN\tneutral\när\t\
+                  |vara|\tVB\tneutral\nkort\t|kort|\tJJ\tneutral\noch\t|och|\tKN\t\
+                  \ninnehåller\t|innehålla|\tVB\tneutral\nen\t|en|\tDT\t\nsammansättningsform\t\
+                  |\tNN\t\n:\t|\tMID\t\nfödelsedagskalas\t|födelsedagskalas|\tNN\t\
+                  \n.\t|\tMAD\t\n\n# text.date = 2020-03-16\n# text.author = Wikipedia\n\
+                  # text.id = 2\n# sentence.id = b110\nSpråkbanken\t|språkbank|\t\
+                  NN\t\när\t|vara|\tVB\tneutral\nen\t|en|\tDT\t\nforskningsenhet\t\
+                  |\tNN\t\nvid\t|vid|\tPP\t\n# ne.ex = ENAMEX\n# ne.name = Göteborgs\
+                  \ universitet\n# ne.subtype = EDU\n# ne.type = ORG\nGöteborgs\t\
+                  |Göteborg|Göteborgs universitet|\tPM\t\nuniversitet\t|universitet|Göteborgs\
+                  \ universitet:6|\tNN\t\n.\t|\tMAD\t\n\n# sentence.id = b122\nDen\t\
+                  |den|\tPN\t\ninrättades\t|inrätta|\tVB\tneutral\nsom\t|\tKN\t\n\
+                  en\t|en|\tDT\t\nnationell\t|nationell|\tJJ\tneutral\nresurs\t|resurs|\t\
+                  NN\tpositive\n1975\t|\tRG\t\n,\t|\tMID\t\nsom\t|\tKN\t\nett\t|en|\t\
+                  DT\t\ndirekt\t|direkt|\tJJ\tneutral\nresultat\t|resultat|\tNN\t\
+                  neutral\nav\t|av|\tPP\t\n# ne.ex = ENAMEX\n# ne.name = Sture Alléns\n\
+                  # ne.subtype = HUM\n# ne.type = PRS\nSture\t|Sture|\tPM\t\nAlléns\t\
+                  |\tPM\t\npionjärinsatser\t|\tNN\t\ninom\t|inom|\tPP\t\nsvensk\t\
+                  |svensk|\tJJ\tneutral\nkorpuslingvistik\t|korpuslingvistik|\tNN\t\
+                  \n# ne.ex = TIMEX\n# ne.name = under 1960-talet\n# ne.subtype =\
+                  \ DAT\n# ne.type = TME\nunder\t|under|\tPP\t\n1960-talet\t|1960-tal|\t\
+                  NN\t\n.\t|\tMAD\t\n\n# sentence.id = b1c1\nSpråkbankens\t|språkbank|\t\
+                  NN\t\nuppdrag\t|uppdrag|\tNN\tneutral\nblev\t|bli|\tVB\tneutral\n\
+                  och\t|och|\tKN\t\när\t|vara|\tVB\tneutral\nfortfarande\t|fortfarande|\t\
+                  AB\t\natt\t|att|\tIE\t\nsamla\t|samla|\tVB\tneutral\nin\t|in|\t\
+                  PL\t\n,\t|\tMID\t\nförädla\t|förädla|\tVB\t\noch\t|och|\tKN\t\n\
+                  tillgängliggöra\t|tillgängliggöra|\tVB\t\nspråkresurser\t|språkresurs|\t\
+                  NN\t\nåt\t|åt|\tPP\t\nforskare\t|forskare|\tNN\tneutral\noch\t|och|\t\
+                  KN\t\nallmänheten\t|allmänhet|\tNN\tneutral\n,\t|\tMID\t\noch\t\
+                  |och|\tKN\t\natt\t|att|\tIE\t\nbedriva\t|bedriva|\tVB\tneutral\n\
+                  forskning\t|forskning|\tNN\tneutral\noch\t|och|\tKN\t\nutveckling\t\
+                  |utveckling|\tNN\tneutral\nsom\t|\tHP\t\nfrämjar\t|främja|\tVB\t\
+                  positive\nsån\t|sån|\tJJ\t\nanvändning\t|användning|\tNN\tneutral\n\
+                  .\t|\tMAD\t\n\n# sentence.id = b1cd\nI\t|i|\tPP\t\nSpråkbanken\t\
+                  |Språkbanken|\tPM\t\nfinns\t|finna|finnas|\tVB\tneutral\nen\t|en|\t\
+                  DT\t\nunik\t|unik|\tJJ\tneutral\nkompetens\t|kompetens|\tNN\tpositive\n\
+                  vad\t|vad|vad för|\tHP\t\ngäller\t|gälla|\tVB\tneutral\nsvenska\t\
+                  |svensk|\tJJ\tneutral\ntextkorpusar\t|textkorpus|\tNN\t\n,\t|\t\
+                  MID\t\nparallellkorpusar\t|\tNN\t\n,\t|\tMID\t\nsvenska\t|svensk|\t\
+                  JJ\tneutral\nelektroniska\t|elektronisk|\tJJ\tneutral\nlexikonresurser\t\
+                  |lexikonresurs|\tNN\t\nsamt\t|samt|\tKN\t\nspråkteknologiska\t|\t\
+                  JJ\t\nverktyg\t|verktyg|\tNN\t\nför\t|för|vad för:7|\tPP\t\natt\t\
+                  |att|\tIE\t\nbearbeta\t|bearbeta|\tVB\t\n,\t|\tMID\t\nannotera\t\
+                  |annotera|\tVB\t\noch\t|och|\tKN\t\nvisa\t|visa|visa upp|\tVB\t\
+                  neutral\nupp\t|upp|visa upp:26|\tPL\t\ntextkorpusar\t|textkorpus|\t\
+                  NN\t\n.\t|\tMAD\t\n\n# sentence.id = b15f\nHuvuddelen\t|huvuddel|\t\
+                  NN\t\nav\t|av|\tPP\t\nmaterialet\t|material|\tNN\tneutral\när\t\
+                  |vara|\tVB\tneutral\nmodernt\t|modern|\tJJ\tpositive\n,\t|\tMID\t\
+                  \nmen\t|men|\tKN\t\nambitionen\t|ambition|\tNN\tneutral\när\t|vara|\t\
+                  VB\tneutral\natt\t|att|\tSN\t\nresurserna\t|resurs|\tNN\tpositive\n\
+                  ska\t|skola|\tVB\tneutral\navspegla\t|avspegla|\tVB\t\nhela\t|hel|\t\
+                  JJ\tneutral\nden\t|den|en|\tDT\t\nskrivna\t|skriva|\tPC\tneutral\n\
+                  svenskans\t|svenska|\tNN\tneutral\nhistoria\t|historia|\tNN\tneutral\n\
+                  -\t|\tMID\t\nfrån\t|från|\tPP\t\nmedeltida\t|medeltida|\tJJ\t\n\
+                  fornsvenska\t|\tNN\t\ntill\t|till|\tPP\t\nmodern\t|modern|\tJJ\t\
+                  positive\nsvenska\t|svenska|\tNN\tneutral\n-\t|\tMID\t\nmed\t|med|\t\
+                  PP\t\nalla\t|all|\tDT\t\ndess\t|den|\tPS\t\ngenrer\t|genre|\tNN\t\
+                  \n.\t|\tMAD\t\n\n# sentence.id = b13b\nHuvuddelen\t|huvuddel|\t\
+                  NN\t\nav\t|av|\tPP\t\nresurserna\t|resurs|\tNN\tpositive\n,\t|\t\
+                  MID\t\nkorpusar\t|korpus|\tNN\t\noch\t|och|\tKN\t\nlexikon\t|lexikon|\t\
+                  NN\t\n,\t|\tMID\t\när\t|vara|\tVB\tneutral\nfritt\t|fri|\tAB\tpositive\n\
+                  åtkomliga\t|åtkomlig|\tJJ\t\nför\t|för|\tPP\t\nsökning\t|sökning|\t\
+                  NN\t\nvia\t|via|\tPP\t\nwebbgränssnitt\t|\tNN\t\n.\t|\tMAD\t\n\n\
+                  # text.date = \n# text.author = \n# text.id = 1\n# sentence.id =\
+                  \ b100\nHej\t|hej|\tIN\t\npå\t|på|\tPP\t\ndig\t|du|\tPN\t\n.\t|\t\
+                  MAD\t\n\n# sentence.id = b1f4\nKan\t|kunna|\tVB\tneutral\nvi\t|vi|\t\
+                  PN\t\nhantera\t|hantera|\tVB\tneutral\növerlappande\t|överlappa|\t\
+                  PC\t\ntaggar\t|tagg|\tNN\t\n?\t|\tMAD\t\nPK\a\bY�\"��\x12\0\0�\x12\
+                  \0\0PK\x03\x04\n\0\b\0\0\0�kZR\0\0\0\0\0\0\0\0\0\0\0\0\x18\0\0\0\
+                  export/csv/dokument2.csvtoken\tbaseform\tpos\tsentiment_label\n\
+                  # text\n# sentence.id = e00a\nHej\t|hej|\tIN\t\n!\t|\tMAD\t\n\n\
+                  # sentence.id = e089\nDet\t|den|den här|\tPN\t\nhär\t|här|den här:1|\t\
+                  AB\t\när\t|vara|\tVB\tneutral\nen\t|en|en annan|\tDT\t\nannan\t\
+                  |annan|en annan:4|\tJJ\t\ntext\t|text|\tNN\tneutral\n.\t|\tMAD\t\
+                  \n\n# sentence.id = e0b6\nDen\t|den|\tPN\t\när\t|vara|\tVB\tneutral\n\
+                  jättekort\t|\tJJ\t\n.\t|\tMAD\t\n\n# sentence.id = e0be\nDen\t|den|\t\
+                  PN\t\nhar\t|ha|\tVB\tneutral\nbara\t|bara|\tAB\t\ntre\t|tre|\tRG\t\
+                  \nmeningar\t|mening|\tNN\tneutral\noch\t|och|\tKN\t\ningen\t|ingen|\t\
+                  DT\t\nmetadata\t|metadata|\tNN\t\n.\t|\tMAD\t\nPK\a\b�7þ\x0E\x02\
+                  \0\0\x0E\x02\0\0PK\x03\x04\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\
+                  \0\0\x16\0\0\0export/frequency_list/PK\x03\x04\n\0\b\0\0\0�kZR\0\
+                  \0\0\0\0\0\0\0\0\0\0\0(\0\0\0export/frequency_list/stats_mini-swe.csvtoken\t\
+                  POS\tlemma\tSALDO sense\tlemgram\tcompound\tcount\r\n.\tMAD\t\t\t\
+                  \t\t14\r\när\tVB.PRS.AKT\tvara\tvara..1\tvara..vb.1\t\t10\r\noch\t\
+                  KN\toch\toch..1\toch..kn.1\t\t9\r\n,\tMID\t\t\t\t\t9\r\nen\tDT.UTR.SIN.IND\t\
+                  en\tden..1\ten..al.1\t\t6\r\nHej\tIN\thej\thej..1\thej..in.1\t\t\
+                  3\r\nDen\tPN.UTR.SIN.DEF.SUB+OBJ\tden\tden..2\tden..pn.1\t\t3\r\n\
+                  av\tPP\tav\tav..1\tav..pp.1\t\t3\r\natt\tIE\tatt\tatt..1\tatt..sn.1\t\
+                  \t3\r\n!\tMAD\t\t\t\t\t2\r\nDet\tPN.NEU.SIN.DEF.SUB+OBJ\tden\tden..2\t\
+                  den..pn.1\t\t2\r\nhär\tAB\thär\tden_här..1\thär..ab.1\t\t2\r\ni\t\
+                  PP\ti\ti..2\ti..pp.1\t\t2\r\nden\tDT.UTR.SIN.DEF\tden\tden..1\t\
+                  den..pn.1\t\t2\r\nmeningen\tNN.UTR.SIN.DEF.NOM\tmening\tmening..1\t\
+                  mening..nn.1\t\t2\r\nett\tDT.NEU.SIN.IND\ten\tden..1\ten..al.1\t\
+                  \t2\r\nsom\tKN\t\t\t\t\t2\r\nsvenska\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\t\
+                  svensk\tsvensk..1\tsvensk..av.1\t\t2\r\ntextkorpusar\tNN.UTR.PLU.IND.NOM\t\
+                  textkorpus\ttextkorpus..1\ttextkorpus..nn.1\t\t2\r\nför\tPP\tför\t\
+                  för..1\tför..pp.1\t\t2\r\nHuvuddelen\tNN.UTR.SIN.DEF.NOM\thuvuddel\t\
+                  huvuddel..1\thuvuddel..nn.1\t\t2\r\nresurserna\tNN.UTR.PLU.DEF.NOM\t\
+                  resurs\tresurs..1\tresurs..nn.1\t\t2\r\n-\tMID\t\t\t\t\t2\r\nkorpus\t\
+                  NN.UTR.SIN.IND.NOM\tkorpus\tkorpus..1\tkorpus..nn.1\t\t1\r\nAstrid\t\
+                  PM.NOM\tAstrid\tAstrid..1\tAstrid..pm.1\t\t1\r\nLindgren\tPM.NOM\t\
+                  Lindgren\tLindgren..1\tLindgren..pm.1\t\t1\r\nfödd\tPC.PRF.UTR.SIN.IND.NOM\t\
+                  föda\tfödd..1\tföda..vb.1\t\t1\r\nVimmerby\tPM.NOM\tVimmerby\tVimmerby..1\t\
+                  Vimmerby..pm.1\t\t1\r\n1907\tRG.NOM\t\t\t\t\t1\r\nOch\tKN\toch\t\
+                  och..1\toch..kn.1\t\t1\r\nhär\tAB\thär\thär..1\thär..ab.1\t\t1\r\
+                  \nkommer\tVB.PRS.AKT\tkomma\tkomma..1\tkomma..vb.1\t\t1\r\ntredje\t\
+                  RO.NOM\t\t\t\t\t1\r\nnytt\tJJ.POS.NEU.SIN.IND.NOM\tny\tny..1\tny..av.1\t\
+                  \t1\r\nstycke\tNN.NEU.SIN.IND.NOM\tstycke\tstycke..1\tstycke..nn.1\t\
+                  \t1\r\nSista\tJJ.SUV.UTR+NEU.SIN+PLU.DEF.NOM\tsista\tsista..1\t\
+                  sista..av.1\t\t1\r\nkort\tJJ.POS.UTR.SIN.IND.NOM\tkort\tkort..1\t\
+                  kort..av.1\t\t1\r\ninnehåller\tVB.PRS.AKT\tinnehålla\tinnehålla..1\t\
+                  innehålla..vb.1\t\t1\r\nsammansättningsform\tNN.UTR.SIN.IND.NOM\t\
+                  \t\t\tsammansättning..nn.1+form..nn.1\t1\r\n:\tMID\t\t\t\t\t1\r\n\
+                  födelsedagskalas\tNN.NEU.SIN.IND.NOM\tfödelsedagskalas\tfödelsedagskalas..1\t\
+                  födelsedagskalas..nn.1\t\t1\r\nSpråkbanken\tNN.UTR.SIN.DEF.NOM\t\
+                  språkbank\tspråkbank..1\tspråkbank..nn.1\t\t1\r\nforskningsenhet\t\
+                  NN.UTR.SIN.IND.NOM\t\t\t\tforskning..nn.1+enhet..nn.1\t1\r\nvid\t\
+                  PP\tvid\tvid..1\tvid..pp.1\t\t1\r\nGöteborgs\tPM.GEN\tGöteborg\t\
+                  Göteborg..1\tGöteborg..pm.1\t\t1\r\nuniversitet\tNN.NEU.SIN.IND.NOM\t\
+                  universitet\tGöteborgs_universitet..1\tuniversitet..nn.1\t\t1\r\n\
+                  inrättades\tVB.PRT.SFO\tinrätta\tinrätta..1\tinrätta..vb.1\t\t1\r\
+                  \nnationell\tJJ.POS.UTR.SIN.IND.NOM\tnationell\tnationell..1\tnationell..av.1\t\
+                  \t1\r\nresurs\tNN.UTR.SIN.IND.NOM\tresurs\tresurs..1\tresurs..nn.1\t\
+                  \t1\r\n1975\tRG.NOM\t\t\t\t\t1\r\ndirekt\tJJ.POS.NEU.SIN.IND.NOM\t\
+                  direkt\tdirekt..1\tdirekt..av.1\t\t1\r\nresultat\tNN.NEU.SIN.IND.NOM\t\
+                  resultat\tresultat..1\tresultat..nn.1\t\t1\r\nSture\tPM.NOM\tSture\t\
+                  Sture..1\tSture..pm.1\t\t1\r\nAlléns\tPM.GEN\t\t\t\t\t1\r\npionjärinsatser\t\
+                  NN.UTR.PLU.IND.NOM\t\t\t\tpionjär..nn.1+insats..nn.1\t1\r\ninom\t\
+                  PP\tinom\tinom..1\tinom..pp.1\t\t1\r\nsvensk\tJJ.POS.UTR.SIN.IND.NOM\t\
+                  svensk\tsvensk..1\tsvensk..av.1\t\t1\r\nkorpuslingvistik\tNN.UTR.SIN.IND.NOM\t\
+                  korpuslingvistik\tkorpuslingvistik..1\tkorpuslingvistik..nn.1\t\t\
+                  1\r\nunder\tPP\tunder\tunder..1\tunder..pp.1\t\t1\r\n1960-talet\t\
+                  NN.NEU.SIN.DEF.NOM\t1960-tal\tnittonhundrasextiotalet..1\t_1960-tal..nn.1\t\
+                  \t1\r\nSpråkbankens\tNN.UTR.SIN.DEF.GEN\tspråkbank\tspråkbank..1\t\
+                  språkbank..nn.1\t\t1\r\nuppdrag\tNN.NEU.SIN.IND.NOM\tuppdrag\tuppdrag..1\t\
+                  uppdrag..nn.1\t\t1\r\nblev\tVB.PRT.AKT\tbli\tbli..1\tbli..vb.1\t\
+                  \t1\r\nfortfarande\tAB\tfortfarande\tfortfarande..1\tfortfarande..ab.1\t\
+                  \t1\r\nsamla\tVB.INF.AKT\tsamla\tsamla..2\tsamla..vb.1\t\t1\r\n\
+                  in\tPL\tin\tin..1\tin..ab.1\t\t1\r\nförädla\tVB.INF.AKT\tförädla\t\
+                  förädla..1\tförädla..vb.1\t\t1\r\ntillgängliggöra\tVB.INF.AKT\t\
+                  tillgängliggöra\ttillgängliggöra..1\ttillgängliggöra..vb.1\t\t1\r\
+                  \nspråkresurser\tNN.UTR.PLU.IND.NOM\tspråkresurs\tspråkresurs..1\t\
+                  språkresurs..nn.1\t\t1\r\nåt\tPP\tåt\tåt..1\tåt..pp.1\t\t1\r\nforskare\t\
+                  NN.UTR.PLU.IND.NOM\tforskare\tforskare..1\tforskare..nn.1\t\t1\r\
+                  \nallmänheten\tNN.UTR.SIN.DEF.NOM\tallmänhet\tallmänhet..1\tallmänhet..nn.1\t\
+                  \t1\r\nbedriva\tVB.INF.AKT\tbedriva\tbedriva..1\tbedriva..vb.1\t\
+                  \t1\r\nforskning\tNN.UTR.SIN.IND.NOM\tforskning\tforskning..1\t\
+                  forskning..nn.1\t\t1\r\nutveckling\tNN.UTR.SIN.IND.NOM\tutveckling\t\
+                  utveckling..1\tutveckling..nn.1\t\t1\r\nsom\tHP.-.-.-\t\t\t\t\t\
+                  1\r\nfrämjar\tVB.PRS.AKT\tfrämja\tfrämja..1\tfrämja..vb.1\t\t1\r\
+                  \nsån\tJJ.POS.UTR.SIN.IND.NOM\tsån\tsådan..1\tsån..pn.1\t\t1\r\n\
+                  användning\tNN.UTR.SIN.IND.NOM\tanvändning\tanvändning..1\tanvändning..nn.1\t\
+                  \t1\r\nI\tPP\ti\ti..2\ti..pp.1\t\t1\r\nSpråkbanken\tPM.NOM\tSpråkbanken\t\
+                  Språkbanken..1\tSpråkbanken..pm.1\t\t1\r\nfinns\tVB.PRS.SFO\tfinna\t\
+                  finna..1\tfinna..vb.1\t\t1\r\nunik\tJJ.POS.UTR.SIN.IND.NOM\tunik\t\
+                  unik..1\tunik..av.1\t\t1\r\nkompetens\tNN.UTR.SIN.IND.NOM\tkompetens\t\
+                  kompetens..1\tkompetens..nn.1\t\t1\r\nvad\tHP.NEU.SIN.IND\tvad\t\
+                  vad..1\tvad..pn.1\t\t1\r\ngäller\tVB.PRS.AKT\tgälla\tgälla..1\t\
+                  gälla..vb.1\t\t1\r\nparallellkorpusar\tNN.UTR.PLU.IND.NOM\t\t\t\t\
+                  parallell..nn.1+korpus..nn.1\t1\r\nelektroniska\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\t\
+                  elektronisk\telektronisk..1\telektronisk..av.1\t\t1\r\nlexikonresurser\t\
+                  NN.UTR.PLU.IND.NOM\tlexikonresurs\tlexikonresurs..1\tlexikonresurs..nn.1\t\
+                  \t1\r\nsamt\tKN\tsamt\tsamt..1\tsamt..kn.1\t\t1\r\nspråkteknologiska\t\
+                  JJ.POS.UTR+NEU.PLU.IND+DEF.NOM\t\t\t\tspråk..nn.1+teknologisk..av.1\t\
+                  1\r\nverktyg\tNN.NEU.PLU.IND.NOM\tverktyg\tverktyg..1\tverktyg..nn.1\t\
+                  \t1\r\nbearbeta\tVB.INF.AKT\tbearbeta\tbearbeta..1\tbearbeta..vb.1\t\
+                  \t1\r\nannotera\tVB.INF.AKT\tannotera\tannotera..1\tannotera..vb.1\t\
+                  \t1\r\nvisa\tVB.INF.AKT\tvisa\tvisa..1\tvisa..vb.1\t\t1\r\nupp\t\
+                  PL\tupp\tupp..1\tupp..ab.1\t\t1\r\nmaterialet\tNN.NEU.SIN.DEF.NOM\t\
+                  material\tmaterial..1\tmaterial..nn.1\t\t1\r\nmodernt\tJJ.POS.NEU.SIN.IND.NOM\t\
+                  modern\tmodern..1\tmodern..av.1\t\t1\r\nmen\tKN\tmen\tmen..1\tmen..kn.1\t\
+                  \t1\r\nambitionen\tNN.UTR.SIN.DEF.NOM\tambition\tambition..1\tambition..nn.1\t\
+                  \t1\r\natt\tSN\tatt\tatt..1\tatt..sn.1\t\t1\r\nska\tVB.PRS.AKT\t\
+                  skola\tskola..4\tskola..vb.2\t\t1\r\navspegla\tVB.INF.AKT\tavspegla\t\
+                  avspegla..1\tavspegla..vb.1\t\t1\r\nhela\tJJ.POS.UTR+NEU.SIN.DEF.NOM\t\
+                  hel\thel..1\thel..av.1\t\t1\r\nskrivna\tPC.PRF.UTR+NEU.SIN.DEF.NOM\t\
+                  skriva\tskriva..1\tskriva..vb.1\t\t1\r\nsvenskans\tNN.UTR.SIN.DEF.GEN\t\
+                  svenska\tsvenska..2\tsvenska..nn.1\t\t1\r\nhistoria\tNN.UTR.SIN.IND.NOM\t\
+                  historia\thistoria..1\thistoria..nn.1\t\t1\r\nfrån\tPP\tfrån\tfrån..1\t\
+                  från..pp.1\t\t1\r\nmedeltida\tJJ.POS.UTR+NEU.SIN+PLU.IND+DEF.NOM\t\
+                  medeltida\tmedeltida..1\tmedeltida..av.1\t\t1\r\nfornsvenska\tNN.UTR.SIN.IND.NOM\t\
+                  \t\t\tforn..av.1+svenska..nn.1\t1\r\ntill\tPP\ttill\ttill..1\ttill..pp.1\t\
+                  \t1\r\nmodern\tJJ.POS.UTR.SIN.IND.NOM\tmodern\tmodern..1\tmodern..av.1\t\
+                  \t1\r\nsvenska\tNN.UTR.SIN.IND.NOM\tsvenska\tsvenska..1\tsvenska..nn.1\t\
+                  \t1\r\nmed\tPP\tmed\tmed..1\tmed..pp.1\t\t1\r\nalla\tDT.UTR+NEU.PLU.IND+DEF\t\
+                  all\tall..1\tall..pn.1\t\t1\r\ndess\tPS.UTR+NEU.SIN+PLU.DEF\tden\t\
+                  den..2\tden..pn.1\t\t1\r\ngenrer\tNN.UTR.PLU.IND.NOM\tgenre\tgenre..1\t\
+                  genre..nn.1\t\t1\r\nkorpusar\tNN.UTR.PLU.IND.NOM\tkorpus\tkorpus..1\t\
+                  korpus..nn.1\t\t1\r\nlexikon\tNN.NEU.PLU.IND.NOM\tlexikon\tlexikon..1\t\
+                  lexikon..nn.1\t\t1\r\nfritt\tAB.POS\tfri\tfri..2\tfri..av.1\t\t\
+                  1\r\nåtkomliga\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\tåtkomlig\tåtkomlig..1\t\
+                  åtkomlig..av.1\t\t1\r\nsökning\tNN.UTR.SIN.IND.NOM\tsökning\tsökning..1\t\
+                  sökning..nn.1\t\t1\r\nvia\tPP\tvia\tvia..1\tvia..pp.1\t\t1\r\nwebbgränssnitt\t\
+                  NN.NEU.PLU.IND.NOM\t\t\t\twebb..nn.1+gränssnitt..nn.1\t1\r\npå\t\
+                  PP\tpå\tpå..1\tpå..pp.1\t\t1\r\ndig\tPN.UTR.SIN.DEF.OBJ\tdu\tdu..1\t\
+                  du..pn.1\t\t1\r\nKan\tVB.PRS.AKT\tkunna\tkunna..1\tkunna..vb.1\t\
+                  \t1\r\nvi\tPN.UTR.PLU.DEF.SUB\tvi\tvi..1\tvi..pn.1\t\t1\r\nhantera\t\
+                  VB.INF.AKT\thantera\thantera..1\thantera..vb.1\t\t1\r\növerlappande\t\
+                  PC.PRS.UTR+NEU.SIN+PLU.IND+DEF.NOM\töverlappa\töverlappa..1\töverlappa..vb.1\t\
+                  \t1\r\ntaggar\tNN.UTR.PLU.IND.NOM\ttagg\ttagg..1\ttagg..nn.1\t\t\
+                  1\r\n?\tMAD\t\t\t\t\t1\r\nannan\tJJ.POS.UTR.SIN.IND.NOM\tannan\t\
+                  annan..1\tannan..pn.1\t\t1\r\ntext\tNN.UTR.SIN.IND.NOM\ttext\ttext..1\t\
+                  text..nn.1\t\t1\r\njättekort\tJJ.POS.UTR.SIN.IND.NOM\t\t\t\tjätte..nn.1+kort..av.1\t\
+                  1\r\nhar\tVB.PRS.AKT\tha\tha..1\tha..vb.1\t\t1\r\nbara\tAB\tbara\t\
+                  bara..1\tbara..ab.1\t\t1\r\ntre\tRG.NOM\ttre\ttre..1\ttre..nl.1\t\
+                  \t1\r\nmeningar\tNN.UTR.PLU.IND.NOM\tmening\tmening..1\tmening..nn.1\t\
+                  \t1\r\ningen\tDT.UTR.SIN.IND\tingen\tingen..1\tingen..pn.1\t\t1\r\
+                  \nmetadata\tNN.UTR.SIN.IND.NOM\tmetadata\tmetadata..1\tmetadata..nn.1\t\
+                  \t1\r\nPK\a\b�s.[�\x1D\0\0�\x1D\0\0PK\x03\x04\x14\0\0\0\0\0�qbR\0\
+                  \0\0\0\0\0\0\0\0\0\0\0\x12\0\0\0export/xml_pretty/PK\x03\x04\n\0\
+                  \b\0\0\0�jZR\0\0\0\0\0\0\0\0\0\0\0\0&\0\0\0export/xml_pretty/dokument1_export.xml<?xml\
+                  \ version='1.0' encoding='UTF-8'?>\n<document>\n  <text author=\"\
+                  Sparvutvecklare\" date=\"2020-03-11\" id=\"1\">\n    <sentence id=\"\
+                  b1ac\">\n      <token baseform=\"|hej|\" pos=\"IN\">Hej</token>\n\
+                  \      <token baseform=\"|\" pos=\"MAD\">!</token>\n    </sentence>\n\
+                  \    <sentence id=\"b142\">\n      <token baseform=\"|den|den här|\"\
+                  \ pos=\"PN\">Det</token>\n      <token baseform=\"|här|den här:1|\"\
+                  \ pos=\"AB\">här</token>\n      <token baseform=\"|vara|\" pos=\"\
+                  VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"\
+                  |en|\" pos=\"DT\">en</token>\n      <token baseform=\"|korpus|\"\
+                  \ pos=\"NN\">korpus</token>\n      <token baseform=\"|\" pos=\"\
+                  MAD\">.</token>\n    </sentence>\n    <sentence id=\"b196\">\n \
+                  \     <ne ex=\"ENAMEX\" name=\"Astrid Lindgren\" subtype=\"HUM\"\
+                  \ type=\"PRS\">\n        <token baseform=\"|Astrid|\" pos=\"PM\"\
+                  >Astrid</token>\n        <token baseform=\"|Lindgren|\" pos=\"PM\"\
+                  >Lindgren</token>\n      </ne>\n      <token baseform=\"|vara|\"\
+                  \ pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token\
+                  \ baseform=\"|föda|född|\" pos=\"PC\" sentiment_label=\"neutral\"\
+                  >född</token>\n      <token baseform=\"|i|\" pos=\"PP\">i</token>\n\
+                  \      <ne ex=\"ENAMEX\" name=\"Vimmerby\" subtype=\"PPL\" type=\"\
+                  LOC\">\n        <token baseform=\"|Vimmerby|\" pos=\"PM\">Vimmerby</token>\n\
+                  \      </ne>\n      <ne ex=\"TIMEX\" name=\"1907\" subtype=\"DAT\"\
+                  \ type=\"TME\">\n        <token baseform=\"|\" pos=\"RG\">1907</token>\n\
+                  \      </ne>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n\
+                  \    </sentence>\n    <sentence id=\"b175\">\n      <token baseform=\"\
+                  |och|\" pos=\"KN\">Och</token>\n      <token baseform=\"|här|\"\
+                  \ pos=\"AB\">här</token>\n      <token baseform=\"|komma|\" pos=\"\
+                  VB\" sentiment_label=\"neutral\">kommer</token>\n      <token baseform=\"\
+                  |den|en|\" pos=\"DT\">den</token>\n      <token baseform=\"|\" pos=\"\
+                  RO\">tredje</token>\n      <token baseform=\"|mening|\" pos=\"NN\"\
+                  \ sentiment_label=\"neutral\">meningen</token>\n      <token baseform=\"\
+                  |i|\" pos=\"PP\">i</token>\n      <token baseform=\"|en|\" pos=\"\
+                  DT\">ett</token>\n      <token baseform=\"|ny|\" pos=\"JJ\" sentiment_label=\"\
+                  neutral\">nytt</token>\n      <token baseform=\"|stycke|\" pos=\"\
+                  NN\" sentiment_label=\"neutral\">stycke</token>\n      <token baseform=\"\
+                  |\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"\
+                  b16a\">\n      <token baseform=\"|sista|\" pos=\"JJ\" sentiment_label=\"\
+                  neutral\">Sista</token>\n      <token baseform=\"|mening|\" pos=\"\
+                  NN\" sentiment_label=\"neutral\">meningen</token>\n      <token\
+                  \ baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\">är</token>\n\
+                  \      <token baseform=\"|kort|\" pos=\"JJ\" sentiment_label=\"\
+                  neutral\">kort</token>\n      <token baseform=\"|och|\" pos=\"KN\"\
+                  >och</token>\n      <token baseform=\"|innehålla|\" pos=\"VB\" sentiment_label=\"\
+                  neutral\">innehåller</token>\n      <token baseform=\"|en|\" pos=\"\
+                  DT\">en</token>\n      <token baseform=\"|\" pos=\"NN\">sammansättningsform</token>\n\
+                  \      <token baseform=\"|\" pos=\"MID\">:</token>\n      <token\
+                  \ baseform=\"|födelsedagskalas|\" pos=\"NN\">födelsedagskalas</token>\n\
+                  \      <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n\
+                  \  </text>\n  <text author=\"Wikipedia\" date=\"2020-03-16\" id=\"\
+                  2\">\n    <sentence id=\"b110\">\n      <token baseform=\"|språkbank|\"\
+                  \ pos=\"NN\">Språkbanken</token>\n      <token baseform=\"|vara|\"\
+                  \ pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token\
+                  \ baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"\
+                  |\" pos=\"NN\">forskningsenhet</token>\n      <token baseform=\"\
+                  |vid|\" pos=\"PP\">vid</token>\n      <ne ex=\"ENAMEX\" name=\"\
+                  Göteborgs universitet\" subtype=\"EDU\" type=\"ORG\">\n        <token\
+                  \ baseform=\"|Göteborg|Göteborgs universitet|\" pos=\"PM\">Göteborgs</token>\n\
+                  \        <token baseform=\"|universitet|Göteborgs universitet:6|\"\
+                  \ pos=\"NN\">universitet</token>\n      </ne>\n      <token baseform=\"\
+                  |\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"\
+                  b122\">\n      <token baseform=\"|den|\" pos=\"PN\">Den</token>\n\
+                  \      <token baseform=\"|inrätta|\" pos=\"VB\" sentiment_label=\"\
+                  neutral\">inrättades</token>\n      <token baseform=\"|\" pos=\"\
+                  KN\">som</token>\n      <token baseform=\"|en|\" pos=\"DT\">en</token>\n\
+                  \      <token baseform=\"|nationell|\" pos=\"JJ\" sentiment_label=\"\
+                  neutral\">nationell</token>\n      <token baseform=\"|resurs|\"\
+                  \ pos=\"NN\" sentiment_label=\"positive\">resurs</token>\n     \
+                  \ <token baseform=\"|\" pos=\"RG\">1975</token>\n      <token baseform=\"\
+                  |\" pos=\"MID\">,</token>\n      <token baseform=\"|\" pos=\"KN\"\
+                  >som</token>\n      <token baseform=\"|en|\" pos=\"DT\">ett</token>\n\
+                  \      <token baseform=\"|direkt|\" pos=\"JJ\" sentiment_label=\"\
+                  neutral\">direkt</token>\n      <token baseform=\"|resultat|\" pos=\"\
+                  NN\" sentiment_label=\"neutral\">resultat</token>\n      <token\
+                  \ baseform=\"|av|\" pos=\"PP\">av</token>\n      <ne ex=\"ENAMEX\"\
+                  \ name=\"Sture Alléns\" subtype=\"HUM\" type=\"PRS\">\n        <token\
+                  \ baseform=\"|Sture|\" pos=\"PM\">Sture</token>\n        <token\
+                  \ baseform=\"|\" pos=\"PM\">Alléns</token>\n      </ne>\n      <token\
+                  \ baseform=\"|\" pos=\"NN\">pionjärinsatser</token>\n      <token\
+                  \ baseform=\"|inom|\" pos=\"PP\">inom</token>\n      <token baseform=\"\
+                  |svensk|\" pos=\"JJ\" sentiment_label=\"neutral\">svensk</token>\n\
+                  \      <token baseform=\"|korpuslingvistik|\" pos=\"NN\">korpuslingvistik</token>\n\
+                  \      <ne ex=\"TIMEX\" name=\"under 1960-talet\" subtype=\"DAT\"\
+                  \ type=\"TME\">\n        <token baseform=\"|under|\" pos=\"PP\"\
+                  >under</token>\n        <token baseform=\"|1960-tal|\" pos=\"NN\"\
+                  >1960-talet</token>\n      </ne>\n      <token baseform=\"|\" pos=\"\
+                  MAD\">.</token>\n    </sentence>\n    <sentence id=\"b1c1\">\n \
+                  \     <token baseform=\"|språkbank|\" pos=\"NN\">Språkbankens</token>\n\
+                  \      <token baseform=\"|uppdrag|\" pos=\"NN\" sentiment_label=\"\
+                  neutral\">uppdrag</token>\n      <token baseform=\"|bli|\" pos=\"\
+                  VB\" sentiment_label=\"neutral\">blev</token>\n      <token baseform=\"\
+                  |och|\" pos=\"KN\">och</token>\n      <token baseform=\"|vara|\"\
+                  \ pos=\"VB\" sentiment_label=\"neutral\">är</token>\n      <token\
+                  \ baseform=\"|fortfarande|\" pos=\"AB\">fortfarande</token>\n  \
+                  \    <token baseform=\"|att|\" pos=\"IE\">att</token>\n      <token\
+                  \ baseform=\"|samla|\" pos=\"VB\" sentiment_label=\"neutral\">samla</token>\n\
+                  \      <token baseform=\"|in|\" pos=\"PL\">in</token>\n      <token\
+                  \ baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"\
+                  |förädla|\" pos=\"VB\">förädla</token>\n      <token baseform=\"\
+                  |och|\" pos=\"KN\">och</token>\n      <token baseform=\"|tillgängliggöra|\"\
+                  \ pos=\"VB\">tillgängliggöra</token>\n      <token baseform=\"|språkresurs|\"\
+                  \ pos=\"NN\">språkresurser</token>\n      <token baseform=\"|åt|\"\
+                  \ pos=\"PP\">åt</token>\n      <token baseform=\"|forskare|\" pos=\"\
+                  NN\" sentiment_label=\"neutral\">forskare</token>\n      <token\
+                  \ baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"\
+                  |allmänhet|\" pos=\"NN\" sentiment_label=\"neutral\">allmänheten</token>\n\
+                  \      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token\
+                  \ baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"\
+                  |att|\" pos=\"IE\">att</token>\n      <token baseform=\"|bedriva|\"\
+                  \ pos=\"VB\" sentiment_label=\"neutral\">bedriva</token>\n     \
+                  \ <token baseform=\"|forskning|\" pos=\"NN\" sentiment_label=\"\
+                  neutral\">forskning</token>\n      <token baseform=\"|och|\" pos=\"\
+                  KN\">och</token>\n      <token baseform=\"|utveckling|\" pos=\"\
+                  NN\" sentiment_label=\"neutral\">utveckling</token>\n      <token\
+                  \ baseform=\"|\" pos=\"HP\">som</token>\n      <token baseform=\"\
+                  |främja|\" pos=\"VB\" sentiment_label=\"positive\">främjar</token>\n\
+                  \      <token baseform=\"|sån|\" pos=\"JJ\">sån</token>\n      <token\
+                  \ baseform=\"|användning|\" pos=\"NN\" sentiment_label=\"neutral\"\
+                  >användning</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n\
+                  \    </sentence>\n    <sentence id=\"b1cd\">\n      <token baseform=\"\
+                  |i|\" pos=\"PP\">I</token>\n      <token baseform=\"|Språkbanken|\"\
+                  \ pos=\"PM\">Språkbanken</token>\n      <token baseform=\"|finna|finnas|\"\
+                  \ pos=\"VB\" sentiment_label=\"neutral\">finns</token>\n      <token\
+                  \ baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"\
+                  |unik|\" pos=\"JJ\" sentiment_label=\"neutral\">unik</token>\n \
+                  \     <token baseform=\"|kompetens|\" pos=\"NN\" sentiment_label=\"\
+                  positive\">kompetens</token>\n      <token baseform=\"|vad|vad för|\"\
+                  \ pos=\"HP\">vad</token>\n      <token baseform=\"|gälla|\" pos=\"\
+                  VB\" sentiment_label=\"neutral\">gäller</token>\n      <token baseform=\"\
+                  |svensk|\" pos=\"JJ\" sentiment_label=\"neutral\">svenska</token>\n\
+                  \      <token baseform=\"|textkorpus|\" pos=\"NN\">textkorpusar</token>\n\
+                  \      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token\
+                  \ baseform=\"|\" pos=\"NN\">parallellkorpusar</token>\n      <token\
+                  \ baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"\
+                  |svensk|\" pos=\"JJ\" sentiment_label=\"neutral\">svenska</token>\n\
+                  \      <token baseform=\"|elektronisk|\" pos=\"JJ\" sentiment_label=\"\
+                  neutral\">elektroniska</token>\n      <token baseform=\"|lexikonresurs|\"\
+                  \ pos=\"NN\">lexikonresurser</token>\n      <token baseform=\"|samt|\"\
+                  \ pos=\"KN\">samt</token>\n      <token baseform=\"|\" pos=\"JJ\"\
+                  >språkteknologiska</token>\n      <token baseform=\"|verktyg|\"\
+                  \ pos=\"NN\">verktyg</token>\n      <token baseform=\"|för|vad för:7|\"\
+                  \ pos=\"PP\">för</token>\n      <token baseform=\"|att|\" pos=\"\
+                  IE\">att</token>\n      <token baseform=\"|bearbeta|\" pos=\"VB\"\
+                  >bearbeta</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n\
+                  \      <token baseform=\"|annotera|\" pos=\"VB\">annotera</token>\n\
+                  \      <token baseform=\"|och|\" pos=\"KN\">och</token>\n      <token\
+                  \ baseform=\"|visa|visa upp|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                  >visa</token>\n      <token baseform=\"|upp|visa upp:26|\" pos=\"\
+                  PL\">upp</token>\n      <token baseform=\"|textkorpus|\" pos=\"\
+                  NN\">textkorpusar</token>\n      <token baseform=\"|\" pos=\"MAD\"\
+                  >.</token>\n    </sentence>\n    <sentence id=\"b15f\">\n      <token\
+                  \ baseform=\"|huvuddel|\" pos=\"NN\">Huvuddelen</token>\n      <token\
+                  \ baseform=\"|av|\" pos=\"PP\">av</token>\n      <token baseform=\"\
+                  |material|\" pos=\"NN\" sentiment_label=\"neutral\">materialet</token>\n\
+                  \      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"\
+                  neutral\">är</token>\n      <token baseform=\"|modern|\" pos=\"\
+                  JJ\" sentiment_label=\"positive\">modernt</token>\n      <token\
+                  \ baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"\
+                  |men|\" pos=\"KN\">men</token>\n      <token baseform=\"|ambition|\"\
+                  \ pos=\"NN\" sentiment_label=\"neutral\">ambitionen</token>\n  \
+                  \    <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                  >är</token>\n      <token baseform=\"|att|\" pos=\"SN\">att</token>\n\
+                  \      <token baseform=\"|resurs|\" pos=\"NN\" sentiment_label=\"\
+                  positive\">resurserna</token>\n      <token baseform=\"|skola|\"\
+                  \ pos=\"VB\" sentiment_label=\"neutral\">ska</token>\n      <token\
+                  \ baseform=\"|avspegla|\" pos=\"VB\">avspegla</token>\n      <token\
+                  \ baseform=\"|hel|\" pos=\"JJ\" sentiment_label=\"neutral\">hela</token>\n\
+                  \      <token baseform=\"|den|en|\" pos=\"DT\">den</token>\n   \
+                  \   <token baseform=\"|skriva|\" pos=\"PC\" sentiment_label=\"neutral\"\
+                  >skrivna</token>\n      <token baseform=\"|svenska|\" pos=\"NN\"\
+                  \ sentiment_label=\"neutral\">svenskans</token>\n      <token baseform=\"\
+                  |historia|\" pos=\"NN\" sentiment_label=\"neutral\">historia</token>\n\
+                  \      <token baseform=\"|\" pos=\"MID\">-</token>\n      <token\
+                  \ baseform=\"|från|\" pos=\"PP\">från</token>\n      <token baseform=\"\
+                  |medeltida|\" pos=\"JJ\">medeltida</token>\n      <token baseform=\"\
+                  |\" pos=\"NN\">fornsvenska</token>\n      <token baseform=\"|till|\"\
+                  \ pos=\"PP\">till</token>\n      <token baseform=\"|modern|\" pos=\"\
+                  JJ\" sentiment_label=\"positive\">modern</token>\n      <token baseform=\"\
+                  |svenska|\" pos=\"NN\" sentiment_label=\"neutral\">svenska</token>\n\
+                  \      <token baseform=\"|\" pos=\"MID\">-</token>\n      <token\
+                  \ baseform=\"|med|\" pos=\"PP\">med</token>\n      <token baseform=\"\
+                  |all|\" pos=\"DT\">alla</token>\n      <token baseform=\"|den|\"\
+                  \ pos=\"PS\">dess</token>\n      <token baseform=\"|genre|\" pos=\"\
+                  NN\">genrer</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n\
+                  \    </sentence>\n    <sentence id=\"b13b\">\n      <token baseform=\"\
+                  |huvuddel|\" pos=\"NN\">Huvuddelen</token>\n      <token baseform=\"\
+                  |av|\" pos=\"PP\">av</token>\n      <token baseform=\"|resurs|\"\
+                  \ pos=\"NN\" sentiment_label=\"positive\">resurserna</token>\n \
+                  \     <token baseform=\"|\" pos=\"MID\">,</token>\n      <token\
+                  \ baseform=\"|korpus|\" pos=\"NN\">korpusar</token>\n      <token\
+                  \ baseform=\"|och|\" pos=\"KN\">och</token>\n      <token baseform=\"\
+                  |lexikon|\" pos=\"NN\">lexikon</token>\n      <token baseform=\"\
+                  |\" pos=\"MID\">,</token>\n      <token baseform=\"|vara|\" pos=\"\
+                  VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"\
+                  |fri|\" pos=\"AB\" sentiment_label=\"positive\">fritt</token>\n\
+                  \      <token baseform=\"|åtkomlig|\" pos=\"JJ\">åtkomliga</token>\n\
+                  \      <token baseform=\"|för|\" pos=\"PP\">för</token>\n      <token\
+                  \ baseform=\"|sökning|\" pos=\"NN\">sökning</token>\n      <token\
+                  \ baseform=\"|via|\" pos=\"PP\">via</token>\n      <token baseform=\"\
+                  |\" pos=\"NN\">webbgränssnitt</token>\n      <token baseform=\"\
+                  |\" pos=\"MAD\">.</token>\n    </sentence>\n  </text>\n  <text id=\"\
+                  1\">\n    <sentence id=\"b100\">\n      <token baseform=\"|hej|\"\
+                  \ pos=\"IN\">Hej</token>\n      <i sparv.overlap=\"b1-1\">\n   \
+                  \     <token baseform=\"|på|\" pos=\"PP\">på</token>\n        <token\
+                  \ baseform=\"|du|\" pos=\"PN\">dig</token>\n        <token baseform=\"\
+                  |\" pos=\"MAD\">.</token>\n      </i>\n    </sentence>\n    <i sparv.overlap=\"\
+                  b1-1\">\n      <sentence id=\"b1f4\" sparv.overlap=\"b1-2\">\n \
+                  \       <token baseform=\"|kunna|\" pos=\"VB\" sentiment_label=\"\
+                  neutral\">Kan</token>\n        <token baseform=\"|vi|\" pos=\"PN\"\
+                  >vi</token>\n      </sentence>\n    </i>\n    <sentence id=\"b1f4\"\
+                  \ sparv.overlap=\"b1-2\">\n      <token baseform=\"|hantera|\" pos=\"\
+                  VB\" sentiment_label=\"neutral\">hantera</token>\n      <token baseform=\"\
+                  |överlappa|\" pos=\"PC\">överlappande</token>\n      <token baseform=\"\
+                  |tagg|\" pos=\"NN\">taggar</token>\n      <token baseform=\"|\"\
+                  \ pos=\"MAD\">?</token>\n    </sentence>\n  </text>\n</document>\n\
+                  PK\a\bu:��[3\0\0[3\0\0PK\x03\x04\n\0\b\0\0\0�kZR\0\0\0\0\0\0\0\0\
+                  \0\0\0\0&\0\0\0export/xml_pretty/dokument2_export.xml<?xml version='1.0'\
+                  \ encoding='UTF-8'?>\n<text>\n  <sentence id=\"e00a\">\n    <token\
+                  \ baseform=\"|hej|\" pos=\"IN\">Hej</token>\n    <token baseform=\"\
+                  |\" pos=\"MAD\">!</token>\n  </sentence>\n  <sentence id=\"e089\"\
+                  >\n    <token baseform=\"|den|den här|\" pos=\"PN\">Det</token>\n\
+                  \    <token baseform=\"|här|den här:1|\" pos=\"AB\">här</token>\n\
+                  \    <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                  >är</token>\n    <token baseform=\"|en|en annan|\" pos=\"DT\">en</token>\n\
+                  \    <token baseform=\"|annan|en annan:4|\" pos=\"JJ\">annan</token>\n\
+                  \    <token baseform=\"|text|\" pos=\"NN\" sentiment_label=\"neutral\"\
+                  >text</token>\n    <token baseform=\"|\" pos=\"MAD\">.</token>\n\
+                  \  </sentence>\n  <sentence id=\"e0b6\">\n    <token baseform=\"\
+                  |den|\" pos=\"PN\">Den</token>\n    <token baseform=\"|vara|\" pos=\"\
+                  VB\" sentiment_label=\"neutral\">är</token>\n    <token baseform=\"\
+                  |\" pos=\"JJ\">jättekort</token>\n    <token baseform=\"|\" pos=\"\
+                  MAD\">.</token>\n  </sentence>\n  <sentence id=\"e0be\">\n    <token\
+                  \ baseform=\"|den|\" pos=\"PN\">Den</token>\n    <token baseform=\"\
+                  |ha|\" pos=\"VB\" sentiment_label=\"neutral\">har</token>\n    <token\
+                  \ baseform=\"|bara|\" pos=\"AB\">bara</token>\n    <token baseform=\"\
+                  |tre|\" pos=\"RG\">tre</token>\n    <token baseform=\"|mening|\"\
+                  \ pos=\"NN\" sentiment_label=\"neutral\">meningar</token>\n    <token\
+                  \ baseform=\"|och|\" pos=\"KN\">och</token>\n    <token baseform=\"\
+                  |ingen|\" pos=\"DT\">ingen</token>\n    <token baseform=\"|metadata|\"\
+                  \ pos=\"NN\">metadata</token>\n    <token baseform=\"|\" pos=\"\
+                  MAD\">.</token>\n  </sentence>\n</text>\nPK\a\b\b+�&�\x05\0\0�\x05\
+                  \0\0PK\x01\x02-\x03\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\a\0\
+                  \0\0\0\0\0\0\0\0\x10\0�A\0\0\0\0export/PK\x01\x02-\x03\x14\0\0\0\
+                  \0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\v\0\0\0\0\0\0\0\0\0\x10\0�A%\0\0\
+                  \0export/csv/PK\x01\x02-\x03\n\0\b\0\0\0�jZRY�\"��\x12\0\0�\x12\0\
+                  \0\x18\0\0\0\0\0\0\0\0\0\0\0��N\0\0\0export/csv/dokument1.csvPK\x01\
+                  \x02-\x03\n\0\b\0\0\0�kZR�7þ\x0E\x02\0\0\x0E\x02\0\0\x18\0\0\0\0\
+                  \0\0\0\0\0\0\0��]\x13\0\0export/csv/dokument2.csvPK\x01\x02-\x03\
+                  \x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\x16\0\0\0\0\0\0\0\0\0\
+                  \x10\0�A�\x15\0\0export/frequency_list/PK\x01\x02-\x03\n\0\b\0\0\
+                  \0�kZR�s.[�\x1D\0\0�\x1D\0\0(\0\0\0\0\0\0\0\0\0\0\0���\x15\0\0export/frequency_list/stats_mini-swe.csvPK\x01\
+                  \x02-\x03\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\x12\0\0\0\0\0\
+                  \0\0\0\0\x10\0�A44\0\0export/xml_pretty/PK\x01\x02-\x03\n\0\b\0\0\
+                  \0�jZRu:��[3\0\0[3\0\0&\0\0\0\0\0\0\0\0\0\0\0��d4\0\0export/xml_pretty/dokument1_export.xmlPK\x01\
+                  \x02-\x03\n\0\b\0\0\0�kZR\b+�&�\x05\0\0�\x05\0\0&\0\0\0\0\0\0\0\0\
+                  \0\0\0��\x13h\0\0export/xml_pretty/dokument2_export.xmlPK\x05\x06\
+                  \0\0\0\0\t\0\t\0|\x02\0\0\x1Fn\0\0\0\0"
+              example: "PK\x03\x04\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\a\0\0\
+                \0export/PK\x03\x04\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\v\0\0\
+                \0export/csv/PK\x03\x04\n\0\b\0\0\0�jZR\0\0\0\0\0\0\0\0\0\0\0\0\x18\
+                \0\0\0export/csv/dokument1.csvtoken\tbaseform\tpos\tsentiment_label\n\
+                # text.date = 2020-03-11\n# text.author = Sparvutvecklare\n# text.id\
+                \ = 1\n# sentence.id = b1ac\nHej\t|hej|\tIN\t\n!\t|\tMAD\t\n\n# sentence.id\
+                \ = b142\nDet\t|den|den här|\tPN\t\nhär\t|här|den här:1|\tAB\t\när\t\
+                |vara|\tVB\tneutral\nen\t|en|\tDT\t\nkorpus\t|korpus|\tNN\t\n.\t|\t\
+                MAD\t\n\n# sentence.id = b196\n# ne.ex = ENAMEX\n# ne.name = Astrid\
+                \ Lindgren\n# ne.subtype = HUM\n# ne.type = PRS\nAstrid\t|Astrid|\t\
+                PM\t\nLindgren\t|Lindgren|\tPM\t\när\t|vara|\tVB\tneutral\nfödd\t\
+                |föda|född|\tPC\tneutral\ni\t|i|\tPP\t\n# ne.ex = ENAMEX\n# ne.name\
+                \ = Vimmerby\n# ne.subtype = PPL\n# ne.type = LOC\nVimmerby\t|Vimmerby|\t\
+                PM\t\n# ne.ex = TIMEX\n# ne.name = 1907\n# ne.subtype = DAT\n# ne.type\
+                \ = TME\n1907\t|\tRG\t\n.\t|\tMAD\t\n\n# sentence.id = b175\nOch\t\
+                |och|\tKN\t\nhär\t|här|\tAB\t\nkommer\t|komma|\tVB\tneutral\nden\t\
+                |den|en|\tDT\t\ntredje\t|\tRO\t\nmeningen\t|mening|\tNN\tneutral\n\
+                i\t|i|\tPP\t\nett\t|en|\tDT\t\nnytt\t|ny|\tJJ\tneutral\nstycke\t|stycke|\t\
+                NN\tneutral\n.\t|\tMAD\t\n\n# sentence.id = b16a\nSista\t|sista|\t\
+                JJ\tneutral\nmeningen\t|mening|\tNN\tneutral\när\t|vara|\tVB\tneutral\n\
+                kort\t|kort|\tJJ\tneutral\noch\t|och|\tKN\t\ninnehåller\t|innehålla|\t\
+                VB\tneutral\nen\t|en|\tDT\t\nsammansättningsform\t|\tNN\t\n:\t|\t\
+                MID\t\nfödelsedagskalas\t|födelsedagskalas|\tNN\t\n.\t|\tMAD\t\n\n\
+                # text.date = 2020-03-16\n# text.author = Wikipedia\n# text.id = 2\n\
+                # sentence.id = b110\nSpråkbanken\t|språkbank|\tNN\t\när\t|vara|\t\
+                VB\tneutral\nen\t|en|\tDT\t\nforskningsenhet\t|\tNN\t\nvid\t|vid|\t\
+                PP\t\n# ne.ex = ENAMEX\n# ne.name = Göteborgs universitet\n# ne.subtype\
+                \ = EDU\n# ne.type = ORG\nGöteborgs\t|Göteborg|Göteborgs universitet|\t\
+                PM\t\nuniversitet\t|universitet|Göteborgs universitet:6|\tNN\t\n.\t\
+                |\tMAD\t\n\n# sentence.id = b122\nDen\t|den|\tPN\t\ninrättades\t|inrätta|\t\
+                VB\tneutral\nsom\t|\tKN\t\nen\t|en|\tDT\t\nnationell\t|nationell|\t\
+                JJ\tneutral\nresurs\t|resurs|\tNN\tpositive\n1975\t|\tRG\t\n,\t|\t\
+                MID\t\nsom\t|\tKN\t\nett\t|en|\tDT\t\ndirekt\t|direkt|\tJJ\tneutral\n\
+                resultat\t|resultat|\tNN\tneutral\nav\t|av|\tPP\t\n# ne.ex = ENAMEX\n\
+                # ne.name = Sture Alléns\n# ne.subtype = HUM\n# ne.type = PRS\nSture\t\
+                |Sture|\tPM\t\nAlléns\t|\tPM\t\npionjärinsatser\t|\tNN\t\ninom\t|inom|\t\
+                PP\t\nsvensk\t|svensk|\tJJ\tneutral\nkorpuslingvistik\t|korpuslingvistik|\t\
+                NN\t\n# ne.ex = TIMEX\n# ne.name = under 1960-talet\n# ne.subtype\
+                \ = DAT\n# ne.type = TME\nunder\t|under|\tPP\t\n1960-talet\t|1960-tal|\t\
+                NN\t\n.\t|\tMAD\t\n\n# sentence.id = b1c1\nSpråkbankens\t|språkbank|\t\
+                NN\t\nuppdrag\t|uppdrag|\tNN\tneutral\nblev\t|bli|\tVB\tneutral\n\
+                och\t|och|\tKN\t\när\t|vara|\tVB\tneutral\nfortfarande\t|fortfarande|\t\
+                AB\t\natt\t|att|\tIE\t\nsamla\t|samla|\tVB\tneutral\nin\t|in|\tPL\t\
+                \n,\t|\tMID\t\nförädla\t|förädla|\tVB\t\noch\t|och|\tKN\t\ntillgängliggöra\t\
+                |tillgängliggöra|\tVB\t\nspråkresurser\t|språkresurs|\tNN\t\nåt\t\
+                |åt|\tPP\t\nforskare\t|forskare|\tNN\tneutral\noch\t|och|\tKN\t\n\
+                allmänheten\t|allmänhet|\tNN\tneutral\n,\t|\tMID\t\noch\t|och|\tKN\t\
+                \natt\t|att|\tIE\t\nbedriva\t|bedriva|\tVB\tneutral\nforskning\t|forskning|\t\
+                NN\tneutral\noch\t|och|\tKN\t\nutveckling\t|utveckling|\tNN\tneutral\n\
+                som\t|\tHP\t\nfrämjar\t|främja|\tVB\tpositive\nsån\t|sån|\tJJ\t\n\
+                användning\t|användning|\tNN\tneutral\n.\t|\tMAD\t\n\n# sentence.id\
+                \ = b1cd\nI\t|i|\tPP\t\nSpråkbanken\t|Språkbanken|\tPM\t\nfinns\t\
+                |finna|finnas|\tVB\tneutral\nen\t|en|\tDT\t\nunik\t|unik|\tJJ\tneutral\n\
+                kompetens\t|kompetens|\tNN\tpositive\nvad\t|vad|vad för|\tHP\t\ngäller\t\
+                |gälla|\tVB\tneutral\nsvenska\t|svensk|\tJJ\tneutral\ntextkorpusar\t\
+                |textkorpus|\tNN\t\n,\t|\tMID\t\nparallellkorpusar\t|\tNN\t\n,\t|\t\
+                MID\t\nsvenska\t|svensk|\tJJ\tneutral\nelektroniska\t|elektronisk|\t\
+                JJ\tneutral\nlexikonresurser\t|lexikonresurs|\tNN\t\nsamt\t|samt|\t\
+                KN\t\nspråkteknologiska\t|\tJJ\t\nverktyg\t|verktyg|\tNN\t\nför\t\
+                |för|vad för:7|\tPP\t\natt\t|att|\tIE\t\nbearbeta\t|bearbeta|\tVB\t\
+                \n,\t|\tMID\t\nannotera\t|annotera|\tVB\t\noch\t|och|\tKN\t\nvisa\t\
+                |visa|visa upp|\tVB\tneutral\nupp\t|upp|visa upp:26|\tPL\t\ntextkorpusar\t\
+                |textkorpus|\tNN\t\n.\t|\tMAD\t\n\n# sentence.id = b15f\nHuvuddelen\t\
+                |huvuddel|\tNN\t\nav\t|av|\tPP\t\nmaterialet\t|material|\tNN\tneutral\n\
+                är\t|vara|\tVB\tneutral\nmodernt\t|modern|\tJJ\tpositive\n,\t|\tMID\t\
+                \nmen\t|men|\tKN\t\nambitionen\t|ambition|\tNN\tneutral\när\t|vara|\t\
+                VB\tneutral\natt\t|att|\tSN\t\nresurserna\t|resurs|\tNN\tpositive\n\
+                ska\t|skola|\tVB\tneutral\navspegla\t|avspegla|\tVB\t\nhela\t|hel|\t\
+                JJ\tneutral\nden\t|den|en|\tDT\t\nskrivna\t|skriva|\tPC\tneutral\n\
+                svenskans\t|svenska|\tNN\tneutral\nhistoria\t|historia|\tNN\tneutral\n\
+                -\t|\tMID\t\nfrån\t|från|\tPP\t\nmedeltida\t|medeltida|\tJJ\t\nfornsvenska\t\
+                |\tNN\t\ntill\t|till|\tPP\t\nmodern\t|modern|\tJJ\tpositive\nsvenska\t\
+                |svenska|\tNN\tneutral\n-\t|\tMID\t\nmed\t|med|\tPP\t\nalla\t|all|\t\
+                DT\t\ndess\t|den|\tPS\t\ngenrer\t|genre|\tNN\t\n.\t|\tMAD\t\n\n# sentence.id\
+                \ = b13b\nHuvuddelen\t|huvuddel|\tNN\t\nav\t|av|\tPP\t\nresurserna\t\
+                |resurs|\tNN\tpositive\n,\t|\tMID\t\nkorpusar\t|korpus|\tNN\t\noch\t\
+                |och|\tKN\t\nlexikon\t|lexikon|\tNN\t\n,\t|\tMID\t\när\t|vara|\tVB\t\
+                neutral\nfritt\t|fri|\tAB\tpositive\nåtkomliga\t|åtkomlig|\tJJ\t\n\
+                för\t|för|\tPP\t\nsökning\t|sökning|\tNN\t\nvia\t|via|\tPP\t\nwebbgränssnitt\t\
+                |\tNN\t\n.\t|\tMAD\t\n\n# text.date = \n# text.author = \n# text.id\
+                \ = 1\n# sentence.id = b100\nHej\t|hej|\tIN\t\npå\t|på|\tPP\t\ndig\t\
+                |du|\tPN\t\n.\t|\tMAD\t\n\n# sentence.id = b1f4\nKan\t|kunna|\tVB\t\
+                neutral\nvi\t|vi|\tPN\t\nhantera\t|hantera|\tVB\tneutral\növerlappande\t\
+                |överlappa|\tPC\t\ntaggar\t|tagg|\tNN\t\n?\t|\tMAD\t\nPK\a\bY�\"��\x12\
+                \0\0�\x12\0\0PK\x03\x04\n\0\b\0\0\0�kZR\0\0\0\0\0\0\0\0\0\0\0\0\x18\
+                \0\0\0export/csv/dokument2.csvtoken\tbaseform\tpos\tsentiment_label\n\
+                # text\n# sentence.id = e00a\nHej\t|hej|\tIN\t\n!\t|\tMAD\t\n\n# sentence.id\
+                \ = e089\nDet\t|den|den här|\tPN\t\nhär\t|här|den här:1|\tAB\t\när\t\
+                |vara|\tVB\tneutral\nen\t|en|en annan|\tDT\t\nannan\t|annan|en annan:4|\t\
+                JJ\t\ntext\t|text|\tNN\tneutral\n.\t|\tMAD\t\n\n# sentence.id = e0b6\n\
+                Den\t|den|\tPN\t\när\t|vara|\tVB\tneutral\njättekort\t|\tJJ\t\n.\t\
+                |\tMAD\t\n\n# sentence.id = e0be\nDen\t|den|\tPN\t\nhar\t|ha|\tVB\t\
+                neutral\nbara\t|bara|\tAB\t\ntre\t|tre|\tRG\t\nmeningar\t|mening|\t\
+                NN\tneutral\noch\t|och|\tKN\t\ningen\t|ingen|\tDT\t\nmetadata\t|metadata|\t\
+                NN\t\n.\t|\tMAD\t\nPK\a\b�7þ\x0E\x02\0\0\x0E\x02\0\0PK\x03\x04\x14\
+                \0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\x16\0\0\0export/frequency_list/PK\x03\
+                \x04\n\0\b\0\0\0�kZR\0\0\0\0\0\0\0\0\0\0\0\0(\0\0\0export/frequency_list/stats_mini-swe.csvtoken\t\
+                POS\tlemma\tSALDO sense\tlemgram\tcompound\tcount\r\n.\tMAD\t\t\t\t\
+                \t14\r\när\tVB.PRS.AKT\tvara\tvara..1\tvara..vb.1\t\t10\r\noch\tKN\t\
+                och\toch..1\toch..kn.1\t\t9\r\n,\tMID\t\t\t\t\t9\r\nen\tDT.UTR.SIN.IND\t\
+                en\tden..1\ten..al.1\t\t6\r\nHej\tIN\thej\thej..1\thej..in.1\t\t3\r\
+                \nDen\tPN.UTR.SIN.DEF.SUB+OBJ\tden\tden..2\tden..pn.1\t\t3\r\nav\t\
+                PP\tav\tav..1\tav..pp.1\t\t3\r\natt\tIE\tatt\tatt..1\tatt..sn.1\t\t\
+                3\r\n!\tMAD\t\t\t\t\t2\r\nDet\tPN.NEU.SIN.DEF.SUB+OBJ\tden\tden..2\t\
+                den..pn.1\t\t2\r\nhär\tAB\thär\tden_här..1\thär..ab.1\t\t2\r\ni\t\
+                PP\ti\ti..2\ti..pp.1\t\t2\r\nden\tDT.UTR.SIN.DEF\tden\tden..1\tden..pn.1\t\
+                \t2\r\nmeningen\tNN.UTR.SIN.DEF.NOM\tmening\tmening..1\tmening..nn.1\t\
+                \t2\r\nett\tDT.NEU.SIN.IND\ten\tden..1\ten..al.1\t\t2\r\nsom\tKN\t\
+                \t\t\t\t2\r\nsvenska\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\tsvensk\tsvensk..1\t\
+                svensk..av.1\t\t2\r\ntextkorpusar\tNN.UTR.PLU.IND.NOM\ttextkorpus\t\
+                textkorpus..1\ttextkorpus..nn.1\t\t2\r\nför\tPP\tför\tför..1\tför..pp.1\t\
+                \t2\r\nHuvuddelen\tNN.UTR.SIN.DEF.NOM\thuvuddel\thuvuddel..1\thuvuddel..nn.1\t\
+                \t2\r\nresurserna\tNN.UTR.PLU.DEF.NOM\tresurs\tresurs..1\tresurs..nn.1\t\
+                \t2\r\n-\tMID\t\t\t\t\t2\r\nkorpus\tNN.UTR.SIN.IND.NOM\tkorpus\tkorpus..1\t\
+                korpus..nn.1\t\t1\r\nAstrid\tPM.NOM\tAstrid\tAstrid..1\tAstrid..pm.1\t\
+                \t1\r\nLindgren\tPM.NOM\tLindgren\tLindgren..1\tLindgren..pm.1\t\t\
+                1\r\nfödd\tPC.PRF.UTR.SIN.IND.NOM\tföda\tfödd..1\tföda..vb.1\t\t1\r\
+                \nVimmerby\tPM.NOM\tVimmerby\tVimmerby..1\tVimmerby..pm.1\t\t1\r\n\
+                1907\tRG.NOM\t\t\t\t\t1\r\nOch\tKN\toch\toch..1\toch..kn.1\t\t1\r\n\
+                här\tAB\thär\thär..1\thär..ab.1\t\t1\r\nkommer\tVB.PRS.AKT\tkomma\t\
+                komma..1\tkomma..vb.1\t\t1\r\ntredje\tRO.NOM\t\t\t\t\t1\r\nnytt\t\
+                JJ.POS.NEU.SIN.IND.NOM\tny\tny..1\tny..av.1\t\t1\r\nstycke\tNN.NEU.SIN.IND.NOM\t\
+                stycke\tstycke..1\tstycke..nn.1\t\t1\r\nSista\tJJ.SUV.UTR+NEU.SIN+PLU.DEF.NOM\t\
+                sista\tsista..1\tsista..av.1\t\t1\r\nkort\tJJ.POS.UTR.SIN.IND.NOM\t\
+                kort\tkort..1\tkort..av.1\t\t1\r\ninnehåller\tVB.PRS.AKT\tinnehålla\t\
+                innehålla..1\tinnehålla..vb.1\t\t1\r\nsammansättningsform\tNN.UTR.SIN.IND.NOM\t\
+                \t\t\tsammansättning..nn.1+form..nn.1\t1\r\n:\tMID\t\t\t\t\t1\r\n\
+                födelsedagskalas\tNN.NEU.SIN.IND.NOM\tfödelsedagskalas\tfödelsedagskalas..1\t\
+                födelsedagskalas..nn.1\t\t1\r\nSpråkbanken\tNN.UTR.SIN.DEF.NOM\tspråkbank\t\
+                språkbank..1\tspråkbank..nn.1\t\t1\r\nforskningsenhet\tNN.UTR.SIN.IND.NOM\t\
+                \t\t\tforskning..nn.1+enhet..nn.1\t1\r\nvid\tPP\tvid\tvid..1\tvid..pp.1\t\
+                \t1\r\nGöteborgs\tPM.GEN\tGöteborg\tGöteborg..1\tGöteborg..pm.1\t\t\
+                1\r\nuniversitet\tNN.NEU.SIN.IND.NOM\tuniversitet\tGöteborgs_universitet..1\t\
+                universitet..nn.1\t\t1\r\ninrättades\tVB.PRT.SFO\tinrätta\tinrätta..1\t\
+                inrätta..vb.1\t\t1\r\nnationell\tJJ.POS.UTR.SIN.IND.NOM\tnationell\t\
+                nationell..1\tnationell..av.1\t\t1\r\nresurs\tNN.UTR.SIN.IND.NOM\t\
+                resurs\tresurs..1\tresurs..nn.1\t\t1\r\n1975\tRG.NOM\t\t\t\t\t1\r\n\
+                direkt\tJJ.POS.NEU.SIN.IND.NOM\tdirekt\tdirekt..1\tdirekt..av.1\t\t\
+                1\r\nresultat\tNN.NEU.SIN.IND.NOM\tresultat\tresultat..1\tresultat..nn.1\t\
+                \t1\r\nSture\tPM.NOM\tSture\tSture..1\tSture..pm.1\t\t1\r\nAlléns\t\
+                PM.GEN\t\t\t\t\t1\r\npionjärinsatser\tNN.UTR.PLU.IND.NOM\t\t\t\tpionjär..nn.1+insats..nn.1\t\
+                1\r\ninom\tPP\tinom\tinom..1\tinom..pp.1\t\t1\r\nsvensk\tJJ.POS.UTR.SIN.IND.NOM\t\
+                svensk\tsvensk..1\tsvensk..av.1\t\t1\r\nkorpuslingvistik\tNN.UTR.SIN.IND.NOM\t\
+                korpuslingvistik\tkorpuslingvistik..1\tkorpuslingvistik..nn.1\t\t\
+                1\r\nunder\tPP\tunder\tunder..1\tunder..pp.1\t\t1\r\n1960-talet\t\
+                NN.NEU.SIN.DEF.NOM\t1960-tal\tnittonhundrasextiotalet..1\t_1960-tal..nn.1\t\
+                \t1\r\nSpråkbankens\tNN.UTR.SIN.DEF.GEN\tspråkbank\tspråkbank..1\t\
+                språkbank..nn.1\t\t1\r\nuppdrag\tNN.NEU.SIN.IND.NOM\tuppdrag\tuppdrag..1\t\
+                uppdrag..nn.1\t\t1\r\nblev\tVB.PRT.AKT\tbli\tbli..1\tbli..vb.1\t\t\
+                1\r\nfortfarande\tAB\tfortfarande\tfortfarande..1\tfortfarande..ab.1\t\
+                \t1\r\nsamla\tVB.INF.AKT\tsamla\tsamla..2\tsamla..vb.1\t\t1\r\nin\t\
+                PL\tin\tin..1\tin..ab.1\t\t1\r\nförädla\tVB.INF.AKT\tförädla\tförädla..1\t\
+                förädla..vb.1\t\t1\r\ntillgängliggöra\tVB.INF.AKT\ttillgängliggöra\t\
+                tillgängliggöra..1\ttillgängliggöra..vb.1\t\t1\r\nspråkresurser\t\
+                NN.UTR.PLU.IND.NOM\tspråkresurs\tspråkresurs..1\tspråkresurs..nn.1\t\
+                \t1\r\nåt\tPP\tåt\tåt..1\tåt..pp.1\t\t1\r\nforskare\tNN.UTR.PLU.IND.NOM\t\
+                forskare\tforskare..1\tforskare..nn.1\t\t1\r\nallmänheten\tNN.UTR.SIN.DEF.NOM\t\
+                allmänhet\tallmänhet..1\tallmänhet..nn.1\t\t1\r\nbedriva\tVB.INF.AKT\t\
+                bedriva\tbedriva..1\tbedriva..vb.1\t\t1\r\nforskning\tNN.UTR.SIN.IND.NOM\t\
+                forskning\tforskning..1\tforskning..nn.1\t\t1\r\nutveckling\tNN.UTR.SIN.IND.NOM\t\
+                utveckling\tutveckling..1\tutveckling..nn.1\t\t1\r\nsom\tHP.-.-.-\t\
+                \t\t\t\t1\r\nfrämjar\tVB.PRS.AKT\tfrämja\tfrämja..1\tfrämja..vb.1\t\
+                \t1\r\nsån\tJJ.POS.UTR.SIN.IND.NOM\tsån\tsådan..1\tsån..pn.1\t\t1\r\
+                \nanvändning\tNN.UTR.SIN.IND.NOM\tanvändning\tanvändning..1\tanvändning..nn.1\t\
+                \t1\r\nI\tPP\ti\ti..2\ti..pp.1\t\t1\r\nSpråkbanken\tPM.NOM\tSpråkbanken\t\
+                Språkbanken..1\tSpråkbanken..pm.1\t\t1\r\nfinns\tVB.PRS.SFO\tfinna\t\
+                finna..1\tfinna..vb.1\t\t1\r\nunik\tJJ.POS.UTR.SIN.IND.NOM\tunik\t\
+                unik..1\tunik..av.1\t\t1\r\nkompetens\tNN.UTR.SIN.IND.NOM\tkompetens\t\
+                kompetens..1\tkompetens..nn.1\t\t1\r\nvad\tHP.NEU.SIN.IND\tvad\tvad..1\t\
+                vad..pn.1\t\t1\r\ngäller\tVB.PRS.AKT\tgälla\tgälla..1\tgälla..vb.1\t\
+                \t1\r\nparallellkorpusar\tNN.UTR.PLU.IND.NOM\t\t\t\tparallell..nn.1+korpus..nn.1\t\
+                1\r\nelektroniska\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\telektronisk\telektronisk..1\t\
+                elektronisk..av.1\t\t1\r\nlexikonresurser\tNN.UTR.PLU.IND.NOM\tlexikonresurs\t\
+                lexikonresurs..1\tlexikonresurs..nn.1\t\t1\r\nsamt\tKN\tsamt\tsamt..1\t\
+                samt..kn.1\t\t1\r\nspråkteknologiska\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\t\
+                \t\t\tspråk..nn.1+teknologisk..av.1\t1\r\nverktyg\tNN.NEU.PLU.IND.NOM\t\
+                verktyg\tverktyg..1\tverktyg..nn.1\t\t1\r\nbearbeta\tVB.INF.AKT\t\
+                bearbeta\tbearbeta..1\tbearbeta..vb.1\t\t1\r\nannotera\tVB.INF.AKT\t\
+                annotera\tannotera..1\tannotera..vb.1\t\t1\r\nvisa\tVB.INF.AKT\tvisa\t\
+                visa..1\tvisa..vb.1\t\t1\r\nupp\tPL\tupp\tupp..1\tupp..ab.1\t\t1\r\
+                \nmaterialet\tNN.NEU.SIN.DEF.NOM\tmaterial\tmaterial..1\tmaterial..nn.1\t\
+                \t1\r\nmodernt\tJJ.POS.NEU.SIN.IND.NOM\tmodern\tmodern..1\tmodern..av.1\t\
+                \t1\r\nmen\tKN\tmen\tmen..1\tmen..kn.1\t\t1\r\nambitionen\tNN.UTR.SIN.DEF.NOM\t\
+                ambition\tambition..1\tambition..nn.1\t\t1\r\natt\tSN\tatt\tatt..1\t\
+                att..sn.1\t\t1\r\nska\tVB.PRS.AKT\tskola\tskola..4\tskola..vb.2\t\t\
+                1\r\navspegla\tVB.INF.AKT\tavspegla\tavspegla..1\tavspegla..vb.1\t\
+                \t1\r\nhela\tJJ.POS.UTR+NEU.SIN.DEF.NOM\thel\thel..1\thel..av.1\t\t\
+                1\r\nskrivna\tPC.PRF.UTR+NEU.SIN.DEF.NOM\tskriva\tskriva..1\tskriva..vb.1\t\
+                \t1\r\nsvenskans\tNN.UTR.SIN.DEF.GEN\tsvenska\tsvenska..2\tsvenska..nn.1\t\
+                \t1\r\nhistoria\tNN.UTR.SIN.IND.NOM\thistoria\thistoria..1\thistoria..nn.1\t\
+                \t1\r\nfrån\tPP\tfrån\tfrån..1\tfrån..pp.1\t\t1\r\nmedeltida\tJJ.POS.UTR+NEU.SIN+PLU.IND+DEF.NOM\t\
+                medeltida\tmedeltida..1\tmedeltida..av.1\t\t1\r\nfornsvenska\tNN.UTR.SIN.IND.NOM\t\
+                \t\t\tforn..av.1+svenska..nn.1\t1\r\ntill\tPP\ttill\ttill..1\ttill..pp.1\t\
+                \t1\r\nmodern\tJJ.POS.UTR.SIN.IND.NOM\tmodern\tmodern..1\tmodern..av.1\t\
+                \t1\r\nsvenska\tNN.UTR.SIN.IND.NOM\tsvenska\tsvenska..1\tsvenska..nn.1\t\
+                \t1\r\nmed\tPP\tmed\tmed..1\tmed..pp.1\t\t1\r\nalla\tDT.UTR+NEU.PLU.IND+DEF\t\
+                all\tall..1\tall..pn.1\t\t1\r\ndess\tPS.UTR+NEU.SIN+PLU.DEF\tden\t\
+                den..2\tden..pn.1\t\t1\r\ngenrer\tNN.UTR.PLU.IND.NOM\tgenre\tgenre..1\t\
+                genre..nn.1\t\t1\r\nkorpusar\tNN.UTR.PLU.IND.NOM\tkorpus\tkorpus..1\t\
+                korpus..nn.1\t\t1\r\nlexikon\tNN.NEU.PLU.IND.NOM\tlexikon\tlexikon..1\t\
+                lexikon..nn.1\t\t1\r\nfritt\tAB.POS\tfri\tfri..2\tfri..av.1\t\t1\r\
+                \nåtkomliga\tJJ.POS.UTR+NEU.PLU.IND+DEF.NOM\tåtkomlig\tåtkomlig..1\t\
+                åtkomlig..av.1\t\t1\r\nsökning\tNN.UTR.SIN.IND.NOM\tsökning\tsökning..1\t\
+                sökning..nn.1\t\t1\r\nvia\tPP\tvia\tvia..1\tvia..pp.1\t\t1\r\nwebbgränssnitt\t\
+                NN.NEU.PLU.IND.NOM\t\t\t\twebb..nn.1+gränssnitt..nn.1\t1\r\npå\tPP\t\
+                på\tpå..1\tpå..pp.1\t\t1\r\ndig\tPN.UTR.SIN.DEF.OBJ\tdu\tdu..1\tdu..pn.1\t\
+                \t1\r\nKan\tVB.PRS.AKT\tkunna\tkunna..1\tkunna..vb.1\t\t1\r\nvi\t\
+                PN.UTR.PLU.DEF.SUB\tvi\tvi..1\tvi..pn.1\t\t1\r\nhantera\tVB.INF.AKT\t\
+                hantera\thantera..1\thantera..vb.1\t\t1\r\növerlappande\tPC.PRS.UTR+NEU.SIN+PLU.IND+DEF.NOM\t\
+                överlappa\töverlappa..1\töverlappa..vb.1\t\t1\r\ntaggar\tNN.UTR.PLU.IND.NOM\t\
+                tagg\ttagg..1\ttagg..nn.1\t\t1\r\n?\tMAD\t\t\t\t\t1\r\nannan\tJJ.POS.UTR.SIN.IND.NOM\t\
+                annan\tannan..1\tannan..pn.1\t\t1\r\ntext\tNN.UTR.SIN.IND.NOM\ttext\t\
+                text..1\ttext..nn.1\t\t1\r\njättekort\tJJ.POS.UTR.SIN.IND.NOM\t\t\t\
+                \tjätte..nn.1+kort..av.1\t1\r\nhar\tVB.PRS.AKT\tha\tha..1\tha..vb.1\t\
+                \t1\r\nbara\tAB\tbara\tbara..1\tbara..ab.1\t\t1\r\ntre\tRG.NOM\ttre\t\
+                tre..1\ttre..nl.1\t\t1\r\nmeningar\tNN.UTR.PLU.IND.NOM\tmening\tmening..1\t\
+                mening..nn.1\t\t1\r\ningen\tDT.UTR.SIN.IND\tingen\tingen..1\tingen..pn.1\t\
+                \t1\r\nmetadata\tNN.UTR.SIN.IND.NOM\tmetadata\tmetadata..1\tmetadata..nn.1\t\
+                \t1\r\nPK\a\b�s.[�\x1D\0\0�\x1D\0\0PK\x03\x04\x14\0\0\0\0\0�qbR\0\0\
+                \0\0\0\0\0\0\0\0\0\0\x12\0\0\0export/xml_pretty/PK\x03\x04\n\0\b\0\
+                \0\0�jZR\0\0\0\0\0\0\0\0\0\0\0\0&\0\0\0export/xml_pretty/dokument1_export.xml<?xml\
+                \ version='1.0' encoding='UTF-8'?>\n<document>\n  <text author=\"\
+                Sparvutvecklare\" date=\"2020-03-11\" id=\"1\">\n    <sentence id=\"\
+                b1ac\">\n      <token baseform=\"|hej|\" pos=\"IN\">Hej</token>\n\
+                \      <token baseform=\"|\" pos=\"MAD\">!</token>\n    </sentence>\n\
+                \    <sentence id=\"b142\">\n      <token baseform=\"|den|den här|\"\
+                \ pos=\"PN\">Det</token>\n      <token baseform=\"|här|den här:1|\"\
+                \ pos=\"AB\">här</token>\n      <token baseform=\"|vara|\" pos=\"\
+                VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"\
+                |en|\" pos=\"DT\">en</token>\n      <token baseform=\"|korpus|\" pos=\"\
+                NN\">korpus</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n\
+                \    </sentence>\n    <sentence id=\"b196\">\n      <ne ex=\"ENAMEX\"\
+                \ name=\"Astrid Lindgren\" subtype=\"HUM\" type=\"PRS\">\n       \
+                \ <token baseform=\"|Astrid|\" pos=\"PM\">Astrid</token>\n       \
+                \ <token baseform=\"|Lindgren|\" pos=\"PM\">Lindgren</token>\n   \
+                \   </ne>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"\
+                neutral\">är</token>\n      <token baseform=\"|föda|född|\" pos=\"\
+                PC\" sentiment_label=\"neutral\">född</token>\n      <token baseform=\"\
+                |i|\" pos=\"PP\">i</token>\n      <ne ex=\"ENAMEX\" name=\"Vimmerby\"\
+                \ subtype=\"PPL\" type=\"LOC\">\n        <token baseform=\"|Vimmerby|\"\
+                \ pos=\"PM\">Vimmerby</token>\n      </ne>\n      <ne ex=\"TIMEX\"\
+                \ name=\"1907\" subtype=\"DAT\" type=\"TME\">\n        <token baseform=\"\
+                |\" pos=\"RG\">1907</token>\n      </ne>\n      <token baseform=\"\
+                |\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b175\"\
+                >\n      <token baseform=\"|och|\" pos=\"KN\">Och</token>\n      <token\
+                \ baseform=\"|här|\" pos=\"AB\">här</token>\n      <token baseform=\"\
+                |komma|\" pos=\"VB\" sentiment_label=\"neutral\">kommer</token>\n\
+                \      <token baseform=\"|den|en|\" pos=\"DT\">den</token>\n     \
+                \ <token baseform=\"|\" pos=\"RO\">tredje</token>\n      <token baseform=\"\
+                |mening|\" pos=\"NN\" sentiment_label=\"neutral\">meningen</token>\n\
+                \      <token baseform=\"|i|\" pos=\"PP\">i</token>\n      <token\
+                \ baseform=\"|en|\" pos=\"DT\">ett</token>\n      <token baseform=\"\
+                |ny|\" pos=\"JJ\" sentiment_label=\"neutral\">nytt</token>\n     \
+                \ <token baseform=\"|stycke|\" pos=\"NN\" sentiment_label=\"neutral\"\
+                >stycke</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n\
+                \    </sentence>\n    <sentence id=\"b16a\">\n      <token baseform=\"\
+                |sista|\" pos=\"JJ\" sentiment_label=\"neutral\">Sista</token>\n \
+                \     <token baseform=\"|mening|\" pos=\"NN\" sentiment_label=\"neutral\"\
+                >meningen</token>\n      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"\
+                neutral\">är</token>\n      <token baseform=\"|kort|\" pos=\"JJ\"\
+                \ sentiment_label=\"neutral\">kort</token>\n      <token baseform=\"\
+                |och|\" pos=\"KN\">och</token>\n      <token baseform=\"|innehålla|\"\
+                \ pos=\"VB\" sentiment_label=\"neutral\">innehåller</token>\n    \
+                \  <token baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"\
+                |\" pos=\"NN\">sammansättningsform</token>\n      <token baseform=\"\
+                |\" pos=\"MID\">:</token>\n      <token baseform=\"|födelsedagskalas|\"\
+                \ pos=\"NN\">födelsedagskalas</token>\n      <token baseform=\"|\"\
+                \ pos=\"MAD\">.</token>\n    </sentence>\n  </text>\n  <text author=\"\
+                Wikipedia\" date=\"2020-03-16\" id=\"2\">\n    <sentence id=\"b110\"\
+                >\n      <token baseform=\"|språkbank|\" pos=\"NN\">Språkbanken</token>\n\
+                \      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                >är</token>\n      <token baseform=\"|en|\" pos=\"DT\">en</token>\n\
+                \      <token baseform=\"|\" pos=\"NN\">forskningsenhet</token>\n\
+                \      <token baseform=\"|vid|\" pos=\"PP\">vid</token>\n      <ne\
+                \ ex=\"ENAMEX\" name=\"Göteborgs universitet\" subtype=\"EDU\" type=\"\
+                ORG\">\n        <token baseform=\"|Göteborg|Göteborgs universitet|\"\
+                \ pos=\"PM\">Göteborgs</token>\n        <token baseform=\"|universitet|Göteborgs\
+                \ universitet:6|\" pos=\"NN\">universitet</token>\n      </ne>\n \
+                \     <token baseform=\"|\" pos=\"MAD\">.</token>\n    </sentence>\n\
+                \    <sentence id=\"b122\">\n      <token baseform=\"|den|\" pos=\"\
+                PN\">Den</token>\n      <token baseform=\"|inrätta|\" pos=\"VB\" sentiment_label=\"\
+                neutral\">inrättades</token>\n      <token baseform=\"|\" pos=\"KN\"\
+                >som</token>\n      <token baseform=\"|en|\" pos=\"DT\">en</token>\n\
+                \      <token baseform=\"|nationell|\" pos=\"JJ\" sentiment_label=\"\
+                neutral\">nationell</token>\n      <token baseform=\"|resurs|\" pos=\"\
+                NN\" sentiment_label=\"positive\">resurs</token>\n      <token baseform=\"\
+                |\" pos=\"RG\">1975</token>\n      <token baseform=\"|\" pos=\"MID\"\
+                >,</token>\n      <token baseform=\"|\" pos=\"KN\">som</token>\n \
+                \     <token baseform=\"|en|\" pos=\"DT\">ett</token>\n      <token\
+                \ baseform=\"|direkt|\" pos=\"JJ\" sentiment_label=\"neutral\">direkt</token>\n\
+                \      <token baseform=\"|resultat|\" pos=\"NN\" sentiment_label=\"\
+                neutral\">resultat</token>\n      <token baseform=\"|av|\" pos=\"\
+                PP\">av</token>\n      <ne ex=\"ENAMEX\" name=\"Sture Alléns\" subtype=\"\
+                HUM\" type=\"PRS\">\n        <token baseform=\"|Sture|\" pos=\"PM\"\
+                >Sture</token>\n        <token baseform=\"|\" pos=\"PM\">Alléns</token>\n\
+                \      </ne>\n      <token baseform=\"|\" pos=\"NN\">pionjärinsatser</token>\n\
+                \      <token baseform=\"|inom|\" pos=\"PP\">inom</token>\n      <token\
+                \ baseform=\"|svensk|\" pos=\"JJ\" sentiment_label=\"neutral\">svensk</token>\n\
+                \      <token baseform=\"|korpuslingvistik|\" pos=\"NN\">korpuslingvistik</token>\n\
+                \      <ne ex=\"TIMEX\" name=\"under 1960-talet\" subtype=\"DAT\"\
+                \ type=\"TME\">\n        <token baseform=\"|under|\" pos=\"PP\">under</token>\n\
+                \        <token baseform=\"|1960-tal|\" pos=\"NN\">1960-talet</token>\n\
+                \      </ne>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n\
+                \    </sentence>\n    <sentence id=\"b1c1\">\n      <token baseform=\"\
+                |språkbank|\" pos=\"NN\">Språkbankens</token>\n      <token baseform=\"\
+                |uppdrag|\" pos=\"NN\" sentiment_label=\"neutral\">uppdrag</token>\n\
+                \      <token baseform=\"|bli|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                >blev</token>\n      <token baseform=\"|och|\" pos=\"KN\">och</token>\n\
+                \      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                >är</token>\n      <token baseform=\"|fortfarande|\" pos=\"AB\">fortfarande</token>\n\
+                \      <token baseform=\"|att|\" pos=\"IE\">att</token>\n      <token\
+                \ baseform=\"|samla|\" pos=\"VB\" sentiment_label=\"neutral\">samla</token>\n\
+                \      <token baseform=\"|in|\" pos=\"PL\">in</token>\n      <token\
+                \ baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"|förädla|\"\
+                \ pos=\"VB\">förädla</token>\n      <token baseform=\"|och|\" pos=\"\
+                KN\">och</token>\n      <token baseform=\"|tillgängliggöra|\" pos=\"\
+                VB\">tillgängliggöra</token>\n      <token baseform=\"|språkresurs|\"\
+                \ pos=\"NN\">språkresurser</token>\n      <token baseform=\"|åt|\"\
+                \ pos=\"PP\">åt</token>\n      <token baseform=\"|forskare|\" pos=\"\
+                NN\" sentiment_label=\"neutral\">forskare</token>\n      <token baseform=\"\
+                |och|\" pos=\"KN\">och</token>\n      <token baseform=\"|allmänhet|\"\
+                \ pos=\"NN\" sentiment_label=\"neutral\">allmänheten</token>\n   \
+                \   <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"\
+                |och|\" pos=\"KN\">och</token>\n      <token baseform=\"|att|\" pos=\"\
+                IE\">att</token>\n      <token baseform=\"|bedriva|\" pos=\"VB\" sentiment_label=\"\
+                neutral\">bedriva</token>\n      <token baseform=\"|forskning|\" pos=\"\
+                NN\" sentiment_label=\"neutral\">forskning</token>\n      <token baseform=\"\
+                |och|\" pos=\"KN\">och</token>\n      <token baseform=\"|utveckling|\"\
+                \ pos=\"NN\" sentiment_label=\"neutral\">utveckling</token>\n    \
+                \  <token baseform=\"|\" pos=\"HP\">som</token>\n      <token baseform=\"\
+                |främja|\" pos=\"VB\" sentiment_label=\"positive\">främjar</token>\n\
+                \      <token baseform=\"|sån|\" pos=\"JJ\">sån</token>\n      <token\
+                \ baseform=\"|användning|\" pos=\"NN\" sentiment_label=\"neutral\"\
+                >användning</token>\n      <token baseform=\"|\" pos=\"MAD\">.</token>\n\
+                \    </sentence>\n    <sentence id=\"b1cd\">\n      <token baseform=\"\
+                |i|\" pos=\"PP\">I</token>\n      <token baseform=\"|Språkbanken|\"\
+                \ pos=\"PM\">Språkbanken</token>\n      <token baseform=\"|finna|finnas|\"\
+                \ pos=\"VB\" sentiment_label=\"neutral\">finns</token>\n      <token\
+                \ baseform=\"|en|\" pos=\"DT\">en</token>\n      <token baseform=\"\
+                |unik|\" pos=\"JJ\" sentiment_label=\"neutral\">unik</token>\n   \
+                \   <token baseform=\"|kompetens|\" pos=\"NN\" sentiment_label=\"\
+                positive\">kompetens</token>\n      <token baseform=\"|vad|vad för|\"\
+                \ pos=\"HP\">vad</token>\n      <token baseform=\"|gälla|\" pos=\"\
+                VB\" sentiment_label=\"neutral\">gäller</token>\n      <token baseform=\"\
+                |svensk|\" pos=\"JJ\" sentiment_label=\"neutral\">svenska</token>\n\
+                \      <token baseform=\"|textkorpus|\" pos=\"NN\">textkorpusar</token>\n\
+                \      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"\
+                |\" pos=\"NN\">parallellkorpusar</token>\n      <token baseform=\"\
+                |\" pos=\"MID\">,</token>\n      <token baseform=\"|svensk|\" pos=\"\
+                JJ\" sentiment_label=\"neutral\">svenska</token>\n      <token baseform=\"\
+                |elektronisk|\" pos=\"JJ\" sentiment_label=\"neutral\">elektroniska</token>\n\
+                \      <token baseform=\"|lexikonresurs|\" pos=\"NN\">lexikonresurser</token>\n\
+                \      <token baseform=\"|samt|\" pos=\"KN\">samt</token>\n      <token\
+                \ baseform=\"|\" pos=\"JJ\">språkteknologiska</token>\n      <token\
+                \ baseform=\"|verktyg|\" pos=\"NN\">verktyg</token>\n      <token\
+                \ baseform=\"|för|vad för:7|\" pos=\"PP\">för</token>\n      <token\
+                \ baseform=\"|att|\" pos=\"IE\">att</token>\n      <token baseform=\"\
+                |bearbeta|\" pos=\"VB\">bearbeta</token>\n      <token baseform=\"\
+                |\" pos=\"MID\">,</token>\n      <token baseform=\"|annotera|\" pos=\"\
+                VB\">annotera</token>\n      <token baseform=\"|och|\" pos=\"KN\"\
+                >och</token>\n      <token baseform=\"|visa|visa upp|\" pos=\"VB\"\
+                \ sentiment_label=\"neutral\">visa</token>\n      <token baseform=\"\
+                |upp|visa upp:26|\" pos=\"PL\">upp</token>\n      <token baseform=\"\
+                |textkorpus|\" pos=\"NN\">textkorpusar</token>\n      <token baseform=\"\
+                |\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b15f\"\
+                >\n      <token baseform=\"|huvuddel|\" pos=\"NN\">Huvuddelen</token>\n\
+                \      <token baseform=\"|av|\" pos=\"PP\">av</token>\n      <token\
+                \ baseform=\"|material|\" pos=\"NN\" sentiment_label=\"neutral\">materialet</token>\n\
+                \      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                >är</token>\n      <token baseform=\"|modern|\" pos=\"JJ\" sentiment_label=\"\
+                positive\">modernt</token>\n      <token baseform=\"|\" pos=\"MID\"\
+                >,</token>\n      <token baseform=\"|men|\" pos=\"KN\">men</token>\n\
+                \      <token baseform=\"|ambition|\" pos=\"NN\" sentiment_label=\"\
+                neutral\">ambitionen</token>\n      <token baseform=\"|vara|\" pos=\"\
+                VB\" sentiment_label=\"neutral\">är</token>\n      <token baseform=\"\
+                |att|\" pos=\"SN\">att</token>\n      <token baseform=\"|resurs|\"\
+                \ pos=\"NN\" sentiment_label=\"positive\">resurserna</token>\n   \
+                \   <token baseform=\"|skola|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                >ska</token>\n      <token baseform=\"|avspegla|\" pos=\"VB\">avspegla</token>\n\
+                \      <token baseform=\"|hel|\" pos=\"JJ\" sentiment_label=\"neutral\"\
+                >hela</token>\n      <token baseform=\"|den|en|\" pos=\"DT\">den</token>\n\
+                \      <token baseform=\"|skriva|\" pos=\"PC\" sentiment_label=\"\
+                neutral\">skrivna</token>\n      <token baseform=\"|svenska|\" pos=\"\
+                NN\" sentiment_label=\"neutral\">svenskans</token>\n      <token baseform=\"\
+                |historia|\" pos=\"NN\" sentiment_label=\"neutral\">historia</token>\n\
+                \      <token baseform=\"|\" pos=\"MID\">-</token>\n      <token baseform=\"\
+                |från|\" pos=\"PP\">från</token>\n      <token baseform=\"|medeltida|\"\
+                \ pos=\"JJ\">medeltida</token>\n      <token baseform=\"|\" pos=\"\
+                NN\">fornsvenska</token>\n      <token baseform=\"|till|\" pos=\"\
+                PP\">till</token>\n      <token baseform=\"|modern|\" pos=\"JJ\" sentiment_label=\"\
+                positive\">modern</token>\n      <token baseform=\"|svenska|\" pos=\"\
+                NN\" sentiment_label=\"neutral\">svenska</token>\n      <token baseform=\"\
+                |\" pos=\"MID\">-</token>\n      <token baseform=\"|med|\" pos=\"\
+                PP\">med</token>\n      <token baseform=\"|all|\" pos=\"DT\">alla</token>\n\
+                \      <token baseform=\"|den|\" pos=\"PS\">dess</token>\n      <token\
+                \ baseform=\"|genre|\" pos=\"NN\">genrer</token>\n      <token baseform=\"\
+                |\" pos=\"MAD\">.</token>\n    </sentence>\n    <sentence id=\"b13b\"\
+                >\n      <token baseform=\"|huvuddel|\" pos=\"NN\">Huvuddelen</token>\n\
+                \      <token baseform=\"|av|\" pos=\"PP\">av</token>\n      <token\
+                \ baseform=\"|resurs|\" pos=\"NN\" sentiment_label=\"positive\">resurserna</token>\n\
+                \      <token baseform=\"|\" pos=\"MID\">,</token>\n      <token baseform=\"\
+                |korpus|\" pos=\"NN\">korpusar</token>\n      <token baseform=\"|och|\"\
+                \ pos=\"KN\">och</token>\n      <token baseform=\"|lexikon|\" pos=\"\
+                NN\">lexikon</token>\n      <token baseform=\"|\" pos=\"MID\">,</token>\n\
+                \      <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                >är</token>\n      <token baseform=\"|fri|\" pos=\"AB\" sentiment_label=\"\
+                positive\">fritt</token>\n      <token baseform=\"|åtkomlig|\" pos=\"\
+                JJ\">åtkomliga</token>\n      <token baseform=\"|för|\" pos=\"PP\"\
+                >för</token>\n      <token baseform=\"|sökning|\" pos=\"NN\">sökning</token>\n\
+                \      <token baseform=\"|via|\" pos=\"PP\">via</token>\n      <token\
+                \ baseform=\"|\" pos=\"NN\">webbgränssnitt</token>\n      <token baseform=\"\
+                |\" pos=\"MAD\">.</token>\n    </sentence>\n  </text>\n  <text id=\"\
+                1\">\n    <sentence id=\"b100\">\n      <token baseform=\"|hej|\"\
+                \ pos=\"IN\">Hej</token>\n      <i sparv.overlap=\"b1-1\">\n     \
+                \   <token baseform=\"|på|\" pos=\"PP\">på</token>\n        <token\
+                \ baseform=\"|du|\" pos=\"PN\">dig</token>\n        <token baseform=\"\
+                |\" pos=\"MAD\">.</token>\n      </i>\n    </sentence>\n    <i sparv.overlap=\"\
+                b1-1\">\n      <sentence id=\"b1f4\" sparv.overlap=\"b1-2\">\n   \
+                \     <token baseform=\"|kunna|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                >Kan</token>\n        <token baseform=\"|vi|\" pos=\"PN\">vi</token>\n\
+                \      </sentence>\n    </i>\n    <sentence id=\"b1f4\" sparv.overlap=\"\
+                b1-2\">\n      <token baseform=\"|hantera|\" pos=\"VB\" sentiment_label=\"\
+                neutral\">hantera</token>\n      <token baseform=\"|överlappa|\" pos=\"\
+                PC\">överlappande</token>\n      <token baseform=\"|tagg|\" pos=\"\
+                NN\">taggar</token>\n      <token baseform=\"|\" pos=\"MAD\">?</token>\n\
+                \    </sentence>\n  </text>\n</document>\nPK\a\bu:��[3\0\0[3\0\0PK\x03\
+                \x04\n\0\b\0\0\0�kZR\0\0\0\0\0\0\0\0\0\0\0\0&\0\0\0export/xml_pretty/dokument2_export.xml<?xml\
+                \ version='1.0' encoding='UTF-8'?>\n<text>\n  <sentence id=\"e00a\"\
+                >\n    <token baseform=\"|hej|\" pos=\"IN\">Hej</token>\n    <token\
+                \ baseform=\"|\" pos=\"MAD\">!</token>\n  </sentence>\n  <sentence\
+                \ id=\"e089\">\n    <token baseform=\"|den|den här|\" pos=\"PN\">Det</token>\n\
+                \    <token baseform=\"|här|den här:1|\" pos=\"AB\">här</token>\n\
+                \    <token baseform=\"|vara|\" pos=\"VB\" sentiment_label=\"neutral\"\
+                >är</token>\n    <token baseform=\"|en|en annan|\" pos=\"DT\">en</token>\n\
+                \    <token baseform=\"|annan|en annan:4|\" pos=\"JJ\">annan</token>\n\
+                \    <token baseform=\"|text|\" pos=\"NN\" sentiment_label=\"neutral\"\
+                >text</token>\n    <token baseform=\"|\" pos=\"MAD\">.</token>\n \
+                \ </sentence>\n  <sentence id=\"e0b6\">\n    <token baseform=\"|den|\"\
+                \ pos=\"PN\">Den</token>\n    <token baseform=\"|vara|\" pos=\"VB\"\
+                \ sentiment_label=\"neutral\">är</token>\n    <token baseform=\"|\"\
+                \ pos=\"JJ\">jättekort</token>\n    <token baseform=\"|\" pos=\"MAD\"\
+                >.</token>\n  </sentence>\n  <sentence id=\"e0be\">\n    <token baseform=\"\
+                |den|\" pos=\"PN\">Den</token>\n    <token baseform=\"|ha|\" pos=\"\
+                VB\" sentiment_label=\"neutral\">har</token>\n    <token baseform=\"\
+                |bara|\" pos=\"AB\">bara</token>\n    <token baseform=\"|tre|\" pos=\"\
+                RG\">tre</token>\n    <token baseform=\"|mening|\" pos=\"NN\" sentiment_label=\"\
+                neutral\">meningar</token>\n    <token baseform=\"|och|\" pos=\"KN\"\
+                >och</token>\n    <token baseform=\"|ingen|\" pos=\"DT\">ingen</token>\n\
+                \    <token baseform=\"|metadata|\" pos=\"NN\">metadata</token>\n\
+                \    <token baseform=\"|\" pos=\"MAD\">.</token>\n  </sentence>\n\
+                </text>\nPK\a\b\b+�&�\x05\0\0�\x05\0\0PK\x01\x02-\x03\x14\0\0\0\0\0\
+                �qbR\0\0\0\0\0\0\0\0\0\0\0\0\a\0\0\0\0\0\0\0\0\0\x10\0�A\0\0\0\0export/PK\x01\
+                \x02-\x03\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\v\0\0\0\0\0\0\0\
+                \0\0\x10\0�A%\0\0\0export/csv/PK\x01\x02-\x03\n\0\b\0\0\0�jZRY�\"\
+                ��\x12\0\0�\x12\0\0\x18\0\0\0\0\0\0\0\0\0\0\0��N\0\0\0export/csv/dokument1.csvPK\x01\
+                \x02-\x03\n\0\b\0\0\0�kZR�7þ\x0E\x02\0\0\x0E\x02\0\0\x18\0\0\0\0\0\
+                \0\0\0\0\0\0��]\x13\0\0export/csv/dokument2.csvPK\x01\x02-\x03\x14\
+                \0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\x16\0\0\0\0\0\0\0\0\0\x10\0\
+                �A�\x15\0\0export/frequency_list/PK\x01\x02-\x03\n\0\b\0\0\0�kZR�s.[�\x1D\
+                \0\0�\x1D\0\0(\0\0\0\0\0\0\0\0\0\0\0���\x15\0\0export/frequency_list/stats_mini-swe.csvPK\x01\
+                \x02-\x03\x14\0\0\0\0\0�qbR\0\0\0\0\0\0\0\0\0\0\0\0\x12\0\0\0\0\0\0\
+                \0\0\0\x10\0�A44\0\0export/xml_pretty/PK\x01\x02-\x03\n\0\b\0\0\0\
+                �jZRu:��[3\0\0[3\0\0&\0\0\0\0\0\0\0\0\0\0\0��d4\0\0export/xml_pretty/dokument1_export.xmlPK\x01\
+                \x02-\x03\n\0\b\0\0\0�kZR\b+�&�\x05\0\0�\x05\0\0&\0\0\0\0\0\0\0\0\0\
+                \0\0��\x13h\0\0export/xml_pretty/dokument2_export.xmlPK\x05\x06\0\0\
+                \0\0\t\0\t\0|\x02\0\0\x1Fn\0\0\0\0"
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have permission to edit it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  permission to edit it
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+      deprecated: false
+      security: []
+  /remove-exports:
+    delete:
+      tags:
+      - Manage Exports
+      summary: remove exports
+      description: "Removes all export files for the corpus from the storage server.\
+        \ Will attempt to remove exports from the Sparv server, too, but won't crash\
+        \ if this fails.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username\
+        \ \n '{{host}}/remove-exports?corpus_id=some_corpus_name'\n```"
+      operationId: removeexports
+      parameters:
+      - name: corpus_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: mink-dXH6E6wTFf
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Export files for corpus 'mink-dXH6E6wTFf' successfully
+                      removed
+              example:
+                status: success
+                message: Export files for corpus 'mink-dXH6E6wTFf' successfully removed
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+      deprecated: false
+  /download-source-text:
+    get:
+      tags:
+      - Manage Exports
+      summary: download source text
+      description: "Downloads one of the source files in plain text. The plain text\
+        \ is extracted by Sparv and therefore it can only be requested after a completed\
+        \ Sparv job. \n    \nThe source file name (including its file extension) must\
+        \ be specified in the `file` parameter.\n\n### Example\n\n```.bash\ncurl -X\
+        \ GET -u some_username '{{host}}/download-source-text?corpus_id=some_corpus_name?file=dokument1.xml'\
+        \ --output dokument1_plain.txt\n```"
+      operationId: downloadsourcetext
+      parameters:
+      - name: corpus_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: mink-dXH6E6wTFf
+      - name: file
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: dokument1.xml
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+                example: '
+
+                  Hej! Det här är en text.
+
+
+                  Den är jättekort. Den har bara tre meningar och ingen metadata.
+
+                  '
+              example: '
+
+                Hej! Det här är en text.
+
+
+                Den är jättekort. Den har bara tre meningar och ingen metadata.
+
+                '
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Please specify the source file to download
+              example:
+                status: error
+                message: Please specify the source file to download
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: There are currently no source texts for corpus 'mink-KuuMLW3oyy'.
+                      You must run Sparv before you can view source texts.
+              example:
+                status: error
+                message: There are currently no source texts for corpus 'mink-KuuMLW3oyy'.
+                  You must run Sparv before you can view source texts.
+      deprecated: false
   /api-spec:
     get:
+      tags:
+      - Documentation
       summary: API specification
       description: Gets the open API specification (in json format) for this API.
       operationId: APIspecification
@@ -2081,11 +3021,12 @@ paths:
       responses:
         '200':
           description: ''
-      tags:
-      - Documentation
+      deprecated: false
       security: []
   /api-doc:
     get:
+      tags:
+      - Documentation
       summary: API documentation
       description: Renders the API documentation in html.
       operationId: APIdocumentation
@@ -2093,18 +3034,19 @@ paths:
       responses:
         '200':
           description: ''
-      tags:
-      - Documentation
+      deprecated: false
       security: []
   /status-codes:
     get:
+      tags:
+      - Documentation
       summary: status codes
       description: List job status codes along with their descriptions.
       operationId: statuscodes
       parameters: []
       responses:
         '200':
-          description: status codes 200
+          description: OK
           content:
             application/json:
               schema:
@@ -2118,7 +3060,7 @@ paths:
                     example: Listing existing job status codes
                   status_codes:
                     type: array
-                    example: &id014
+                    example: &id015
                     - code: 0
                       name: none
                       description: Job does not exist
@@ -2149,19 +3091,20 @@ paths:
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes: *id014
-      tags:
-      - Documentation
+                status_codes: *id015
+      deprecated: false
       security: []
   /sparv-languages:
     get:
+      tags:
+      - Documentation
       summary: Sparv languages
       description: Lists languages available in Sparv along with their language codes.
       operationId: Sparvlanguages
       parameters: []
       responses:
         '200':
-          description: Sparv languages 200
+          description: OK
           content:
             application/json:
               schema:
@@ -2175,7 +3118,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id015
+                    example: &id016
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -2221,12 +3164,13 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id015
-      tags:
-      - Documentation
+                languages: *id016
+      deprecated: false
       security: []
   /sparv-exports:
     get:
+      tags:
+      - Documentation
       summary: Sparv exports
       description: 'Lists Sparv export formats for the chosen language. The language
         is specified with the `language` query parameter (or the `languange` key in
@@ -2245,7 +3189,7 @@ paths:
           example: swe
       responses:
         '200':
-          description: Sparv exports 200
+          description: OK
           content:
             application/json:
               schema:
@@ -2262,7 +3206,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id016
+                    example: &id017
                     - export: conll_export:conllu
                       description: CoNLL-U (SBX version) export
                     - export: csv_export:csv
@@ -2305,12 +3249,13 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id016
-      tags:
-      - Documentation
+                exports: *id017
+      deprecated: false
       security: []
   /advance-queue:
     put:
+      tags:
+      - Internal Routes
       summary: advance queue
       description: 'Check the job queue and attempt to advance it.
 
@@ -2326,24 +3271,8 @@ paths:
       operationId: advancequeue
       parameters: []
       responses:
-        '200':
-          description: advance queue 200
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Queue advancing completed
-              example:
-                status: success
-                message: Queue advancing completed
         '401':
-          description: advance queue 401
+          description: UNAUTHORIZED
           content:
             application/json:
               schema:
@@ -2358,86 +3287,37 @@ paths:
               example:
                 status: error
                 message: Failed to confirm secret key for protected route
-      tags:
-      - Internal Routes
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Queue advancing completed
+              example:
+                status: success
+                message: Queue advancing completed
+      deprecated: false
       security:
       - ApiKeyAuth: []
 components:
-  parameters:
-    corpus_id:
-      name: corpus_id
-      in: query
-      required: true
-      style: form
-      schema:
-        type: string
-        example: min-testkorpus
-    new_id:
-      name: new_id
-      in: query
-      required: true
-      style: form
-      schema:
-        type: string
-        example: din-testkorpus
-    file:
-      name: file
-      in: query
-      required: true
-      style: form
-      schema:
-        type: string
-        example: dokument1.xml
-    zip:
-      name: zip
-      in: query
-      required: false
-      style: form
-      schema:
-        type: string
-        example: 'true'
-    remove:
-      name: remove
-      in: query
-      required: true
-      style: form
-      schema:
-        type: string
-        example: dokument1.xml,dokument2.xml
-    exports:
-      name: exports
-      in: query
-      required: false
-      style: form
-      schema:
-        type: string
-        example: csv_export:csv,stats_export:freq_list,xml_export:pretty
-    files:
-      name: files
-      in: query
-      required: false
-      style: form
-      schema:
-        type: string
-        example: dokument1,document2
-    language:
-      name: language
-      in: query
-      required: true
-      style: form
-      schema:
-        type: string
-        example: swe
   securitySchemes:
-    basicAuth:
+    bearerAuth:
       type: http
-      scheme: basic
+      scheme: bearer
+      bearerFormat: JWT
     ApiKeyAuth:
       type: apiKey
       in: query
       name: secret_key
 security:
-- basicAuth: []
+- bearerAuth: []
 tags:
 - name: Manage Corpora
   description: Routes for creating, listing and removing corpora.
@@ -2456,7 +3336,3 @@ tags:
 - name: Internal Routes
   description: Routes for internal use only. These routes are used by the queue manager
     to advance the job queue.
-externalDocs:
-  url: ''
-  description: ''
-warnings: []
