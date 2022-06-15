@@ -318,8 +318,10 @@ def download_config(ui, user, _corpora, corpus_id, auth_token):
 
     try:
         # Get file from storage
-        storage.download_file(ui, storage_config_file, local_config_file, corpus_id)
-        return send_file(local_config_file, mimetype="text/yaml")
+        if storage.download_file(ui, storage_config_file, local_config_file, corpus_id, ignore_missing=True):
+            return send_file(local_config_file, mimetype="text/yaml")
+        else:
+            return utils.response(f"No config file found for corpus '{corpus_id}'", err=True), 404
     except Exception as e:
         return utils.response(f"Failed to download config file for corpus '{corpus_id}'", err=True, info=str(e)), 500
 

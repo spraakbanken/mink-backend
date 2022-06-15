@@ -45,16 +45,22 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     return objlist
 
 
-def download_file(_ui, remote_file_path: str, local_file: Path, corpus_id: str):
+def download_file(_ui, remote_file_path: str, local_file: Path, corpus_id: str, ignore_missing: bool = False):
     """Download a file from the Sparv server."""
     if not _is_valid_path(remote_file_path, corpus_id):
         raise Exception(f"You don't have permission to download '{remote_file_path}'")
 
     user, host = _get_login()
-    p = subprocess.run(["rsync", f"{user}@{host}:{remote_file_path}", f"{local_file}"],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cmd = ["rsync"]
+    if ignore_missing:
+        cmd.append("--ignore-missing-args")
+    cmd += [f"{user}@{host}:{remote_file_path}", f"{local_file}"]
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
         raise Exception(f"Failed to download '{remote_file_path}': {p.stderr.decode()}")
+    if ignore_missing and not local_file.is_file():
+        return False
+    return True
 
 
 def get_file_contents(_ui, filepath):
