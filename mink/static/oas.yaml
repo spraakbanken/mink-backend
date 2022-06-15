@@ -37,10 +37,10 @@ info:
     The following two examples will thus result in the same response:
 
 
-    `curl -X GET -u some_username ''{{host}}/list-sources?corpus_id=some_corpus_name''`
+    `curl -X GET ''{{host}}/list-sources?corpus_id=some_corpus_name''`
 
 
-    `curl -X GET -u some_username -F "corpus_id=some_corpus_name" ''{{host}}/list-sources''`
+    `curl -X GET -F "corpus_id=some_corpus_name" ''{{host}}/list-sources''`
 
 
     # Responses
@@ -82,7 +82,7 @@ paths:
 
         ```.bash
 
-        curl -X POST -u some_username ''{{host}}/create-corpus''
+        curl -X POST ''{{host}}/create-corpus''
 
         ```'
       operationId: createcorpus
@@ -158,7 +158,7 @@ paths:
 
         ```.bash
 
-        curl -u some_username ''{{host}}/list-corpora''
+        curl ''{{host}}/list-corpora''
 
         ```'
       operationId: listcorpora
@@ -220,7 +220,7 @@ paths:
 
         ```.bash
 
-        curl -X DELETE -u some_username ''{{host}}/remove-corpus?corpus_id=some_corpus_name''
+        curl -X DELETE ''{{host}}/remove-corpus?corpus_id=some_corpus_name''
 
         ```'
       operationId: removecorpus
@@ -304,8 +304,8 @@ paths:
 
         ```.bash
 
-        curl -X PUT -u some_username -F "files[]=@/absolute/path/to/localfile1.txt"
-        -F "files[]=@/absolute/path/to/localfile2.txt" ''{{host}}/upload-sources?corpus_id=some_corpus_name''
+        curl -X PUT -F "files[]=@/absolute/path/to/localfile1.txt" -F "files[]=@/absolute/path/to/localfile2.txt"
+        ''{{host}}/upload-sources?corpus_id=some_corpus_name''
 
         ```'
       operationId: uploadsources
@@ -404,7 +404,7 @@ paths:
 
         ```.bash
 
-        curl -X GET -u some_username ''{{host}}/list-sources?corpus_id=some_corpus_name''
+        curl -X GET ''{{host}}/list-sources?corpus_id=some_corpus_name''
 
         ```'
       operationId: listsources
@@ -493,13 +493,24 @@ paths:
       tags:
       - Manage Sources
       summary: download sources
-      description: "Downloads corpus source files from the storage server as zip file.\n\
-        \nThe parameter `file` may be used to download a specific source file. This\
-        \ parameter must either be a file name or an absolute path on the Storage\
-        \ server. The `zip` parameter may be set to `false` in combination the the\
-        \ `file` param to avoid zipping the file to be downloaded.\n\n### Example\n\
-        \n```.bash\ncurl -X GET -u some_username \n '{{host}}/download-sources?corpus_id=some_corpus_name'\
-        \ --output some_corpus_name_sources.zip\n```"
+      description: 'Downloads corpus source files from the storage server as zip file.
+
+
+        The parameter `file` may be used to download a specific source file. This
+        parameter must either be a file name or an absolute path on the Storage server.
+        The `zip` parameter may be set to `false` in combination the the `file` param
+        to avoid zipping the file to be downloaded.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X GET ''{{host}}/download-sources?corpus_id=some_corpus_name'' --output
+        some_corpus_name_sources.zip
+
+        ```'
       operationId: downloadsources
       parameters:
       - name: corpus_id
@@ -658,12 +669,22 @@ paths:
       tags:
       - Manage Sources
       summary: remove sources
-      description: "Remove the source files given in the `remove` parameter from the\
-        \ corpus. Files are provided as a comma-separated list of paths relative to\
-        \ the source directory.\n\nIf any files could not be removed they will be\
-        \ listed in the error response.\n\n### Example\n\n```.bash\ncurl -X DELETE\
-        \ -u some_username \n '{{host}}/remove-sources?corpus_id=some_corpus_name&remove=dokument1.xml,dokument2.xml'\n\
-        ```"
+      description: 'Remove the source files given in the `remove` parameter from the
+        corpus. Files are provided as a comma-separated list of paths relative to
+        the source directory.
+
+
+        If any files could not be removed they will be listed in the error response.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X DELETE ''{{host}}/remove-sources?corpus_id=some_corpus_name&remove=dokument1.xml,dokument2.xml''
+
+        ```'
       operationId: removesources
       parameters:
       - name: corpus_id
@@ -786,8 +807,7 @@ paths:
 
         ```.bash
 
-        curl -X PUT -u some_username -F "files[]=@/absolute/path/to/config.yaml;type=text/yaml"
-        ''{{host}}/upload-config?corpus_id=some_corpus_name''
+        curl -X PUT -F "files[]=@/absolute/path/to/config.yaml;type=text/yaml" ''{{host}}/upload-config?corpus_id=some_corpus_name''
 
         ```'
       operationId: uploadconfig
@@ -888,7 +908,7 @@ paths:
 
         ```.bash
 
-        curl -X GET -u some_username ''{{host}}/download-config?corpus_id=some_corpus_name''
+        curl -X GET ''{{host}}/download-config?corpus_id=some_corpus_name''
 
         ```'
       operationId: downloadconfig
@@ -987,7 +1007,7 @@ paths:
 
         ```.bash
 
-        curl -X PUT -u some_username -F "corpus_id=some_corpus_name" -F "exports=csv_export:csv,stats_export:freq_list,xml_export:pretty"
+        curl -X PUT -F "corpus_id=some_corpus_name" -F "exports=csv_export:csv,stats_export:freq_list,xml_export:pretty"
         ''{{host}}/run-sparv''
 
         ```'
@@ -1158,7 +1178,7 @@ paths:
 
         ```.bash
 
-        curl -X GET -u some_username ''{{host}}/check-status''
+        curl -X GET ''{{host}}/check-status''
 
         ```'
       operationId: checkstatus
@@ -1366,7 +1386,7 @@ paths:
 
         ```.bash
 
-        curl -X POST -u some_username ''{{host}}/abort-job?corpus_id=some_corpus_name''
+        curl -X POST ''{{host}}/abort-job?corpus_id=some_corpus_name''
 
         ```'
       operationId: abortjob
@@ -1445,11 +1465,19 @@ paths:
       tags:
       - Process Corpus
       summary: clear annotations
-      description: "Clears the annotation and export directory for the provided corpus\
-        \ on the Sparv server. This is useful if you want to process a previously\
-        \ annotated corpus with a new corpus config file.\n\n### Example\n\n```.bash\n\
-        curl -X DELETE -u some_username \n '{{host}}/clear-annotations?corpus_id=some_corpus_name'\n\
-        ```"
+      description: 'Clears the annotation and export directory for the provided corpus
+        on the Sparv server. This is useful if you want to process a previously annotated
+        corpus with a new corpus config file.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X DELETE ''{{host}}/clear-annotations?corpus_id=some_corpus_name''
+
+        ```'
       operationId: clearannotations
       parameters:
       - name: corpus_id
@@ -1530,7 +1558,7 @@ paths:
       summary: check changes
       description: "Checks if any source files were changed, added or deleted since\
         \ the last Sparv run. Also checks if the config file was modified. \n\n###\
-        \ Example\n\n```.bash\ncurl -X GET -u some_username \n '{{host}}/check-changes?corpus_id=some_corpus_name'\n\
+        \ Example\n\n```.bash\ncurl -X GET '{{host}}/check-changes?corpus_id=some_corpus_name'\n\
         ```"
       operationId: checkchanges
       parameters:
@@ -1675,7 +1703,7 @@ paths:
 
         ```.bash
 
-        curl -X GET -u some_username ''{{host}}/list-exports?corpus_id=some_corpus_name''
+        curl -X GET ''{{host}}/list-exports?corpus_id=some_corpus_name''
 
         ```'
       operationId: listexports
@@ -1808,15 +1836,15 @@ paths:
 
         ```.bash
 
-        curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name''
-        --output some_corpus_name.zip
+        curl -X GET ''{{host}}/download-exports?corpus_id=some_corpus_name'' --output
+        some_corpus_name.zip
 
         ```
 
 
         ```.bash
 
-        curl -X GET -u some_username ''{{host}}/download-exports?corpus_id=some_corpus_name&file=csv/dokument1.csv&zip=false''
+        curl -X GET ''{{host}}/download-exports?corpus_id=some_corpus_name&file=csv/dokument1.csv&zip=false''
         --output dokument1.csv
 
         ```'
@@ -2847,10 +2875,19 @@ paths:
       tags:
       - Manage Exports
       summary: remove exports
-      description: "Removes all export files for the corpus from the storage server.\
-        \ Will attempt to remove exports from the Sparv server, too, but won't crash\
-        \ if this fails.\n\n### Example\n\n```.bash\ncurl -X DELETE -u some_username\
-        \ \n '{{host}}/remove-exports?corpus_id=some_corpus_name'\n```"
+      description: 'Removes all export files for the corpus from the storage server.
+        Will attempt to remove exports from the Sparv server, too, but won''t crash
+        if this fails.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X DELETE ''{{host}}/remove-exports?corpus_id=some_corpus_name''
+
+        ```'
       operationId: removeexports
       parameters:
       - name: corpus_id
@@ -2910,7 +2947,7 @@ paths:
         \ is extracted by Sparv and therefore it can only be requested after a completed\
         \ Sparv job. \n    \nThe source file name (including its file extension) must\
         \ be specified in the `file` parameter.\n\n### Example\n\n```.bash\ncurl -X\
-        \ GET -u some_username '{{host}}/download-source-text?corpus_id=some_corpus_name?file=dokument1.xml'\
+        \ GET '{{host}}/download-source-text?corpus_id=some_corpus_name?file=dokument1.xml'\
         \ --output dokument1_plain.txt\n```"
       operationId: downloadsourcetext
       parameters:

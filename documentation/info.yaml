@@ -21,9 +21,9 @@ info:
     Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
     The following two examples will thus result in the same response:
 
-    `curl -X GET -u some_username '{{host}}/list-sources?corpus_id=some_corpus_name'`
+    `curl -X GET '{{host}}/list-sources?corpus_id=some_corpus_name'`
 
-    `curl -X GET -u some_username -F "corpus_id=some_corpus_name" '{{host}}/list-sources'`
+    `curl -X GET -F "corpus_id=some_corpus_name" '{{host}}/list-sources'`
 
     # Responses
     Most responses will be in json format. Json responses contain a `status` field which will have the value `success`

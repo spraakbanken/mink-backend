@@ -136,10 +136,10 @@ if __name__ == "__main__":
     parser.add_argument("input", type=str, help="The input OAS file (in json)")
     args = parser.parse_args()
 
-    oas = convert_from_postman(args.input)
-    update(oas)
-
-    # # Use this if run with https://apitransform.com/
-    # with open(args.input) as f:
-    #     oas = yaml.load(f, Loader=yaml.FullLoader)
+    # oas = convert_from_postman(args.input)
     # update(oas)
+
+    # Use this if run with https://apitransform.com/
+    with open(args.input) as f:
+        oas = yaml.load(f, Loader=yaml.FullLoader)
+    update(oas)
