@@ -21,7 +21,7 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     objlist = []
     directory_quoted = shlex.quote(str(directory))
     p = utils.ssh_run(f"test -d {directory_quoted} && cd {directory_quoted} && "
-                      f"find * -exec ls -lgGd --time-style=full-iso {{}} \\;")
+                      f"find . -type f -exec ls -lgGd --time-style=full-iso {{}} \\;")
     if p.stderr:
         raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
 
@@ -29,7 +29,7 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     for line in contents.split("\n"):
         if not line.strip():
             continue
-        permissions, _, size, date, time, tz, obj_path = line.split()
+        permissions, _, size, date, time, tz, obj_path = line.split(maxsplit=6)
         f = Path(obj_path)
         mod_time = parse(f"{date} {time} {tz}").isoformat(timespec="seconds")
         is_dir = permissions.startswith("d")
@@ -40,7 +40,7 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
             mimetype = "directory"
         objlist.append({
             "name": f.name, "type": mimetype,
-            "last_modified": mod_time, "size": size, "path": obj_path
+            "last_modified": mod_time, "size": size, "path": obj_path[2:]
         })
     return objlist
 
