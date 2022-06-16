@@ -141,13 +141,12 @@ class Job():
 
     def check_requirements(self, ui):
         """Check if required corpus contents are present."""
-
         remote_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
         corpus_contents = storage.list_contents(ui, remote_corpus_dir, exclude_dirs=False)
         if not app.config.get("SPARV_CORPUS_CONFIG") in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.corpus_id}'!")
-        if not len([i for i in corpus_contents if i.get("path").endswith(app.config.get("SPARV_SOURCE_DIR"))]):
+        if not len([i for i in corpus_contents if i.get("path").startswith(app.config.get("SPARV_SOURCE_DIR"))]):
             self.set_status(Status.error)
             raise Exception(f"No input files provided for '{self.corpus_id}'!")
 
