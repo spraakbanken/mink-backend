@@ -71,6 +71,15 @@ def create_app():
         """Init the cache before each request."""
         g.cache = Cache()
 
+    @app.before_request
+    def debug_info():
+        """Print some debugging info about the incoming request."""
+        app.logger.debug(f"Request url:   {request.url}")
+        if request.values:
+            app.logger.debug(f"Request values:  {request.values}")
+        if request.files:
+            app.logger.debug(f"Request files: {request.files}")
+
     @app.after_request
     def cleanup(response):
         """Cleanup temporary files after request."""
