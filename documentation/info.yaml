@@ -116,6 +116,18 @@ paths:
     put:
       security:
         - ApiKeyAuth: []
+  /check-status-admin:
+    get:
+      security:
+        - ApiKeyAuth: []
+      parameters:
+      - name: corpus_id
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: mink-dXH6E6wTFf
   /check-status:
     get:
       parameters:
@@ -125,7 +137,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
   /sparv-languages:
     get:
       security: []
@@ -150,7 +162,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       - name: zip
         in: query
         required: false
@@ -164,7 +176,7 @@ paths:
         style: form
         schema:
           type: string
-          example: /Mink/min-testkorpus/export/csv/dokument2.csv
+          example: csv/dokument2.csv
       - name: dir
         in: query
         required: false
@@ -181,7 +193,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       - name: file
         in: query
         required: false
@@ -205,14 +217,14 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       - name: config
         in: query
         required: false
         style: form
         schema:
           type: string
-          example: 'metadata:\n    id: min-testkorpus\nimport:\n    document_annotation:
+          example: 'metadata:\n    id: mink-dXH6E6wTFf\nimport:\n    document_annotation:
             text\n    importer: xml_import:parse\nexport:\n    annotations:\n        -
             <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        -
             <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -

@@ -519,7 +519,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       - name: file
         in: query
         required: false
@@ -818,14 +818,14 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       - name: config
         in: query
         required: false
         style: form
         schema:
           type: string
-          example: 'metadata:\n    id: min-testkorpus\nimport:\n    document_annotation:
+          example: 'metadata:\n    id: mink-dXH6E6wTFf\nimport:\n    document_annotation:
             text\n    importer: xml_import:parse\nexport:\n    annotations:\n        -
             <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        -
             <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -
@@ -980,6 +980,22 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: No config file found for corpus 'mink-NChH7FiJyp'
+              example:
+                status: error
+                message: No config file found for corpus 'mink-NChH7FiJyp'
       deprecated: false
   /run-sparv:
     put:
@@ -1189,7 +1205,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       responses:
         '200':
           description: OK
@@ -1856,7 +1872,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dXH6E6wTFf
       - *id014
       - name: file
         in: query
@@ -1864,7 +1880,7 @@ paths:
         style: form
         schema:
           type: string
-          example: /Mink/min-testkorpus/export/csv/dokument2.csv
+          example: csv/dokument2.csv
       - name: dir
         in: query
         required: false
@@ -3340,6 +3356,102 @@ paths:
               example:
                 status: success
                 message: Queue advancing completed
+      deprecated: false
+      security:
+      - ApiKeyAuth: []
+  /check-status-admin:
+    get:
+      tags:
+      - Internal Routes
+      summary: check status admin
+      description: 'Get information for all corpora and all jobs.
+
+
+        The parameter `corpus_id` may be supplied to get more detailed info about
+        a job for a specific corpus.
+
+
+        For admin use only!'
+      operationId: checkstatusadmin
+      parameters:
+      - name: corpus_id
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: mink-dXH6E6wTFf
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Listing jobs
+                  corpora:
+                    type: array
+                    example: &id018
+                    - mink-dXH6E6wTFf
+                    - mink-NChH7FiJyp
+                    - mink-KuuMLW3oyy
+                  jobs:
+                    type: array
+                    example: &id019
+                    - corpus_id: mink-dXH6E6wTFf
+                      message: Job was aborted by the user
+                      job_status: aborted
+                      last_run_started: '2022-06-14T14:47:43+02:00'
+                    - corpus_id: mink-NChH7FiJyp
+                      message: Corpus is done processing and the results have been
+                        synced
+                      job_status: done_syncing
+                      last_run_started: '2022-06-13T11:44:43+02:00'
+                      last_run_completed: '2022-06-13T11:44:47+02:00'
+                      time_taken: 0:00:04
+              example:
+                status: success
+                message: Listing jobs
+                corpora: *id018
+                jobs: *id019
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to confirm secret key for protected route
+              example:
+                status: error
+                message: Failed to confirm secret key for protected route
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: No active job found for corpus 'mink-KuuMLW3oyy'
+              example:
+                status: error
+                message: No active job found for corpus 'mink-KuuMLW3oyy'
       deprecated: false
       security:
       - ApiKeyAuth: []

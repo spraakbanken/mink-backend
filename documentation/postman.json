@@ -1727,6 +1727,63 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+						},
+						{
+							"name": "download config 404",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/download-config?corpus_id=mink-NChH7FiJyp",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"download-config"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "mink-NChH7FiJyp"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 15 Jun 2022 14:42:36 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "gunicorn"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "83"
+								},
+								{
+									"key": "Via",
+									"value": "1.1 ws.spraakbanken.gu.se"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=1, max=500"
+								},
+								{
+									"key": "Connection",
+									"value": "Keep-Alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No config file found for corpus 'mink-NChH7FiJyp'\"\n}"
 						}
 					]
 				}
@@ -3808,6 +3865,155 @@
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Queue advancing completed\"\n}"
 						}
 					]
+				},
+				{
+					"name": "check status admin",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/check-status-admin",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"check-status-admin"
+							],
+							"query": [
+								{
+									"key": "corpus_id",
+									"value": "mink-KuuMLW3oyy",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get information for all corpora and all jobs.\n\nThe parameter `corpus_id` may be supplied to get more detailed info about a job for a specific corpus.\n\nFor admin use only!"
+					},
+					"response": [
+						{
+							"name": "check status admin 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/check-status-admin",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-status-admin"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "540"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 16 Jun 2022 14:25:13 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"corpora\": [\n        \"mink-dXH6E6wTFf\",\n        \"mink-NChH7FiJyp\",\n        \"mink-KuuMLW3oyy\"\n    ],\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-dXH6E6wTFf\",\n            \"message\": \"Job was aborted by the user\",\n            \"job_status\": \"aborted\",\n            \"last_run_started\": \"2022-06-14T14:47:43+02:00\"\n        },\n        {\n            \"corpus_id\": \"mink-NChH7FiJyp\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"job_status\": \"done_syncing\",\n            \"last_run_started\": \"2022-06-13T11:44:43+02:00\",\n            \"last_run_completed\": \"2022-06-13T11:44:47+02:00\",\n            \"time_taken\": \"0:00:04\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "check status admin 401",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/advance-queue",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"advance-queue"
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "83"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 11 Mar 2021 14:43:33 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to confirm secret key for protected route\"\n}"
+						},
+						{
+							"name": "check status admin 404",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/check-status-admin?corpus_id=mink-KuuMLW3oyy",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-status-admin"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "mink-KuuMLW3oyy"
+										}
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "82"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 16 Jun 2022 14:35:45 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No active job found for corpus 'mink-KuuMLW3oyy'\"\n}"
+						}
+					]
 				}
 			],
 			"auth": {
@@ -3815,7 +4021,7 @@
 				"apikey": [
 					{
 						"key": "value",
-						"value": "tLgJwo6UsjrB6D3x9mhsGsndC9F2PEb9",
+						"value": "{{api-key}}",
 						"type": "string"
 					},
 					{
