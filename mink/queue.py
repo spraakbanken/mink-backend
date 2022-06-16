@@ -129,3 +129,23 @@ def get_user_jobs(user):
         if job.user == user:
             user_jobs.append(job)
     return user_jobs
+
+
+def get_all_jobs():
+    """Get info for all jobs."""
+    loaded_jobs = []
+    all_jobs = g.cache.get_all_jobs()
+    for j in all_jobs:
+        job = jobs.load_from_str(g.cache.get_job(j))
+        loaded_jobs.append(job)
+    return loaded_jobs
+
+
+def get_job_by_corpus_id(corpus_id):
+    """Get a job object belonging to a corpus ID."""
+    all_jobs = g.cache.get_all_jobs()
+    for j in all_jobs:
+        job = jobs.load_from_str(g.cache.get_job(j))
+        if job.id == corpus_id:
+            return job
+    return False

@@ -6,7 +6,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request
 
-from mink import exceptions, jobs, queue, utils
+from mink import corpus_registry, exceptions, jobs, queue, utils
 from mink.sparv import storage
 from mink.sb_auth import login
 
@@ -138,6 +138,46 @@ def check_status(ui, user, corpora, auth_token):
         return utils.response("Failed to get job statuses", err=True, info=str(e)), 500
 
 
+@bp.route("/check-status-admin", methods=["GET"])
+@utils.gatekeeper
+def check_status_admin():
+    """Get information for all corpora and all jobs (admins only)."""
+    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+    corpora = corpus_registry.get_all()
+    if corpus_id:
+        try:
+            # Check if corpus exists
+            if corpus_id not in corpora:
+                return utils.response(f"Corpus '{corpus_id}' does not exist", err=True), 404
+            job = queue.get_job_by_corpus_id(corpus_id)
+            if not job:
+                return utils.response(f"No active job found for corpus '{corpus_id}'", err=True), 404
+
+            return make_status_response(job, None, admin=True)
+        except Exception as e:
+            return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 500
+
+    try:
+        # Get all job statuses for user
+        job_list = []
+        all_jobs = queue.get_all_jobs()
+        for job in all_jobs:
+            resp = make_status_response(job, None, admin=True)
+            if isinstance(resp, tuple):
+                resp = resp[0]
+            job_status = {"corpus_id": job.corpus_id}
+            job_status.update(resp.get_json())
+            job_status.pop("status")
+            job_status.pop("sparv_exports")
+            job_status.pop("available_files")
+            if "files" in job_status:
+                job_status.pop("files")
+            job_list.append(job_status)
+        return utils.response("Listing jobs", corpora=corpora, jobs=job_list)
+    except Exception as e:
+        return utils.response("Failed to get job statuses", err=True, info=str(e)), 500
+
+
 @bp.route("/abort-job", methods=["POST"])
 @login.login()
 def abort_job(_ui, user, _corpora, corpus_id, auth_token):
@@ -175,7 +215,7 @@ def clear_annotations(_ui, user, _corpora, corpus_id, auth_token):
         return utils.response("Failed to clear annotations", err=True, info=str(e)), 500
 
 
-def make_status_response(job, ui):
+def make_status_response(job, ui, admin=False):
     """Check the annotation status for a given corpus and return response."""
     status = job.status
     job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports, "available_files": job.available_files}
@@ -207,7 +247,7 @@ def make_status_response(job, ui):
                               sparv_output=output, **job_attrs)
 
     # If done annotating, retrieve exports from Sparv
-    if status == jobs.Status.done_annotating:
+    if status == jobs.Status.done_annotating and not admin:
         try:
             job.sync_results(ui)
         except Exception as e:
