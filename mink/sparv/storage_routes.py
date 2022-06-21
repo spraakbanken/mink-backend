@@ -412,7 +412,6 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
                 utils.create_zip(local_path, outf)
                 return send_file(outf, mimetype="application/zip")
             else:
-                outf = str(local_corpus_dir / Path(download_file_name))
                 storage.download_file(ui, full_download_file, local_path, corpus_id)
                 # Determine content type
                 content_type = "application/xml"
@@ -420,7 +419,7 @@ def download_export(ui, user, _corpora, corpus_id, auth_token):
                     if file_obj.get("name") == download_file_name:
                         content_type = file_obj.get("type")
                         break
-                return send_file(outf, mimetype=content_type)
+                return send_file(local_path, mimetype=content_type)
         except Exception as e:
             return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 500
 
