@@ -10,6 +10,7 @@ import zipfile
 from pathlib import Path
 
 import yaml
+from flask import g
 from flask import Response
 from flask import current_app as app
 from flask import request
@@ -140,7 +141,7 @@ def standardize_config(config, corpus_id):
 
 def get_corpora_dir(user: str, mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
-    corpora_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / Path(user)
+    corpora_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / g.request_id
     if mkdir:
         os.makedirs(str(corpora_dir), exist_ok=True)
     return corpora_dir

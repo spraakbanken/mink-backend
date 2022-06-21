@@ -8,6 +8,7 @@ from pathlib import Path
 
 import jwt
 import requests
+import shortuuid
 from flask import current_app as app
 from flask import g, request
 
@@ -33,8 +34,8 @@ def login(require_init=False, require_corpus_id=True, require_corpus_exists=True
 
             try:
                 user, corpora = _get_corpora(auth_token)
-                # Store user ID in app context for cleanup
-                g.user = user
+                # Store random ID in app context, used for temporary storage
+                g.request_id = shortuuid.uuid()
 
                 if not require_corpus_id:
                     return function(None, user, corpora, auth_token, *args, **kwargs)

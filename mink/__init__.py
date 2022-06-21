@@ -83,8 +83,8 @@ def create_app():
     @app.after_request
     def cleanup(response):
         """Cleanup temporary files after request."""
-        if "user" in g:
-            local_user_dir = Path(app.instance_path) / app.config.get("TMP_DIR") / g.user
+        if "request_id" in g:
+            local_user_dir = Path(app.instance_path) / app.config.get("TMP_DIR") / g.request_id
             shutil.rmtree(str(local_user_dir), ignore_errors=True)
         return response
 
