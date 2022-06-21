@@ -204,11 +204,11 @@ class Job():
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
         if self.files:
-            sparv_command += f" --file {' '.join(self.files)}"
+            sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.files)}"
+        script_content = f"{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
-                          f"echo '{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' "
-                          f"> {shlex.quote(self.runscript)}"
-                          f" && chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
+                          f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
+                          f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""

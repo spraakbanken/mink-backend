@@ -51,7 +51,7 @@ def download_file(_ui, remote_file_path: str, local_file: Path, corpus_id: str, 
         raise Exception(f"You don't have permission to download '{remote_file_path}'")
 
     user, host = _get_login()
-    cmd = ["rsync"]
+    cmd = ["rsync", "--protect-args"]
     if ignore_missing:
         cmd.append("--ignore-missing-args")
     cmd += [f"{user}@{host}:{remote_file_path}", f"{local_file}"]
