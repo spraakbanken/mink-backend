@@ -175,7 +175,7 @@ def _get_login():
 
 def _is_valid_path(path, corpus_id: str):
     """Check that path points to a certain corpus dir (or a descendant)."""
-    return get_corpus_dir(None, corpus_id).resolve() in Path(path).resolve().parents
+    return get_corpus_dir(None, corpus_id).resolve() in list(Path(path).resolve().parents) + [Path(path).resolve()]
 
 
 ################################################################################
