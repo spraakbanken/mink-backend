@@ -69,7 +69,7 @@ def create_zip(inpath, outpath):
 
 def check_file_ext(filename, valid_extensions=None):
     """Shell escape filename and check if its extension is valid (return False if not)."""
-    filename = Path(shlex.quote(filename))
+    filename = Path(filename)
     if valid_extensions:
         if filename.suffix not in valid_extensions:
             return False
