@@ -21,7 +21,7 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     objlist = []
     directory_quoted = shlex.quote(str(directory))
     p = utils.ssh_run(f"test -d {directory_quoted} && cd {directory_quoted} && "
-                      f"find . -type f -exec ls -lgGd --time-style=full-iso {{}} \\;")
+                      f"find . -exec ls -lgGd --time-style=full-iso {{}} \\;")
     if p.stderr:
         raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
 
