@@ -3,6 +3,7 @@ cryptography
 flask
 flask_cors
 gevent
+gunicorn
 pyjwt
 pymemcache
 pyocclient
