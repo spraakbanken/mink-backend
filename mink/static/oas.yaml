@@ -37,10 +37,12 @@ info:
     The following two examples will thus result in the same response:
 
 
-    `curl -X GET ''{{host}}/list-sources?corpus_id=some_corpus_name''`
+    `curl -X GET ''{{host}}/list-sources?corpus_id=some_corpus_name'' -H ''Authorization:
+    Bearer YOUR_JWT`
 
 
-    `curl -X GET -F "corpus_id=some_corpus_name" ''{{host}}/list-sources''`
+    `curl -X GET -F "corpus_id=some_corpus_name" ''{{host}}/list-sources'' -H ''Authorization:
+    Bearer YOUR_JWT`
 
 
     # Responses
@@ -82,7 +84,7 @@ paths:
 
         ```.bash
 
-        curl -X POST ''{{host}}/create-corpus''
+        curl -X POST ''{{host}}/create-corpus'' -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
       operationId: createcorpus
@@ -158,7 +160,7 @@ paths:
 
         ```.bash
 
-        curl ''{{host}}/list-corpora''
+        curl ''{{host}}/list-corpora'' -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
       operationId: listcorpora
@@ -220,7 +222,8 @@ paths:
 
         ```.bash
 
-        curl -X DELETE ''{{host}}/remove-corpus?corpus_id=some_corpus_name''
+        curl -X DELETE ''{{host}}/remove-corpus?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT''
 
         ```'
       operationId: removecorpus
@@ -305,7 +308,8 @@ paths:
         ```.bash
 
         curl -X PUT -F "files[]=@/absolute/path/to/localfile1.txt" -F "files[]=@/absolute/path/to/localfile2.txt"
-        ''{{host}}/upload-sources?corpus_id=some_corpus_name''
+        ''{{host}}/upload-sources?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT''
 
         ```'
       operationId: uploadsources
@@ -404,7 +408,8 @@ paths:
 
         ```.bash
 
-        curl -X GET ''{{host}}/list-sources?corpus_id=some_corpus_name''
+        curl -X GET ''{{host}}/list-sources?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT''
 
         ```'
       operationId: listsources
@@ -507,8 +512,8 @@ paths:
 
         ```.bash
 
-        curl -X GET ''{{host}}/download-sources?corpus_id=some_corpus_name'' --output
-        some_corpus_name_sources.zip
+        curl -X GET ''{{host}}/download-sources?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT'' --output some_corpus_name_sources.zip
 
         ```'
       operationId: downloadsources
@@ -683,6 +688,7 @@ paths:
         ```.bash
 
         curl -X DELETE ''{{host}}/remove-sources?corpus_id=some_corpus_name&remove=dokument1.xml,dokument2.xml''
+        -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
       operationId: removesources
@@ -808,6 +814,7 @@ paths:
         ```.bash
 
         curl -X PUT -F "files[]=@/absolute/path/to/config.yaml;type=text/yaml" ''{{host}}/upload-config?corpus_id=some_corpus_name''
+        -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
       operationId: uploadconfig
@@ -908,7 +915,8 @@ paths:
 
         ```.bash
 
-        curl -X GET ''{{host}}/download-config?corpus_id=some_corpus_name''
+        curl -X GET ''{{host}}/download-config?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT''
 
         ```'
       operationId: downloadconfig
@@ -1024,7 +1032,7 @@ paths:
         ```.bash
 
         curl -X PUT -F "corpus_id=some_corpus_name" -F "exports=csv_export:csv,stats_export:freq_list,xml_export:pretty"
-        ''{{host}}/run-sparv''
+        ''{{host}}/run-sparv'' -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
       operationId: runSparv
@@ -1194,7 +1202,7 @@ paths:
 
         ```.bash
 
-        curl -X GET ''{{host}}/check-status''
+        curl -X GET ''{{host}}/check-status'' -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
       operationId: checkstatus
@@ -1402,7 +1410,8 @@ paths:
 
         ```.bash
 
-        curl -X POST ''{{host}}/abort-job?corpus_id=some_corpus_name''
+        curl -X POST ''{{host}}/abort-job?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT''
 
         ```'
       operationId: abortjob
@@ -1491,7 +1500,8 @@ paths:
 
         ```.bash
 
-        curl -X DELETE ''{{host}}/clear-annotations?corpus_id=some_corpus_name''
+        curl -X DELETE ''{{host}}/clear-annotations?corpus_id=some_corpus_name'' -H
+        ''Authorization: Bearer YOUR_JWT''
 
         ```'
       operationId: clearannotations
@@ -1574,8 +1584,8 @@ paths:
       summary: check changes
       description: "Checks if any source files were changed, added or deleted since\
         \ the last Sparv run. Also checks if the config file was modified. \n\n###\
-        \ Example\n\n```.bash\ncurl -X GET '{{host}}/check-changes?corpus_id=some_corpus_name'\n\
-        ```"
+        \ Example\n\n```.bash\ncurl -X GET '{{host}}/check-changes?corpus_id=some_corpus_name'\
+        \ -H 'Authorization: Bearer YOUR_JWT'\n```"
       operationId: checkchanges
       parameters:
       - name: corpus_id
@@ -1719,7 +1729,8 @@ paths:
 
         ```.bash
 
-        curl -X GET ''{{host}}/list-exports?corpus_id=some_corpus_name''
+        curl -X GET ''{{host}}/list-exports?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT''
 
         ```'
       operationId: listexports
@@ -1852,8 +1863,8 @@ paths:
 
         ```.bash
 
-        curl -X GET ''{{host}}/download-exports?corpus_id=some_corpus_name'' --output
-        some_corpus_name.zip
+        curl -X GET ''{{host}}/download-exports?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT'' --output some_corpus_name.zip
 
         ```
 
@@ -1861,7 +1872,7 @@ paths:
         ```.bash
 
         curl -X GET ''{{host}}/download-exports?corpus_id=some_corpus_name&file=csv/dokument1.csv&zip=false''
-        --output dokument1.csv
+        -H ''Authorization: Bearer YOUR_JWT'' --output dokument1.csv
 
         ```'
       operationId: downloadexports
@@ -2901,7 +2912,8 @@ paths:
 
         ```.bash
 
-        curl -X DELETE ''{{host}}/remove-exports?corpus_id=some_corpus_name''
+        curl -X DELETE ''{{host}}/remove-exports?corpus_id=some_corpus_name'' -H ''Authorization:
+        Bearer YOUR_JWT''
 
         ```'
       operationId: removeexports
@@ -2964,7 +2976,7 @@ paths:
         \ Sparv job. \n    \nThe source file name (including its file extension) must\
         \ be specified in the `file` parameter.\n\n### Example\n\n```.bash\ncurl -X\
         \ GET '{{host}}/download-source-text?corpus_id=some_corpus_name?file=dokument1.xml'\
-        \ --output dokument1_plain.txt\n```"
+        \ -H 'Authorization: Bearer YOUR_JWT' --output dokument1_plain.txt\n```"
       operationId: downloadsourcetext
       parameters:
       - name: corpus_id
