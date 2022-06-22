@@ -462,7 +462,7 @@ class DefaultJob():
                           f"echo 'metadata:\n  language: {self.lang}' > "
                           f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}")
         if p.stderr:
-            raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
+            raise Exception(f"Failed to list languages! {p.stderr.decode()}")
 
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} languages"
@@ -488,7 +488,7 @@ class DefaultJob():
                           f"echo 'metadata:\n  language: {self.lang}' > "
                           f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}")
         if p.stderr:
-            raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
+            raise Exception(f"Failed to list exports! {p.stderr.decode()}")
 
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} run -l"
