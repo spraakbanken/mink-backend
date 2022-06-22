@@ -507,5 +507,6 @@ class DefaultJob():
             else:
                 matchobj = re.match(r"(\S+)\s+(.+)$", line.strip())
                 if matchobj:
-                    exports.append({"export": matchobj.group(1), "description": matchobj.group(2)})
+                    if matchobj.group(1) not in ["Other", "Note:", "what", "'export.default'"]:
+                        exports.append({"export": matchobj.group(1), "description": matchobj.group(2)})
         return exports

@@ -3260,6 +3260,8 @@ paths:
                   exports:
                     type: array
                     example: &id017
+                    - export: xml_export:pretty
+                      description: XML export with one token element per line
                     - export: conll_export:conllu
                       description: CoNLL-U (SBX version) export
                     - export: csv_export:csv
@@ -3270,6 +3272,8 @@ paths:
                       description: CWB encode, scrambled
                     - export: cwb:info
                       description: CWB .info file
+                    - export: cwb:info_scrambled
+                      description: CWB .info file for scrambled corpus
                     - export: cwb:vrt
                       description: VRT export
                     - export: cwb:vrt_scrambled
@@ -3282,8 +3286,16 @@ paths:
                       description: Timespan SQL data for use in Korp
                     - export: stats_export:freq_list
                       description: Corpus word frequency list
-                    - export: stats_export:freq_list_simple
-                      description: Corpus word frequency list (withouth Swedish annotations)
+                    - export: stats_export:sbx_freq_list
+                      description: Corpus word frequency list
+                    - export: stats_export:sbx_freq_list_date
+                      description: Corpus word frequency list
+                    - export: stats_export:sbx_freq_list_simple
+                      description: Corpus word frequency list (without Swedish annotations)
+                    - export: stats_export:sbx_freq_list_simple_swe
+                      description: Corpus word frequency list (without Swedish annotations)
+                    - export: version_info:yaml_export
+                      description: YAML file containing annotation version info
                     - export: xml_export:combined
                       description: Combined XML export (all results in one file)
                     - export: xml_export:combined_scrambled
@@ -3294,8 +3306,6 @@ paths:
                       description: Compressed combined scrambled XML export
                     - export: xml_export:preserved_format
                       description: XML export preserving whitespaces from source file
-                    - export: xml_export:pretty
-                      description: XML export with one token element per line
                     - export: xml_export:scrambled
                       description: Scrambled XML export
               example:
