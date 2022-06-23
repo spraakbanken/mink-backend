@@ -68,13 +68,13 @@ def create_zip(inpath, outpath):
     zipf.close()
 
 
-def check_file_ext(filename, valid_extensions=None):
-    """Shell escape filename and check if its extension is valid (return False if not)."""
+def check_file_ext(filename, valid_extensions=None) -> bool:
+    """Check if file extension is valid."""
     filename = Path(filename)
     if valid_extensions:
         if filename.suffix not in valid_extensions:
             return False
-    return filename
+    return True
 
 
 def check_file_compatible(filename, source_dir, ui):
