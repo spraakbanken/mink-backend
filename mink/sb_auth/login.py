@@ -73,13 +73,13 @@ def read_jwt_key():
 
 
 def _get_corpora(auth_token, include_read=False):
-    """Check validity of auth_token and get Mink corpora that user is admin for."""
+    """Check validity of auth_token and get Mink corpora that user has write access for."""
     corpora = []
     user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
     if user_token["exp"] < time.time():
         return utils.response("The provided JWT has expired", err=True), 401
 
-    min_level = "ADMIN"
+    min_level = "WRITE"
     if include_read:
         min_level = "READ"
     if "scope" in user_token and "corpora" in user_token["scope"]:
