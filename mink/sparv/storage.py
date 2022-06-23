@@ -72,12 +72,12 @@ def get_file_contents(_ui, filepath):
     return p.stdout.decode()
 
 
-def write_file_contents(_ui, filepath: str, file_contents: str, corpus_id: str):
+def write_file_contents(_ui, filepath: str, file_contents: bytes, corpus_id: str):
     """Write contents to a new file on the Sparv server."""
     if not _is_valid_path(filepath, corpus_id):
         raise Exception(f"You don't have permission to edit '{filepath}'")
 
-    p = utils.ssh_run(f"echo {shlex.quote(file_contents)} >{shlex.quote(str(filepath))}")
+    p = utils.ssh_run(f"cat - > {shlex.quote(str(filepath))}", input=file_contents)
     if p.stderr:
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 

@@ -157,7 +157,7 @@ def upload_sources(ui, _user, corpora, corpus_id, auth_token):
                 if not utils.validate_xml(file_contents):
                     return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
                                           err=True, file=f.filename, info="invalid XML"), 400
-            storage.write_file_contents(ui, str(source_dir / name), file_contents.decode("UTF-8"), corpus_id)
+            storage.write_file_contents(ui, str(source_dir / name), file_contents, corpus_id)
         return utils.response(f"Source files successfully added to '{corpus_id}'")
     except Exception as e:
         return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 500
@@ -303,7 +303,8 @@ def upload_config(ui, _user, corpora, corpus_id, auth_token):
 
         try:
             new_config = utils.standardize_config(config_contents, corpus_id)
-            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config, corpus_id)
+            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config.encode("UTF-8"),
+                                        corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
@@ -316,7 +317,8 @@ def upload_config(ui, _user, corpora, corpus_id, auth_token):
                 if not compatible:
                     return resp, 400
             new_config = utils.standardize_config(config_txt, corpus_id)
-            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config, corpus_id)
+            storage.write_file_contents(ui, str(storage.get_config_file(ui, corpus_id)), new_config.encode("UTF-8"),
+                                        corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
             return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))

@@ -38,12 +38,12 @@ def gatekeeper(function):
     return decorator
 
 
-def ssh_run(command):
+def ssh_run(command, input=None):
     """Execute 'command' on server and return process."""
     user = app.config.get("SPARV_USER")
     host = app.config.get("SPARV_HOST")
     p = subprocess.run(["ssh", "-i", app.config.get("SSH_KEY"), f"{user}@{host}", command],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, input=input)
     return p
 
 
