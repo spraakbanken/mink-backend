@@ -120,8 +120,10 @@ def unqueue_old():
         g.cache.set_job_queue(queue)
 
 
-def get_user_jobs(user, corpora: list):
+def get_user_jobs(user, corpora: list = None):
     """Get all jobs belonging to one user or to a corpus in 'corpora'."""
+    if corpora is None:
+        corpora = []
     all_jobs = g.cache.get_all_jobs()
     user_jobs = []
     for j in all_jobs:
