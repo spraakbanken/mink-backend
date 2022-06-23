@@ -15,10 +15,15 @@ from flask import g, request
 from mink import exceptions, utils
 
 
-def login(require_init=False, require_corpus_id=True, require_corpus_exists=True):
+def login(require_init=False, include_read=False, require_corpus_id=True, require_corpus_exists=True):
     """Attempt to login on sb-auth.
 
-    Optionally require that Min SB is initialized, corpus ID was provided and corpus exists.
+    Args:
+        require_init (bool, optional): Requires Mink to be initialised. Defaults to False.
+        include_read (bool, optional): Include corpora that the user has read access to. Defaults to False.
+        require_corpus_id (bool, optional): This route requires the user to supply a corpus ID. Defaults to True.
+        require_corpus_exists (bool, optional): This route requires that the supplied corpus ID occurs in the JWT.
+            Defaults to True.
     """
     def decorator(function):
         @functools.wraps(function)  # Copy original function's information, needed by Flask
@@ -33,7 +38,7 @@ def login(require_init=False, require_corpus_id=True, require_corpus_exists=True
                 return utils.response("No authorization token provided", err=True), 401
 
             try:
-                user, corpora = _get_corpora(auth_token)
+                user, corpora = _get_corpora(auth_token, include_read)
                 # Store random ID in app context, used for temporary storage
                 g.request_id = shortuuid.uuid()
 
@@ -67,16 +72,19 @@ def read_jwt_key():
     app.config["JWT_KEY"] = open(Path(app.instance_path) / app.config.get("SBAUTH_PUBKEY_FILE")).read()
 
 
-def _get_corpora(auth_token):
+def _get_corpora(auth_token, include_read=False):
     """Check validity of auth_token and get Mink corpora that user is admin for."""
     corpora = []
     user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
     if user_token["exp"] < time.time():
         return utils.response("The provided JWT has expired", err=True), 401
 
+    min_level = "ADMIN"
+    if include_read:
+        min_level = "READ"
     if "scope" in user_token and "corpora" in user_token["scope"]:
         for corpus, level in user_token["scope"]["corpora"].items():
-            if level >= user_token["levels"]["ADMIN"] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
+            if level >= user_token["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
                 corpora.append(corpus)
     user = re.sub(r"[^\w\-_\.]", "", (user_token["idp"] + "-" + user_token["sub"]))
     return user, corpora

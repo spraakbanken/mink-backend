@@ -152,7 +152,7 @@ paths:
       tags:
       - Manage Corpora
       summary: list corpora
-      description: 'Lists the names of previously uploaded corpora.
+      description: 'Lists the IDs of previously uploaded corpora.
 
 
         ### Example
@@ -187,6 +187,67 @@ paths:
                 status: success
                 message: Listing available corpora
                 corpora: *id001
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+      deprecated: false
+  /list-korp-corpora:
+    get:
+      tags:
+      - Manage Corpora
+      summary: list Korp corpora
+      description: 'Lists the IDs of Mink corpora installed in Korp.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl ''{{host}}/list-korp-corpora'' -H ''Authorization: Bearer YOUR_JWT''
+
+        ```'
+      operationId: listKorpcorpora
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Listing corpora installed in Korp
+                  corpora:
+                    type: array
+                    example: &id002
+                    - mink-dXH6E6wTFf
+              example:
+                status: success
+                message: Listing corpora installed in Korp
+                corpora: *id002
         '401':
           description: UNAUTHORIZED
           content:
@@ -439,7 +500,7 @@ paths:
                     example: Current source files for 'mink-dXH6E6wTFf'
                   contents:
                     type: array
-                    example: &id002
+                    example: &id003
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:05:18+02:00'
@@ -453,7 +514,7 @@ paths:
               example:
                 status: success
                 message: Current source files for 'mink-dXH6E6wTFf'
-                contents: *id002
+                contents: *id003
         '400':
           description: BAD REQUEST
           content:
@@ -532,7 +593,7 @@ paths:
         schema:
           type: string
           example: dokument1.xml
-      - &id014
+      - &id015
         name: zip
         in: query
         required: false
@@ -779,17 +840,17 @@ paths:
                     example: Failed to remove some source files form 'mink-dXH6E6wTFf'.
                   failed:
                     type: array
-                    example: &id003
+                    example: &id004
                     - dokument2.xml
                   succeeded:
                     type: array
-                    example: &id004
+                    example: &id005
                     - dokument1.xml
               example:
                 status: error
                 message: Failed to remove some source files form 'mink-dXH6E6wTFf'.
-                failed: *id003
-                succeeded: *id004
+                failed: *id004
+                succeeded: *id005
       deprecated: false
   /upload-config:
     put:
@@ -1079,13 +1140,13 @@ paths:
                     example: waiting
                   sparv_exports:
                     type: array
-                    example: &id005
+                    example: &id006
                     - csv_export:csv
                     - stats_export:freq_list
                     - xml_export:pretty
                   available_files:
                     type: array
-                    example: &id006
+                    example: &id007
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-10T15:05:37+02:00'
@@ -1098,7 +1159,7 @@ paths:
                       path: mink-data/d/mink-dXH6E6wTFf/source/dokument1.xml
                   files:
                     type: array
-                    example: &id007
+                    example: &id008
                     - dokument1
                     - dokument2
                   priority:
@@ -1108,9 +1169,9 @@ paths:
                 status: success
                 message: Job has been queued
                 job_status: waiting
-                sparv_exports: *id005
-                available_files: *id006
-                files: *id007
+                sparv_exports: *id006
+                available_files: *id007
+                files: *id008
                 priority: 1
         '400':
           description: Bad Request
@@ -1230,7 +1291,7 @@ paths:
                     example: Listing jobs
                   jobs:
                     type: array
-                    example: &id008
+                    example: &id009
                     - corpus_id: mink-KuuMLW3oyy
                       message: An error occurred while annotating
                       sparv_output: "Sparv exited with the following error messages:\n\
@@ -1328,7 +1389,7 @@ paths:
               example:
                 status: success
                 message: Listing jobs
-                jobs: *id008
+                jobs: *id009
         '400':
           description: BAD REQUEST
           content:
@@ -1626,7 +1687,7 @@ paths:
                     example: true
                   changed_config:
                     type: object
-                    example: &id009
+                    example: &id010
                       name: config.yaml
                       type: application/yaml
                       last_modified: '2021-11-25T15:52:17+00:00'
@@ -1634,7 +1695,7 @@ paths:
                       path: config.yaml
                   added_sources:
                     type: array
-                    example: &id010
+                    example: &id011
                     - name: dokument4.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:35:30+00:00'
@@ -1642,7 +1703,7 @@ paths:
                       path: dokument4.xml
                   changed_sources:
                     type: array
-                    example: &id011
+                    example: &id012
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2021-11-25T15:56:51+00:00'
@@ -1655,7 +1716,7 @@ paths:
                       path: dokument2.xml
                   deleted_sources:
                     type: array
-                    example: &id012
+                    example: &id013
                     - name: dokument3.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:22:54+00:00'
@@ -1672,10 +1733,10 @@ paths:
                 sources_added: true
                 sources_changed: true
                 sources_deleted: true
-                changed_config: *id009
-                added_sources: *id010
-                changed_sources: *id011
-                deleted_sources: *id012
+                changed_config: *id010
+                added_sources: *id011
+                changed_sources: *id012
+                deleted_sources: *id013
                 last_run_started: '2021-11-19T14:16:10+00:00'
         '400':
           description: BAD REQUEST
@@ -1760,7 +1821,7 @@ paths:
                     example: Current export files for 'mink-dXH6E6wTFf'
                   contents:
                     type: array
-                    example: &id013
+                    example: &id014
                     - name: dokument1.csv
                       type: text/csv
                       last_modified: '2022-06-10T16:07:33+02:00'
@@ -1799,7 +1860,7 @@ paths:
               example:
                 status: success
                 message: Current export files for 'mink-dXH6E6wTFf'
-                contents: *id013
+                contents: *id014
         '400':
           description: BAD REQUEST
           content:
@@ -1884,7 +1945,7 @@ paths:
         schema:
           type: string
           example: mink-dXH6E6wTFf
-      - *id014
+      - *id015
       - name: file
         in: query
         required: false
@@ -3125,7 +3186,7 @@ paths:
                     example: Listing existing job status codes
                   status_codes:
                     type: array
-                    example: &id015
+                    example: &id016
                     - code: 0
                       name: none
                       description: Job does not exist
@@ -3156,7 +3217,7 @@ paths:
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes: *id015
+                status_codes: *id016
       deprecated: false
       security: []
   /sparv-languages:
@@ -3183,7 +3244,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id016
+                    example: &id017
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -3229,7 +3290,7 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id016
+                languages: *id017
       deprecated: false
       security: []
   /sparv-exports:
@@ -3271,7 +3332,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id017
+                    example: &id018
                     - export: xml_export:pretty
                       description: XML export with one token element per line
                     - export: conll_export:conllu
@@ -3324,7 +3385,7 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id017
+                exports: *id018
       deprecated: false
       security: []
   /advance-queue:
@@ -3419,13 +3480,13 @@ paths:
                     example: Listing jobs
                   corpora:
                     type: array
-                    example: &id018
+                    example: &id019
                     - mink-dXH6E6wTFf
                     - mink-NChH7FiJyp
                     - mink-KuuMLW3oyy
                   jobs:
                     type: array
-                    example: &id019
+                    example: &id020
                     - corpus_id: mink-dXH6E6wTFf
                       message: Job was aborted by the user
                       job_status: aborted
@@ -3440,8 +3501,8 @@ paths:
               example:
                 status: success
                 message: Listing jobs
-                corpora: *id018
-                jobs: *id019
+                corpora: *id019
+                jobs: *id020
         '401':
           description: UNAUTHORIZED
           content:

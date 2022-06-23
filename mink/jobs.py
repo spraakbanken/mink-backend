@@ -52,7 +52,7 @@ class Job():
     """A job item holding information about a Sparv job."""
 
     def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, completed=None, sparv_exports=None,
-                 files=None, available_files=None):
+                 files=None, available_files=None, installed_korp=False):
         self.user = user
         self.corpus_id = corpus_id
         self.id = self.get_id()
@@ -63,6 +63,7 @@ class Job():
         self.sparv_exports = sparv_exports or []
         self.files = files or []
         self.available_files = available_files or []
+        self.installed_korp = installed_korp
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_HOST")
@@ -73,7 +74,8 @@ class Job():
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
                            "started": self.started, "completed": self.completed, "sparv_exports": self.sparv_exports,
-                           "files": self.files, "available_files": self.available_files})
+                           "files": self.files, "available_files": self.available_files, "installed_korp":
+                           self.installed_korp})
 
     def save(self):
         """Write a job item to the cache and filesystem."""

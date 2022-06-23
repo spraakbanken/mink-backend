@@ -70,12 +70,12 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-corpus",
+									"raw": "{{host}}/create-corpus",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"remove-corpus"
+										"create-corpus"
 									]
 								}
 							},
@@ -162,7 +162,7 @@
 								"list-corpora"
 							]
 						},
-						"description": "Lists the names of previously uploaded corpora.\n\n### Example\n\n```.bash\ncurl '{{host}}/list-corpora' -H 'Authorization: Bearer YOUR_JWT'\n```"
+						"description": "Lists the IDs of previously uploaded corpora.\n\n### Example\n\n```.bash\ncurl '{{host}}/list-corpora' -H 'Authorization: Bearer YOUR_JWT'\n```"
 					},
 					"response": [
 						{
@@ -210,18 +210,109 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-corpus?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/list-corpora",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"remove-corpus"
+										"list-corpora"
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "97"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 02 Jun 2022 12:08:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+						}
+					]
+				},
+				{
+					"name": "list Korp corpora",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/list-korp-corpora",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"list-korp-corpora"
+							]
+						},
+						"description": "Lists the IDs of Mink corpora installed in Korp.\n\n### Example\n\n```.bash\ncurl '{{host}}/list-korp-corpora' -H 'Authorization: Bearer YOUR_JWT'\n```"
+					},
+					"response": [
+						{
+							"name": "list Korp corpora 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/list-korp-corpora",
+									"host": [
+										"{{host}}"
 									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
-										}
+									"path": [
+										"list-korp-corpora"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "94"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 02 Jun 2022 14:55:40 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing corpora installed in Korp\",\n    \"corpora\": [\n        \"mink-dXH6E6wTFf\"\n    ]\n}"
+						},
+						{
+							"name": "list Korp corpora 401",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/list-korp-corpora",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"list-korp-corpora"
 									]
 								}
 							},
@@ -642,12 +733,12 @@
 									]
 								},
 								"url": {
-									"raw": "{{host}}/update-corpus?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/upload-sources?corpus_id=mink-dXH6E6wTFf",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"update-corpus"
+										"upload-sources"
 									],
 									"query": [
 										{
@@ -988,12 +1079,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-corpus?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-sources?corpus_id=mink-dXH6E6wTFf",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"download-corpus"
+										"download-sources"
 									],
 									"query": [
 										{
@@ -1258,8 +1349,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{host}}/remove-sources?corpus_id=mink-dXH6E6wTFf&remove=dokument1.xml,dokument2.xml",
-									"protocol": "{{protocol}}",
+									"raw": "{{host}}/remove-sources?corpus_id=mink-dXH6E6wTFf&remove=dokument1.xml,dokument2.xml",
 									"host": [
 										"{{host}}"
 									],
@@ -2101,8 +2191,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{host}}/check-status",
-									"protocol": "{{protocol}}",
+									"raw": "{{host}}/check-status",
 									"host": [
 										"{{host}}"
 									],
@@ -3068,12 +3157,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/list-exports?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/download-exports?corpus_id=mink-dXH6E6wTFF",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"list-exports"
+										"download-exports"
 									],
 									"query": [
 										{
@@ -3935,12 +4024,12 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/advance-queue",
+									"raw": "{{host}}/check-status-admin",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"advance-queue"
+										"check-status-admin"
 									]
 								}
 							},
