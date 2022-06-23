@@ -1,10 +1,10 @@
-# min-sb-backend
+# Mink Backend
 
 Flask application serving as a backend to Mink.
 
 
 ## Prerequisites
-* [Python 3.6.1](http://python.org/) or newer
+* [Python 3.8](http://python.org/) or newer
 * [memcached](http://memcached.org/)
 
 
