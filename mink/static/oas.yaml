@@ -1316,6 +1316,7 @@ paths:
                         last_modified: '2021-11-16T13:39:08+00:00'
                         size: 115
                         path: dokument2.xml
+                      installed_korp: false
                       last_run_started: '2021-11-17T09:28:32+00:00'
                       time_taken: 0:00:42
                     - corpus_id: mink-dXH6E6wTFf
@@ -1343,6 +1344,7 @@ paths:
                         last_modified: '2021-11-19T13:39:08+00:00'
                         size: 115
                         path: dokument2.xml
+                      installed_korp: false
                       files:
                       - dokument1
                       - dokument2
@@ -1367,6 +1369,7 @@ paths:
                         last_modified: '2021-11-19T10:39:08+00:00'
                         size: 115
                         path: dokument2.xml
+                      installed_korp: false
                       last_run_started: '2021-11-19T10:54:10+00:00'
                       time_taken: 0:10:32
                     - corpus_id: mink-nEyfev2RDM
@@ -1385,6 +1388,7 @@ paths:
                         last_modified: '2021-11-29T13:39:08+00:00'
                         size: 115
                         path: dokument2.xml
+                      installed_korp: false
                       priority: 1
               example:
                 status: success
