@@ -11,6 +11,7 @@ from flask import request, send_file
 from mink import corpus_registry, exceptions, jobs, queue, utils
 from mink.sb_auth import login
 from mink.sparv import storage
+from mink.sparv import utils as sparv_utils
 
 bp = Blueprint("sparv_storage", __name__)
 
@@ -141,8 +142,8 @@ def upload_sources(ui, _user, corpora, corpus_id, auth_token):
         # Upload data
         source_dir = storage.get_source_dir(ui, corpus_id)
         for f in files[0]:
-            name = utils.check_file_ext(f.filename, app.config.get("SPARV_IMPORTER_MODULES", {}).keys())
-            if not name:
+            name = sparv_utils.secure_filename(f.filename)
+            if not utils.check_file_ext(name, app.config.get("SPARV_IMPORTER_MODULES", {}).keys()):
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid "
                                       "file extension", err=True, file=f.filename, info="invalid file extension"), 400
             compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir, ui)
