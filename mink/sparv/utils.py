@@ -1,5 +1,7 @@
 """Utility functions for calculating paths on the Sparv server."""
 
+import os
+import unicodedata
 from pathlib import Path
 
 from flask import current_app as app
@@ -45,3 +47,14 @@ def get_config_file(corpus_id: str) -> Path:
     """Get path to corpus config file."""
     corpus_dir = get_corpus_dir(corpus_id)
     return corpus_dir / Path(app.config.get("SPARV_CORPUS_CONFIG"))
+
+
+def secure_filename(filename: str) -> str:
+    """Return a secure version of a filename."""
+    filename = unicodedata.normalize("NFC", filename)
+
+    for sep in os.path.sep, os.path.altsep:
+        if sep:
+            filename = filename.replace(sep, " ")
+
+    return filename.strip()
