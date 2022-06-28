@@ -6,6 +6,7 @@ This scheduler will make a call to the 'advance-queue' route of the mink API.
 import logging
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from urllib import error, parse, request
 
@@ -86,7 +87,8 @@ if __name__ == '__main__':
     scheduler = BlockingScheduler()
     scheduler.add_executor("threadpool", max_workers=1)
     scheduler.add_job(advance_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
-    scheduler.add_job(ping_healthchecks, "interval", [config], minutes=config.get("PING_FREQUENCY", 60))
+    scheduler.add_job(ping_healthchecks, "interval", [config], minutes=config.get("PING_FREQUENCY", 60),
+                      next_run_time=datetime.now())
 
     try:
         scheduler.start()
