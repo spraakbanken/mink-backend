@@ -1432,35 +1432,6 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: An error occurred while annotating
-                  sparv_output:
-                    type: string
-                    example: "Sparv exited with the following error messages:\n\n\
-                      The following output files were expected but are missing:\n\
-                      \ • sparv-workdir/dokument1/textt/@span\nThere can be many reasons\
-                      \ for this. Please make sure that there are no problems \nwith\
-                      \ the corpus configuration file, like misspelled annotation\
-                      \ names or \nreferences to non-existent source annotations."
-              example:
-                status: error
-                message: An error occurred while annotating
-                sparv_output: "Sparv exited with the following error messages:\n\n\
-                  The following output files were expected but are missing:\n • sparv-workdir/dokument1/textt/@span\n\
-                  There can be many reasons for this. Please make sure that there\
-                  \ are no problems \nwith the corpus configuration file, like misspelled\
-                  \ annotation names or \nreferences to non-existent source annotations."
       deprecated: false
   /abort-job:
     post:

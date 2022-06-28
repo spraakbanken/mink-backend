@@ -2301,51 +2301,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
-						},
-						{
-							"name": "check status 500",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{host}}/check-status?corpus_id=mink-dXH6E6wTFf",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"check-status"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
-										}
-									]
-								}
-							},
-							"status": "Internal Server Error",
-							"code": 500,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "443"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 18 Mar 2021 15:24:53 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"An error occurred while annotating\",\n    \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\"\n}"
 						}
 					]
 				},

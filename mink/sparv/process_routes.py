@@ -253,9 +253,9 @@ def make_status_response(job, ui, admin=False):
             job.sync_results(ui)
         except Exception as e:
             return utils.response("Sparv was run successfully but exports failed to upload to the storage server",
-                                  err=True, info=str(e)), 500
-        return utils.response("Sparv was run successfully! Starting to sync results",
-                              warnings=warnings, errors=errors, sparv_output=output, **job_attrs)
+                                  info=str(e))
+        return utils.response("Sparv was run successfully! Starting to sync results", warnings=warnings, errors=errors,
+                              sparv_output=output, **job_attrs)
 
     if status == jobs.Status.syncing_results:
         return utils.response("Result files are being synced from the Sparv server", **job_attrs)
@@ -265,8 +265,8 @@ def make_status_response(job, ui, admin=False):
                               errors=errors, sparv_output=output, **job_attrs)
 
     if status == jobs.Status.error:
-        return utils.response("An error occurred while annotating", err=True, warnings=warnings,
-                              errors=errors, sparv_output=output, **job_attrs), 500
+        return utils.response("An error occurred while annotating", warnings=warnings, errors=errors,
+                              sparv_output=output, **job_attrs)
 
     return utils.response("Cannot handle this Sparv status yet", warnings=warnings, errors=errors, sparv_output=output,
                           **job_attrs), 501
