@@ -201,13 +201,13 @@ class Job():
 
     def run_sparv(self):
         """Start a Sparv annotation process."""
-        self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        self.completed = None
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
         if self.files:
             sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.files)}"
         script_content = f"{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
+        self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+        self.completed = None
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
                           f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
                           f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
@@ -215,6 +215,7 @@ class Job():
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
             self.set_status(Status.error)
+            self.started = None
             raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
 
         # Get pid from Sparv process and store job info
