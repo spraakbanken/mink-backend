@@ -4,6 +4,7 @@ import functools
 import json
 import re
 import time
+import traceback
 from pathlib import Path
 
 import jwt
@@ -39,6 +40,10 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
 
             try:
                 user, corpora = _get_corpora(auth_token, include_read)
+            except Exception as e:
+                return utils.response("Failed to authenticate", err=True, info=str(e)), 401
+
+            try:
                 # Store random ID in app context, used for temporary storage
                 g.request_id = shortuuid.uuid()
 
@@ -61,8 +66,11 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
 
                 return function(None, user, corpora, corpus_id, auth_token)
 
+            # Catch everything else and return a traceback
             except Exception as e:
-                return utils.response("Failed to authenticate", err=True, info=str(e)), 401
+                traceback_str = f"{e}: {''.join(traceback.format_tb(e.__traceback__))}"
+                return utils.response("Something went wrong", err=True, info=traceback_str), 500
+
         return wrapper
     return decorator
 
