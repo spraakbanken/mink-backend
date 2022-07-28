@@ -37,15 +37,18 @@ def init():
         app.logger.debug(f"All jobs in cache: {g.cache.get_all_jobs()}")
 
 
-def add(job):
+def add(job, install=False):
     """Add a job item to the queue."""
     queue = g.cache.get_job_queue()
 
     # Avoid starting multiple jobs for same corpus simultaneously
-    if job.id in queue and jobs.Status.none < job.status < jobs.Status.done_annotating:
+    if job.id in queue and jobs.Status.is_active(job.status):
         raise Exception("There is an unfinished job for this corpus!")
 
-    job.set_status(jobs.Status.waiting)
+    if install:
+        job.set_status(jobs.Status.waiting_install)
+    else:
+        job.set_status(jobs.Status.waiting)
     if job.id in queue:
         queue.pop(queue.index(job.id))
     queue.append(job.id)
@@ -94,23 +97,21 @@ def get_running_waiting():
     queue = g.cache.get_job_queue()
     for j in queue:
         job = jobs.load_from_str(g.cache.get_job(j))
-        status = job.status
-        if status == jobs.Status.annotating:
+        if jobs.Status.is_running(job.status):
             running_jobs.append(job)
-        elif status == jobs.Status.waiting:
+        elif jobs.Status.is_waiting(job.status):
             waiting_jobs.append(job)
 
     return running_jobs, waiting_jobs
 
 
-def unqueue_old():
+def unqueue_inactive():
     """Unqueue jobs that are done, aborted or erroneous."""
     queue = g.cache.get_job_queue()
     old_jobs = []
     for j in queue:
         job = jobs.load_from_str(g.cache.get_job(j))
-        status = job.status
-        if status in [jobs.Status.done_annotating, jobs.Status.error, jobs.Status.aborted]:
+        if jobs.Status.is_inactive(job.status):
             old_jobs.append(j)
 
     if old_jobs:

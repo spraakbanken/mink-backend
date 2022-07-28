@@ -132,6 +132,12 @@ def standardize_config(config, corpus_id):
         if not config_yaml.get("sparv", {}):
             config_yaml.pop("sparv")
 
+    # Remove settings that a Mink user is not allowed to modify
+    config_yaml.pop("cwb", None)
+    config_yaml.pop("korp", None)
+    # Remove all install targets (this is handled in the installation step instead)
+    config_yaml.pop("install", None)
+
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True)
 
 

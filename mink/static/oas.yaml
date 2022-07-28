@@ -593,7 +593,7 @@ paths:
         schema:
           type: string
           example: dokument1.xml
-      - &id015
+      - &id018
         name: zip
         in: query
         required: false
@@ -1082,9 +1082,8 @@ paths:
         e.g. `files=dokument1,dokument2`.
 
 
-        There can only be one annotation job for each corpus at a time. A job must
-        finish annotating and syncing to the storage server or be aborted before a
-        new one can be started.
+        There can only be one active job (annotation or installation) for each corpus
+        at a time. A job must finish or be aborted before a new one can be started.
 
 
         ### Example
@@ -1293,7 +1292,7 @@ paths:
                     type: array
                     example: &id009
                     - corpus_id: mink-KuuMLW3oyy
-                      message: An error occurred while annotating
+                      message: An error occurred during processing
                       sparv_output: "Sparv exited with the following error messages:\n\
                         \nThe following output files were expected but are missing:\n\
                         \ • sparv-workdir/dokument1/textt/@span\nThere can be many\
@@ -1752,6 +1751,130 @@ paths:
                 message: Failed to authenticate
                 info: Signature verification failed
       deprecated: false
+  /install-corpus:
+    put:
+      tags:
+      - Process Corpus
+      summary: install corpus
+      description: 'Adds an installation job to the queue to tries to install the
+        corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`
+        parameter to `true` (the original order will be kept by default.
+
+
+        There can only be one active job (annotation or installation) for each corpus
+        at a time. A job must finish or be aborted before a new one can be started.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-corpus''
+        -H ''Authorization: Bearer YOUR_JWT''
+
+        ```'
+      operationId: installcorpus
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: mink-dXH6E6wTFf
+      - name: scramble
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: 'true'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Job has been queued for installation
+                  job_status:
+                    type: string
+                    example: waiting_install
+                  sparv_exports:
+                    type: array
+                    example: &id014
+                    - csv_export:csv
+                    - stats_export:freq_list
+                    - xml_export:pretty
+                  available_files:
+                    type: array
+                    example: &id015
+                    - name: dokument2.xml
+                      type: application/xml
+                      last_modified: '2022-06-23T17:44:02+02:00'
+                      size: '115'
+                      path: dokument2.xml
+                    - name: dokument1.xml
+                      type: application/xml
+                      last_modified: '2022-06-23T17:44:03+02:00'
+                      size: '1396'
+                      path: dokument1.xml
+                  installed_korp:
+                    type: integer
+                    example: false
+                  files:
+                    type: array
+                    example: &id016
+                    - dokument1
+                    - dokument2
+                  install_scrambled:
+                    type: integer
+                    example: true
+                  last_run_started:
+                    type: string
+                    example: '2022-07-28T11:39:58+02:00'
+                  priority:
+                    type: integer
+                    example: 1
+              example:
+                status: success
+                message: Job has been queued for installation
+                job_status: waiting_install
+                sparv_exports: *id014
+                available_files: *id015
+                installed_korp: false
+                files: *id016
+                install_scrambled: true
+                last_run_started: '2022-07-28T11:39:58+02:00'
+                priority: 1
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+      deprecated: false
   /list-exports:
     get:
       tags:
@@ -1796,7 +1919,7 @@ paths:
                     example: Current export files for 'mink-dXH6E6wTFf'
                   contents:
                     type: array
-                    example: &id014
+                    example: &id017
                     - name: dokument1.csv
                       type: text/csv
                       last_modified: '2022-06-10T16:07:33+02:00'
@@ -1835,7 +1958,7 @@ paths:
               example:
                 status: success
                 message: Current export files for 'mink-dXH6E6wTFf'
-                contents: *id014
+                contents: *id017
         '400':
           description: BAD REQUEST
           content:
@@ -1920,7 +2043,7 @@ paths:
         schema:
           type: string
           example: mink-dXH6E6wTFf
-      - *id015
+      - *id018
       - name: file
         in: query
         required: false
@@ -3161,7 +3284,7 @@ paths:
                     example: Listing existing job status codes
                   status_codes:
                     type: array
-                    example: &id016
+                    example: &id019
                     - code: 0
                       name: none
                       description: Job does not exist
@@ -3192,7 +3315,7 @@ paths:
               example:
                 status: success
                 message: Listing existing job status codes
-                status_codes: *id016
+                status_codes: *id019
       deprecated: false
       security: []
   /sparv-languages:
@@ -3219,7 +3342,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id017
+                    example: &id020
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -3265,7 +3388,7 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id017
+                languages: *id020
       deprecated: false
       security: []
   /sparv-exports:
@@ -3307,7 +3430,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id018
+                    example: &id021
                     - export: xml_export:pretty
                       description: XML export with one token element per line
                     - export: conll_export:conllu
@@ -3360,7 +3483,7 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id018
+                exports: *id021
       deprecated: false
       security: []
   /advance-queue:
@@ -3455,13 +3578,13 @@ paths:
                     example: Listing jobs
                   corpora:
                     type: array
-                    example: &id019
+                    example: &id022
                     - mink-dXH6E6wTFf
                     - mink-NChH7FiJyp
                     - mink-KuuMLW3oyy
                   jobs:
                     type: array
-                    example: &id020
+                    example: &id023
                     - corpus_id: mink-dXH6E6wTFf
                       message: Job was aborted by the user
                       job_status: aborted
@@ -3476,8 +3599,8 @@ paths:
               example:
                 status: success
                 message: Listing jobs
-                corpora: *id019
-                jobs: *id020
+                corpora: *id022
+                jobs: *id023
         '401':
           description: UNAUTHORIZED
           content:

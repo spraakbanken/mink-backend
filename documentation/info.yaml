@@ -230,3 +230,20 @@ paths:
             <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -
             dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        -
             text:id\n        - text:date\n        - text:forfattare as author'
+  /install-corpus:
+    put:
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: mink-dXH6E6wTFf
+      - name: scramble
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: 'true'
