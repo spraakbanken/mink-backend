@@ -56,8 +56,8 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
 
                 # Check if user is admin for corpus
                 if corpus_id not in corpora:
-                    return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have permission to edit it",
-                                          err=True), 400
+                    return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
+                                          err=True), 404
 
                 return function(None, user, corpora, corpus_id, auth_token)
 

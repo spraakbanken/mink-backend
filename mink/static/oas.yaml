@@ -315,24 +315,6 @@ paths:
               example:
                 status: success
                 message: Corpus 'mink-dXH6E6wTFf' successfully removed
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -353,6 +335,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /upload-sources:
     put:
@@ -455,6 +455,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /list-sources:
     get:
@@ -515,24 +533,6 @@ paths:
                 status: success
                 message: Current source files for 'mink-dXH6E6wTFf'
                 contents: *id003
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -553,6 +553,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /download-sources:
     get:
@@ -673,24 +691,6 @@ paths:
                 \x02-\x03\n\0\b\0\0\0�{bR�\x1Dx�s\0\0\0s\0\0\0\x14\0\0\0\0\0\0\0\0\
                 \0\0\0���\x05\0\0source/dokument2.xmlPK\x05\x06\0\0\0\0\x03\0\x03\0\
                 �\0\0\0�\x06\0\0\0\0"
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -789,22 +789,6 @@ paths:
               example:
                 status: success
                 message: Source files for 'mink-dXH6E6wTFf' successfully removed
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: No files provided for removal
-              example:
-                status: error
-                message: No files provided for removal
         '401':
           description: UNAUTHORIZED
           content:
@@ -825,8 +809,42 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: No files provided for removal
+              example:
+                status: error
+                message: No files provided for removal
         '404':
-          description: NOT FOUND
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
+        '500':
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -962,6 +980,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /download-config:
     get:
@@ -1011,24 +1047,6 @@ paths:
                 \  - SWE_DEFAULT.swener\n  source_annotations:\n  - dokument as document\n\
                 \  - text:forfattare as author\n  - '...'\ncsv_export:\n  source_annotations:\n\
                 \  - text:id\n  - text:date\n  - text:forfattare as author\n\n"
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -1218,8 +1236,8 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
-        '500':
-          description: INTERNAL SERVER ERROR
+        '404':
+          description: Not Found
           content:
             application/json:
               schema:
@@ -1393,24 +1411,6 @@ paths:
                 status: success
                 message: Listing jobs
                 jobs: *id009
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -1431,6 +1431,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /abort-job:
     post:
@@ -1481,24 +1499,6 @@ paths:
                 status: success
                 message: Successfully aborted running job for 'mink-dXH6E6wTFf'
                 job_status: aborted
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -1519,6 +1519,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /clear-annotations:
     delete:
@@ -1573,24 +1591,6 @@ paths:
                 message: Annotations for 'mink-dXH6E6wTFf' successfully removed
                 sparv_output: '''export'' directory removed, ''logs'' directory removed,
                   ''sparv-workdir'' directory removed'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -1611,6 +1611,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /check-changes:
     get:
@@ -1725,11 +1743,11 @@ paths:
                   message:
                     type: string
                     example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
+                      have access to it
               example:
                 status: error
                 message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
+                  access to it
         '401':
           description: UNAUTHORIZED
           content:
@@ -1750,6 +1768,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /install-corpus:
     put:
@@ -1874,6 +1910,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /list-exports:
     get:
@@ -1959,24 +2013,6 @@ paths:
                 status: success
                 message: Current export files for 'mink-dXH6E6wTFf'
                 contents: *id017
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -1997,6 +2033,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /download-exports:
     get:
@@ -3016,24 +3070,6 @@ paths:
                 \x02-\x03\n\0\b\0\0\0�kZR\b+�&�\x05\0\0�\x05\0\0&\0\0\0\0\0\0\0\0\0\
                 \0\0��\x13h\0\0export/xml_pretty/dokument2_export.xmlPK\x05\x06\0\0\
                 \0\0\t\0\t\0|\x02\0\0\x1Fn\0\0\0\0"
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
-                      have permission to edit it
-              example:
-                status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
-                  permission to edit it
         '401':
           description: UNAUTHORIZED
           content:
@@ -3054,6 +3090,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
       security: []
   /remove-exports:
@@ -3124,6 +3178,24 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                  access to it
       deprecated: false
   /download-source-text:
     get:
@@ -3304,12 +3376,18 @@ paths:
                       name: syncing_results
                       description: Syncing results from Sparv to the storage server
                     - code: 6
-                      name: done
-                      description: Results have been synced to Nexcloud
+                      name: done_syncing
+                      description: Results have been synced to storage server
                     - code: 7
+                      name: installing
+                      description: Corpus is being installed
+                    - code: 8
+                      name: done_installing
+                      description: Corpus is done installing
+                    - code: 9
                       name: error
                       description: An error occurred
-                    - code: 8
+                    - code: 10
                       name: aborted
                       description: Aborted by the user
               example:

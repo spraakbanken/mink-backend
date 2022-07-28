@@ -15,7 +15,7 @@ bp = Blueprint("sparv", __name__)
 
 @bp.route("/run-sparv", methods=["PUT"])
 @login.login()
-def run_sparv(ui, user, _corpora, corpus_id, auth_token):
+def run_sparv(ui, user, _corpora, corpus_id, _auth_token):
     """Run Sparv on given corpus."""
     # Parse requested exports
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
@@ -32,7 +32,7 @@ def run_sparv(ui, user, _corpora, corpus_id, auth_token):
         return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
 
     if not source_files:
-        return utils.response(f"No source files found for '{corpus_id}'", err=True), 500
+        return utils.response(f"No source files found for '{corpus_id}'", err=True), 404
 
     # Check compatibility between source files and config
     try:
@@ -112,14 +112,15 @@ def advance_queue():
 
 @bp.route("/check-status", methods=["GET"])
 @login.login(require_corpus_id=False)
-def check_status(ui, user, corpora, auth_token):
+def check_status(ui, user, corpora, _auth_token):
     """Check the annotation status for all jobs belonging to a user or a given corpus."""
     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if corpus_id:
         try:
             # Check if corpus exists
             if corpus_id not in corpora:
-                return utils.response(f"Corpus '{corpus_id}' does not exist", err=True), 404
+                return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
+                                      err=True), 404
             job = jobs.get_job(user, corpus_id)
             return make_status_response(job, ui)
         except Exception as e:
@@ -213,7 +214,7 @@ def abort_job(_ui, user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/clear-annotations", methods=["DELETE"])
 @login.login()
-def clear_annotations(_ui, user, _corpora, corpus_id, auth_token):
+def clear_annotations(_ui, user, _corpora, corpus_id, _auth_token):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
     job = jobs.get_job(user, corpus_id)
