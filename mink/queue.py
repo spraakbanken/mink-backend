@@ -26,11 +26,11 @@ def init():
             with f.open() as fobj:
                 job = jobs.load_from_str(fobj.read())
                 job.save()  # Update job in file system and add to cache
-                all_jobs.append(job.id)
-                app.logger.debug(f"Job in cache: '{g.cache.get_job(job.id)}'")
+                all_jobs.append(job.corpus_id)
+                app.logger.debug(f"Job in cache: '{g.cache.get_job(job.corpus_id)}'")
             # Queue job unless it is done, aborted or erroneous
             if job.status not in [jobs.Status.done_annotating, jobs.Status.error, jobs.Status.aborted]:
-                queue.append(job.id)
+                queue.append(job.corpus_id)
         g.cache.set_job_queue(queue)
         g.cache.set_all_jobs(all_jobs)
         app.logger.debug(f"Queue in cache: {g.cache.get_job_queue()}")
@@ -41,20 +41,20 @@ def add(job, install=False):
     """Add a job item to the queue."""
     queue = g.cache.get_job_queue()
 
-    # Avoid starting multiple jobs for same corpus simultaneously
-    if job.id in queue and jobs.Status.is_active(job.status):
+    # Avoid starting multiple jobs for the same corpus simultaneously
+    if job.corpus_id in queue and jobs.Status.is_active(job.status):
         raise Exception("There is an unfinished job for this corpus!")
 
     if install:
         job.set_status(jobs.Status.waiting_install)
     else:
         job.set_status(jobs.Status.waiting)
-    if job.id in queue:
-        queue.pop(queue.index(job.id))
-    queue.append(job.id)
+    if job.corpus_id in queue:
+        queue.pop(queue.index(job.corpus_id))
+    queue.append(job.corpus_id)
     g.cache.set_job_queue(queue)
     all_jobs = g.cache.get_all_jobs()
-    all_jobs.append(job.id)
+    all_jobs.append(job.corpus_id)
     g.cache.set_all_jobs(all_jobs)
     app.logger.debug(f"Queue in cache: {g.cache.get_job_queue()}")
     return job
@@ -70,13 +70,13 @@ def get():
 def remove(job):
     """Remove job item from queue, e.g. when a job is aborted or a corpus is deleted."""
     queue = g.cache.get_job_queue()
-    if job.id in queue:
-        queue.pop(queue.index(job.id))
+    if job.corpus_id in queue:
+        queue.pop(queue.index(job.corpus_id))
         g.cache.set_job_queue(queue)
 
     all_jobs = g.cache.get_all_jobs()
-    if job.id in all_jobs:
-        all_jobs.pop(all_jobs.index(job.id))
+    if job.corpus_id in all_jobs:
+        all_jobs.pop(all_jobs.index(job.corpus_id))
         g.cache.set_all_jobs(all_jobs)
 
 
@@ -84,7 +84,7 @@ def get_priority(job):
     """Get the queue priority of the job."""
     queue = g.cache.get_job_queue()
     try:
-        return queue.index(job.id) + 1
+        return queue.index(job.corpus_id) + 1
     except ValueError:
         return -1
 
@@ -146,9 +146,7 @@ def get_all_jobs():
 
 def get_job_by_corpus_id(corpus_id):
     """Get a job object belonging to a corpus ID."""
-    all_jobs = g.cache.get_all_jobs()
-    for j in all_jobs:
-        job = jobs.load_from_str(g.cache.get_job(j))
-        if job.id == corpus_id:
-            return job
+    if corpus_id in g.cache.get_all_jobs():
+        job = jobs.load_from_str(g.cache.get_job(corpus_id))
+        return job
     return False

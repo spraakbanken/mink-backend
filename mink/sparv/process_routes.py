@@ -91,7 +91,7 @@ def advance_queue():
             if not job.process_running():
                 running_jobs.remove(job)
         except Exception as e:
-            app.logger.error(f"Failed to check if process is running for '{job.id}' {str(e)}")
+            app.logger.error(f"Failed to check if process is running for '{job.corpus_id}' {str(e)}")
 
     # If there are fewer running jobs than allowed, start the next one in the queue
     while waiting_jobs and len(running_jobs) < app.config.get("SPARV_WORKERS", 1):
@@ -99,13 +99,13 @@ def advance_queue():
         try:
             if job.status == jobs.Status.waiting:
                 job.run_sparv()
-                app.logger.info(f"Started annotation process for '{job.id}'")
+                app.logger.info(f"Started annotation process for '{job.corpus_id}'")
             elif job.status == jobs.Status.waiting_install:
                 job.install_korp()
-                app.logger.info(f"Started installation process for '{job.id}'")
+                app.logger.info(f"Started installation process for '{job.corpus_id}'")
             running_jobs.append(job)
         except Exception as e:
-            app.logger.error(f"Failed to run Sparv on '{job.id}' {str(e)}")
+            app.logger.error(f"Failed to run Sparv on '{job.corpus_id}' {str(e)}")
 
     return utils.response("Queue advancing completed")
 

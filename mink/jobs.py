@@ -87,7 +87,6 @@ class Job():
                  files=None, available_files=None, install_scrambled=None, installed_korp=False):
         self.user = user
         self.corpus_id = corpus_id
-        self.id = self.get_id()
         self.status = status
         self.pid = pid
         self.started = started
@@ -114,11 +113,11 @@ class Job():
         """Write a job item to the cache and filesystem."""
         dump = str(self)
         # Save in cache
-        g.cache.set_job(self.id, dump)
+        g.cache.set_job(self.corpus_id, dump)
         # Save backup to file system queue
         queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
         queue_dir.mkdir(exist_ok=True)
-        backup_file = queue_dir / Path(self.id)
+        backup_file = queue_dir / Path(self.corpus_id)
         with backup_file.open("w") as f:
             f.write(dump)
 
@@ -137,12 +136,12 @@ class Job():
 
         # Remove from cache
         try:
-            g.cache.remove_job(self.id)
+            g.cache.remove_job(self.corpus_id)
         except Exception as e:
             app.logger.error(f"Failed to delete job ID from cache client: {e}")
         # Remove backup from file system
         queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
-        filename = queue_dir / Path(self.id)
+        filename = queue_dir / Path(self.corpus_id)
         filename.unlink(missing_ok=True)
 
     def set_status(self, status):
@@ -154,24 +153,6 @@ class Job():
     def set_pid(self, pid):
         """Set pid of job and save."""
         self.pid = pid
-        self.save()
-
-    def get_id(self, corpus_id=None):
-        """Get hashed ID for job."""
-        if corpus_id is None:
-            corpus_id = self.corpus_id
-        return hashlib.sha1(f"{self.user}{corpus_id}".encode("UTF-8")).hexdigest()[:10]
-
-    def change_id(self, new_corpus_id):
-        """Change the corpus ID on the Sparv server and in cache."""
-        new_corpus_dir = str(sparv_utils.get_corpus_dir(new_corpus_id))
-        p = utils.ssh_run(f"mv {shlex.quote(self.remote_corpus_dir)} {shlex.quote(new_corpus_dir)}")
-        if p.stderr:
-            app.logger.debug(f"Failed to rename corpus on Sparv server: '{p.stderr.decode()}'")
-
-        self.remove()
-        self.corpus_id = new_corpus_id
-        self.id = self.get_id(corpus_id=new_corpus_id)
         self.save()
 
     def check_requirements(self, ui):
@@ -493,8 +474,8 @@ def get_job(user, corpus_id, sparv_exports=None, files=None, available_files=Non
     """Get an existing job from the cache or create a new one."""
     job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files,
               install_scrambled=install_scrambled)
-    if g.cache.get_job(job.id) is not None:
-        return load_from_str(g.cache.get_job(job.id), sparv_exports=sparv_exports, files=files,
+    if g.cache.get_job(job.corpus_id) is not None:
+        return load_from_str(g.cache.get_job(job.corpus_id), sparv_exports=sparv_exports, files=files,
                              available_files=available_files, install_scrambled=install_scrambled)
     return job
 
