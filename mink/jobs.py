@@ -527,6 +527,8 @@ class DefaultJob():
         stdout = p.stdout.decode() if p.stdout else ""
         lines = [line.strip() for line in stdout.split("\n") if line.strip()][1:]
         for line in lines:
+            if line.startswith("Supported language varieties"):
+                break
             matchobj = re.match(r"(.+?)\s+(\S+)$", line)
             if matchobj:
                 languages.append({"name": matchobj.group(1), "code": matchobj.group(2)})
