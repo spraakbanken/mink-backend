@@ -1,7 +1,6 @@
 """Utilities related to Sparv jobs."""
 
 import datetime
-import hashlib
 import json
 import re
 import shlex
@@ -238,12 +237,11 @@ class Job():
 
     def install_korp(self):
         """Install a corpus on Korp."""
-        sparv_installs = ["korp:install_timespan", "korp:install_config"]
+        sparv_installs = app.config.get("SPARV_DEFAULT_INSTALLS")
         if self.install_scrambled:
             sparv_installs.append("cwb:install_corpus_scrambled")
         else:
-            sparv_installs.append("cwb:install_corpus")
-        # TODO: add targets 'korp:install_lemgrams' 'korp:install_relations'?
+            sparv_installs.extend(["cwb:install_corpus"])
 
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
         sparv_env = app.config.get("SPARV_ENVIRON")

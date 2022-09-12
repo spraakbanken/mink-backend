@@ -42,6 +42,7 @@ SPARV_COMMAND = "~/mink-pipeline/venv/bin/python -u -m sparv"               # Co
 SPARV_RUN = "run --socket ~/mink-pipeline/sparv.socket --log-to-file info"  # Sparv's 'run' command
 SPARV_INSTALL = "install --log-to-file info"                                # Sparv's 'install' command
 SPARV_DEFAULT_EXPORTS = ["xml_export:pretty"]  # Default export format to create if nothing is specified
+SPARV_DEFAULT_INSTALLS = ["korp:install_timespan", "korp:install_config", "korp:install_lemgrams"]  # Default install targets to create
 SPARV_NOHUP_FILE = "mink.out"                # File collecting Sparv output for a job
 SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"          # Temporary Sparv run script created for every job
 
