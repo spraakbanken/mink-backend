@@ -76,7 +76,7 @@ class Status(IntEnum):
     def has_process_output(cls, status):
         """Check if status is expected to have process output."""
         return status in [cls.annotating, cls.done_annotating, cls.syncing_results, cls.done_syncing, cls.installing,
-                          cls.done_annotating, cls.error]
+                          cls.done_annotating, cls.done_installing, cls.error]
 
 
 class Job():
@@ -314,7 +314,7 @@ class Job():
     def get_output(self):
         """Check latest Sparv output of this job by reading the nohup file."""
         if not Status.has_process_output(self.status):
-            return ""
+            return "", "", "", ""
 
         nohupfile = app.config.get("SPARV_NOHUP_FILE")
         remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.corpus_id))
