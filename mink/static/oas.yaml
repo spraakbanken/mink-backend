@@ -102,14 +102,14 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFf' created successfully
+                    example: Corpus 'mink-dxh6e6wtff' created successfully
                   corpus_id:
                     type: string
-                    example: mink-dXH6E6wTFf
+                    example: mink-dxh6e6wtff
               example:
                 status: success
-                message: Corpus 'mink-dXH6E6wTFf' created successfully
-                corpus_id: mink-dXH6E6wTFf
+                message: Corpus 'mink-dxh6e6wtff' created successfully
+                corpus_id: mink-dxh6e6wtff
         '401':
           description: UNAUTHORIZED
           content:
@@ -182,7 +182,7 @@ paths:
                   corpora:
                     type: array
                     example: &id001
-                    - mink-dXH6E6wTFf
+                    - mink-dxh6e6wtff
               example:
                 status: success
                 message: Listing available corpora
@@ -243,7 +243,7 @@ paths:
                   corpora:
                     type: array
                     example: &id002
-                    - mink-dXH6E6wTFf
+                    - mink-dxh6e6wtff
               example:
                 status: success
                 message: Listing corpora installed in Korp
@@ -311,10 +311,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFf' successfully removed
+                    example: Corpus 'mink-dxh6e6wtff' successfully removed
               example:
                 status: success
-                message: Corpus 'mink-dXH6E6wTFf' successfully removed
+                message: Corpus 'mink-dxh6e6wtff' successfully removed
         '401':
           description: UNAUTHORIZED
           content:
@@ -347,11 +347,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /upload-sources:
@@ -397,10 +397,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Source files successfully added to 'mink-dXH6E6wTFf'
+                    example: Source files successfully added to 'mink-dxh6e6wtff'
               example:
                 status: success
-                message: Source files successfully added to 'mink-dXH6E6wTFf'
+                message: Source files successfully added to 'mink-dxh6e6wtff'
         '400':
           description: NOT FOUND
           content:
@@ -413,7 +413,7 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to upload some source files to 'mink-dXH6E6wTFf'
+                    example: Failed to upload some source files to 'mink-dxh6e6wtff'
                       due to incompatible file extensions
                   file:
                     type: string
@@ -429,7 +429,7 @@ paths:
                     example: .xml
               example:
                 status: error
-                message: Failed to upload some source files to 'mink-dXH6E6wTFf' due
+                message: Failed to upload some source files to 'mink-dxh6e6wtff' due
                   to incompatible file extensions
                 file: text.txt
                 info: incompatible file extensions
@@ -515,7 +515,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Current source files for 'mink-dXH6E6wTFf'
+                    example: Current source files for 'mink-dxh6e6wtff'
                   contents:
                     type: array
                     example: &id003
@@ -531,7 +531,7 @@ paths:
                       path: dokument2.xml
               example:
                 status: success
-                message: Current source files for 'mink-dXH6E6wTFf'
+                message: Current source files for 'mink-dxh6e6wtff'
                 contents: *id003
         '401':
           description: UNAUTHORIZED
@@ -785,10 +785,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Source files for 'mink-dXH6E6wTFf' successfully removed
+                    example: Source files for 'mink-dxh6e6wtff' successfully removed
               example:
                 status: success
-                message: Source files for 'mink-dXH6E6wTFf' successfully removed
+                message: Source files for 'mink-dxh6e6wtff' successfully removed
         '401':
           description: UNAUTHORIZED
           content:
@@ -855,7 +855,7 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to remove some source files form 'mink-dXH6E6wTFf'.
+                    example: Failed to remove some source files form 'mink-dxh6e6wtff'.
                   failed:
                     type: array
                     example: &id004
@@ -866,7 +866,7 @@ paths:
                     - dokument1.xml
               example:
                 status: error
-                message: Failed to remove some source files form 'mink-dXH6E6wTFf'.
+                message: Failed to remove some source files form 'mink-dxh6e6wtff'.
                 failed: *id004
                 succeeded: *id005
       deprecated: false
@@ -930,10 +930,10 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Config file successfully uploaded for 'mink-dXH6E6wTFf'
+                    example: Config file successfully uploaded for 'mink-dxh6e6wtff'
               example:
                 status: success
-                message: Config file successfully uploaded for 'mink-dXH6E6wTFf'
+                message: Config file successfully uploaded for 'mink-dxh6e6wtff'
         '400':
           description: Bad Request
           content:
@@ -1034,14 +1034,14 @@ paths:
             text/yaml; charset=utf-8:
               schema:
                 type: string
-                example: "metadata:\n  id: mink-dXH6E6wTFf\nimport:\n  text_annotation:\
+                example: "metadata:\n  id: mink-dxh6e6wtff\nimport:\n  text_annotation:\
                   \ text\n  importer: xml_import:parse\nexport:\n  annotations:\n\
                   \  - <sentence>:misc.id\n  - <token:baseform>\n  - <token:pos>\n\
                   \  - <token>:sensaldo.sentiment_label\n  - SWE_DEFAULT.swener\n\
                   \  source_annotations:\n  - dokument as document\n  - text:forfattare\
                   \ as author\n  - '...'\ncsv_export:\n  source_annotations:\n  -\
                   \ text:id\n  - text:date\n  - text:forfattare as author\n\n"
-              example: "metadata:\n  id: mink-dXH6E6wTFf\nimport:\n  text_annotation:\
+              example: "metadata:\n  id: mink-dxh6e6wtff\nimport:\n  text_annotation:\
                 \ text\n  importer: xml_import:parse\nexport:\n  annotations:\n  -\
                 \ <sentence>:misc.id\n  - <token:baseform>\n  - <token:pos>\n  - <token>:sensaldo.sentiment_label\n\
                 \  - SWE_DEFAULT.swener\n  source_annotations:\n  - dokument as document\n\
@@ -1168,12 +1168,12 @@ paths:
                       type: application/xml
                       last_modified: '2022-06-10T15:05:37+02:00'
                       size: '116'
-                      path: mink-data/d/mink-dXH6E6wTFf/source/dokument2.xml
+                      path: mink-data/d/mink-dxh6e6wtff/source/dokument2.xml
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2022-06-10T15:05:38+02:00'
                       size: '1397'
-                      path: mink-data/d/mink-dXH6E6wTFf/source/dokument1.xml
+                      path: mink-data/d/mink-dxh6e6wtff/source/dokument1.xml
                   files:
                     type: array
                     example: &id008
@@ -1248,10 +1248,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: No source files found for 'mink-dXH6E6wTFf'
+                    example: No source files found for 'mink-dxh6e6wtff'
               example:
                 status: error
-                message: No source files found for 'mink-dXH6E6wTFf'
+                message: No source files found for 'mink-dxh6e6wtff'
       deprecated: false
   /check-status:
     get:
@@ -1336,7 +1336,7 @@ paths:
                       installed_korp: false
                       last_run_started: '2021-11-17T09:28:32+00:00'
                       time_taken: 0:00:42
-                    - corpus_id: mink-dXH6E6wTFf
+                    - corpus_id: mink-dxh6e6wtff
                       message: Corpus is done processing and the results have been
                         synced
                       sparv_output: 'The exported files can be found in the following
@@ -1491,13 +1491,13 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Successfully aborted running job for 'mink-dXH6E6wTFf'
+                    example: Successfully aborted running job for 'mink-dxh6e6wtff'
                   job_status:
                     type: string
                     example: aborted
               example:
                 status: success
-                message: Successfully aborted running job for 'mink-dXH6E6wTFf'
+                message: Successfully aborted running job for 'mink-dxh6e6wtff'
                 job_status: aborted
         '401':
           description: UNAUTHORIZED
@@ -1581,14 +1581,14 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Annotations for 'mink-dXH6E6wTFf' successfully removed
+                    example: Annotations for 'mink-dxh6e6wtff' successfully removed
                   sparv_output:
                     type: string
                     example: '''export'' directory removed, ''logs'' directory removed,
                       ''sparv-workdir'' directory removed'
               example:
                 status: success
-                message: Annotations for 'mink-dXH6E6wTFf' successfully removed
+                message: Annotations for 'mink-dxh6e6wtff' successfully removed
                 sparv_output: '''export'' directory removed, ''logs'' directory removed,
                   ''sparv-workdir'' directory removed'
         '401':
@@ -1663,7 +1663,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Your input for the corpus 'mink-dXH6E6wTFf' has changed
+                    example: Your input for the corpus 'mink-dxh6e6wtff' has changed
                       since the last run
                   config_changed:
                     type: integer
@@ -1719,7 +1719,7 @@ paths:
                     example: '2021-11-19T14:16:10+00:00'
               example:
                 status: success
-                message: Your input for the corpus 'mink-dXH6E6wTFf' has changed since
+                message: Your input for the corpus 'mink-dxh6e6wtff' has changed since
                   the last run
                 config_changed: true
                 sources_added: true
@@ -1970,7 +1970,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Current export files for 'mink-dXH6E6wTFf'
+                    example: Current export files for 'mink-dxh6e6wtff'
                   contents:
                     type: array
                     example: &id017
@@ -1994,11 +1994,11 @@ paths:
                       last_modified: '2022-06-10T17:55:37+02:00'
                       size: '4876'
                       path: csv_export/dokument1.csv
-                    - name: stats_mink-dXH6E6wTFf.csv
+                    - name: stats_mink-dxh6e6wtff.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:55:39+02:00'
                       size: '10838'
-                      path: stats_export.frequency_list/stats_mink-dXH6E6wTFf.csv
+                      path: stats_export.frequency_list/stats_mink-dxh6e6wtff.csv
                     - name: dokument2_export.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:55:37+02:00'
@@ -2011,7 +2011,7 @@ paths:
                       path: xml_export.pretty/dokument1_export.xml
               example:
                 status: success
-                message: Current export files for 'mink-dXH6E6wTFf'
+                message: Current export files for 'mink-dxh6e6wtff'
                 contents: *id017
         '401':
           description: UNAUTHORIZED
@@ -3153,11 +3153,11 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Export files for corpus 'mink-dXH6E6wTFf' successfully
+                    example: Export files for corpus 'mink-dxh6e6wtff' successfully
                       removed
               example:
                 status: success
-                message: Export files for corpus 'mink-dXH6E6wTFf' successfully removed
+                message: Export files for corpus 'mink-dxh6e6wtff' successfully removed
         '401':
           description: UNAUTHORIZED
           content:
@@ -3657,13 +3657,13 @@ paths:
                   corpora:
                     type: array
                     example: &id022
-                    - mink-dXH6E6wTFf
+                    - mink-dxh6e6wtff
                     - mink-NChH7FiJyp
                     - mink-KuuMLW3oyy
                   jobs:
                     type: array
                     example: &id023
-                    - corpus_id: mink-dXH6E6wTFf
+                    - corpus_id: mink-dxh6e6wtff
                       message: Job was aborted by the user
                       job_status: aborted
                       last_run_started: '2022-06-14T14:47:43+02:00'

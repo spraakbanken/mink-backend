@@ -33,7 +33,7 @@ def create_corpus(ui, _user, corpora, auth_token):
         if tries > 3:
             return utils.response("Failed to create resource", err=True), 500
         tries += 1
-        corpus_id = f"{prefix}{shortuuid.uuid()[:10]}"
+        corpus_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
         corpora = corpus_registry.get_all()
         if corpus_id in corpora:
             corpus_id = None

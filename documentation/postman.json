@@ -62,7 +62,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFf' created successfully\",\n    \"corpus_id\": \"mink-dXH6E6wTFf\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'mink-dxh6e6wtff' created successfully\",\n    \"corpus_id\": \"mink-dxh6e6wtff\"\n}"
 						},
 						{
 							"name": "create corpus 401",
@@ -202,7 +202,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing available corpora\",\n    \"corpora\": [\n        \"mink-dXH6E6wTFf\"\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing available corpora\",\n    \"corpora\": [\n        \"mink-dxh6e6wtff\"\n    ]\n}"
 						},
 						{
 							"name": "list corpora 401",
@@ -299,7 +299,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing corpora installed in Korp\",\n    \"corpora\": [\n        \"mink-dXH6E6wTFf\"\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing corpora installed in Korp\",\n    \"corpora\": [\n        \"mink-dxh6e6wtff\"\n    ]\n}"
 						},
 						{
 							"name": "list Korp corpora 401",
@@ -408,7 +408,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFf' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'mink-dxh6e6wtff' successfully removed\"\n}"
 						},
 						{
 							"name": "remove corpus 401",
@@ -461,7 +461,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-corpus?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/remove-corpus?corpus_id=mink-dxh6e6wtfg",
 									"host": [
 										"{{host}}"
 									],
@@ -471,7 +471,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "mink-dxh6e6wtfg"
 										}
 									]
 								}
@@ -498,7 +498,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dxh6e6wtfg' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				}
@@ -599,7 +599,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to 'mink-dXH6E6wTFf'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to 'mink-dxh6e6wtff'\"\n}"
 						},
 						{
 							"name": "upload sources 400",
@@ -654,7 +654,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to 'mink-dXH6E6wTFf' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to 'mink-dxh6e6wtff' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\"\n}"
 						},
 						{
 							"name": "upload sources 401",
@@ -840,7 +840,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current source files for 'mink-dXH6E6wTFf'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:18+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:16+02:00\",\n            \"size\": \"116\",\n            \"path\": \"dokument2.xml\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current source files for 'mink-dxh6e6wtff'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:18+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:16+02:00\",\n            \"size\": \"116\",\n            \"path\": \"dokument2.xml\"\n        }\n    ]\n}"
 						},
 						{
 							"name": "list sources 401",
@@ -940,7 +940,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/download-sources?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/download-sources?corpus_id=mink-dxh6e6wtff",
 							"host": [
 								"{{host}}"
 							],
@@ -960,7 +960,7 @@
 								},
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "mink-dxh6e6wtff"
 								}
 							]
 						},
@@ -1247,7 +1247,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for 'mink-dXH6E6wTFf' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for 'mink-dxh6e6wtff' successfully removed\"\n}"
 						},
 						{
 							"name": "remove sources 401",
@@ -1439,7 +1439,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove some source files form 'mink-dXH6E6wTFf'.\",\n    \"failed\": [\n        \"dokument2.xml\"\n    ],\n    \"succeeded\": [\n        \"dokument1.xml\"\n    ]\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove some source files form 'mink-dxh6e6wtff'.\",\n    \"failed\": [\n        \"dokument2.xml\"\n    ],\n    \"succeeded\": [\n        \"dokument1.xml\"\n    ]\n}"
 						}
 					]
 				}
@@ -1530,7 +1530,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Config file successfully uploaded for 'mink-dXH6E6wTFf'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Config file successfully uploaded for 'mink-dxh6e6wtff'\"\n}"
 						},
 						{
 							"name": "upload config 400",
@@ -1775,7 +1775,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "metadata:\n  id: mink-dXH6E6wTFf\nimport:\n  text_annotation: text\n  importer: xml_import:parse\nexport:\n  annotations:\n  - <sentence>:misc.id\n  - <token:baseform>\n  - <token:pos>\n  - <token>:sensaldo.sentiment_label\n  - SWE_DEFAULT.swener\n  source_annotations:\n  - dokument as document\n  - text:forfattare as author\n  - '...'\ncsv_export:\n  source_annotations:\n  - text:id\n  - text:date\n  - text:forfattare as author\n\n"
+							"body": "metadata:\n  id: mink-dxh6e6wtff\nimport:\n  text_annotation: text\n  importer: xml_import:parse\nexport:\n  annotations:\n  - <sentence>:misc.id\n  - <token:baseform>\n  - <token:pos>\n  - <token>:sensaldo.sentiment_label\n  - SWE_DEFAULT.swener\n  source_annotations:\n  - dokument as document\n  - text:forfattare as author\n  - '...'\ncsv_export:\n  source_annotations:\n  - text:id\n  - text:date\n  - text:forfattare as author\n\n"
 						},
 						{
 							"name": "download config 401",
@@ -2013,7 +2013,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:37+02:00\",\n            \"size\": \"116\",\n            \"path\": \"mink-data/d/mink-dXH6E6wTFf/source/dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:38+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"mink-data/d/mink-dXH6E6wTFf/source/dokument1.xml\"\n        }\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"priority\": 1\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:37+02:00\",\n            \"size\": \"116\",\n            \"path\": \"mink-data/d/mink-dxh6e6wtff/source/dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:38+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"mink-data/d/mink-dxh6e6wtff/source/dokument1.xml\"\n        }\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"priority\": 1\n}"
 						},
 						{
 							"name": "run Sparv 400",
@@ -2168,7 +2168,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No source files found for 'mink-dXH6E6wTFf'\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No source files found for 'mink-dxh6e6wtff'\"\n}"
 						},
 						{
 							"name": "run Sparv 404 no access",
@@ -2271,7 +2271,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-KuuMLW3oyy\",\n            \"message\": \"An error occurred during processing\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\",\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-17T09:28:32+00:00\",\n            \"time_taken\": \"0:00:42\"\n        },\n        {\n            \"corpus_id\": \"mink-dXH6E6wTFf\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\",\n            \"sparv_exports\": [\n                \"csv_export:csv\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"files\": [\n                \"dokument1\",\n                \"dokument2\"\n            ],\n            \"last_run_started\": \"2021-11-19T13:27:50+00:00\",\n            \"last_run_completed\": \"2021-11-19T15:16:15+01:00\",\n            \"time_taken\": \"1:48:25\"\n        },\n        {\n            \"corpus_id\": \"mink-EiYu8MJxUi\",\n            \"message\": \"Sparv is running\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\",\n            \"sparv_exports\": [\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-19T10:54:10+00:00\",\n            \"time_taken\": \"0:10:32\"\n        },\n        {\n            \"corpus_id\": \"mink-nEyfev2RDM\",\n            \"message\": \"Job has been queued\",\n            \"job_status\": \"waiting\",\n            \"sparv_exports\": [\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"priority\": 1\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-KuuMLW3oyy\",\n            \"message\": \"An error occurred during processing\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\",\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-17T09:28:32+00:00\",\n            \"time_taken\": \"0:00:42\"\n        },\n        {\n            \"corpus_id\": \"mink-dxh6e6wtff\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\",\n            \"sparv_exports\": [\n                \"csv_export:csv\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"files\": [\n                \"dokument1\",\n                \"dokument2\"\n            ],\n            \"last_run_started\": \"2021-11-19T13:27:50+00:00\",\n            \"last_run_completed\": \"2021-11-19T15:16:15+01:00\",\n            \"time_taken\": \"1:48:25\"\n        },\n        {\n            \"corpus_id\": \"mink-EiYu8MJxUi\",\n            \"message\": \"Sparv is running\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\",\n            \"sparv_exports\": [\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-19T10:54:10+00:00\",\n            \"time_taken\": \"0:10:32\"\n        },\n        {\n            \"corpus_id\": \"mink-nEyfev2RDM\",\n            \"message\": \"Job has been queued\",\n            \"job_status\": \"waiting\",\n            \"sparv_exports\": [\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"priority\": 1\n        }\n    ]\n}"
 						},
 						{
 							"name": "check status 401",
@@ -2419,7 +2419,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully aborted running job for 'mink-dXH6E6wTFf'\",\n    \"job_status\": \"aborted\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully aborted running job for 'mink-dxh6e6wtff'\",\n    \"job_status\": \"aborted\"\n}"
 						},
 						{
 							"name": "abort job 200 no job",
@@ -2464,7 +2464,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"No running job found for 'mink-dXH6E6wTFf'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"No running job found for 'mink-dxh6e6wtff'\"\n}"
 						},
 						{
 							"name": "abort job 401",
@@ -2624,7 +2624,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Annotations for 'mink-dXH6E6wTFf' successfully removed\",\n    \"sparv_output\": \"'export' directory removed, 'logs' directory removed, 'sparv-workdir' directory removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Annotations for 'mink-dxh6e6wtff' successfully removed\",\n    \"sparv_output\": \"'export' directory removed, 'logs' directory removed, 'sparv-workdir' directory removed\"\n}"
 						},
 						{
 							"name": "clear annotations 401",
@@ -2797,7 +2797,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Your input for the corpus 'mink-dXH6E6wTFf' has changed since the last run\",\n    \"config_changed\": true,\n    \"sources_added\": true,\n    \"sources_changed\": true,\n    \"sources_deleted\": true,\n    \"changed_config\": {\n        \"name\": \"config.yaml\",\n        \"type\": \"application/yaml\",\n        \"last_modified\": \"2021-11-25T15:52:17+00:00\",\n        \"size\": 848,\n        \"path\": \"config.yaml\"\n    },\n    \"added_sources\": [\n        {\n            \"name\": \"dokument4.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:35:30+00:00\",\n            \"size\": 461,\n            \"path\": \"dokument4.xml\"\n        }\n    ],\n    \"changed_sources\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 1396,\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 115,\n            \"path\": \"dokument2.xml\"\n        }\n    ],\n    \"deleted_sources\": [\n        {\n            \"name\": \"dokument3.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:22:54+00:00\",\n            \"size\": 41,\n            \"path\": \"dokument3.xml\"\n        }\n    ],\n    \"last_run_started\": \"2021-11-19T14:16:10+00:00\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Your input for the corpus 'mink-dxh6e6wtff' has changed since the last run\",\n    \"config_changed\": true,\n    \"sources_added\": true,\n    \"sources_changed\": true,\n    \"sources_deleted\": true,\n    \"changed_config\": {\n        \"name\": \"config.yaml\",\n        \"type\": \"application/yaml\",\n        \"last_modified\": \"2021-11-25T15:52:17+00:00\",\n        \"size\": 848,\n        \"path\": \"config.yaml\"\n    },\n    \"added_sources\": [\n        {\n            \"name\": \"dokument4.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:35:30+00:00\",\n            \"size\": 461,\n            \"path\": \"dokument4.xml\"\n        }\n    ],\n    \"changed_sources\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 1396,\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 115,\n            \"path\": \"dokument2.xml\"\n        }\n    ],\n    \"deleted_sources\": [\n        {\n            \"name\": \"dokument3.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:22:54+00:00\",\n            \"size\": 41,\n            \"path\": \"dokument3.xml\"\n        }\n    ],\n    \"last_run_started\": \"2021-11-19T14:16:10+00:00\"\n}"
 						},
 						{
 							"name": "check changes 400",
@@ -3175,7 +3175,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current export files for 'mink-dXH6E6wTFf'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T16:07:33+02:00\",\n            \"size\": \"4\",\n            \"path\": \"csv/dokument1.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T16:07:41+02:00\",\n            \"size\": \"5\",\n            \"path\": \"csv/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:54:15+02:00\",\n            \"size\": \"538\",\n            \"path\": \"csv_export/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"4876\",\n            \"path\": \"csv_export/dokument1.csv\"\n        },\n        {\n            \"name\": \"stats_mink-dXH6E6wTFf.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:39+02:00\",\n            \"size\": \"10838\",\n            \"path\": \"stats_export.frequency_list/stats_mink-dXH6E6wTFf.csv\"\n        },\n        {\n            \"name\": \"dokument2_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"1497\",\n            \"path\": \"xml_export.pretty/dokument2_export.xml\"\n        },\n        {\n            \"name\": \"dokument1_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:38+02:00\",\n            \"size\": \"13429\",\n            \"path\": \"xml_export.pretty/dokument1_export.xml\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current export files for 'mink-dxh6e6wtff'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T16:07:33+02:00\",\n            \"size\": \"4\",\n            \"path\": \"csv/dokument1.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T16:07:41+02:00\",\n            \"size\": \"5\",\n            \"path\": \"csv/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:54:15+02:00\",\n            \"size\": \"538\",\n            \"path\": \"csv_export/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"4876\",\n            \"path\": \"csv_export/dokument1.csv\"\n        },\n        {\n            \"name\": \"stats_mink-dxh6e6wtff.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:39+02:00\",\n            \"size\": \"10838\",\n            \"path\": \"stats_export.frequency_list/stats_mink-dxh6e6wtff.csv\"\n        },\n        {\n            \"name\": \"dokument2_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"1497\",\n            \"path\": \"xml_export.pretty/dokument2_export.xml\"\n        },\n        {\n            \"name\": \"dokument1_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:38+02:00\",\n            \"size\": \"13429\",\n            \"path\": \"xml_export.pretty/dokument1_export.xml\"\n        }\n    ]\n}"
 						},
 						{
 							"name": "list exports 401",
@@ -3526,7 +3526,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Export files for corpus 'mink-dXH6E6wTFf' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Export files for corpus 'mink-dxh6e6wtff' successfully removed\"\n}"
 						},
 						{
 							"name": "remove exports 401",
@@ -4280,7 +4280,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/check-status-admin",
+							"raw": "{{host}}/check-status-admin?corpus_id=mink-dXH6E6wTFf",
 							"host": [
 								"{{host}}"
 							],
@@ -4290,8 +4290,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-KuuMLW3oyy",
-									"disabled": true
+									"value": "mink-dXH6E6wTFf"
 								}
 							]
 						},
@@ -4335,7 +4334,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"corpora\": [\n        \"mink-dXH6E6wTFf\",\n        \"mink-NChH7FiJyp\",\n        \"mink-KuuMLW3oyy\"\n    ],\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-dXH6E6wTFf\",\n            \"message\": \"Job was aborted by the user\",\n            \"job_status\": \"aborted\",\n            \"last_run_started\": \"2022-06-14T14:47:43+02:00\"\n        },\n        {\n            \"corpus_id\": \"mink-NChH7FiJyp\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"job_status\": \"done_syncing\",\n            \"last_run_started\": \"2022-06-13T11:44:43+02:00\",\n            \"last_run_completed\": \"2022-06-13T11:44:47+02:00\",\n            \"time_taken\": \"0:00:04\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"corpora\": [\n        \"mink-dxh6e6wtff\",\n        \"mink-NChH7FiJyp\",\n        \"mink-KuuMLW3oyy\"\n    ],\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-dxh6e6wtff\",\n            \"message\": \"Job was aborted by the user\",\n            \"job_status\": \"aborted\",\n            \"last_run_started\": \"2022-06-14T14:47:43+02:00\"\n        },\n        {\n            \"corpus_id\": \"mink-NChH7FiJyp\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"job_status\": \"done_syncing\",\n            \"last_run_started\": \"2022-06-13T11:44:43+02:00\",\n            \"last_run_completed\": \"2022-06-13T11:44:47+02:00\",\n            \"time_taken\": \"0:00:04\"\n        }\n    ]\n}"
 						},
 						{
 							"name": "check status admin 401",
