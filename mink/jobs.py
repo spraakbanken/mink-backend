@@ -154,6 +154,11 @@ class Job():
         self.pid = pid
         self.save()
 
+    def set_install_scrambled(self, scramble):
+        """Set status of 'install_scrambled' and save."""
+        self.install_scrambled = scramble
+        self.save()
+
     def check_requirements(self, ui):
         """Check if required corpus contents are present."""
         remote_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
@@ -260,6 +265,7 @@ class Job():
             raise exceptions.JobError(f"Failed to install corpus with Sparv. {stderr}")
 
         # Get pid from Sparv process and store job info
+        self.installed_korp = True
         self.set_pid(int(p.stdout.decode()))
         self.set_status(Status.installing)
 
@@ -488,7 +494,8 @@ def load_from_str(jsonstr, sparv_exports=None, files=None, available_files=None,
         job_info["files"] = files
     if available_files is not None:
         job_info["available_files"] = available_files
-    job_info["install_scrambled"] = install_scrambled
+    if install_scrambled is not None:
+        job_info["install_scrambled"] = install_scrambled
     return Job(**job_info)
 
 

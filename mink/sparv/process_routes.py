@@ -238,6 +238,7 @@ def install_corpus(ui, user, _corpora, corpus_id, _auth_token):
 
     # Queue job
     job = jobs.get_job(user, corpus_id, install_scrambled=scramble)
+    job.set_install_scrambled(scramble)
     try:
         job = queue.add(job, install=True)
     except Exception as e:
