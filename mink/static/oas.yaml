@@ -1270,7 +1270,7 @@ paths:
         corpus ID is reported.
 
 
-        The different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`).
+        The different `job_status` codes can be looked up by calling [{{host}}/status-codes]({{host}}/status-codes).
         If the annotation process has been started successfully a percentage of the
         completed annotation progress will be shown in the `progress` field.
 
