@@ -2231,7 +2231,7 @@
 								"check-status"
 							]
 						},
-						"description": "Checks the status of the user's annotation jobs and reports it in the `job_status` field for each job.\n\nThis requests needs to be made once the corpus is done processing in order for the results to be synced to the storage server.\n\nWhen the `corpus_id` parameter is supplied only the job corresponding to that corpus ID is reported.\n\nThe different `job_status` codes can be looked up by calling [{{host}}/status-codes](`{{host}}/status-codes`). If the annotation process has been started successfully a percentage of the completed annotation progress will be shown in the `progress` field.\n\n### Example\n\n```.bash\ncurl -X GET '{{host}}/check-status' -H 'Authorization: Bearer YOUR_JWT'\n```"
+						"description": "Checks the status of the user's annotation jobs and reports it in the `job_status` field for each job.\n\nThis requests needs to be made once the corpus is done processing in order for the results to be synced to the storage server.\n\nWhen the `corpus_id` parameter is supplied only the job corresponding to that corpus ID is reported.\n\nThe different `job_status` codes can be looked up by calling [{{host}}/status-codes]({{host}}/status-codes). If the annotation process has been started successfully a percentage of the completed annotation progress will be shown in the `progress` field.\n\n### Example\n\n```.bash\ncurl -X GET '{{host}}/check-status' -H 'Authorization: Bearer YOUR_JWT'\n```"
 					},
 					"response": [
 						{
