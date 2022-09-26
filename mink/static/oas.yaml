@@ -297,7 +297,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -383,7 +383,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -467,11 +467,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /list-sources:
@@ -501,7 +501,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -565,11 +565,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /download-sources:
@@ -603,7 +603,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: file
         in: query
         required: false
@@ -762,7 +762,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: remove
         in: query
         description: ''
@@ -789,6 +789,22 @@ paths:
               example:
                 status: success
                 message: Source files for 'mink-dxh6e6wtff' successfully removed
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: No files provided for removal
+              example:
+                status: error
+                message: No files provided for removal
         '401':
           description: UNAUTHORIZED
           content:
@@ -809,22 +825,6 @@ paths:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: No files provided for removal
-              example:
-                status: error
-                message: No files provided for removal
         '404':
           description: Not Found
           content:
@@ -837,11 +837,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
         '500':
           description: Internal Server Error
@@ -904,14 +904,14 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: config
         in: query
         required: false
         style: form
         schema:
           type: string
-          example: 'metadata:\n    id: mink-dXH6E6wTFf\nimport:\n    document_annotation:
+          example: 'metadata:\n    id: mink-dxh6e6wtff\nimport:\n    document_annotation:
             text\n    importer: xml_import:parse\nexport:\n    annotations:\n        -
             <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        -
             <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -
@@ -992,11 +992,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /download-config:
@@ -1026,7 +1026,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -1079,10 +1079,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: No config file found for corpus 'mink-NChH7FiJyp'
+                    example: No config file found for corpus 'mink-nchh7fijyp'
               example:
                 status: error
-                message: No config file found for corpus 'mink-NChH7FiJyp'
+                message: No config file found for corpus 'mink-nchh7fijyp'
       deprecated: false
   /run-sparv:
     put:
@@ -1123,7 +1123,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: exports
         in: query
         required: false
@@ -1291,7 +1291,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -1309,7 +1309,7 @@ paths:
                   jobs:
                     type: array
                     example: &id009
-                    - corpus_id: mink-KuuMLW3oyy
+                    - corpus_id: mink-kuumlw3oyy
                       message: An error occurred during processing
                       sparv_output: "Sparv exited with the following error messages:\n\
                         \nThe following output files were expected but are missing:\n\
@@ -1335,7 +1335,7 @@ paths:
                         path: dokument2.xml
                       installed_korp: false
                       last_run_started: '2021-11-17T09:28:32+00:00'
-                      time_taken: 0:00:42
+                      seconds_taken: 42.23
                     - corpus_id: mink-dxh6e6wtff
                       message: Corpus is done processing and the results have been
                         synced
@@ -1367,8 +1367,8 @@ paths:
                       - dokument2
                       last_run_started: '2021-11-19T13:27:50+00:00'
                       last_run_ended: '2021-11-19T15:16:15+01:00'
-                      time_taken: '1:48:25'
-                    - corpus_id: mink-EiYu8MJxUi
+                      seconds_taken: 6505.04
+                    - corpus_id: mink-eiyu8mjxui
                       message: Sparv is running
                       progress: 18%
                       job_status: annotating
@@ -1388,8 +1388,8 @@ paths:
                         path: dokument2.xml
                       installed_korp: false
                       last_run_started: '2021-11-19T10:54:10+00:00'
-                      time_taken: 0:10:32
-                    - corpus_id: mink-nEyfev2RDM
+                      seconds_taken: 632.63
+                    - corpus_id: mink-neyfev2rdm
                       message: Job has been queued
                       job_status: waiting
                       sparv_exports:
@@ -1443,11 +1443,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /abort-job:
@@ -1477,7 +1477,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -1531,11 +1531,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /clear-annotations:
@@ -1567,7 +1567,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -1623,11 +1623,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /check-changes:
@@ -1649,7 +1649,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -1742,11 +1742,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
         '401':
           description: UNAUTHORIZED
@@ -1780,11 +1780,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /install-corpus:
@@ -1818,7 +1818,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: scramble
         in: query
         required: false
@@ -1922,11 +1922,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /list-exports:
@@ -1956,7 +1956,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -2045,11 +2045,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /download-exports:
@@ -2096,7 +2096,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - *id018
       - name: file
         in: query
@@ -3102,11 +3102,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
       security: []
@@ -3139,7 +3139,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -3190,11 +3190,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Corpus 'mink-dXH6E6wTFF' does not exist or you do not
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
               example:
                 status: error
-                message: Corpus 'mink-dXH6E6wTFF' does not exist or you do not have
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
   /download-source-text:
@@ -3218,7 +3218,7 @@ paths:
         explode: true
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: file
         in: query
         description: ''
@@ -3299,11 +3299,11 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: There are currently no source texts for corpus 'mink-KuuMLW3oyy'.
+                    example: There are currently no source texts for corpus 'mink-dxh6e6wtff'.
                       You must run Sparv before you can view source texts.
               example:
                 status: error
-                message: There are currently no source texts for corpus 'mink-KuuMLW3oyy'.
+                message: There are currently no source texts for corpus 'mink-dxh6e6wtff'.
                   You must run Sparv before you can view source texts.
       deprecated: false
   /api-spec:
@@ -3639,7 +3639,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       responses:
         '200':
           description: OK
@@ -3658,8 +3658,8 @@ paths:
                     type: array
                     example: &id022
                     - mink-dxh6e6wtff
-                    - mink-NChH7FiJyp
-                    - mink-KuuMLW3oyy
+                    - mink-nchh7fijyp
+                    - mink-kuuklw3oyy
                   jobs:
                     type: array
                     example: &id023
@@ -3667,13 +3667,13 @@ paths:
                       message: Job was aborted by the user
                       job_status: aborted
                       last_run_started: '2022-06-14T14:47:43+02:00'
-                    - corpus_id: mink-NChH7FiJyp
+                    - corpus_id: mink-nchh7fijyp
                       message: Corpus is done processing and the results have been
                         synced
                       job_status: done_syncing
                       last_run_started: '2022-06-13T11:44:43+02:00'
                       last_run_ended: '2022-06-13T11:44:47+02:00'
-                      time_taken: 0:00:04
+                      seconds_taken: 4.81
               example:
                 status: success
                 message: Listing jobs
@@ -3707,10 +3707,10 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: No active job found for corpus 'mink-KuuMLW3oyy'
+                    example: No active job found for corpus 'mink-dxh6e6wtfg'
               example:
                 status: error
-                message: No active job found for corpus 'mink-KuuMLW3oyy'
+                message: No active job found for corpus 'mink-dxh6e6wtfg'
       deprecated: false
       security:
       - ApiKeyAuth: []

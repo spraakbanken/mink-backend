@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "8b97b315-4444-43e9-9dfc-26a4df647f0c",
-		"name": "Mink API",
+		"_postman_id": "7e8233d0-e98e-429c-8d8c-f641dc3ba71b",
+		"name": "Mink API Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -62,7 +62,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'mink-dxh6e6wtff' created successfully\",\n    \"corpus_id\": \"mink-dxh6e6wtff\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus '{{standard-corpus}}' created successfully\",\n    \"corpus_id\": \"{{standard-corpus}}\"\n}"
 						},
 						{
 							"name": "create corpus 401",
@@ -202,7 +202,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing available corpora\",\n    \"corpora\": [\n        \"mink-dxh6e6wtff\"\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing available corpora\",\n    \"corpora\": [\n        \"{{standard-corpus}}\"\n    ]\n}"
 						},
 						{
 							"name": "list corpora 401",
@@ -299,7 +299,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing corpora installed in Korp\",\n    \"corpora\": [\n        \"mink-dxh6e6wtff\"\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing corpora installed in Korp\",\n    \"corpora\": [\n        \"{{standard-corpus}}\"\n    ]\n}"
 						},
 						{
 							"name": "list Korp corpora 401",
@@ -348,7 +348,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/remove-corpus?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/remove-corpus?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -358,7 +358,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -371,7 +371,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-corpus?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/remove-corpus?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -381,7 +381,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -408,7 +408,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'mink-dxh6e6wtff' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus '{{standard-corpus}}' successfully removed\"\n}"
 						},
 						{
 							"name": "remove corpus 401",
@@ -416,7 +416,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-corpus?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/remove-corpus?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -426,7 +426,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -461,7 +461,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-corpus?corpus_id=mink-dxh6e6wtfg",
+									"raw": "{{host}}/remove-corpus?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -471,7 +471,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dxh6e6wtfg"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -498,7 +498,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dxh6e6wtfg' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				}
@@ -526,7 +526,7 @@
 							]
 						},
 						"url": {
-							"raw": "{{host}}/upload-sources?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/upload-sources?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -536,7 +536,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -562,7 +562,7 @@
 									]
 								},
 								"url": {
-									"raw": "{{host}}/upload-sources?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/upload-sources?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -572,7 +572,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -599,7 +599,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to 'mink-dxh6e6wtff'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to '{{standard-corpus}}'\"\n}"
 						},
 						{
 							"name": "upload sources 400",
@@ -617,7 +617,7 @@
 									]
 								},
 								"url": {
-									"raw": "{{host}}/upload-sources?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/upload-sources?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -627,7 +627,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -654,7 +654,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to 'mink-dxh6e6wtff' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to '{{standard-corpus}}' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\"\n}"
 						},
 						{
 							"name": "upload sources 401",
@@ -675,7 +675,7 @@
 									]
 								},
 								"url": {
-									"raw": "{{host}}/upload-sources?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/upload-sources?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -685,7 +685,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -733,7 +733,7 @@
 									]
 								},
 								"url": {
-									"raw": "{{host}}/upload-sources?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/upload-sources?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -743,7 +743,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -770,7 +770,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -780,7 +780,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/list-sources?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/list-sources?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -790,7 +790,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -803,7 +803,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/list-sources?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/list-sources?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -813,7 +813,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -840,7 +840,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current source files for 'mink-dxh6e6wtff'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:18+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:16+02:00\",\n            \"size\": \"116\",\n            \"path\": \"dokument2.xml\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current source files for '{{standard-corpus}}'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:18+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:16+02:00\",\n            \"size\": \"116\",\n            \"path\": \"dokument2.xml\"\n        }\n    ]\n}"
 						},
 						{
 							"name": "list sources 401",
@@ -848,7 +848,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/list-sources?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/list-sources?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -858,7 +858,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -893,7 +893,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/list-sources?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/list-sources?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -903,7 +903,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -930,7 +930,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -940,7 +940,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/download-sources?corpus_id=mink-dxh6e6wtff",
+							"raw": "{{host}}/download-sources?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -960,7 +960,7 @@
 								},
 								{
 									"key": "corpus_id",
-									"value": "mink-dxh6e6wtff"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -973,7 +973,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-corpus?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-corpus?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -983,7 +983,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -1034,7 +1034,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-sources?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-sources?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1044,7 +1044,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -1079,7 +1079,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-sources?file=dokument5.xml&zip=False&corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-sources?file=dokument5.xml&zip=False&corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1097,7 +1097,7 @@
 										},
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -1132,7 +1132,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-sources?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/download-sources?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1142,7 +1142,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -1169,7 +1169,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -1179,7 +1179,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/remove-sources?corpus_id=mink-dXH6E6wTFf&remove=dokument1.xml,dokument2.xml",
+							"raw": "{{host}}/remove-sources?corpus_id={{standard-corpus}}&remove=dokument1.xml,dokument2.xml",
 							"host": [
 								"{{host}}"
 							],
@@ -1189,7 +1189,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								},
 								{
 									"key": "remove",
@@ -1206,7 +1206,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-sources?corpus_id=mink-dXH6E6wTFf&remove=dokument1.xml,dokument2.xml",
+									"raw": "{{host}}/remove-sources?corpus_id={{standard-corpus}}&remove=dokument1.xml,dokument2.xml",
 									"host": [
 										"{{host}}"
 									],
@@ -1216,7 +1216,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "remove",
@@ -1247,15 +1247,15 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for 'mink-dxh6e6wtff' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for '{{standard-corpus}}' successfully removed\"\n}"
 						},
 						{
-							"name": "remove sources 401",
+							"name": "remove sources 400",
 							"originalRequest": {
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-sources?corpus_id=mink-dXH6E6wTFf&remove=dokument1.xml,dokument2.xml",
+									"raw": "{{host}}/remove-sources?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1265,7 +1265,52 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "64"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 10:39:37 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No files provided for removal\"\n}"
+						},
+						{
+							"name": "remove sources 401",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/remove-sources?corpus_id={{standard-corpus}}&remove=dokument1.xml,dokument2.xml",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "remove",
@@ -1299,57 +1344,12 @@
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
 						},
 						{
-							"name": "remove sources 400",
-							"originalRequest": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{host}}/remove-sources?corpus_id=mink-dXH6E6wTFf",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"remove-sources"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
-										}
-									]
-								}
-							},
-							"status": "Bad Request",
-							"code": 400,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "64"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 18 Mar 2021 10:39:37 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No files provided for removal\"\n}"
-						},
-						{
 							"name": "remove sources 404",
 							"originalRequest": {
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-sources?corpus_id=mink-dXH6E6wTFf&remove=dokument1.xml,dokument2.xml",
+									"raw": "{{host}}/remove-sources?corpus_id={{standard-corpus}}&remove=dokument1.xml,dokument2.xml",
 									"host": [
 										"{{host}}"
 									],
@@ -1359,7 +1359,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "remove",
@@ -1390,7 +1390,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						},
 						{
 							"name": "remove sources 500",
@@ -1398,7 +1398,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-sources?corpus_id=mink-dXH6E6wTFf&remove=dokument1.xml,dokument2.xml",
+									"raw": "{{host}}/remove-sources?corpus_id={{standard-corpus}}&remove=dokument1.xml,dokument2.xml",
 									"host": [
 										"{{host}}"
 									],
@@ -1408,7 +1408,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "remove",
@@ -1439,7 +1439,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove some source files form 'mink-dxh6e6wtff'.\",\n    \"failed\": [\n        \"dokument2.xml\"\n    ],\n    \"succeeded\": [\n        \"dokument1.xml\"\n    ]\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove some source files form '{{standard-corpus}}'.\",\n    \"failed\": [\n        \"dokument2.xml\"\n    ],\n    \"succeeded\": [\n        \"dokument1.xml\"\n    ]\n}"
 						}
 					]
 				}
@@ -1458,7 +1458,7 @@
 							"formdata": []
 						},
 						"url": {
-							"raw": "{{host}}/upload-config?corpus_id=mink-dXH6E6wTFf&config=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
+							"raw": "{{host}}/upload-config?corpus_id={{standard-corpus}}&config=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
 							"host": [
 								"{{host}}"
 							],
@@ -1468,7 +1468,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								},
 								{
 									"key": "config",
@@ -1489,7 +1489,7 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "{{host}}/upload-config?corpus_id=mink-dXH6E6wTFf&config=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
+									"raw": "{{host}}/upload-config?corpus_id={{standard-corpus}}&config=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
 									"host": [
 										"{{host}}"
 									],
@@ -1499,7 +1499,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "config",
@@ -1530,7 +1530,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Config file successfully uploaded for 'mink-dxh6e6wtff'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Config file successfully uploaded for '{{standard-corpus}}'\"\n}"
 						},
 						{
 							"name": "upload config 400",
@@ -1542,7 +1542,7 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "{{host}}/upload-config?corpus_id=mink-dXH6E6wTFf&corpus=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
+									"raw": "{{host}}/upload-config?corpus_id={{standard-corpus}}&corpus=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
 									"host": [
 										"{{host}}"
 									],
@@ -1552,7 +1552,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "corpus",
@@ -1595,7 +1595,7 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "{{host}}/upload-config?corpus_id=mink-dXH6E6wTFf&config=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
+									"raw": "{{host}}/upload-config?corpus_id={{standard-corpus}}&config=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
 									"host": [
 										"{{host}}"
 									],
@@ -1605,7 +1605,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "config",
@@ -1648,7 +1648,7 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "{{host}}/upload-config?corpus_id=mink-dXH6E6wTFF&config=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
+									"raw": "{{host}}/upload-config?corpus_id={{fake-corpus}}&config=import:\n    text_annotation: text\n    importer: xml_import:parse\nexport:\n    annotations:\n        - <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        - <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        - dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        - text:id\n        - text:date\n        - text:forfattare as author",
 									"host": [
 										"{{host}}"
 									],
@@ -1658,7 +1658,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										},
 										{
 											"key": "config",
@@ -1689,7 +1689,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -1699,7 +1699,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/download-config?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/download-config?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -1709,7 +1709,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -1722,7 +1722,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-config?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-config?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1732,7 +1732,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -1775,7 +1775,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "metadata:\n  id: mink-dxh6e6wtff\nimport:\n  text_annotation: text\n  importer: xml_import:parse\nexport:\n  annotations:\n  - <sentence>:misc.id\n  - <token:baseform>\n  - <token:pos>\n  - <token>:sensaldo.sentiment_label\n  - SWE_DEFAULT.swener\n  source_annotations:\n  - dokument as document\n  - text:forfattare as author\n  - '...'\ncsv_export:\n  source_annotations:\n  - text:id\n  - text:date\n  - text:forfattare as author\n\n"
+							"body": "metadata:\n  id: {{standard-corpus}}\nimport:\n  text_annotation: text\n  importer: xml_import:parse\nexport:\n  annotations:\n  - <sentence>:misc.id\n  - <token:baseform>\n  - <token:pos>\n  - <token>:sensaldo.sentiment_label\n  - SWE_DEFAULT.swener\n  source_annotations:\n  - dokument as document\n  - text:forfattare as author\n  - '...'\ncsv_export:\n  source_annotations:\n  - text:id\n  - text:date\n  - text:forfattare as author\n\n"
 						},
 						{
 							"name": "download config 401",
@@ -1783,7 +1783,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-config?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-config?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1793,7 +1793,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -1828,7 +1828,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-config?corpus_id=mink-NChH7FiJyp",
+									"raw": "{{host}}/download-config?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1838,7 +1838,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-NChH7FiJyp"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -1877,7 +1877,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No config file found for corpus 'mink-NChH7FiJyp'\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No config file found for corpus 'mink-nchh7fijyp'\"\n}"
 						},
 						{
 							"name": "download config 404 no access",
@@ -1885,7 +1885,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-config?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/download-config?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1895,7 +1895,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -1922,7 +1922,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				}
@@ -1937,7 +1937,7 @@
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/run-sparv?corpus_id=mink-dXH6E6wTFf&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
+							"raw": "{{host}}/run-sparv?corpus_id={{standard-corpus}}&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
 							"host": [
 								"{{host}}"
 							],
@@ -1947,7 +1947,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								},
 								{
 									"key": "exports",
@@ -1968,7 +1968,7 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/run-sparv?corpus_id=mink-dXH6E6wTFf&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
+									"raw": "{{host}}/run-sparv?corpus_id={{standard-corpus}}&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
 									"host": [
 										"{{host}}"
 									],
@@ -1978,7 +1978,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "exports",
@@ -2013,7 +2013,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:37+02:00\",\n            \"size\": \"116\",\n            \"path\": \"mink-data/d/mink-dxh6e6wtff/source/dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:38+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"mink-data/d/mink-dxh6e6wtff/source/dokument1.xml\"\n        }\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"priority\": 1\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:37+02:00\",\n            \"size\": \"116\",\n            \"path\": \"mink-data/d/{{standard-corpus}}/source/dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:38+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"mink-data/d/{{standard-corpus}}/source/dokument1.xml\"\n        }\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"priority\": 1\n}"
 						},
 						{
 							"name": "run Sparv 400",
@@ -2021,7 +2021,7 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/run-sparv?corpus_id=mink-dXH6E6wTFf&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
+									"raw": "{{host}}/run-sparv?corpus_id={{standard-corpus}}&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
 									"host": [
 										"{{host}}"
 									],
@@ -2031,7 +2031,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "exports",
@@ -2074,7 +2074,7 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/run-sparv?corpus_id=mink-dXH6E6wTFf&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty",
+									"raw": "{{host}}/run-sparv?corpus_id={{standard-corpus}}&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty",
 									"host": [
 										"{{host}}"
 									],
@@ -2084,7 +2084,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "exports",
@@ -2123,7 +2123,7 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/run-sparv?corpus_id=mink-dXH6E6wTFf&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
+									"raw": "{{host}}/run-sparv?corpus_id={{standard-corpus}}&exports=csv_export:csv,stats_export:freq_list,xml_export:pretty&files=dokument1,dokument2",
 									"host": [
 										"{{host}}"
 									],
@@ -2133,7 +2133,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "exports",
@@ -2168,7 +2168,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No source files found for 'mink-dxh6e6wtff'\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No source files found for '{{standard-corpus}}'\"\n}"
 						},
 						{
 							"name": "run Sparv 404 no access",
@@ -2176,7 +2176,7 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/run-sparv?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/run-sparv?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2186,7 +2186,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -2213,7 +2213,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -2271,7 +2271,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-KuuMLW3oyy\",\n            \"message\": \"An error occurred during processing\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\",\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-17T09:28:32+00:00\",\n            \"time_taken\": \"0:00:42\"\n        },\n        {\n            \"corpus_id\": \"mink-dxh6e6wtff\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\",\n            \"sparv_exports\": [\n                \"csv_export:csv\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"files\": [\n                \"dokument1\",\n                \"dokument2\"\n            ],\n            \"last_run_started\": \"2021-11-19T13:27:50+00:00\",\n            \"last_run_ended\": \"2021-11-19T15:16:15+01:00\",\n            \"time_taken\": \"1:48:25\"\n        },\n        {\n            \"corpus_id\": \"mink-EiYu8MJxUi\",\n            \"message\": \"Sparv is running\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\",\n            \"sparv_exports\": [\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-19T10:54:10+00:00\",\n            \"time_taken\": \"0:10:32\"\n        },\n        {\n            \"corpus_id\": \"mink-nEyfev2RDM\",\n            \"message\": \"Job has been queued\",\n            \"job_status\": \"waiting\",\n            \"sparv_exports\": [\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"priority\": 1\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-kuumlw3oyy\",\n            \"message\": \"An error occurred during processing\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\",\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-17T09:28:32+00:00\",\n            \"seconds_taken\": 42.23\n        },\n        {\n            \"corpus_id\": \"{{standard-corpus}}\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\",\n            \"sparv_exports\": [\n                \"csv_export:csv\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"files\": [\n                \"dokument1\",\n                \"dokument2\"\n            ],\n            \"last_run_started\": \"2021-11-19T13:27:50+00:00\",\n            \"last_run_ended\": \"2021-11-19T15:16:15+01:00\",\n            \"seconds_taken\": 6505.04\n        },\n        {\n            \"corpus_id\": \"mink-eiyu8mjxui\",\n            \"message\": \"Sparv is running\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\",\n            \"sparv_exports\": [\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-19T10:54:10+00:00\",\n            \"seconds_taken\": 632.63\n        },\n        {\n            \"corpus_id\": \"mink-neyfev2rdm\",\n            \"message\": \"Job has been queued\",\n            \"job_status\": \"waiting\",\n            \"sparv_exports\": [\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"priority\": 1\n        }\n    ]\n}"
 						},
 						{
 							"name": "check status 401",
@@ -2349,7 +2349,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -2359,7 +2359,7 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/abort-job?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/abort-job?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -2369,7 +2369,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -2382,7 +2382,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/abort-job?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/abort-job?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2392,7 +2392,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -2419,7 +2419,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully aborted running job for 'mink-dxh6e6wtff'\",\n    \"job_status\": \"aborted\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully aborted running job for '{{standard-corpus}}'\",\n    \"job_status\": \"aborted\"\n}"
 						},
 						{
 							"name": "abort job 200 no job",
@@ -2427,7 +2427,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/abort-job?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/abort-job?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2437,7 +2437,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -2464,7 +2464,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"No running job found for 'mink-dxh6e6wtff'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"No running job found for '{{standard-corpus}}'\"\n}"
 						},
 						{
 							"name": "abort job 401",
@@ -2472,7 +2472,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/abort-job?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/abort-job?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2482,7 +2482,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -2517,7 +2517,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/abort-job?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/abort-job?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2527,7 +2527,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -2554,7 +2554,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -2564,7 +2564,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/clear-annotations?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/clear-annotations?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -2574,7 +2574,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -2587,7 +2587,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/clear-annotations?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/clear-annotations?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2597,7 +2597,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -2624,7 +2624,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Annotations for 'mink-dxh6e6wtff' successfully removed\",\n    \"sparv_output\": \"'export' directory removed, 'logs' directory removed, 'sparv-workdir' directory removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Annotations for '{{standard-corpus}}' successfully removed\",\n    \"sparv_output\": \"'export' directory removed, 'logs' directory removed, 'sparv-workdir' directory removed\"\n}"
 						},
 						{
 							"name": "clear annotations 401",
@@ -2632,7 +2632,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/clear-annotations?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/clear-annotations?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2642,7 +2642,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -2690,7 +2690,7 @@
 									]
 								},
 								"url": {
-									"raw": "{{host}}/clear-annotations?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/clear-annotations?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2700,7 +2700,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -2727,7 +2727,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -2737,7 +2737,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/check-changes?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/check-changes?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -2747,7 +2747,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -2760,7 +2760,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/check-changes?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/check-changes?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2770,7 +2770,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -2797,7 +2797,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Your input for the corpus 'mink-dxh6e6wtff' has changed since the last run\",\n    \"config_changed\": true,\n    \"sources_added\": true,\n    \"sources_changed\": true,\n    \"sources_deleted\": true,\n    \"changed_config\": {\n        \"name\": \"config.yaml\",\n        \"type\": \"application/yaml\",\n        \"last_modified\": \"2021-11-25T15:52:17+00:00\",\n        \"size\": 848,\n        \"path\": \"config.yaml\"\n    },\n    \"added_sources\": [\n        {\n            \"name\": \"dokument4.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:35:30+00:00\",\n            \"size\": 461,\n            \"path\": \"dokument4.xml\"\n        }\n    ],\n    \"changed_sources\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 1396,\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 115,\n            \"path\": \"dokument2.xml\"\n        }\n    ],\n    \"deleted_sources\": [\n        {\n            \"name\": \"dokument3.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:22:54+00:00\",\n            \"size\": 41,\n            \"path\": \"dokument3.xml\"\n        }\n    ],\n    \"last_run_started\": \"2021-11-19T14:16:10+00:00\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Your input for the corpus '{{standard-corpus}}' has changed since the last run\",\n    \"config_changed\": true,\n    \"sources_added\": true,\n    \"sources_changed\": true,\n    \"sources_deleted\": true,\n    \"changed_config\": {\n        \"name\": \"config.yaml\",\n        \"type\": \"application/yaml\",\n        \"last_modified\": \"2021-11-25T15:52:17+00:00\",\n        \"size\": 848,\n        \"path\": \"config.yaml\"\n    },\n    \"added_sources\": [\n        {\n            \"name\": \"dokument4.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:35:30+00:00\",\n            \"size\": 461,\n            \"path\": \"dokument4.xml\"\n        }\n    ],\n    \"changed_sources\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 1396,\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 115,\n            \"path\": \"dokument2.xml\"\n        }\n    ],\n    \"deleted_sources\": [\n        {\n            \"name\": \"dokument3.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:22:54+00:00\",\n            \"size\": 41,\n            \"path\": \"dokument3.xml\"\n        }\n    ],\n    \"last_run_started\": \"2021-11-19T14:16:10+00:00\"\n}"
 						},
 						{
 							"name": "check changes 400",
@@ -2805,7 +2805,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/check-status?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/check-status?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2815,7 +2815,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -2842,7 +2842,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						},
 						{
 							"name": "check changes 401",
@@ -2850,7 +2850,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/check-changes?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/check-changes?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2860,7 +2860,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -2895,7 +2895,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/check-changes?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/check-changes?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -2905,7 +2905,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -2932,7 +2932,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -2942,7 +2942,7 @@
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/install-corpus?corpus_id=mink-dXH6E6wTFf&scramble=true",
+							"raw": "{{host}}/install-corpus?corpus_id={{standard-corpus}}&scramble=true",
 							"host": [
 								"{{host}}"
 							],
@@ -2952,7 +2952,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								},
 								{
 									"key": "scramble",
@@ -2969,7 +2969,7 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/install-corpus?corpus_id=mink-dXH6E6wTFf&scramble=true",
+									"raw": "{{host}}/install-corpus?corpus_id={{standard-corpus}}&scramble=true",
 									"host": [
 										"{{host}}"
 									],
@@ -2979,7 +2979,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "scramble",
@@ -3018,7 +3018,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/install-corpus?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/install-corpus?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3028,7 +3028,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -3063,7 +3063,7 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/install-corpus?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/install-corpus?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3073,7 +3073,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -3100,7 +3100,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				}
@@ -3115,7 +3115,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/list-exports?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/list-exports?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -3125,7 +3125,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -3138,7 +3138,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/list-exports?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/list-exports?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3148,7 +3148,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -3175,7 +3175,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current export files for 'mink-dxh6e6wtff'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T16:07:33+02:00\",\n            \"size\": \"4\",\n            \"path\": \"csv/dokument1.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T16:07:41+02:00\",\n            \"size\": \"5\",\n            \"path\": \"csv/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:54:15+02:00\",\n            \"size\": \"538\",\n            \"path\": \"csv_export/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"4876\",\n            \"path\": \"csv_export/dokument1.csv\"\n        },\n        {\n            \"name\": \"stats_mink-dxh6e6wtff.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:39+02:00\",\n            \"size\": \"10838\",\n            \"path\": \"stats_export.frequency_list/stats_mink-dxh6e6wtff.csv\"\n        },\n        {\n            \"name\": \"dokument2_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"1497\",\n            \"path\": \"xml_export.pretty/dokument2_export.xml\"\n        },\n        {\n            \"name\": \"dokument1_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:38+02:00\",\n            \"size\": \"13429\",\n            \"path\": \"xml_export.pretty/dokument1_export.xml\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current export files for '{{standard-corpus}}'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T16:07:33+02:00\",\n            \"size\": \"4\",\n            \"path\": \"csv/dokument1.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T16:07:41+02:00\",\n            \"size\": \"5\",\n            \"path\": \"csv/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:54:15+02:00\",\n            \"size\": \"538\",\n            \"path\": \"csv_export/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"4876\",\n            \"path\": \"csv_export/dokument1.csv\"\n        },\n        {\n            \"name\": \"stats_{{standard-corpus}}.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:39+02:00\",\n            \"size\": \"10838\",\n            \"path\": \"stats_export.frequency_list/stats_{{standard-corpus}}.csv\"\n        },\n        {\n            \"name\": \"dokument2_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"1497\",\n            \"path\": \"xml_export.pretty/dokument2_export.xml\"\n        },\n        {\n            \"name\": \"dokument1_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:38+02:00\",\n            \"size\": \"13429\",\n            \"path\": \"xml_export.pretty/dokument1_export.xml\"\n        }\n    ]\n}"
 						},
 						{
 							"name": "list exports 401",
@@ -3183,7 +3183,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/list-exports?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/list-exports?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3193,7 +3193,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -3228,7 +3228,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/list-exports?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/list-exports?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3238,7 +3238,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -3265,7 +3265,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -3275,7 +3275,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/download-exports?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/download-exports?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -3285,7 +3285,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								},
 								{
 									"key": "file",
@@ -3313,7 +3313,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-exports?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-exports?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3323,7 +3323,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -3374,7 +3374,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-exports?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-exports?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3384,7 +3384,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -3419,7 +3419,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-exports?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/download-exports?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3429,7 +3429,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -3456,7 +3456,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -3466,7 +3466,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/remove-exports?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/remove-exports?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -3476,7 +3476,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -3489,7 +3489,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-exports?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/remove-exports?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3499,7 +3499,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -3526,7 +3526,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Export files for corpus 'mink-dxh6e6wtff' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Export files for corpus '{{standard-corpus}}' successfully removed\"\n}"
 						},
 						{
 							"name": "remove exports 401",
@@ -3534,7 +3534,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-exports?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/remove-exports?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3544,7 +3544,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										}
 									]
 								}
@@ -3579,7 +3579,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/remove-exports?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/remove-exports?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3589,7 +3589,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -3616,7 +3616,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				},
@@ -3626,7 +3626,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/download-source-text?corpus_id=mink-dXH6E6wTFf&file=dokument1.xml",
+							"raw": "{{host}}/download-source-text?corpus_id={{standard-corpus}}&file=dokument1.xml",
 							"host": [
 								"{{host}}"
 							],
@@ -3636,7 +3636,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								},
 								{
 									"key": "file",
@@ -3653,7 +3653,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-source-text?corpus_id=mink-dXH6E6wTFf&file=dokument1.xml",
+									"raw": "{{host}}/download-source-text?corpus_id={{standard-corpus}}&file=dokument1.xml",
 									"host": [
 										"{{host}}"
 									],
@@ -3663,7 +3663,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "file",
@@ -3718,7 +3718,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-source-text?corpus_id=mink-dXH6E6wTFf",
+									"raw": "{{host}}/download-source-text?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3728,7 +3728,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "file",
@@ -3768,7 +3768,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-source-text?corpus_id=mink-dXH6E6wTFf&file=dokument1.xml",
+									"raw": "{{host}}/download-source-text?corpus_id={{standard-corpus}}&file=dokument1.xml",
 									"host": [
 										"{{host}}"
 									],
@@ -3778,7 +3778,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "file",
@@ -3817,7 +3817,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-source-text?corpus_id=mink-dXH6E6wTFf&file=dokument1.xml",
+									"raw": "{{host}}/download-source-text?corpus_id={{standard-corpus}}&file=dokument1.xml",
 									"host": [
 										"{{host}}"
 									],
@@ -3827,7 +3827,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFf"
+											"value": "{{standard-corpus}}"
 										},
 										{
 											"key": "file",
@@ -3858,7 +3858,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"There are currently no source texts for corpus 'mink-KuuMLW3oyy'. You must run Sparv before you can view source texts.\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"There are currently no source texts for corpus '{{standard-corpus}}'. You must run Sparv before you can view source texts.\"\n}"
 						},
 						{
 							"name": "download source text 404 no access",
@@ -3866,7 +3866,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/download-source-text?corpus_id=mink-dXH6E6wTFF",
+									"raw": "{{host}}/download-source-text?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -3876,7 +3876,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-dXH6E6wTFF"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -3903,7 +3903,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus 'mink-dXH6E6wTFF' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
 						}
 					]
 				}
@@ -4280,7 +4280,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/check-status-admin?corpus_id=mink-dXH6E6wTFf",
+							"raw": "{{host}}/check-status-admin?corpus_id={{standard-corpus}}",
 							"host": [
 								"{{host}}"
 							],
@@ -4290,7 +4290,7 @@
 							"query": [
 								{
 									"key": "corpus_id",
-									"value": "mink-dXH6E6wTFf"
+									"value": "{{standard-corpus}}"
 								}
 							]
 						},
@@ -4334,7 +4334,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"corpora\": [\n        \"mink-dxh6e6wtff\",\n        \"mink-NChH7FiJyp\",\n        \"mink-KuuMLW3oyy\"\n    ],\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-dxh6e6wtff\",\n            \"message\": \"Job was aborted by the user\",\n            \"job_status\": \"aborted\",\n            \"last_run_started\": \"2022-06-14T14:47:43+02:00\"\n        },\n        {\n            \"corpus_id\": \"mink-NChH7FiJyp\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"job_status\": \"done_syncing\",\n            \"last_run_started\": \"2022-06-13T11:44:43+02:00\",\n            \"last_run_ended\": \"2022-06-13T11:44:47+02:00\",\n            \"time_taken\": \"0:00:04\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"corpora\": [\n        \"{{standard-corpus}}\",\n        \"mink-nchh7fijyp\",\n        \"mink-kuuklw3oyy\"\n    ],\n    \"jobs\": [\n        {\n            \"corpus_id\": \"{{standard-corpus}}\",\n            \"message\": \"Job was aborted by the user\",\n            \"job_status\": \"aborted\",\n            \"last_run_started\": \"2022-06-14T14:47:43+02:00\"\n        },\n        {\n            \"corpus_id\": \"mink-nchh7fijyp\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"job_status\": \"done_syncing\",\n            \"last_run_started\": \"2022-06-13T11:44:43+02:00\",\n            \"last_run_ended\": \"2022-06-13T11:44:47+02:00\",\n            \"seconds_taken\": 4.81\n        }\n    ]\n}"
 						},
 						{
 							"name": "check status admin 401",
@@ -4381,7 +4381,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/check-status-admin?corpus_id=mink-KuuMLW3oyy",
+									"raw": "{{host}}/check-status-admin?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
@@ -4391,7 +4391,7 @@
 									"query": [
 										{
 											"key": "corpus_id",
-											"value": "mink-KuuMLW3oyy"
+											"value": "{{fake-corpus}}"
 										}
 									]
 								}
@@ -4418,7 +4418,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No active job found for corpus 'mink-KuuMLW3oyy'\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No active job found for corpus '{{fake-corpus}}'\"\n}"
 						}
 					]
 				}

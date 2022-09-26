@@ -1,3 +1,7 @@
+variables:
+  standard-corpus: mink-dxh6e6wtff
+  fake-corpus: mink-dxh6e6wtfg
+
 info:
   title: Min SB API
   version: 0.0.dev0
@@ -127,7 +131,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
   /check-status:
     get:
       parameters:
@@ -137,7 +141,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
   /sparv-languages:
     get:
       security: []
@@ -162,7 +166,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: zip
         in: query
         required: false
@@ -193,7 +197,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: file
         in: query
         required: false
@@ -217,14 +221,14 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: config
         in: query
         required: false
         style: form
         schema:
           type: string
-          example: 'metadata:\n    id: mink-dXH6E6wTFf\nimport:\n    document_annotation:
+          example: 'metadata:\n    id: mink-dxh6e6wtff\nimport:\n    document_annotation:
             text\n    importer: xml_import:parse\nexport:\n    annotations:\n        -
             <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        -
             <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -
@@ -239,7 +243,7 @@ paths:
         style: form
         schema:
           type: string
-          example: mink-dXH6E6wTFf
+          example: mink-dxh6e6wtff
       - name: scramble
         in: query
         required: false
