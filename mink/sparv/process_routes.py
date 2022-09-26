@@ -302,8 +302,8 @@ def make_status_response(job, ui, admin=False):
         return utils.response("Result files are being synced from the Sparv server", **job_attrs)
 
     if status == jobs.Status.done_syncing:
-        return utils.response("Corpus is done processing and the results have been synced", warnings=warnings,
-                              errors=errors, sparv_output=misc_output, **job_attrs)
+        return utils.response("Corpus is done processing and the results have been synced", progress=progress,
+                              warnings=warnings, errors=errors, sparv_output=misc_output, **job_attrs)
 
     if status == jobs.Status.installing:
         return utils.response("Korp installation is in progress", progress=progress, warnings=warnings, errors=errors,
