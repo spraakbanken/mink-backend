@@ -82,14 +82,14 @@ class Status(IntEnum):
 class Job():
     """A job item holding information about a Sparv job."""
 
-    def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, completed=None, sparv_exports=None,
+    def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, done=None, sparv_exports=None,
                  files=None, available_files=None, install_scrambled=None, installed_korp=False):
         self.user = user
         self.corpus_id = corpus_id
         self.status = status
         self.pid = pid
         self.started = started
-        self.completed = completed
+        self.done = done
         self.sparv_exports = sparv_exports or []
         self.files = files or []
         self.available_files = available_files or []
@@ -104,7 +104,7 @@ class Job():
 
     def __str__(self):
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
-                           "started": self.started, "completed": self.completed, "sparv_exports": self.sparv_exports,
+                           "started": self.started, "done": self.done, "sparv_exports": self.sparv_exports,
                            "files": self.files, "available_files": self.available_files, "install_scrambled":
                            self.install_scrambled, "installed_korp": self.installed_korp})
 
@@ -223,9 +223,9 @@ class Job():
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
         if self.files:
             sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.files)}"
-        script_content = f"{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
+        script_content = f"{sparv_env} nohup time -p {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        self.completed = None
+        self.done = None
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
                           f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
                           f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
@@ -252,9 +252,9 @@ class Job():
         sparv_env = app.config.get("SPARV_ENVIRON")
 
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        self.completed = None
+        self.done = None
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
-                          f"echo '{sparv_env} nohup {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' "
+                          f"echo '{sparv_env} nohup time -p {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' "
                           f"> {shlex.quote(self.runscript)}"
                           f" && chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
 
@@ -300,8 +300,6 @@ class Job():
             self.set_pid(None)
             progress, _warnings, errors, misc = self.get_output()
             if (progress == "100%" or misc.startswith("Nothing to be done.")):
-                self.completed = self.get_nohup_timestamp()
-                self.set_pid(None)
                 if self.status == Status.annotating:
                     if storage.local:
                         self.set_status(Status.done_syncing)
@@ -346,8 +344,17 @@ class Job():
                     elif matchobj.group(1) == "ERROR":
                         errors.append(matchobj.group(1) + " " + msg)
                         latest_msg = errors
+                # Catch line continuations
                 elif re.match(r"\s{8,}.+", line):
                     latest_msg.append(line.strip())
+                # Catch "real" time output
+                elif re.match(r"real \d.+", line):
+                    real_seconds = float(line[5:].strip())
+                    self.done = (dateutil.parser.isoparse(self.started) +
+                                 datetime.timedelta(seconds=real_seconds)).isoformat()
+                # Ignore "user" and "sys" time output
+                elif re.match(r"user|sys \d.+", line):
+                    pass
                 else:
                     if line.strip():
                         misc.append(line.strip())
@@ -357,39 +364,23 @@ class Job():
 
         return progress, warnings, errors, misc
 
-    def get_nohup_timestamp(self):
-        """Get the last modification time of the nohup file."""
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && date -r {shlex.quote(self.nohupfile)} -R")
-        out = p.stdout.decode() if p.stdout else ""
-        try:
-            return dateutil.parser.parse(out.strip()).isoformat()
-        except Exception:
-            return None
-
     @property
     def time_taken(self):
         """Calculate the time it took to process the corpus until it finished, aborted or until now."""
         if self.started == None or Status.is_waiting(self.status):
             return None
         started = dateutil.parser.isoparse(self.started)
-        now = datetime.datetime.now(datetime.timezone.utc)
         if Status.is_running(self.status):
+            now = datetime.datetime.now(datetime.timezone.utc)
             delta = now - started
-        elif self.completed:
-            delta = dateutil.parser.isoparse(self.completed) - started
-        elif self.status in (Status.error, Status.aborted):
-            nohup_timestamp = self.get_nohup_timestamp()
-            if nohup_timestamp is not None:
-                delta = dateutil.parser.isoparse(nohup_timestamp) - started
-            else:
-                return None
-
+            return delta.total_seconds()
+        elif self.done:
+            delta = dateutil.parser.isoparse(self.done) - started
+            return delta.total_seconds()
         else:
-            # TODO: Something goes wrong here. Remove when fixed!
+            # TODO: This should never happen. Can probably be removed.
             app.logger.debug("Something went wrong while calculating time taken. Job status: %", self.status)
-
-        # Remove microseconds from timedelta object
-        return str(delta - datetime.timedelta(microseconds=delta.microseconds))
+            return None
 
     def sync_results(self, ui):
         """Sync exports from Sparv server to the storage server."""

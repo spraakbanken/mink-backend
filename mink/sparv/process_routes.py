@@ -256,14 +256,16 @@ def make_status_response(job, ui, admin=False):
     status = job.status
     job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports, "available_files": job.available_files,
                  "installed_korp": job.installed_korp}
+    progress, warnings, errors, misc_output = job.get_output()
+
     if job.files:
         job_attrs["files"] = job.files
     if job.install_scrambled is not None:
         job_attrs["install_scrambled"] = job.install_scrambled
     if job.started:
         job_attrs["last_run_started"] = job.started
-    if job.completed:
-        job_attrs["last_run_completed"] = job.completed
+    if job.done:
+        job_attrs["last_run_ended"] = job.done
     if job.time_taken:
         job_attrs["time_taken"] = job.time_taken
 
@@ -282,11 +284,9 @@ def make_status_response(job, ui, admin=False):
     if status == jobs.Status.aborted:
         return utils.response("Job was aborted by the user", **job_attrs)
 
-    progress, warnings, errors, output = job.get_output()
-
     if status == jobs.Status.annotating:
         return utils.response("Sparv is running", progress=progress, warnings=warnings, errors=errors,
-                              sparv_output=output, **job_attrs)
+                              sparv_output=misc_output, **job_attrs)
 
     # If done annotating, retrieve exports from Sparv
     if status == jobs.Status.done_annotating and not admin:
@@ -295,30 +295,30 @@ def make_status_response(job, ui, admin=False):
         except Exception as e:
             return utils.response("Sparv was run successfully but exports failed to upload to the storage server",
                                   info=str(e))
-        return utils.response("Sparv was run successfully! Starting to sync results", warnings=warnings, errors=errors,
-                              sparv_output=output, **job_attrs)
+        return utils.response("Sparv was run successfully! Starting to sync results", progress=progress,
+                              warnings=warnings, errors=errors, sparv_output=misc_output, **job_attrs)
 
     if status == jobs.Status.syncing_results:
         return utils.response("Result files are being synced from the Sparv server", **job_attrs)
 
     if status == jobs.Status.done_syncing:
         return utils.response("Corpus is done processing and the results have been synced", warnings=warnings,
-                              errors=errors, sparv_output=output, **job_attrs)
+                              errors=errors, sparv_output=misc_output, **job_attrs)
 
     if status == jobs.Status.installing:
         return utils.response("Korp installation is in progress", progress=progress, warnings=warnings, errors=errors,
-                              sparv_output=output, **job_attrs)
+                              sparv_output=misc_output, **job_attrs)
 
     if status == jobs.Status.done_installing:
-        return utils.response("Installation on Korp was successful!", warnings=warnings, errors=errors,
-                              sparv_output=output, **job_attrs)
+        return utils.response("Installation on Korp was successful!", progress=progress, warnings=warnings,
+                              errors=errors, sparv_output=misc_output, **job_attrs)
 
     if status == jobs.Status.error:
         return utils.response("An error occurred during processing", warnings=warnings, errors=errors,
-                              sparv_output=output, **job_attrs)
+                              sparv_output=misc_output, **job_attrs)
 
-    return utils.response("Cannot handle this Sparv status yet", warnings=warnings, errors=errors, sparv_output=output,
-                          **job_attrs), 501
+    return utils.response("Cannot handle this Sparv status yet", warnings=warnings, errors=errors,
+                          sparv_output=misc_output, **job_attrs), 501
 
 
 @bp.route("/sparv-languages", methods=["GET"])
