@@ -366,7 +366,7 @@ class Job():
         return progress, warnings, errors, misc
 
     @property
-    def time_taken(self):
+    def seconds_taken(self):
         """Calculate the time it took to process the corpus until it finished, aborted or until now."""
         if self.started == None or Status.is_waiting(self.status):
             return None

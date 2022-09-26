@@ -266,8 +266,8 @@ def make_status_response(job, ui, admin=False):
         job_attrs["last_run_started"] = job.started
     if job.done:
         job_attrs["last_run_ended"] = job.done
-    if job.time_taken:
-        job_attrs["time_taken"] = job.time_taken
+    if job.seconds_taken:
+        job_attrs["seconds_taken"] = job.seconds_taken
 
     if status == jobs.Status.none:
         return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.name)
