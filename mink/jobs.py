@@ -83,7 +83,8 @@ class Job():
     """A job item holding information about a Sparv job."""
 
     def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, done=None, sparv_exports=None,
-                 files=None, available_files=None, install_scrambled=None, installed_korp=False):
+                 files=None, available_files=None, install_scrambled=None, installed_korp=False, **trash):
+        # **trash is needed to catch invalid arguments from outdated job items in the queue (this avoids crashes)
         self.user = user
         self.corpus_id = corpus_id
         self.status = status
