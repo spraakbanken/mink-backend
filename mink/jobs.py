@@ -298,31 +298,31 @@ class Job():
 
     def process_running(self):
         """Check if process with this job's pid is still running on Sparv server."""
-        if not self.pid:
-            return False
-
-        p = utils.ssh_run(f"kill -0 {self.pid}")
-        if p.returncode == 0:
-            return True
-        else:
+        if self.pid:
+            p = utils.ssh_run(f"kill -0 {self.pid}")
+            # Process is running, do nothing
+            if p.returncode == 0:
+                return True
+            # Process not running anymore
             app.logger.debug(f"stderr: '{p.stderr.decode()}'")
             self.set_pid(None)
-            progress, _warnings, errors, misc = self.get_output()
-            if (progress == "100%" or misc.startswith("Nothing to be done.")):
-                if self.status == Status.annotating:
-                    if storage.local:
-                        self.set_status(Status.done_syncing)
-                    else:
-                        self.set_status(Status.done_annotating)
-                elif self.status == Status.installing:
-                    self.set_status(Status.done_installing)
-            else:
-                if errors:
-                    app.logger.debug(f"Error in Sparv: {errors}")
-                if misc:
-                    app.logger.debug(f"Sparv output: {misc}")
-                self.set_status(Status.error)
-            return False
+
+        progress, _warnings, errors, misc = self.get_output()
+        if (progress == "100%" or misc.startswith("Nothing to be done.")):
+            if self.status == Status.annotating:
+                if storage.local:
+                    self.set_status(Status.done_syncing)
+                else:
+                    self.set_status(Status.done_annotating)
+            elif self.status == Status.installing:
+                self.set_status(Status.done_installing)
+        else:
+            if errors:
+                app.logger.debug(f"Error in Sparv: {errors}")
+            if misc:
+                app.logger.debug(f"Sparv output: {misc}")
+            self.set_status(Status.error)
+        return False
 
     def get_output(self):
         """Check latest Sparv output of this job by reading the nohup file."""
