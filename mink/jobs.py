@@ -73,10 +73,15 @@ class Status(IntEnum):
         return status in [cls.annotating, cls.installing]
 
     @classmethod
+    def is_done_processing(cls, status):
+        """Check if status is running."""
+        return status in [cls.done_annotating, cls.done_syncing, cls.done_installing]
+
+    @classmethod
     def has_process_output(cls, status):
         """Check if status is expected to have process output."""
         return status in [cls.annotating, cls.done_annotating, cls.syncing_results, cls.done_syncing, cls.installing,
-                          cls.done_annotating, cls.done_installing, cls.error]
+                          cls.done_installing, cls.error]
 
 
 class Job():
@@ -308,8 +313,8 @@ class Job():
             app.logger.debug(f"stderr: '{p.stderr.decode()}'")
             self.set_pid(None)
 
-        progress, _warnings, errors, misc = self.get_output()
-        if (progress == "100%" or misc.startswith("Nothing to be done.")):
+        _warnings, errors, misc = self.get_output()
+        if (self.progress_output == "100%"):
             if self.status == Status.annotating:
                 if storage.local:
                     self.set_status(Status.done_syncing)
@@ -328,7 +333,7 @@ class Job():
     def get_output(self):
         """Check latest Sparv output of this job by reading the nohup file."""
         if not Status.has_process_output(self.status):
-            return "", "", "", ""
+            return "", "", ""
 
         nohupfile = app.config.get("SPARV_NOHUP_FILE")
         remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.corpus_id))
@@ -371,8 +376,11 @@ class Job():
             warnings = "\n".join(warnings)
             errors = "\n".join(errors)
             misc = "\n".join(misc)
+            if misc.startswith("Nothing to be done."):
+                progress = "100%"
+            self.progress_output = progress
 
-        return progress, warnings, errors, misc
+        return warnings, errors, misc
 
     @property
     def seconds_taken(self):
@@ -396,6 +404,21 @@ class Job():
 
         self.set_latest_seconds_taken(seconds_taken)
         return seconds_taken
+
+
+    @property
+    def progress(self):
+        """Get the Sparv progesss but don't report 100% before the job status has been changed to done."""
+        if Status.has_process_output(self.status):
+            if self.progress_output == "100%" and not Status.is_done_processing(self.status):
+                return "99%"
+            else:
+                return self.progress_output
+        elif Status.is_active(self.status):
+            return "0%"
+        else:
+            return None
+
 
     def sync_results(self, ui):
         """Sync exports from Sparv server to the storage server."""
