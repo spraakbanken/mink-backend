@@ -47,6 +47,7 @@ def run_sparv(ui, user, _corpora, corpus_id, _auth_token):
 
     # Queue job
     job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=source_files)
+    job.set_latest_seconds_taken(0)
     try:
         job = queue.add(job)
     except Exception as e:
@@ -258,16 +259,12 @@ def make_status_response(job, ui, admin=False):
                  "installed_korp": job.installed_korp}
     progress, warnings, errors, misc_output = job.get_output()
 
-    if job.files:
-        job_attrs["files"] = job.files
+    job_attrs["files"] = job.files or ""
     if job.install_scrambled is not None:
         job_attrs["install_scrambled"] = job.install_scrambled
-    if job.started:
-        job_attrs["last_run_started"] = job.started
-    if job.done:
-        job_attrs["last_run_ended"] = job.done
-    if job.seconds_taken:
-        job_attrs["seconds_taken"] = job.seconds_taken
+    job_attrs["last_run_started"] = job.started or ""
+    job_attrs["last_run_ended"] = job.done or ""
+    job_attrs["seconds_taken"] = job.seconds_taken or ""
 
     if status == jobs.Status.none:
         return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.name)

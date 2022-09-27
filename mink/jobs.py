@@ -83,7 +83,8 @@ class Job():
     """A job item holding information about a Sparv job."""
 
     def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, done=None, sparv_exports=None,
-                 files=None, available_files=None, install_scrambled=None, installed_korp=False, **trash):
+                 files=None, available_files=None, install_scrambled=None, installed_korp=False,
+                 latest_seconds_taken=0, **trash):
         # **trash is needed to catch invalid arguments from outdated job items in the queue (this avoids crashes)
         self.user = user
         self.corpus_id = corpus_id
@@ -96,6 +97,7 @@ class Job():
         self.available_files = available_files or []
         self.install_scrambled = install_scrambled
         self.installed_korp = installed_korp
+        self.latest_seconds_taken = latest_seconds_taken
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_HOST")
@@ -159,6 +161,12 @@ class Job():
         """Set status of 'install_scrambled' and save."""
         self.install_scrambled = scramble
         self.save()
+
+    def set_latest_seconds_taken(self, seconds_taken):
+        """Set 'latest_seconds_taken' and save."""
+        if self.latest_seconds_taken or seconds_taken:
+            self.latest_seconds_taken = seconds_taken
+            self.save()
 
     def check_requirements(self, ui):
         """Check if required corpus contents are present."""
@@ -367,21 +375,26 @@ class Job():
 
     @property
     def seconds_taken(self):
-        """Calculate the time it took to process the corpus until it finished, aborted or until now."""
+        """Calculate the time it took to process the corpus until it finished, aborted or until now.
+        When a Sparv job is finished it reads the time Sparv took and compensates for extra time the backend
+        may take.
+        """
         if self.started == None or Status.is_waiting(self.status):
-            return None
-        started = dateutil.parser.isoparse(self.started)
-        if Status.is_running(self.status):
+            seconds_taken = 0
+        elif Status.is_running(self.status):
             now = datetime.datetime.now(datetime.timezone.utc)
-            delta = now - started
-            return delta.total_seconds()
+            delta = now - dateutil.parser.isoparse(self.started)
+            seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
         elif self.done:
-            delta = dateutil.parser.isoparse(self.done) - started
-            return delta.total_seconds()
+            delta = dateutil.parser.isoparse(self.done) - dateutil.parser.isoparse(self.started)
+            seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
         else:
             # TODO: This should never happen. Can probably be removed.
-            app.logger.debug("Something went wrong while calculating time taken. Job status: %", self.status)
-            return None
+            app.logger.debug(f"Something went wrong while calculating time taken. Job status: {self.status}")
+            seconds_taken = 0
+
+        self.set_latest_seconds_taken(seconds_taken)
+        return seconds_taken
 
     def sync_results(self, ui):
         """Sync exports from Sparv server to the storage server."""
