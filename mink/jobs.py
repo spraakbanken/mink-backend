@@ -109,7 +109,8 @@ class Job():
         return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
                            "started": self.started, "done": self.done, "sparv_exports": self.sparv_exports,
                            "files": self.files, "available_files": self.available_files, "install_scrambled":
-                           self.install_scrambled, "installed_korp": self.installed_korp})
+                           self.install_scrambled, "installed_korp": self.installed_korp, "latest_seconds_taken":
+                           self.latest_seconds_taken})
 
     def save(self):
         """Write a job item to the cache and filesystem."""
@@ -164,7 +165,7 @@ class Job():
 
     def set_latest_seconds_taken(self, seconds_taken):
         """Set 'latest_seconds_taken' and save."""
-        if self.latest_seconds_taken or seconds_taken:
+        if self.latest_seconds_taken != seconds_taken:
             self.latest_seconds_taken = seconds_taken
             self.save()
 
@@ -481,12 +482,11 @@ class Job():
 
 def get_job(user, corpus_id, sparv_exports=None, files=None, available_files=None, install_scrambled=None):
     """Get an existing job from the cache or create a new one."""
-    job = Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files,
-              install_scrambled=install_scrambled)
-    if g.cache.get_job(job.corpus_id) is not None:
-        return load_from_str(g.cache.get_job(job.corpus_id), sparv_exports=sparv_exports, files=files,
+    if g.cache.get_job(corpus_id) is not None:
+        return load_from_str(g.cache.get_job(corpus_id), sparv_exports=sparv_exports, files=files,
                              available_files=available_files, install_scrambled=install_scrambled)
-    return job
+    return Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files,
+               install_scrambled=install_scrambled)
 
 
 def load_from_str(jsonstr, sparv_exports=None, files=None, available_files=None, install_scrambled=None):
