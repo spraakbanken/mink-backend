@@ -55,7 +55,7 @@ class Status(IntEnum):
     @classmethod
     def is_inactive(cls, status):
         """Check if status is inactive."""
-        return status in [cls.done_annotating, cls.done_installing, cls.error, cls.aborted]
+        return status in [cls.done_syncing, cls.done_installing, cls.error, cls.aborted]
 
     @classmethod
     def is_syncing(cls, status):
@@ -154,7 +154,7 @@ class Job():
 
     def set_status(self, status):
         """Change the status of a job."""
-        if not self.status == status:
+        if self.status != status:
             self.status = status
             self.save()
 
