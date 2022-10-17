@@ -97,12 +97,14 @@ class Job():
         self.pid = pid
         self.started = started
         self.done = done
+        self.sparv_done = None
         self.sparv_exports = sparv_exports or []
         self.files = files or []
         self.available_files = available_files or []
         self.install_scrambled = install_scrambled
         self.installed_korp = installed_korp
         self.latest_seconds_taken = latest_seconds_taken
+        self.progress_output = "0%"
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_HOST")
@@ -174,6 +176,14 @@ class Job():
             self.latest_seconds_taken = seconds_taken
             self.save()
 
+    def reset_time(self):
+        """Reset the processing time for a job (e.g. when starting a new one)."""
+        self.latest_seconds_taken = 0
+        self.started = None
+        self.done = None
+        self.sparv_done = None
+        self.save()
+
     def check_requirements(self, ui):
         """Check if required corpus contents are present."""
         remote_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
@@ -240,14 +250,13 @@ class Job():
             sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.files)}"
         script_content = f"{sparv_env} nohup time -p {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        self.done = None
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
                           f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
                           f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            self.started = None
+            self.reset_time()
             self.set_status(Status.error)
             raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
 
@@ -267,7 +276,6 @@ class Job():
         sparv_env = app.config.get("SPARV_ENVIRON")
 
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        self.done = None
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
                           f"echo '{sparv_env} nohup time -p {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' "
                           f"> {shlex.quote(self.runscript)}"
@@ -275,7 +283,7 @@ class Job():
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            self.started = None
+            self.reset_time()
             self.set_status(Status.error)
             raise exceptions.JobError(f"Failed to install corpus with Sparv. {stderr}")
 
@@ -300,7 +308,13 @@ class Job():
             self.set_pid(None)
             self.set_status(Status.aborted)
         else:
-            raise exceptions.JobError(f"Failed to abort job! Error: '{p.stderr.decode()}'")
+            stderr = p.stderr.decode()
+            # Ignore 'no such process' error
+            if stderr.endswith("Processen finns inte\n") or stderr.endswith("No such process\n"):
+                self.set_pid(None)
+                self.set_status(Status.aborted)
+            else:
+                raise exceptions.JobError(f"Failed to abort job! Error: '{stderr}'")
 
     def process_running(self):
         """Check if process with this job's pid is still running on Sparv server."""
@@ -365,8 +379,8 @@ class Job():
                 # Catch "real" time output
                 elif re.match(r"real \d.+", line):
                     real_seconds = float(line[5:].strip())
-                    self.done = (dateutil.parser.isoparse(self.started) +
-                                 datetime.timedelta(seconds=real_seconds)).isoformat()
+                    self.sparv_done = (dateutil.parser.isoparse(self.started) +
+                                       datetime.timedelta(seconds=real_seconds)).isoformat()
                 # Ignore "user" and "sys" time output
                 elif re.match(r"user|sys \d.+", line):
                     pass
@@ -394,9 +408,10 @@ class Job():
             now = datetime.datetime.now(datetime.timezone.utc)
             delta = now - dateutil.parser.isoparse(self.started)
             seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
-        elif self.done:
-            delta = dateutil.parser.isoparse(self.done) - dateutil.parser.isoparse(self.started)
+        elif self.sparv_done:
+            delta = dateutil.parser.isoparse(self.sparv_done) - dateutil.parser.isoparse(self.started)
             seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
+            self.done = (dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=seconds_taken)).isoformat()
         else:
             # TODO: This should never happen. Can probably be removed.
             app.logger.debug(f"Something went wrong while calculating time taken. Job status: {self.status}")

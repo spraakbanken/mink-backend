@@ -74,11 +74,11 @@ def create_app():
     @app.before_request
     def debug_info():
         """Print some debugging info about the incoming request."""
-        app.logger.debug(f"Request url:   {request.url}")
+        app.logger.debug(f"URL:    {request.url}")
         if request.values:
-            app.logger.debug(f"Request values:  {request.values}")
+            app.logger.debug(f"Values: {list(request.values.items())}")
         if request.files:
-            app.logger.debug(f"Request files: {request.files}")
+            app.logger.debug(f"Files:  {request.files}")
 
     @app.after_request
     def cleanup(response):
