@@ -10,13 +10,17 @@ from pathlib import Path
 import jwt
 import requests
 import shortuuid
+from flask import Blueprint
 from flask import current_app as app
-from flask import g, request
+from flask import g, request, session
 
-from mink import exceptions, utils
+from mink import corpus_registry, exceptions, utils
+
+bp = Blueprint("sb_auth_login", __name__)
 
 
-def login(require_init=False, include_read=False, require_corpus_id=True, require_corpus_exists=True):
+def login(require_init=False, include_read=False, require_corpus_id=True, require_corpus_exists=True,
+          require_admin=False):
     """Attempt to login on sb-auth.
 
     Args:
@@ -25,6 +29,7 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
         require_corpus_id (bool, optional): This route requires the user to supply a corpus ID. Defaults to True.
         require_corpus_exists (bool, optional): This route requires that the supplied corpus ID occurs in the JWT.
             Defaults to True.
+        require_admin (bool, optional): This route requires the user to be a mink admin.
     """
     def decorator(function):
         @functools.wraps(function)  # Copy original function's information, needed by Flask
@@ -39,9 +44,19 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
                 return utils.response("No authorization token provided", err=True), 401
 
             try:
-                user, corpora = _get_corpora(auth_token, include_read)
+                user, corpora, mink_admin, _username, _email = _get_corpora(auth_token, include_read)
             except Exception as e:
                 return utils.response("Failed to authenticate", err=True, info=str(e)), 401
+
+            if require_admin and not mink_admin:
+                    return utils.response("Mink admin status could not be confirmed", err=True), 401
+
+            # Give access to all corpora if admin mode is on and user is mink admin
+            if session.get("admin_mode") and mink_admin:
+                corpora = corpus_registry.get_all()
+            else:
+                # Turn off admin mode if user is not admin
+                session["admin_mode"] = False
 
             try:
                 # Store random ID in app context, used for temporary storage
@@ -75,6 +90,20 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
     return decorator
 
 
+@bp.route("/admin-mode-on", methods=["POST"])
+@login(require_corpus_exists=False, require_corpus_id=False, require_admin=True)
+def admin_mode_on(_ui, _user, _corpora, _auth_token):
+    session["admin_mode"] = True
+    return utils.response(f"Admin mode turned on")
+
+
+@bp.route("/admin-mode-off", methods=["POST"])
+@login(require_corpus_exists=False, require_corpus_id=False)
+def admin_mode_off(_ui, _user, _corpora, _auth_token):
+    session["admin_mode"] = False
+    return utils.response(f"Admin mode turned off")
+
+
 def read_jwt_key():
     """Read and return the public key for validating JWTs."""
     app.config["JWT_KEY"] = open(Path(app.instance_path) / app.config.get("SBAUTH_PUBKEY_FILE")).read()
@@ -83,6 +112,7 @@ def read_jwt_key():
 def _get_corpora(auth_token, include_read=False):
     """Check validity of auth_token and get Mink corpora that user has write access for."""
     corpora = []
+    mink_admin = False
     user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
     if user_token["exp"] < time.time():
         return utils.response("The provided JWT has expired", err=True), 401
@@ -91,11 +121,16 @@ def _get_corpora(auth_token, include_read=False):
     if include_read:
         min_level = "READ"
     if "scope" in user_token and "corpora" in user_token["scope"]:
+        # Check if user is mink admin
+        mink_admin = user_token["scope"].get("other", {}).get("mink-admin") >= user_token["levels"]["WRITE"]
+        # Get list of corpora
         for corpus, level in user_token["scope"]["corpora"].items():
             if level >= user_token["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
                 corpora.append(corpus)
     user = re.sub(r"[^\w\-_\.]", "", (user_token["idp"] + "-" + user_token["sub"]))
-    return user, corpora
+    username = user_token.get("name", "")
+    email = user_token.get("email", "")
+    return user, corpora, mink_admin, username, email
 
 
 def create_resource(auth_token, resource_id):

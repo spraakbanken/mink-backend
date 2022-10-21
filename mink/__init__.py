@@ -95,5 +95,7 @@ def create_app():
     app.register_blueprint(process_routes.bp)
     from .sparv import storage_routes
     app.register_blueprint(storage_routes.bp)
+    from .sb_auth import login as login_routes
+    app.register_blueprint(login_routes.bp)
 
     return app
