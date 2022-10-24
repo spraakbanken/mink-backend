@@ -1,10 +1,10 @@
 """Caching with Memcached using app context as backoff solution."""
 
-import json
 from pathlib import Path
 
 from flask import current_app as app
 from flask import g
+from pymemcache import serde
 from pymemcache.client.base import Client
 
 from mink import corpus_registry, queue
@@ -34,22 +34,9 @@ class Cache():
 
     def connect(self):
         """Connect to the memcached socket and set client."""
-        def json_serializer(key, value):
-            if type(value) == str:
-                return value, 1
-            return json.dumps(value), 2
-
-        def json_deserializer(key, value, flags):
-            if flags == 1:
-                return value
-            if flags == 2:
-                return json.loads(value)
-            raise Exception("Unknown serialization format")
-
         socket_path = Path(app.instance_path) / app.config.get("MEMCACHED_SOCKET")
         try:
-            self.client = Client(f"unix:{socket_path}", serializer=json_serializer,
-                                    deserializer=json_deserializer)
+            self.client = Client(f"unix:{socket_path}", serde=serde.pickle_serde)
             # Check if connection is working
             self.client.get("test")
         except Exception as e:
