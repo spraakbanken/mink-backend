@@ -101,6 +101,8 @@ tags:
     description: Routes for listing, downloading and removing export files.
   - name: Process Corpus
     description: Routes for starting/aborting corpus annotation jobs with Sparv and checking job status.
+  - name: Admin Mode
+    description: Activate/deactivate admin mode.
   - name: Documentation
     description: Routes used for documentation purposes.
   - name: Internal Routes

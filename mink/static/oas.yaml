@@ -3306,6 +3306,122 @@ paths:
                 message: There are currently no source texts for corpus 'mink-dxh6e6wtff'.
                   You must run Sparv before you can view source texts.
       deprecated: false
+  /admin-mode-on:
+    post:
+      tags:
+      - Admin Mode
+      summary: admin mode on
+      description: 'Turns on admin mode for the user if the user can be verified as
+        a Mink admin in the authentication system. When admin mode is activated the
+        user will have full access to all corpora in Mink.
+
+
+        This works by setting a session cookie in the client. Admin mode will be activated
+        until <a href="#operation/adminmodeoff">turned off</a> or until the session
+        expires.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X POST ''{{host}}/admin-mode-on'' -H ''Authorization: Bearer YOUR_JWT''
+
+        ```'
+      operationId: adminmodeon
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Admin mode turned on
+              example:
+                status: success
+                message: Admin mode turned on
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Mink admin status could not be confirmed
+              example:
+                status: error
+                message: Mink admin status could not be confirmed
+      deprecated: false
+  /admin-mode-off:
+    post:
+      tags:
+      - Admin Mode
+      summary: admin mode off
+      description: 'Turns off admin mode for the user by removing the session cookie
+        from the client.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X POST ''{{host}}/admin-mode-off'' -H ''Authorization: Bearer YOUR_JWT''
+
+        ```'
+      operationId: adminmodeoff
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Admin mode turned off
+              example:
+                status: success
+                message: Admin mode turned off
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+      deprecated: false
   /api-spec:
     get:
       tags:
@@ -3739,6 +3855,8 @@ tags:
 - name: Process Corpus
   description: Routes for starting/aborting corpus annotation jobs with Sparv and
     checking job status.
+- name: Admin Mode
+  description: Activate/deactivate admin mode.
 - name: Documentation
   description: Routes used for documentation purposes.
 - name: Internal Routes
