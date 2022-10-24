@@ -8,10 +8,6 @@ LOG_LEVEL = "INFO"   # Log level for the application
 # Prefix used when creating new resources
 RESOURCE_PREFIX = "mink-"
 
-# Nextcloud settings
-NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"  # Nextcloud domain
-NC_CORPORA_DIR = "Mink"  # Directory on Nextcloud where the corpora are stored
-
 # sb-auth settings
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
 SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/resource/"

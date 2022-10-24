@@ -184,10 +184,10 @@ class Job():
         self.sparv_done = None
         self.save()
 
-    def check_requirements(self, ui):
+    def check_requirements(self):
         """Check if required corpus contents are present."""
-        remote_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
-        corpus_contents = storage.list_contents(ui, remote_corpus_dir, exclude_dirs=False)
+        remote_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
+        corpus_contents = storage.list_contents(remote_corpus_dir, exclude_dirs=False)
         if not app.config.get("SPARV_CORPUS_CONFIG") in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.corpus_id}'!")
@@ -195,16 +195,16 @@ class Job():
             self.set_status(Status.error)
             raise Exception(f"No input files provided for '{self.corpus_id}'!")
 
-    def sync_to_sparv(self, ui):
+    def sync_to_sparv(self):
         """Sync corpus files from storage server to the Sparv server."""
         self.set_status(Status.syncing_corpus)
 
         # Get relevant directories
-        remote_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
+        remote_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
         local_user_dir = utils.get_corpora_dir(self.user, mkdir=True)
 
         # Create file index with timestamps
-        corpus_contents = storage.list_contents(ui, remote_corpus_dir, exclude_dirs=False)
+        corpus_contents = storage.list_contents(remote_corpus_dir, exclude_dirs=False)
         file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Create user and corpus dir on Sparv server
@@ -217,7 +217,7 @@ class Job():
         # Download from storage server to local tmp dir
         # TODO: do this async?
         try:
-            storage.download_dir(ui, remote_corpus_dir, local_user_dir, self.corpus_id, file_index)
+            storage.download_dir(remote_corpus_dir, local_user_dir, self.corpus_id, file_index)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to download corpus '{self.corpus_id}' from the storage server! {e}")
@@ -435,12 +435,12 @@ class Job():
             return None
 
 
-    def sync_results(self, ui):
+    def sync_results(self):
         """Sync exports from Sparv server to the storage server."""
-        nc_corpus_dir = str(storage.get_corpus_dir(ui, self.corpus_id))
+        nc_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
         local_corpus_dir = str(utils.get_corpus_dir(self.user, self.corpus_id, mkdir=True))
 
-        corpus_contents = storage.list_contents(ui, nc_corpus_dir, exclude_dirs=False)
+        corpus_contents = storage.list_contents(nc_corpus_dir, exclude_dirs=False)
         file_index = storage.create_file_index(corpus_contents, self.user)
 
         # Get exports from Sparv
@@ -460,7 +460,7 @@ class Job():
         # Transfer exports to the storage server
         local_export_dir = utils.get_export_dir(self.user, self.corpus_id)
         try:
-            storage.upload_dir(ui, nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to upload exports to the storage server! {e}")
@@ -469,7 +469,7 @@ class Job():
         local_work_dir = utils.get_work_dir(self.user, self.corpus_id)
         try:
             app.logger.warning(local_work_dir)
-            storage.upload_dir(ui, nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
             self.set_status(Status.error)
             app.logger.warning(e)

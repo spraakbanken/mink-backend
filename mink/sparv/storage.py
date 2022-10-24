@@ -16,7 +16,7 @@ from mink.sparv import utils as sparv_utils
 local = True
 
 
-def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
+def list_contents(directory: Union[Path, str], exclude_dirs=True):
     """List files in directory on Sparv server recursively."""
     objlist = []
     directory_quoted = shlex.quote(str(directory))
@@ -45,7 +45,7 @@ def list_contents(_ui, directory: Union[Path, str], exclude_dirs=True):
     return objlist
 
 
-def download_file(_ui, remote_file_path: str, local_file: Path, corpus_id: str, ignore_missing: bool = False):
+def download_file(remote_file_path: str, local_file: Path, corpus_id: str, ignore_missing: bool = False):
     """Download a file from the Sparv server."""
     if not _is_valid_path(remote_file_path, corpus_id):
         raise Exception(f"You don't have permission to download '{remote_file_path}'")
@@ -63,7 +63,7 @@ def download_file(_ui, remote_file_path: str, local_file: Path, corpus_id: str, 
     return True
 
 
-def get_file_contents(_ui, filepath):
+def get_file_contents(filepath):
     """Get contents of file at 'filepath'."""
     p = utils.ssh_run(f"cat {shlex.quote(str(filepath))}")
     if p.stderr:
@@ -72,7 +72,7 @@ def get_file_contents(_ui, filepath):
     return p.stdout.decode()
 
 
-def write_file_contents(_ui, filepath: str, file_contents: bytes, corpus_id: str):
+def write_file_contents(filepath: str, file_contents: bytes, corpus_id: str):
     """Write contents to a new file on the Sparv server."""
     if not _is_valid_path(filepath, corpus_id):
         raise Exception(f"You don't have permission to edit '{filepath}'")
@@ -82,7 +82,7 @@ def write_file_contents(_ui, filepath: str, file_contents: bytes, corpus_id: str
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
 
-def download_dir(_ui, remote_dir, local_dir, corpus_id, file_index=None, zipped=False, zippath=None):
+def download_dir(remote_dir, local_dir, corpus_id, file_index=None, zipped=False, zippath=None):
     """Download remote_dir on Sparv server to local_dir by rsyncing."""
     if not _is_valid_path(remote_dir, corpus_id):
         raise Exception(f"You don't have permission to download '{remote_dir}'")
@@ -106,7 +106,7 @@ def download_dir(_ui, remote_dir, local_dir, corpus_id, file_index=None, zipped=
     return zippath
 
 
-def upload_dir(_ui, remote_dir, local_dir, corpus_id, _user, _file_index, delete=False):
+def upload_dir(remote_dir, local_dir, corpus_id, _user, _file_index, delete=False):
     """Upload local dir to remote_dir on Sparv server by rsyncing.
 
     Args:
@@ -135,8 +135,7 @@ def upload_dir(_ui, remote_dir, local_dir, corpus_id, _user, _file_index, delete
 
 
 def create_file_index(contents, user):
-    """Convert Nextcloud contents list to a file index with local paths and timestamps."""
-    # TODO: Is this needed for anything?
+    """Convert dir contents list to a file index with local paths and timestamps."""
     file_index = {}
     for f in contents:
         parts = f.get("path").split("/")
@@ -147,7 +146,7 @@ def create_file_index(contents, user):
     return file_index
 
 
-def remove_dir(_ui, path, corpus_id: str):
+def remove_dir(path, corpus_id: str):
     """Remove directory on 'path' from Sparv server."""
     if not _is_valid_path(path, corpus_id):
         raise Exception(f"You don't have permission to remove '{path}'")
@@ -157,7 +156,7 @@ def remove_dir(_ui, path, corpus_id: str):
         raise Exception(f"Failed to remove corpus dir on Sparv server: {p.stderr.decode()}")
 
 
-def remove_file(_ui, path, corpus_id: str):
+def remove_file(path, corpus_id: str):
     """Remove file on 'path' from Sparv server."""
     if not _is_valid_path(path, corpus_id):
         raise Exception(f"You don't have permission to remove '{path}'")
@@ -182,7 +181,7 @@ def _is_valid_path(path, corpus_id: str):
 # Get paths on Sparv server
 ################################################################################
 
-def get_corpus_dir(_ui, corpus_id, mkdir=False):
+def get_corpus_dir(corpus_id, mkdir=False):
     """Get dir for given corpus."""
     corpus_dir = sparv_utils.get_corpus_dir(corpus_id)
     if mkdir:
@@ -190,7 +189,7 @@ def get_corpus_dir(_ui, corpus_id, mkdir=False):
     return corpus_dir
 
 
-def get_export_dir(_ui, corpus_id, mkdir=False):
+def get_export_dir(corpus_id, mkdir=False):
     """Get export dir for given corpus."""
     export_dir = sparv_utils.get_export_dir(corpus_id)
     if mkdir:
@@ -198,7 +197,7 @@ def get_export_dir(_ui, corpus_id, mkdir=False):
     return export_dir
 
 
-def get_work_dir(_ui, corpus_id, mkdir=False):
+def get_work_dir(corpus_id, mkdir=False):
     """Get sparv workdir for given corpus."""
     work_dir = sparv_utils.get_work_dir(corpus_id)
     if mkdir:
@@ -206,7 +205,7 @@ def get_work_dir(_ui, corpus_id, mkdir=False):
     return work_dir
 
 
-def get_source_dir(_ui, corpus_id: str, mkdir: bool = False) -> Path:
+def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given corpus."""
     source_dir = sparv_utils.get_source_dir(corpus_id)
     if mkdir:
@@ -214,7 +213,7 @@ def get_source_dir(_ui, corpus_id: str, mkdir: bool = False) -> Path:
     return source_dir
 
 
-def get_config_file(_ui, corpus_id):
+def get_config_file(corpus_id):
     """Get path to corpus config file."""
     return sparv_utils.get_config_file(corpus_id)
 

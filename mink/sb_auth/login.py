@@ -19,17 +19,15 @@ from mink import corpus_registry, exceptions, utils
 bp = Blueprint("sb_auth_login", __name__)
 
 
-def login(require_init=False, include_read=False, require_corpus_id=True, require_corpus_exists=True,
-          require_admin=False):
+def login(include_read=False, require_corpus_id=True, require_corpus_exists=True, require_admin=False):
     """Attempt to login on sb-auth.
 
     Args:
-        require_init (bool, optional): Requires Mink to be initialised. Defaults to False.
         include_read (bool, optional): Include corpora that the user has read access to. Defaults to False.
         require_corpus_id (bool, optional): This route requires the user to supply a corpus ID. Defaults to True.
         require_corpus_exists (bool, optional): This route requires that the supplied corpus ID occurs in the JWT.
             Defaults to True.
-        require_admin (bool, optional): This route requires the user to be a mink admin.
+        require_admin (bool, optional): This route requires the user to be a mink admin. Defaults to False.
     """
     def decorator(function):
         @functools.wraps(function)  # Copy original function's information, needed by Flask
@@ -63,7 +61,7 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
                 g.request_id = shortuuid.uuid()
 
                 if not require_corpus_id:
-                    return function(None, user, corpora, auth_token, *args, **kwargs)
+                    return function(user, corpora, auth_token, *args, **kwargs)
 
                 # Check if corpus ID was provided
                 corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
@@ -72,14 +70,14 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
 
                 # Check if corpus exists
                 if not require_corpus_exists:
-                    return function(None, user, corpora, corpus_id, auth_token)
+                    return function(user, corpora, corpus_id, auth_token)
 
                 # Check if user is admin for corpus
                 if corpus_id not in corpora:
                     return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
                                           err=True), 404
 
-                return function(None, user, corpora, corpus_id, auth_token)
+                return function(user, corpora, corpus_id, auth_token)
 
             # Catch everything else and return a traceback
             except Exception as e:
@@ -92,14 +90,14 @@ def login(require_init=False, include_read=False, require_corpus_id=True, requir
 
 @bp.route("/admin-mode-on", methods=["POST"])
 @login(require_corpus_exists=False, require_corpus_id=False, require_admin=True)
-def admin_mode_on(_ui, _user, _corpora, _auth_token):
+def admin_mode_on(_user, _corpora, _auth_token):
     session["admin_mode"] = True
     return utils.response(f"Admin mode turned on")
 
 
 @bp.route("/admin-mode-off", methods=["POST"])
 @login(require_corpus_exists=False, require_corpus_id=False)
-def admin_mode_off(_ui, _user, _corpora, _auth_token):
+def admin_mode_off(_user, _corpora, _auth_token):
     session["admin_mode"] = False
     return utils.response(f"Admin mode turned off")
 

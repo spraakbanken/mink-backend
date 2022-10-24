@@ -15,7 +15,7 @@ bp = Blueprint("sparv", __name__)
 
 @bp.route("/run-sparv", methods=["PUT"])
 @login.login()
-def run_sparv(ui, user, _corpora, corpus_id, _auth_token):
+def run_sparv(user, _corpora, corpus_id, _auth_token):
     """Run Sparv on given corpus."""
     # Parse requested exports
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
@@ -25,9 +25,9 @@ def run_sparv(ui, user, _corpora, corpus_id, _auth_token):
     files = [i.strip() for i in files.split(",") if i]
 
     # Get list of available source files to be stored in the job info
-    source_dir = str(storage.get_source_dir(ui, corpus_id))
+    source_dir = str(storage.get_source_dir(corpus_id))
     try:
-        source_files = storage.list_contents(ui, source_dir)
+        source_files = storage.list_contents(source_dir)
     except Exception as e:
         return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
 
@@ -36,8 +36,8 @@ def run_sparv(ui, user, _corpora, corpus_id, _auth_token):
 
     # Check compatibility between source files and config
     try:
-        config_file = str(storage.get_config_file(ui, corpus_id))
-        config_contents = storage.get_file_contents(ui, config_file)
+        config_file = str(storage.get_config_file(corpus_id))
+        config_contents = storage.get_file_contents(config_file)
         if source_files:
             compatible, resp = utils.config_compatible(config_contents, source_files[0])
             if not compatible:
@@ -54,20 +54,20 @@ def run_sparv(ui, user, _corpora, corpus_id, _auth_token):
         return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Check that all required files are present
-    job.check_requirements(ui)
+    job.check_requirements()
 
     if storage.local:
         job.set_status(jobs.Status.waiting)
     else:
         # Sync files
         try:
-            job.sync_to_sparv(ui)
+            job.sync_to_sparv()
         except Exception as e:
             return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return make_status_response(job, ui)
+    return make_status_response(job)
 
 
 @bp.route("/advance-queue", methods=["PUT"])
@@ -113,7 +113,7 @@ def advance_queue():
 
 @bp.route("/check-status", methods=["GET"])
 @login.login(require_corpus_id=False)
-def check_status(ui, user, corpora, _auth_token):
+def check_status(user, corpora, _auth_token):
     """Check the annotation status for all jobs belonging to a user or a given corpus."""
     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if corpus_id:
@@ -123,7 +123,7 @@ def check_status(ui, user, corpora, _auth_token):
                 return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
                                       err=True), 404
             job = jobs.get_job(user, corpus_id)
-            return make_status_response(job, ui)
+            return make_status_response(job)
         except Exception as e:
             return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 500
 
@@ -132,7 +132,7 @@ def check_status(ui, user, corpora, _auth_token):
         job_list = []
         user_jobs = queue.get_user_jobs(user)
         for job in user_jobs:
-            resp = make_status_response(job, ui)
+            resp = make_status_response(job)
             if isinstance(resp, tuple):
                 resp = resp[0]
             job_status = {"corpus_id": job.corpus_id}
@@ -186,7 +186,7 @@ def check_status_admin():
 
 @bp.route("/abort-job", methods=["POST"])
 @login.login()
-def abort_job(_ui, user, _corpora, corpus_id, _auth_token):
+def abort_job(user, _corpora, corpus_id, _auth_token):
     """Try to abort a running job."""
     job = jobs.get_job(user, corpus_id)
     # Syncing
@@ -215,7 +215,7 @@ def abort_job(_ui, user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/clear-annotations", methods=["DELETE"])
 @login.login()
-def clear_annotations(_ui, user, _corpora, corpus_id, _auth_token):
+def clear_annotations(user, _corpora, corpus_id, _auth_token):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
     job = jobs.get_job(user, corpus_id)
@@ -231,7 +231,7 @@ def clear_annotations(_ui, user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/install-corpus", methods=["PUT"])
 @login.login()
-def install_corpus(ui, user, _corpora, corpus_id, _auth_token):
+def install_corpus(user, _corpora, corpus_id, _auth_token):
     """Install a corpus on Korp with Sparv."""
     # Get info about whether the corpus should be scrambled in Korp. Default to not scrambling.
     scramble = request.args.get("scramble", "") or request.form.get("scramble", "")
@@ -250,10 +250,10 @@ def install_corpus(ui, user, _corpora, corpus_id, _auth_token):
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return make_status_response(job, ui)
+    return make_status_response(job)
 
 
-def make_status_response(job, ui, admin=False):
+def make_status_response(job, admin=False):
     """Check the annotation status for a given corpus and return response."""
     status = job.status
     job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports, "available_files": job.available_files,
@@ -290,7 +290,7 @@ def make_status_response(job, ui, admin=False):
     # If done annotating, retrieve exports from Sparv
     if status == jobs.Status.done_annotating and not admin:
         try:
-            job.sync_results(ui)
+            job.sync_results()
         except Exception as e:
             return utils.response("Sparv was run successfully but exports failed to upload to the storage server",
                                   info=str(e))
