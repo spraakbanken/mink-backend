@@ -4,7 +4,6 @@ import functools
 import gzip
 import json
 import os
-import shlex
 import subprocess
 import zipfile
 from pathlib import Path
@@ -145,7 +144,7 @@ def standardize_config(config, corpus_id):
 # Get local paths
 ################################################################################
 
-def get_corpora_dir(user: str, mkdir: bool = False) -> Path:
+def get_corpora_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
     corpora_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / g.request_id
     if mkdir:
@@ -153,43 +152,43 @@ def get_corpora_dir(user: str, mkdir: bool = False) -> Path:
     return corpora_dir
 
 
-def get_corpus_dir(user: str, corpus_id: str, mkdir: bool = False) -> Path:
+def get_corpus_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get dir for given corpus."""
-    corpora_dir = get_corpora_dir(user, mkdir=mkdir)
+    corpora_dir = get_corpora_dir(mkdir=mkdir)
     corpus_dir = corpora_dir / Path(corpus_id)
     if mkdir:
         os.makedirs(str(corpus_dir), exist_ok=True)
     return corpus_dir
 
 
-def get_export_dir(user: str, corpus_id: str, mkdir: bool = False) -> Path:
+def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get export dir for given corpus."""
-    corpus_dir = get_corpus_dir(user, corpus_id, mkdir=mkdir)
+    corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     export_dir = corpus_dir / Path(app.config.get("SPARV_EXPORT_DIR"))
     if mkdir:
         os.makedirs(str(export_dir), exist_ok=True)
     return export_dir
 
 
-def get_work_dir(user: str, corpus_id: str, mkdir: bool = False) -> Path:
+def get_work_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get sparv workdir for given corpus."""
-    corpus_dir = get_corpus_dir(user, corpus_id, mkdir=mkdir)
+    corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     work_dir = corpus_dir / Path(app.config.get("SPARV_WORK_DIR"))
     if mkdir:
         os.makedirs(str(work_dir), exist_ok=True)
     return work_dir
 
 
-def get_source_dir(user: str, corpus_id: str, mkdir: bool = False) -> Path:
+def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given corpus."""
-    corpus_dir = get_corpus_dir(user, corpus_id, mkdir=mkdir)
+    corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     source_dir = corpus_dir / Path(app.config.get("SPARV_SOURCE_DIR"))
     if mkdir:
         os.makedirs(str(source_dir), exist_ok=True)
     return source_dir
 
 
-def get_config_file(user: str, corpus_id: str) -> Path:
+def get_config_file(corpus_id: str) -> Path:
     """Get path to corpus config file."""
-    corpus_dir = get_corpus_dir(user, corpus_id)
+    corpus_dir = get_corpus_dir(corpus_id)
     return corpus_dir / Path(app.config.get("SPARV_CORPUS_CONFIG"))

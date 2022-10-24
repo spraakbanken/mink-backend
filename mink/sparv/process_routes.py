@@ -46,7 +46,7 @@ def run_sparv(user, _corpora, corpus_id, _auth_token):
         return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Queue job
-    job = jobs.get_job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=source_files)
+    job = jobs.get_job(corpus_id, user, sparv_exports=sparv_exports, files=files, available_files=source_files)
     job.reset_time()
     try:
         job = queue.add(job)
@@ -122,7 +122,7 @@ def check_status(user, corpora, _auth_token):
             if corpus_id not in corpora:
                 return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
                                       err=True), 404
-            job = jobs.get_job(user, corpus_id)
+            job = jobs.get_job(corpus_id, user)
             return make_status_response(job)
         except Exception as e:
             return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 500
@@ -188,7 +188,7 @@ def check_status_admin():
 @login.login()
 def abort_job(user, _corpora, corpus_id, _auth_token):
     """Try to abort a running job."""
-    job = jobs.get_job(user, corpus_id)
+    job = jobs.get_job(corpus_id, user)
     # Syncing
     if jobs.Status.is_syncing(job.status):
         return utils.response(f"Cannot abort job while syncing files", job_status=job.status.name), 503
@@ -218,7 +218,7 @@ def abort_job(user, _corpora, corpus_id, _auth_token):
 def clear_annotations(user, _corpora, corpus_id, _auth_token):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
-    job = jobs.get_job(user, corpus_id)
+    job = jobs.get_job(corpus_id, user)
     if jobs.Status.is_running(job.status):
         return utils.response("Cannot clear annotations while a job is running", err=True), 503
 
@@ -238,7 +238,7 @@ def install_corpus(user, _corpora, corpus_id, _auth_token):
     scramble = scramble.lower() == "true"
 
     # Queue job
-    job = jobs.get_job(user, corpus_id, install_scrambled=scramble)
+    job = jobs.get_job(corpus_id, user, install_scrambled=scramble)
     job.reset_time()
     job.set_install_scrambled(scramble)
     try:

@@ -41,15 +41,15 @@ def ping_healthchecks(config):
 
 
 def import_config():
-    """Import default and user config."""
+    """Import default and instance config."""
     import config
     my_config = {item: getattr(config, item) for item in dir(config) if item.isupper()}
 
-    user_config_path = Path("instance") / "config.py"
-    if user_config_path.is_file():
-        from instance import config as user_config
-        User_Config = {item: getattr(user_config, item) for item in dir(user_config) if item.isupper()}
-        my_config.update(User_Config)
+    instance_config_path = Path("instance") / "config.py"
+    if instance_config_path.is_file():
+        from instance import config as instance_config
+        Instance_Config = {item: getattr(instance_config, item) for item in dir(instance_config) if item.isupper()}
+        my_config.update(Instance_Config)
 
     return my_config
 

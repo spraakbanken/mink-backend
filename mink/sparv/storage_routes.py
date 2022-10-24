@@ -66,14 +66,14 @@ def create_corpus(_user, corpora, auth_token):
 
 @bp.route("/list-corpora", methods=["GET"])
 @login.login(require_corpus_id=False, require_corpus_exists=False)
-def list_corpora(_user, corpora, auth_token):
+def list_corpora(_user, corpora, _auth_token):
     """List all available corpora."""
     return utils.response("Listing available corpora", corpora=corpora)
 
 
 @bp.route("/list-korp-corpora", methods=["GET"])
 @login.login(include_read=True, require_corpus_id=False, require_corpus_exists=False)
-def list_korp_corpora(user, corpora, auth_token):
+def list_korp_corpora(user, corpora, _auth_token):
     """List all corpora installed in Korp."""
     installed_corpora = []
     try:
@@ -89,7 +89,7 @@ def list_korp_corpora(user, corpora, auth_token):
 
 @bp.route("/remove-corpus", methods=["DELETE"])
 @login.login()
-def remove_corpus(user, corpora, corpus_id, auth_token):
+def remove_corpus(user, _corpora, corpus_id, _auth_token):
     """Remove corpus."""
     # TODO: Uninstall corpus (if installed) using Sparv
     try:
@@ -101,7 +101,7 @@ def remove_corpus(user, corpora, corpus_id, auth_token):
 
     try:
         # Remove job
-        job = jobs.get_job(user, corpus_id)
+        job = jobs.get_job(corpus_id, user)
         queue.remove(job)
         job.remove()
     except Exception as e:
@@ -128,7 +128,7 @@ def remove_corpus(user, corpora, corpus_id, auth_token):
 
 @bp.route("/upload-sources", methods=["PUT"])
 @login.login()
-def upload_sources(_user, corpora, corpus_id, auth_token):
+def upload_sources(_user, _corpora, corpus_id, _auth_token):
     """Upload corpus source files.
 
     Attached files will be added to the corpus or replace existing ones.
@@ -165,7 +165,7 @@ def upload_sources(_user, corpora, corpus_id, auth_token):
 
 @bp.route("/list-sources", methods=["GET"])
 @login.login()
-def list_sources(_user, corpora, corpus_id, auth_token):
+def list_sources(_user, _corpora, corpus_id, _auth_token):
     """List the available corpus source files."""
     source_dir = str(storage.get_source_dir(corpus_id))
     try:
@@ -177,7 +177,7 @@ def list_sources(_user, corpora, corpus_id, auth_token):
 
 @bp.route("/remove-sources", methods=["DELETE"])
 @login.login()
-def remove_sources(_user, _corpora, corpus_id, auth_token):
+def remove_sources(_user, _corpora, corpus_id, _auth_token):
     """Remove file paths listed in 'remove' (comma separated) from the corpus."""
     remove_files = request.args.get("remove") or request.form.get("remove") or ""
     remove_files = [i.strip() for i in remove_files.split(",") if i]
@@ -208,7 +208,7 @@ def remove_sources(_user, _corpora, corpus_id, auth_token):
 
 @bp.route("/download-sources", methods=["GET"])
 @login.login()
-def download_sources(user, _corpora, corpus_id, auth_token):
+def download_sources(_user, _corpora, corpus_id, _auth_token):
     """Download the corpus source files as a zip file.
 
     The parameter 'file' may be used to download a specific source file. This
@@ -227,8 +227,8 @@ def download_sources(user, _corpora, corpus_id, auth_token):
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True, info=str(e)), 500
 
-    local_source_dir = utils.get_source_dir(user, corpus_id, mkdir=True)
-    local_corpus_dir = utils.get_corpus_dir(user, corpus_id, mkdir=True)
+    local_source_dir = utils.get_source_dir(corpus_id, mkdir=True)
+    local_corpus_dir = utils.get_corpus_dir(corpus_id, mkdir=True)
 
     # Download and zip file specified in args
     if download_file:
@@ -274,7 +274,7 @@ def download_sources(user, _corpora, corpus_id, auth_token):
 
 @bp.route("/upload-config", methods=["PUT"])
 @login.login()
-def upload_config(_user, corpora, corpus_id, auth_token):
+def upload_config(_user, _corpora, corpus_id, _auth_token):
     """Upload a corpus config as file or plain text."""
     attached_files = list(request.files.values())
     config_txt = request.args.get("config") or request.form.get("config") or ""
@@ -327,11 +327,11 @@ def upload_config(_user, corpora, corpus_id, auth_token):
 
 @bp.route("/download-config", methods=["GET"])
 @login.login()
-def download_config(user, _corpora, corpus_id, auth_token):
+def download_config(_user, _corpora, corpus_id, _auth_token):
     """Download the corpus config file."""
     storage_config_file = str(storage.get_config_file(corpus_id))
-    utils.get_source_dir(user, corpus_id, mkdir=True)
-    local_config_file = utils.get_config_file(user, corpus_id)
+    utils.get_source_dir(corpus_id, mkdir=True)
+    local_config_file = utils.get_config_file(corpus_id)
 
     try:
         # Get file from storage
@@ -349,7 +349,7 @@ def download_config(user, _corpora, corpus_id, auth_token):
 
 @bp.route("/list-exports", methods=["GET"])
 @login.login()
-def list_exports(_user, _corpora, corpus_id, auth_token):
+def list_exports(_user, _corpora, corpus_id, _auth_token):
     """List exports available for download for a given corpus."""
     path = str(storage.get_export_dir(corpus_id))
     try:
@@ -361,7 +361,7 @@ def list_exports(_user, _corpora, corpus_id, auth_token):
 
 @bp.route("/download-exports", methods=["GET"])
 @login.login()
-def download_export(user, _corpora, corpus_id, auth_token):
+def download_export(_user, _corpora, corpus_id, _auth_token):
     """Download export files for a corpus as a zip file.
 
     The parameters 'file' and 'dir' may be used to download a specific export file or a directory of export files. These
@@ -375,8 +375,8 @@ def download_export(user, _corpora, corpus_id, auth_token):
         return utils.response("The parameters 'dir' and 'file' must not be supplied simultaneously", err=True), 400
 
     storage_export_dir = str(storage.get_export_dir(corpus_id))
-    local_corpus_dir = utils.get_corpus_dir(user, corpus_id, mkdir=True)
-    local_export_dir = utils.get_export_dir(user, corpus_id, mkdir=True)
+    local_corpus_dir = utils.get_corpus_dir(corpus_id, mkdir=True)
+    local_export_dir = utils.get_export_dir(corpus_id, mkdir=True)
 
     try:
         export_contents = storage.list_contents(storage_export_dir, exclude_dirs=False)
@@ -443,7 +443,7 @@ def download_export(user, _corpora, corpus_id, auth_token):
 
 @bp.route("/remove-exports", methods=["DELETE"])
 @login.login()
-def remove_exports(user, _corpora, corpus_id, auth_token):
+def remove_exports(user, _corpora, corpus_id, _auth_token):
     """Remove export files."""
     try:
         # Remove export dir from storage server and create a new empty one
@@ -455,7 +455,7 @@ def remove_exports(user, _corpora, corpus_id, auth_token):
 
     try:
         # Remove from Sparv server
-        job = jobs.get_job(user, corpus_id)
+        job = jobs.get_job(corpus_id, user)
         sparv_output = job.clean_export()
         app.logger.debug(f"Output from sparv clean --export: {sparv_output}")
     except Exception as e:
@@ -466,7 +466,7 @@ def remove_exports(user, _corpora, corpus_id, auth_token):
 
 @bp.route("/download-source-text", methods=["GET"])
 @login.login()
-def download_source_text(user, _corpora, corpus_id, auth_token):
+def download_source_text(_user, _corpora, corpus_id, _auth_token):
     """Get one of the source files in plain text.
 
     The source file name (including its file extension) must be specified in the 'file' parameter.
@@ -474,7 +474,7 @@ def download_source_text(user, _corpora, corpus_id, auth_token):
     download_file = request.args.get("file") or request.form.get("file") or ""
 
     storage_work_dir = str(storage.get_work_dir(corpus_id))
-    local_corpus_dir = str(utils.get_corpus_dir(user, corpus_id, mkdir=True))
+    local_corpus_dir = str(utils.get_corpus_dir(corpus_id, mkdir=True))
 
     if not download_file:
         return utils.response("Please specify the source file to download", err=True), 400
@@ -507,10 +507,10 @@ def download_source_text(user, _corpora, corpus_id, auth_token):
 
 @bp.route("/check-changes", methods=["GET"])
 @login.login()
-def check_changes(user, _corpora, corpus_id, auth_token):
+def check_changes(user, _corpora, corpus_id, _auth_token):
     """Check if config or source files have changed since the last job was started."""
     try:
-        job = jobs.get_job(user, corpus_id)
+        job = jobs.get_job(corpus_id, user)
         if not job.started:
             return utils.response(f"Corpus '{corpus_id}' has not been run")
         started = dateutil.parser.isoparse(job.started)

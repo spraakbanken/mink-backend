@@ -134,12 +134,12 @@ def upload_dir(remote_dir, local_dir, corpus_id, _user, _file_index, delete=Fals
         raise Exception(f"Failed to upload to '{remote_dir}': {p.stderr.decode()}")
 
 
-def create_file_index(contents, user):
+def create_file_index(contents):
     """Convert dir contents list to a file index with local paths and timestamps."""
     file_index = {}
     for f in contents:
         parts = f.get("path").split("/")
-        user_dir = str(utils.get_corpora_dir(user))
+        user_dir = str(utils.get_corpora_dir())
         new_path = os.path.join(user_dir, *parts[2:])
         unix_timestamp = int(parse(f.get("last_modified")).astimezone().timestamp())
         file_index[new_path] = unix_timestamp

@@ -87,12 +87,12 @@ class Status(IntEnum):
 class Job():
     """A job item holding information about a Sparv job."""
 
-    def __init__(self, user, corpus_id, status=Status.none, pid=None, started=None, done=None, sparv_exports=None,
+    def __init__(self, corpus_id, user=None, status=Status.none, pid=None, started=None, done=None, sparv_exports=None,
                  files=None, available_files=None, install_scrambled=None, installed_korp=False,
                  latest_seconds_taken=0, **trash):
         # **trash is needed to catch invalid arguments from outdated job items in the queue (this avoids crashes)
-        self.user = user
         self.corpus_id = corpus_id
+        self.user = user
         self.status = status
         self.pid = pid
         self.started = started
@@ -201,11 +201,11 @@ class Job():
 
         # Get relevant directories
         remote_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
-        local_user_dir = utils.get_corpora_dir(self.user, mkdir=True)
+        local_user_dir = utils.get_corpora_dir(mkdir=True)
 
         # Create file index with timestamps
         corpus_contents = storage.list_contents(remote_corpus_dir, exclude_dirs=False)
-        file_index = storage.create_file_index(corpus_contents, self.user)
+        file_index = storage.create_file_index(corpus_contents)
 
         # Create user and corpus dir on Sparv server
         p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
@@ -223,7 +223,7 @@ class Job():
             raise Exception(f"Failed to download corpus '{self.corpus_id}' from the storage server! {e}")
 
         # Sync corpus config to Sparv server
-        p = subprocess.run(["rsync", "-av", utils.get_config_file(self.user, self.corpus_id),
+        p = subprocess.run(["rsync", "-av", utils.get_config_file(self.corpus_id),
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
@@ -232,7 +232,7 @@ class Job():
 
         # Sync corpus files to Sparv server
         # TODO: do this async!
-        local_source_dir = utils.get_source_dir(self.user, self.corpus_id)
+        local_source_dir = utils.get_source_dir(self.corpus_id)
         p = subprocess.run(["rsync", "-av", "--delete", local_source_dir,
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -438,13 +438,13 @@ class Job():
     def sync_results(self):
         """Sync exports from Sparv server to the storage server."""
         nc_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
-        local_corpus_dir = str(utils.get_corpus_dir(self.user, self.corpus_id, mkdir=True))
+        local_corpus_dir = str(utils.get_corpus_dir(self.corpus_id, mkdir=True))
 
         corpus_contents = storage.list_contents(nc_corpus_dir, exclude_dirs=False)
-        file_index = storage.create_file_index(corpus_contents, self.user)
+        file_index = storage.create_file_index(corpus_contents)
 
         # Get exports from Sparv
-        remote_export_dir = sparv_utils.get_export_dir(self.user, self.corpus_id)
+        remote_export_dir = sparv_utils.get_export_dir(self.corpus_id)
         p = subprocess.run(["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
@@ -452,13 +452,13 @@ class Job():
             return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 500
 
         # Get plain text sources from Sparv
-        remote_work_dir = sparv_utils.get_work_dir(self.user, self.corpus_id)
+        remote_work_dir = sparv_utils.get_work_dir(self.corpus_id)
         p = subprocess.run(["rsync", "-av", "--include=@text", "--include=*/", "--exclude=*", "--prune-empty-dirs",
                             f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # Transfer exports to the storage server
-        local_export_dir = utils.get_export_dir(self.user, self.corpus_id)
+        local_export_dir = utils.get_export_dir(self.corpus_id)
         try:
             storage.upload_dir(nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
         except Exception as e:
@@ -466,7 +466,7 @@ class Job():
             raise Exception(f"Failed to upload exports to the storage server! {e}")
 
         # Transfer plain text sources to the storage server
-        local_work_dir = utils.get_work_dir(self.user, self.corpus_id)
+        local_work_dir = utils.get_work_dir(self.corpus_id)
         try:
             app.logger.warning(local_work_dir)
             storage.upload_dir(nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
@@ -518,12 +518,12 @@ class Job():
         return sparv_output
 
 
-def get_job(user, corpus_id, sparv_exports=None, files=None, available_files=None, install_scrambled=None):
+def get_job(corpus_id, user=None, sparv_exports=None, files=None, available_files=None, install_scrambled=None):
     """Get an existing job from the cache or create a new one."""
     if g.cache.get_job(corpus_id) is not None:
         return load_from_str(g.cache.get_job(corpus_id), sparv_exports=sparv_exports, files=files,
                              available_files=available_files, install_scrambled=install_scrambled)
-    return Job(user, corpus_id, sparv_exports=sparv_exports, files=files, available_files=available_files,
+    return Job(corpus_id, user, sparv_exports=sparv_exports, files=files, available_files=available_files,
                install_scrambled=install_scrambled)
 
 
