@@ -15,7 +15,7 @@ bp = Blueprint("sparv", __name__)
 
 @bp.route("/run-sparv", methods=["PUT"])
 @login.login()
-def run_sparv(user, _corpora, corpus_id, _auth_token):
+def run_sparv(user: str, corpus_id: str):
     """Run Sparv on given corpus."""
     # Parse requested exports
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
@@ -113,7 +113,7 @@ def advance_queue():
 
 @bp.route("/check-status", methods=["GET"])
 @login.login(require_corpus_id=False)
-def check_status(user, corpora, _auth_token):
+def check_status(user: str, corpora: list):
     """Check the annotation status for all jobs belonging to a user or a given corpus."""
     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if corpus_id:
@@ -186,7 +186,7 @@ def check_status_admin():
 
 @bp.route("/abort-job", methods=["POST"])
 @login.login()
-def abort_job(user, _corpora, corpus_id, _auth_token):
+def abort_job(user: str, corpus_id: str):
     """Try to abort a running job."""
     job = jobs.get_job(corpus_id, user)
     # Syncing
@@ -215,7 +215,7 @@ def abort_job(user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/clear-annotations", methods=["DELETE"])
 @login.login()
-def clear_annotations(user, _corpora, corpus_id, _auth_token):
+def clear_annotations(user: str, corpus_id: str):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
     job = jobs.get_job(corpus_id, user)
@@ -231,7 +231,7 @@ def clear_annotations(user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/install-corpus", methods=["PUT"])
 @login.login()
-def install_corpus(user, _corpora, corpus_id, _auth_token):
+def install_corpus(user: str, corpus_id: str):
     """Install a corpus on Korp with Sparv."""
     # Get info about whether the corpus should be scrambled in Korp. Default to not scrambling.
     scramble = request.args.get("scramble", "") or request.form.get("scramble", "")

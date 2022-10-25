@@ -22,7 +22,7 @@ bp = Blueprint("sparv_storage", __name__)
 
 @bp.route("/create-corpus", methods=["POST"])
 @login.login(require_corpus_exists=False, require_corpus_id=False)
-def create_corpus(_user, corpora, auth_token):
+def create_corpus(corpora: list, auth_token: str):
     """Create a new corpus."""
     # Create corpus ID
     corpus_id = None
@@ -66,14 +66,14 @@ def create_corpus(_user, corpora, auth_token):
 
 @bp.route("/list-corpora", methods=["GET"])
 @login.login(require_corpus_id=False, require_corpus_exists=False)
-def list_corpora(_user, corpora, _auth_token):
+def list_corpora(corpora: list):
     """List all available corpora."""
     return utils.response("Listing available corpora", corpora=corpora)
 
 
 @bp.route("/list-korp-corpora", methods=["GET"])
 @login.login(include_read=True, require_corpus_id=False, require_corpus_exists=False)
-def list_korp_corpora(user, corpora, _auth_token):
+def list_korp_corpora(corpora: list, user: str):
     """List all corpora installed in Korp."""
     installed_corpora = []
     try:
@@ -89,7 +89,7 @@ def list_korp_corpora(user, corpora, _auth_token):
 
 @bp.route("/remove-corpus", methods=["DELETE"])
 @login.login()
-def remove_corpus(user, _corpora, corpus_id, _auth_token):
+def remove_corpus(user: str, corpus_id: str):
     """Remove corpus."""
     # TODO: Uninstall corpus (if installed) using Sparv
     try:
@@ -128,7 +128,7 @@ def remove_corpus(user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/upload-sources", methods=["PUT"])
 @login.login()
-def upload_sources(_user, _corpora, corpus_id, _auth_token):
+def upload_sources(corpus_id: str):
     """Upload corpus source files.
 
     Attached files will be added to the corpus or replace existing ones.
@@ -165,7 +165,7 @@ def upload_sources(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/list-sources", methods=["GET"])
 @login.login()
-def list_sources(_user, _corpora, corpus_id, _auth_token):
+def list_sources(corpus_id: str):
     """List the available corpus source files."""
     source_dir = str(storage.get_source_dir(corpus_id))
     try:
@@ -177,7 +177,7 @@ def list_sources(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/remove-sources", methods=["DELETE"])
 @login.login()
-def remove_sources(_user, _corpora, corpus_id, _auth_token):
+def remove_sources(corpus_id: str):
     """Remove file paths listed in 'remove' (comma separated) from the corpus."""
     remove_files = request.args.get("remove") or request.form.get("remove") or ""
     remove_files = [i.strip() for i in remove_files.split(",") if i]
@@ -208,7 +208,7 @@ def remove_sources(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/download-sources", methods=["GET"])
 @login.login()
-def download_sources(_user, _corpora, corpus_id, _auth_token):
+def download_sources(corpus_id: str):
     """Download the corpus source files as a zip file.
 
     The parameter 'file' may be used to download a specific source file. This
@@ -274,7 +274,7 @@ def download_sources(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/upload-config", methods=["PUT"])
 @login.login()
-def upload_config(_user, _corpora, corpus_id, _auth_token):
+def upload_config(corpus_id: str):
     """Upload a corpus config as file or plain text."""
     attached_files = list(request.files.values())
     config_txt = request.args.get("config") or request.form.get("config") or ""
@@ -327,7 +327,7 @@ def upload_config(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/download-config", methods=["GET"])
 @login.login()
-def download_config(_user, _corpora, corpus_id, _auth_token):
+def download_config(corpus_id: str):
     """Download the corpus config file."""
     storage_config_file = str(storage.get_config_file(corpus_id))
     utils.get_source_dir(corpus_id, mkdir=True)
@@ -349,7 +349,7 @@ def download_config(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/list-exports", methods=["GET"])
 @login.login()
-def list_exports(_user, _corpora, corpus_id, _auth_token):
+def list_exports(corpus_id: str):
     """List exports available for download for a given corpus."""
     path = str(storage.get_export_dir(corpus_id))
     try:
@@ -361,7 +361,7 @@ def list_exports(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/download-exports", methods=["GET"])
 @login.login()
-def download_export(_user, _corpora, corpus_id, _auth_token):
+def download_export(corpus_id: str):
     """Download export files for a corpus as a zip file.
 
     The parameters 'file' and 'dir' may be used to download a specific export file or a directory of export files. These
@@ -443,7 +443,7 @@ def download_export(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/remove-exports", methods=["DELETE"])
 @login.login()
-def remove_exports(user, _corpora, corpus_id, _auth_token):
+def remove_exports(user: str, corpus_id: str):
     """Remove export files."""
     try:
         # Remove export dir from storage server and create a new empty one
@@ -466,7 +466,7 @@ def remove_exports(user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/download-source-text", methods=["GET"])
 @login.login()
-def download_source_text(_user, _corpora, corpus_id, _auth_token):
+def download_source_text(corpus_id: str):
     """Get one of the source files in plain text.
 
     The source file name (including its file extension) must be specified in the 'file' parameter.
@@ -507,7 +507,7 @@ def download_source_text(_user, _corpora, corpus_id, _auth_token):
 
 @bp.route("/check-changes", methods=["GET"])
 @login.login()
-def check_changes(user, _corpora, corpus_id, _auth_token):
+def check_changes(user: str, corpus_id: str):
     """Check if config or source files have changed since the last job was started."""
     try:
         job = jobs.get_job(corpus_id, user)

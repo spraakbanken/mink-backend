@@ -6,6 +6,7 @@ import re
 import time
 import traceback
 from pathlib import Path
+import inspect
 
 import jwt
 import requests
@@ -31,7 +32,9 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
     """
     def decorator(function):
         @functools.wraps(function)  # Copy original function's information, needed by Flask
-        def wrapper(*args, **kwargs):
+        def wrapper():
+            # Get the function's params
+            params = inspect.signature(function).parameters.keys()
 
             auth_header = request.headers.get("Authorization")
             if not auth_header:
@@ -61,7 +64,8 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
                 g.request_id = shortuuid.uuid()
 
                 if not require_corpus_id:
-                    return function(user, corpora, auth_token, *args, **kwargs)
+                    return function(**{k: v for k, v in {"user": user, "corpora": corpora,
+                                                         "auth_token": auth_token}.items() if k in params})
 
                 # Check if corpus ID was provided
                 corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
@@ -70,14 +74,15 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 
                 # Check if corpus exists
                 if not require_corpus_exists:
-                    return function(user, corpora, corpus_id, auth_token)
+                    return function(**{k: v for k, v in {"user": user, "corpora": corpora, "corpus_id": corpus_id,
+                                                         "auth_token": auth_token}.items() if k in params})
 
                 # Check if user is admin for corpus
                 if corpus_id not in corpora:
                     return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
                                           err=True), 404
-
-                return function(user, corpora, corpus_id, auth_token)
+                return function(**{k: v for k, v in {"user": user, "corpora": corpora, "corpus_id": corpus_id,
+                                                     "auth_token": auth_token}.items() if k in params})
 
             # Catch everything else and return a traceback
             except Exception as e:
@@ -90,14 +95,14 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 
 @bp.route("/admin-mode-on", methods=["POST"])
 @login(require_corpus_exists=False, require_corpus_id=False, require_admin=True)
-def admin_mode_on(_user, _corpora, _auth_token):
+def admin_mode_on():
     session["admin_mode"] = True
     return utils.response(f"Admin mode turned on")
 
 
 @bp.route("/admin-mode-off", methods=["POST"])
 @login(require_corpus_exists=False, require_corpus_id=False)
-def admin_mode_off(_user, _corpora, _auth_token):
+def admin_mode_off():
     session["admin_mode"] = False
     return utils.response(f"Admin mode turned off")
 
