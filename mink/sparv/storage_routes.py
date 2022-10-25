@@ -89,7 +89,7 @@ def list_korp_corpora(corpora: list):
 
 @bp.route("/remove-corpus", methods=["DELETE"])
 @login.login()
-def remove_corpus(user: str, corpus_id: str):
+def remove_corpus(corpus_id: str):
     """Remove corpus."""
     # TODO: Uninstall corpus (if installed) using Sparv
     try:
@@ -101,7 +101,7 @@ def remove_corpus(user: str, corpus_id: str):
 
     try:
         # Remove job
-        job = jobs.get_job(corpus_id, user)
+        job = jobs.get_job(corpus_id)
         queue.remove(job)
         job.remove()
     except Exception as e:
@@ -443,7 +443,7 @@ def download_export(corpus_id: str):
 
 @bp.route("/remove-exports", methods=["DELETE"])
 @login.login()
-def remove_exports(user: str, corpus_id: str):
+def remove_exports(corpus_id: str):
     """Remove export files."""
     try:
         # Remove export dir from storage server and create a new empty one
@@ -455,7 +455,7 @@ def remove_exports(user: str, corpus_id: str):
 
     try:
         # Remove from Sparv server
-        job = jobs.get_job(corpus_id, user)
+        job = jobs.get_job(corpus_id)
         sparv_output = job.clean_export()
         app.logger.debug(f"Output from sparv clean --export: {sparv_output}")
     except Exception as e:
@@ -507,10 +507,10 @@ def download_source_text(corpus_id: str):
 
 @bp.route("/check-changes", methods=["GET"])
 @login.login()
-def check_changes(user: str, corpus_id: str):
+def check_changes(corpus_id: str):
     """Check if config or source files have changed since the last job was started."""
     try:
-        job = jobs.get_job(corpus_id, user)
+        job = jobs.get_job(corpus_id)
         if not job.started:
             return utils.response(f"Corpus '{corpus_id}' has not been run")
         started = dateutil.parser.isoparse(job.started)

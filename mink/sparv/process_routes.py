@@ -15,7 +15,7 @@ bp = Blueprint("sparv", __name__)
 
 @bp.route("/run-sparv", methods=["PUT"])
 @login.login()
-def run_sparv(user: str, corpus_id: str):
+def run_sparv(user_id: str, contact: str, corpus_id: str):
     """Run Sparv on given corpus."""
     # Parse requested exports
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
@@ -46,7 +46,8 @@ def run_sparv(user: str, corpus_id: str):
         return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Queue job
-    job = jobs.get_job(corpus_id, user, sparv_exports=sparv_exports, files=files, available_files=source_files)
+    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, sparv_exports=sparv_exports, files=files,
+                       available_files=source_files)
     job.reset_time()
     try:
         job = queue.add(job)
@@ -149,9 +150,9 @@ def check_status(corpora: list):
 
 @bp.route("/abort-job", methods=["POST"])
 @login.login()
-def abort_job(user: str, corpus_id: str):
+def abort_job(corpus_id: str):
     """Try to abort a running job."""
-    job = jobs.get_job(corpus_id, user)
+    job = jobs.get_job(corpus_id)
     # Syncing
     if jobs.Status.is_syncing(job.status):
         return utils.response(f"Cannot abort job while syncing files", job_status=job.status.name), 503
@@ -178,10 +179,10 @@ def abort_job(user: str, corpus_id: str):
 
 @bp.route("/clear-annotations", methods=["DELETE"])
 @login.login()
-def clear_annotations(user: str, corpus_id: str):
+def clear_annotations(corpus_id: str):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
-    job = jobs.get_job(corpus_id, user)
+    job = jobs.get_job(corpus_id)
     if jobs.Status.is_running(job.status):
         return utils.response("Cannot clear annotations while a job is running", err=True), 503
 
@@ -194,14 +195,14 @@ def clear_annotations(user: str, corpus_id: str):
 
 @bp.route("/install-corpus", methods=["PUT"])
 @login.login()
-def install_corpus(user: str, corpus_id: str):
+def install_corpus(user_id: str, contact: str, corpus_id: str):
     """Install a corpus on Korp with Sparv."""
     # Get info about whether the corpus should be scrambled in Korp. Default to not scrambling.
     scramble = request.args.get("scramble", "") or request.form.get("scramble", "")
     scramble = scramble.lower() == "true"
 
     # Queue job
-    job = jobs.get_job(corpus_id, user, install_scrambled=scramble)
+    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, install_scrambled=scramble)
     job.reset_time()
     job.set_install_scrambled(scramble)
     try:
@@ -230,6 +231,9 @@ def make_status_response(job, admin=False):
     job_attrs["last_run_started"] = job.started or ""
     job_attrs["last_run_ended"] = job.done or ""
     job_attrs["progress"] = job.progress or ""
+
+    if admin:
+        job_attrs["user"] = job.contact
 
     if status == jobs.Status.none:
         return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.name)

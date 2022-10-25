@@ -45,7 +45,8 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
                 return utils.response("No authorization token provided", err=True), 401
 
             try:
-                user, corpora, mink_admin, _username, _email = _get_corpora(auth_token, include_read)
+                user_id, corpora, mink_admin, username, email = _get_corpora(auth_token, include_read)
+                contact = f"{username} <{email}>"
             except Exception as e:
                 return utils.response("Failed to authenticate", err=True, info=str(e)), 401
 
@@ -64,7 +65,7 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
                 g.request_id = shortuuid.uuid()
 
                 if not require_corpus_id:
-                    return function(**{k: v for k, v in {"user": user, "corpora": corpora,
+                    return function(**{k: v for k, v in {"user_id": user_id, "contact": contact, "corpora": corpora,
                                                          "auth_token": auth_token}.items() if k in params})
 
                 # Check if corpus ID was provided
@@ -74,15 +75,17 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 
                 # Check if corpus exists
                 if not require_corpus_exists:
-                    return function(**{k: v for k, v in {"user": user, "corpora": corpora, "corpus_id": corpus_id,
-                                                         "auth_token": auth_token}.items() if k in params})
+                    return function(**{k: v for k, v in {"user_id": user_id, "contact": contact, "corpora": corpora,
+                                                         "corpus_id": corpus_id, "auth_token": auth_token
+                                                        }.items() if k in params})
 
                 # Check if user is admin for corpus
                 if corpus_id not in corpora:
                     return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
                                           err=True), 404
-                return function(**{k: v for k, v in {"user": user, "corpora": corpora, "corpus_id": corpus_id,
-                                                     "auth_token": auth_token}.items() if k in params})
+                return function(**{k: v for k, v in {"user_id": user_id, "contact": contact, "corpora": corpora,
+                                                     "corpus_id": corpus_id, "auth_token": auth_token
+                                                    }.items() if k in params})
 
             # Catch everything else and return a traceback
             except Exception as e:

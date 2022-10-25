@@ -82,7 +82,7 @@ def write_file_contents(filepath: str, file_contents: bytes, corpus_id: str):
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
 
-def download_dir(remote_dir, local_dir, corpus_id, file_index=None, zipped=False, zippath=None):
+def download_dir(remote_dir, local_dir, corpus_id, zipped=False, zippath=None):
     """Download remote_dir on Sparv server to local_dir by rsyncing."""
     if not _is_valid_path(remote_dir, corpus_id):
         raise Exception(f"You don't have permission to download '{remote_dir}'")
@@ -106,7 +106,7 @@ def download_dir(remote_dir, local_dir, corpus_id, file_index=None, zipped=False
     return zippath
 
 
-def upload_dir(remote_dir, local_dir, corpus_id, _user, _file_index, delete=False):
+def upload_dir(remote_dir, local_dir, corpus_id, delete=False):
     """Upload local dir to remote_dir on Sparv server by rsyncing.
 
     Args:
@@ -132,18 +132,6 @@ def upload_dir(remote_dir, local_dir, corpus_id, _user, _file_index, delete=Fals
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
         raise Exception(f"Failed to upload to '{remote_dir}': {p.stderr.decode()}")
-
-
-def create_file_index(contents):
-    """Convert dir contents list to a file index with local paths and timestamps."""
-    file_index = {}
-    for f in contents:
-        parts = f.get("path").split("/")
-        user_dir = str(utils.get_corpora_dir())
-        new_path = os.path.join(user_dir, *parts[2:])
-        unix_timestamp = int(parse(f.get("last_modified")).astimezone().timestamp())
-        file_index[new_path] = unix_timestamp
-    return file_index
 
 
 def remove_dir(path, corpus_id: str):

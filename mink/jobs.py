@@ -87,12 +87,13 @@ class Status(IntEnum):
 class Job():
     """A job item holding information about a Sparv job."""
 
-    def __init__(self, corpus_id, user=None, status=Status.none, pid=None, started=None, done=None, sparv_exports=None,
-                 files=None, available_files=None, install_scrambled=None, installed_korp=False,
-                 latest_seconds_taken=0, **trash):
-        # **trash is needed to catch invalid arguments from outdated job items in the queue (this avoids crashes)
+    def __init__(self, corpus_id, user_id=None, contact=None, status=Status.none, pid=None, started=None, done=None,
+                 sparv_exports=None, files=None, available_files=None, install_scrambled=None, installed_korp=False,
+                 latest_seconds_taken=0, **_obsolete):
+        # **_obsolete is needed to catch invalid arguments from outdated job items in the queue (this avoids crashes)
         self.corpus_id = corpus_id
-        self.user = user
+        self.contact = contact
+        self.user_id = user_id
         self.status = status
         self.pid = pid
         self.started = started
@@ -113,11 +114,11 @@ class Job():
         self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(corpus_id))
 
     def __str__(self):
-        return json.dumps({"user": self.user, "corpus_id": self.corpus_id, "status": self.status.name, "pid": self.pid,
-                           "started": self.started, "done": self.done, "sparv_exports": self.sparv_exports,
-                           "files": self.files, "available_files": self.available_files, "install_scrambled":
-                           self.install_scrambled, "installed_korp": self.installed_korp, "latest_seconds_taken":
-                           self.latest_seconds_taken})
+        return json.dumps({"user_id": self.user_id, "contact": self.contact, "corpus_id": self.corpus_id,
+                           "status": self.status.name, "pid": self.pid, "started": self.started, "done": self.done,
+                           "sparv_exports": self.sparv_exports, "files": self.files, "available_files":
+                           self.available_files, "install_scrambled": self.install_scrambled, "installed_korp":
+                           self.installed_korp, "latest_seconds_taken": self.latest_seconds_taken})
 
     def save(self):
         """Write a job item to the cache and filesystem."""
@@ -203,10 +204,6 @@ class Job():
         remote_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
         local_user_dir = utils.get_corpora_dir(mkdir=True)
 
-        # Create file index with timestamps
-        corpus_contents = storage.list_contents(remote_corpus_dir, exclude_dirs=False)
-        file_index = storage.create_file_index(corpus_contents)
-
         # Create user and corpus dir on Sparv server
         p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
                           f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)}")
@@ -217,7 +214,7 @@ class Job():
         # Download from storage server to local tmp dir
         # TODO: do this async?
         try:
-            storage.download_dir(remote_corpus_dir, local_user_dir, self.corpus_id, file_index)
+            storage.download_dir(remote_corpus_dir, local_user_dir, self.corpus_id)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to download corpus '{self.corpus_id}' from the storage server! {e}")
@@ -437,11 +434,8 @@ class Job():
 
     def sync_results(self):
         """Sync exports from Sparv server to the storage server."""
-        nc_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
+        remote_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
         local_corpus_dir = str(utils.get_corpus_dir(self.corpus_id, mkdir=True))
-
-        corpus_contents = storage.list_contents(nc_corpus_dir, exclude_dirs=False)
-        file_index = storage.create_file_index(corpus_contents)
 
         # Get exports from Sparv
         remote_export_dir = sparv_utils.get_export_dir(self.corpus_id)
@@ -460,7 +454,7 @@ class Job():
         # Transfer exports to the storage server
         local_export_dir = utils.get_export_dir(self.corpus_id)
         try:
-            storage.upload_dir(nc_corpus_dir, local_export_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(remote_corpus_dir, local_export_dir, self.corpus_id)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to upload exports to the storage server! {e}")
@@ -469,7 +463,7 @@ class Job():
         local_work_dir = utils.get_work_dir(self.corpus_id)
         try:
             app.logger.warning(local_work_dir)
-            storage.upload_dir(nc_corpus_dir, local_work_dir, self.corpus_id, self.user, file_index)
+            storage.upload_dir(remote_corpus_dir, local_work_dir, self.corpus_id)
         except Exception as e:
             self.set_status(Status.error)
             app.logger.warning(e)
@@ -518,19 +512,25 @@ class Job():
         return sparv_output
 
 
-def get_job(corpus_id, user=None, sparv_exports=None, files=None, available_files=None, install_scrambled=None):
+def get_job(corpus_id, user_id=None, contact=None, sparv_exports=None, files=None, available_files=None,
+            install_scrambled=None):
     """Get an existing job from the cache or create a new one."""
     if g.cache.get_job(corpus_id) is not None:
-        return load_from_str(g.cache.get_job(corpus_id), sparv_exports=sparv_exports, files=files,
-                             available_files=available_files, install_scrambled=install_scrambled)
-    return Job(corpus_id, user, sparv_exports=sparv_exports, files=files, available_files=available_files,
+        return load_from_str(g.cache.get_job(corpus_id), user_id=user_id, contact=contact, sparv_exports=sparv_exports,
+                             files=files, available_files=available_files, install_scrambled=install_scrambled)
+    return Job(corpus_id, user_id, contact, sparv_exports=sparv_exports, files=files, available_files=available_files,
                install_scrambled=install_scrambled)
 
 
-def load_from_str(jsonstr, sparv_exports=None, files=None, available_files=None, install_scrambled=None):
+def load_from_str(jsonstr, user_id=None, contact=None, sparv_exports=None, files=None, available_files=None,
+                  install_scrambled=None):
     """Load a job object from a json string."""
     job_info = json.loads(jsonstr)
     job_info["status"] = getattr(Status, job_info.get("status"))
+    if user_id is not None:
+        job_info["user_id"] = user_id
+    if contact is not None:
+        job_info["contact"] = contact
     if sparv_exports is not None:
         job_info["sparv_exports"] = sparv_exports
     if files is not None:
