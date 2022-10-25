@@ -121,24 +121,15 @@ def unqueue_inactive():
         g.cache.set_job_queue(queue)
 
 
-def get_user_jobs(user, corpora: list = None):
-    """Get all jobs belonging to one user or to a corpus in 'corpora'."""
+def get_jobs(corpora: list = None):
+    """Get info for all jobs or (if specified) only for the corpora in 'corpora'."""
     if corpora is None:
         corpora = []
-    all_jobs = g.cache.get_all_jobs()
-    user_jobs = []
-    for j in all_jobs:
-        job = jobs.load_from_str(g.cache.get_job(j))
-        if job.user == user or job.corpus_id in corpora:
-            user_jobs.append(job)
-    return user_jobs
-
-
-def get_all_jobs():
-    """Get info for all jobs."""
     loaded_jobs = []
     all_jobs = g.cache.get_all_jobs()
     for j in all_jobs:
+        if corpora and j not in corpora:
+            continue
         job = jobs.load_from_str(g.cache.get_job(j))
         loaded_jobs.append(job)
     return loaded_jobs

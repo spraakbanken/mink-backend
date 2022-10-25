@@ -122,18 +122,6 @@ paths:
     put:
       security:
         - ApiKeyAuth: []
-  /check-status-admin:
-    get:
-      security:
-        - ApiKeyAuth: []
-      parameters:
-      - name: corpus_id
-        in: query
-        required: false
-        style: form
-        schema:
-          type: string
-          example: mink-dxh6e6wtff
   /check-status:
     get:
       parameters:

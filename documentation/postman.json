@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "7e8233d0-e98e-429c-8d8c-f641dc3ba71b",
-		"name": "Mink API Copy",
+		"name": "Mink API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -3910,6 +3910,233 @@
 			]
 		},
 		{
+			"name": "Admin Mode",
+			"item": [
+				{
+					"name": "admin mode on",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/admin-mode-on",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"admin-mode-on"
+							]
+						},
+						"description": "Turns on admin mode for the user if the user can be verified as a Mink admin in the authentication system. When admin mode is activated the user will have full access to all corpora in Mink.\n\nThis works by setting a session cookie in the client. Admin mode will be activated until <a href=\"#operation/adminmodeoff\">turned off</a> or until the session expires.\n\n### Example\n\n```.bash\ncurl -X POST '{{host}}/admin-mode-on' -H 'Authorization: Bearer YOUR_JWT'\n```"
+					},
+					"response": [
+						{
+							"name": "admin mode on 200",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/admin-mode-on",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"admin-mode-on"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "56"
+								},
+								{
+									"key": "Vary",
+									"value": "Cookie"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "session=eyJhZG1pbl9tb2RlIjp0cnVlfQ.Y1ZRAQ.VMjlnpmqP_cCT-H5u5xukFYUmj8; HttpOnly; Path=/"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.10.6"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 24 Oct 2022 08:46:57 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Admin mode turned on\"\n}"
+						},
+						{
+							"name": "admin mode on 401",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/admin-mode-on",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"admin-mode-on"
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 02 Mar 2021 16:33:28 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Mink admin status could not be confirmed\"\n}"
+						}
+					]
+				},
+				{
+					"name": "admin mode off",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/admin-mode-off",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"admin-mode-off"
+							]
+						},
+						"description": "Turns off admin mode for the user by removing the session cookie from the client.\n\n### Example\n\n```.bash\ncurl -X POST '{{host}}/admin-mode-off' -H 'Authorization: Bearer YOUR_JWT'\n```"
+					},
+					"response": [
+						{
+							"name": "admin mode off 200",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/admin-mode-off",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"admin-mode-off"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Mon, 24 Oct 2022 09:01:56 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "gunicorn"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "57"
+								},
+								{
+									"key": "Vary",
+									"value": "Cookie"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "session=eyJhZG1pbl9tb2RlIjpmYWxzZX0.Y1ZUhA.tLLartk6WcWRZKx73yVEInurjP8; HttpOnly; Path=/"
+								},
+								{
+									"key": "Via",
+									"value": "1.1 ws.spraakbanken.gu.se"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=1, max=500"
+								},
+								{
+									"key": "Connection",
+									"value": "Keep-Alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Admin mode turned off\"\n}"
+						},
+						{
+							"name": "admin mode off 401",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/admin-mode-off",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"admin-mode-off"
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 02 Mar 2021 16:33:28 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Documentation",
 			"item": [
 				{
@@ -4271,154 +4498,6 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Queue advancing completed\"\n}"
-						}
-					]
-				},
-				{
-					"name": "check status admin",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/check-status-admin?corpus_id={{standard-corpus}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"check-status-admin"
-							],
-							"query": [
-								{
-									"key": "corpus_id",
-									"value": "{{standard-corpus}}"
-								}
-							]
-						},
-						"description": "Get information for all corpora and all jobs.\n\nThe parameter `corpus_id` may be supplied to get more detailed info about a job for a specific corpus.\n\nFor admin use only!"
-					},
-					"response": [
-						{
-							"name": "check status admin 200",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{host}}/check-status-admin",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"check-status-admin"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "540"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/2.0.2 Python/3.9.7"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 16 Jun 2022 14:25:13 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"corpora\": [\n        \"{{standard-corpus}}\",\n        \"mink-nchh7fijyp\",\n        \"mink-kuuklw3oyy\"\n    ],\n    \"jobs\": [\n        {\n            \"corpus_id\": \"{{standard-corpus}}\",\n            \"message\": \"Job was aborted by the user\",\n            \"job_status\": \"aborted\",\n            \"last_run_started\": \"2022-06-14T14:47:43+02:00\"\n        },\n        {\n            \"corpus_id\": \"mink-nchh7fijyp\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"job_status\": \"done_syncing\",\n            \"last_run_started\": \"2022-06-13T11:44:43+02:00\",\n            \"last_run_ended\": \"2022-06-13T11:44:47+02:00\",\n            \"seconds_taken\": 4.81\n        }\n    ]\n}"
-						},
-						{
-							"name": "check status admin 401",
-							"originalRequest": {
-								"method": "PUT",
-								"header": [],
-								"url": {
-									"raw": "{{host}}/check-status-admin",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"check-status-admin"
-									]
-								}
-							},
-							"status": "UNAUTHORIZED",
-							"code": 401,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "83"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/1.0.1 Python/3.8.6"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 11 Mar 2021 14:43:33 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to confirm secret key for protected route\"\n}"
-						},
-						{
-							"name": "check status admin 404",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{host}}/check-status-admin?corpus_id={{fake-corpus}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"check-status-admin"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "{{fake-corpus}}"
-										}
-									]
-								}
-							},
-							"status": "NOT FOUND",
-							"code": 404,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "82"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/2.0.2 Python/3.9.7"
-								},
-								{
-									"key": "Date",
-									"value": "Thu, 16 Jun 2022 14:35:45 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No active job found for corpus '{{fake-corpus}}'\"\n}"
 						}
 					]
 				}

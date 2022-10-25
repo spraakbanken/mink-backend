@@ -4,11 +4,11 @@ import time
 
 from flask import Blueprint
 from flask import current_app as app
-from flask import request
+from flask import request, session
 
 from mink import corpus_registry, exceptions, jobs, queue, utils
-from mink.sparv import storage
 from mink.sb_auth import login
+from mink.sparv import storage
 
 bp = Blueprint("sparv", __name__)
 
@@ -113,7 +113,7 @@ def advance_queue():
 
 @bp.route("/check-status", methods=["GET"])
 @login.login(require_corpus_id=False)
-def check_status(user: str, corpora: list):
+def check_status(corpora: list):
     """Check the annotation status for all jobs belonging to a user or a given corpus."""
     corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
     if corpus_id:
@@ -122,17 +122,20 @@ def check_status(user: str, corpora: list):
             if corpus_id not in corpora:
                 return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
                                       err=True), 404
-            job = jobs.get_job(corpus_id, user)
-            return make_status_response(job)
+            job = queue.get_job_by_corpus_id(corpus_id)
+            if not job:
+                return utils.response(f"No active job found for corpus '{corpus_id}'", err=True), 404
+
+            return make_status_response(job, admin=session.get("admin_mode", False))
         except Exception as e:
             return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 500
 
     try:
-        # Get all job statuses for user
+        # Get all job statuses for this user's corpora
         job_list = []
-        user_jobs = queue.get_user_jobs(user)
-        for job in user_jobs:
-            resp = make_status_response(job)
+        all_jobs = queue.get_jobs(corpora)
+        for job in all_jobs:
+            resp = make_status_response(job, admin=session.get("admin_mode", False))
             if isinstance(resp, tuple):
                 resp = resp[0]
             job_status = {"corpus_id": job.corpus_id}
@@ -140,46 +143,6 @@ def check_status(user: str, corpora: list):
             job_status.pop("status")
             job_list.append(job_status)
         return utils.response("Listing jobs", jobs=job_list)
-    except Exception as e:
-        return utils.response("Failed to get job statuses", err=True, info=str(e)), 500
-
-
-@bp.route("/check-status-admin", methods=["GET"])
-@utils.gatekeeper
-def check_status_admin():
-    """Get information for all corpora and all jobs (admins only)."""
-    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
-    corpora = corpus_registry.get_all()
-    if corpus_id:
-        try:
-            # Check if corpus exists
-            if corpus_id not in corpora:
-                return utils.response(f"Corpus '{corpus_id}' does not exist", err=True), 404
-            job = queue.get_job_by_corpus_id(corpus_id)
-            if not job:
-                return utils.response(f"No active job found for corpus '{corpus_id}'", err=True), 404
-
-            return make_status_response(job, None, admin=True)
-        except Exception as e:
-            return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 500
-
-    try:
-        # Get all job statuses for user
-        job_list = []
-        all_jobs = queue.get_all_jobs()
-        for job in all_jobs:
-            resp = make_status_response(job, None, admin=True)
-            if isinstance(resp, tuple):
-                resp = resp[0]
-            job_status = {"corpus_id": job.corpus_id}
-            job_status.update(resp.get_json())
-            job_status.pop("status")
-            job_status.pop("sparv_exports")
-            job_status.pop("available_files")
-            if "files" in job_status:
-                job_status.pop("files")
-            job_list.append(job_status)
-        return utils.response("Listing jobs", corpora=corpora, jobs=job_list)
     except Exception as e:
         return utils.response("Failed to get job statuses", err=True, info=str(e)), 500
 

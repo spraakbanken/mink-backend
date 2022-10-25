@@ -73,13 +73,13 @@ def list_corpora(corpora: list):
 
 @bp.route("/list-korp-corpora", methods=["GET"])
 @login.login(include_read=True, require_corpus_id=False, require_corpus_exists=False)
-def list_korp_corpora(corpora: list, user: str):
+def list_korp_corpora(corpora: list):
     """List all corpora installed in Korp."""
     installed_corpora = []
     try:
-        # Get jobs beloning to user or to corpora that the user may view
-        user_jobs = queue.get_user_jobs(user, corpora)
-        for job in user_jobs:
+        # Get jobs beloning to corpora that the user may edit
+        all_jobs = queue.get_jobs(corpora)
+        for job in all_jobs:
             if job.installed_korp:
                 installed_corpora.append(job.corpus_id)
     except Exception as e:
