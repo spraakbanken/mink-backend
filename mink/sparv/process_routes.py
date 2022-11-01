@@ -125,7 +125,7 @@ def check_status(corpora: list):
                                       err=True), 404
             job = queue.get_job_by_corpus_id(corpus_id)
             if not job:
-                return utils.response(f"No active job found for corpus '{corpus_id}'", err=True), 404
+                return utils.response(f"There is no active job for '{corpus_id}'", job_status=jobs.Status.none.name)
 
             return make_status_response(job, admin=session.get("admin_mode", False))
         except Exception as e:
