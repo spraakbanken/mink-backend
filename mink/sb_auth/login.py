@@ -100,14 +100,21 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 @login(require_corpus_exists=False, require_corpus_id=False, require_admin=True)
 def admin_mode_on():
     session["admin_mode"] = True
-    return utils.response(f"Admin mode turned on")
+    return utils.response("Admin mode turned on")
 
 
 @bp.route("/admin-mode-off", methods=["POST"])
 @login(require_corpus_exists=False, require_corpus_id=False)
 def admin_mode_off():
     session["admin_mode"] = False
-    return utils.response(f"Admin mode turned off")
+    return utils.response("Admin mode turned off")
+
+
+@bp.route("/admin-mode-status", methods=["GET"])
+@login(require_corpus_exists=False, require_corpus_id=False)
+def admin_mode_status():
+    admin_status = session.get("admin_mode", False)
+    return utils.response("Returning status of admin mode", admin_mode_status=admin_status)
 
 
 def read_jwt_key():

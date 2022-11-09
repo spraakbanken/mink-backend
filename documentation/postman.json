@@ -4133,6 +4133,107 @@
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
 						}
 					]
+				},
+				{
+					"name": "admin mode status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/admin-mode-status",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"admin-mode-status"
+							]
+						},
+						"description": "Checks whether admin mode is turned on or off.\n\n### Example\n\n```.bash\ncurl -X GET '{{host}}/admin-mode-status' -H 'Authorization: Bearer YOUR_JWT'\n```"
+					},
+					"response": [
+						{
+							"name": "admin mode status 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/admin-mode-status",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"admin-mode-status"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "93"
+								},
+								{
+									"key": "Vary",
+									"value": "Cookie"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.10.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 08 Nov 2022 15:39:53 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Returning status of admin mode\",\n    \"admin_mode_status\": true\n}"
+						},
+						{
+							"name": "admin mode status 401",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/admin-mode-status",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"admin-mode-status"
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 02 Mar 2021 16:33:28 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+						}
+					]
 				}
 			]
 		},

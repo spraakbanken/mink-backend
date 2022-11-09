@@ -3422,6 +3422,66 @@ paths:
                 message: Failed to authenticate
                 info: Signature verification failed
       deprecated: false
+  /admin-mode-status:
+    get:
+      tags:
+      - Admin Mode
+      summary: admin mode status
+      description: 'Checks whether admin mode is turned on or off.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X GET ''{{host}}/admin-mode-status'' -H ''Authorization: Bearer YOUR_JWT''
+
+        ```'
+      operationId: adminmodestatus
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Returning status of admin mode
+                  admin_mode_status:
+                    type: integer
+                    example: true
+              example:
+                status: success
+                message: Returning status of admin mode
+                admin_mode_status: true
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+      deprecated: false
   /api-spec:
     get:
       tags:
