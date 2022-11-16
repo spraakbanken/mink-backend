@@ -1,11 +1,9 @@
 apscheduler
 flask
 flask_cors
-gevent
-gunicorn
+gunicorn[gevent]
 pyjwt[crypto]
 pymemcache
-pyocclient
 python-dateutil
 pyyaml
 requests
