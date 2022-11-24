@@ -123,12 +123,10 @@ def unqueue_inactive():
 
 def get_jobs(corpora: list = None):
     """Get info for all jobs or (if specified) only for the corpora in 'corpora'."""
-    if corpora is None:
-        corpora = []
     loaded_jobs = []
     all_jobs = g.cache.get_all_jobs()
     for j in all_jobs:
-        if corpora and j not in corpora:
+        if corpora is not None and j not in corpora:
             continue
         job = jobs.load_from_str(g.cache.get_job(j))
         loaded_jobs.append(job)

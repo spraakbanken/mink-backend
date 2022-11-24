@@ -74,7 +74,7 @@ def list_corpora(corpora: list):
 @bp.route("/list-korp-corpora", methods=["GET"])
 @login.login(include_read=True, require_corpus_id=False, require_corpus_exists=False)
 def list_korp_corpora(corpora: list):
-    """List all corpora installed in Korp."""
+    """List all the user's corpora that are installed in Korp."""
     installed_corpora = []
     try:
         # Get jobs beloning to corpora that the user may edit
