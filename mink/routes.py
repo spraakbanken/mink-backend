@@ -5,7 +5,7 @@ import os
 import yaml
 from flask import Blueprint
 from flask import current_app as app
-from flask import jsonify, redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, send_from_directory, url_for
 
 from mink import utils
 
@@ -15,7 +15,7 @@ bp = Blueprint("general", __name__)
 @bp.route("/")
 def hello():
     """Redirect to /api_doc."""
-    return redirect(url_for('general.api_doc', _external=True))
+    return redirect(url_for("general.api_doc", _external=True))
 
 
 @bp.route("/api-spec")
@@ -38,7 +38,7 @@ def api_spec():
 def api_doc():
     """Render HTML API documentation."""
     if app.config.get("DEBUG"):
-        return render_template('apidoc.html',
+        return render_template("apidoc.html",
                                title="Min SB API documentation",
                                favicon=url_for("static", filename="sbx_favicon.svg", _external=True),
                                logo=url_for("static", filename="my-sb-logo.png", _external=True),
@@ -46,12 +46,24 @@ def api_doc():
                                )
     else:
         # Proxy fix: When not in debug mode, use MIN_SB_URL instead
-        return render_template('apidoc.html',
+        return render_template("apidoc.html",
                                title="Min SB API documentation",
                                favicon=app.config.get("MIN_SB_URL") + url_for("static", filename="sbx_favicon.svg"),
                                logo=app.config.get("MIN_SB_URL") + url_for("static", filename="my-sb-logo.png"),
                                spec_url=app.config.get("MIN_SB_URL") + url_for("general.api_spec")
                                )
+
+
+@bp.route("/developers-guide")
+def developers_guide():
+    """Render docsify HTML with the developer's guide."""
+    return render_template("docsify.html")
+
+
+@bp.route("/developers-guide/<path:path>")
+def developers_guide_files(path):
+    """Serve sub pages to the developer's guide needed by docsify."""
+    return send_from_directory("templates", path)
 
 
 # @bp.route("/routes")
