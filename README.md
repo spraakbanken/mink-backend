@@ -1,6 +1,6 @@
 # Mink Backend
 
-Mink is [Språkbanken Text[(https://spraakbanken.gu.se/)'s platform where
+Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s platform where
 users can upload corpus data, get it annotated with [Sparv](https://spraakbanken.gu.se/sparv) and view and search it in
 [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
 
