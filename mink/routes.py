@@ -39,17 +39,17 @@ def api_doc():
     """Render HTML API documentation."""
     if app.config.get("DEBUG"):
         return render_template("apidoc.html",
-                               title="Min SB API documentation",
-                               favicon=url_for("static", filename="sbx_favicon.svg", _external=True),
-                               logo=url_for("static", filename="my-sb-logo.png", _external=True),
+                               title="Mink API documentation",
+                               favicon=url_for("static", filename="favicon.ico", _external=True),
+                               logo=url_for("static", filename="mink.svg", _external=True),
                                spec_url=url_for("general.api_spec", _external=True)
                                )
     else:
         # Proxy fix: When not in debug mode, use MINK_URL instead
         return render_template("apidoc.html",
-                               title="Min SB API documentation",
-                               favicon=app.config.get("MINK_URL") + url_for("static", filename="sbx_favicon.svg"),
-                               logo=app.config.get("MINK_URL") + url_for("static", filename="my-sb-logo.png"),
+                               title="Mink API documentation",
+                               favicon=app.config.get("MINK_URL") + url_for("static", filename="favicon.ico"),
+                               logo=app.config.get("MINK_URL") + url_for("static", filename="mink.svg"),
                                spec_url=app.config.get("MINK_URL") + url_for("general.api_spec")
                                )
 
@@ -57,7 +57,12 @@ def api_doc():
 @bp.route("/developers-guide")
 def developers_guide():
     """Render docsify HTML with the developer's guide."""
-    return render_template("docsify.html")
+    if app.config.get("DEBUG"):
+        return render_template("docsify.html", favicon=url_for("static", filename="favicon.ico", _external=True))
+    else:
+        # Proxy fix: When not in debug mode, use MINK_URL instead
+        return render_template("docsify.html",
+                               favicon=app.config.get("MINK_URL") + url_for("static", filename="favicon.ico"))
 
 
 @bp.route("/developers-guide/<path:path>")

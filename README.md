@@ -26,4 +26,5 @@ Start the queue manager:
 python queue_manager.py
 ```
 
-Check out the [API documentation](http://localhost:9000/api-doc).
+Check out the [API documentation](http://localhost:9000/api-doc) and the [Developer's
+Guide](http://localhost:9000/developers-guide)

@@ -3,7 +3,7 @@ variables:
   fake-corpus: mink-dxh6e6wtfg
 
 info:
-  title: Min SB API
+  title: Mink API
   version: 0.0.dev0
   description: |-
     # Introduction

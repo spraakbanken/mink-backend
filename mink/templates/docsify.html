@@ -8,7 +8,7 @@
       name="viewport"
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
-    <link rel="icon" type="image/png" href="../static/sbx_favicon.svg" />
+    <link rel="icon" type="image/png" href="{{favicon}}" />
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css" />
   </head>
   <body>
@@ -31,7 +31,6 @@
         loadSidebar: false,
         subMaxLevel: 6,
         homepage: "developers-guide.md",
-        basePath: "/developers-guide",
         search: {
           maxAge: 86400000, // Expiration time in ms, default: one day
           paths: "auto",
