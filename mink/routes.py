@@ -24,8 +24,8 @@ def api_spec():
     if app.config.get("DEBUG"):
         host = request.host_url.rstrip("/")
     else:
-        # Proxy fix: When not in debug mode, use MIN_SB_URL instead of host URL
-        host = app.config.get("MIN_SB_URL")
+        # Proxy fix: When not in debug mode, use MINK_URL instead of host URL
+        host = app.config.get("MINK_URL")
     spec_file = os.path.join(app.static_folder, "oas.yaml")
     with open(spec_file, encoding="UTF-8") as f:
         strspec = f.read()
@@ -45,12 +45,12 @@ def api_doc():
                                spec_url=url_for("general.api_spec", _external=True)
                                )
     else:
-        # Proxy fix: When not in debug mode, use MIN_SB_URL instead
+        # Proxy fix: When not in debug mode, use MINK_URL instead
         return render_template("apidoc.html",
                                title="Min SB API documentation",
-                               favicon=app.config.get("MIN_SB_URL") + url_for("static", filename="sbx_favicon.svg"),
-                               logo=app.config.get("MIN_SB_URL") + url_for("static", filename="my-sb-logo.png"),
-                               spec_url=app.config.get("MIN_SB_URL") + url_for("general.api_spec")
+                               favicon=app.config.get("MINK_URL") + url_for("static", filename="sbx_favicon.svg"),
+                               logo=app.config.get("MINK_URL") + url_for("static", filename="my-sb-logo.png"),
+                               spec_url=app.config.get("MINK_URL") + url_for("general.api_spec")
                                )
 
 

@@ -31,7 +31,7 @@ def gatekeeper(function):
     @functools.wraps(function)  # Copy original function's information, needed by Flask
     def decorator(*args, **kwargs):
         secret_key = request.args.get("secret_key") or request.form.get("secret_key")
-        if secret_key != app.config.get("MIN_SB_SECRET_KEY"):
+        if secret_key != app.config.get("MINK_SECRET_KEY"):
             return response("Failed to confirm secret key for protected route", err=True), 401
         return function(*args, **kwargs)
     return decorator

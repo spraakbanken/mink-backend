@@ -16,9 +16,9 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 def advance_queue(config):
     """Check the queue and run jobs if possible."""
     logging.debug("Calling '/advance-queue'...")
-    url = f"{config.get('MIN_SB_URL')}/advance-queue"
+    url = f"{config.get('MINK_URL')}/advance-queue"
     try:
-        data = parse.urlencode({"secret_key": config.get("MIN_SB_SECRET_KEY")}).encode()
+        data = parse.urlencode({"secret_key": config.get("MINK_SECRET_KEY")}).encode()
         req = request.Request(url, data=data, method="PUT")
         with request.urlopen(req) as f:
             logging.debug(f.read().decode("UTF-8"))

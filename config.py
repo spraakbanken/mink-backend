@@ -49,8 +49,8 @@ QUEUE_DIR = "queue"                  # Directory for storing job files
 CORPUS_REGISTRY = "corpus_registry"  # Directory for storing corpus IDs
 
 # Settings for queue manager
-MIN_SB_URL = "https://ws.spraakbanken.gu.se/ws/min-sb"  # URL for mink API
+MINK_URL = "https://ws.spraakbanken.gu.se/ws/min-sb"  # URL for mink API
 CHECK_QUEUE_FREQUENCY = 20  # How often the queue will be checked for new jobs (in seconds)
-MIN_SB_SECRET_KEY = ""  # Define this in instance/config.py!
+MINK_SECRET_KEY = ""  # Define this in instance/config.py!
 HEALTHCHECKS_URL = ""   # Healthchecks URL, define this in instance/config.py!
 PING_FREQUENCY = 60     # Frequency (in minutes) for how often healthchecks should be pinged
