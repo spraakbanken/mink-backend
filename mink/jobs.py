@@ -205,8 +205,8 @@ class Job():
         local_user_dir = utils.get_corpora_dir(mkdir=True)
 
         # Create user and corpus dir on Sparv server
-        p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
-                          f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)}")
+        p = utils.ssh_run(["mkdir", "-p", shlex.quote(self.remote_corpus_dir), "&&",
+                           "rm", "-f", shlex.quote(self.nohupfile), shlex.quote(self.runscript)])
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
@@ -551,8 +551,6 @@ class DefaultJob():
     def __init__(self, language="swe"):
         self.lang = language
 
-        self.sparv_user = app.config.get("SPARV_USER")
-        self.sparv_server = app.config.get("SPARV_HOST")
         self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.lang, default_dir=True))
         self.config_file = app.config.get("SPARV_CORPUS_CONFIG")
 

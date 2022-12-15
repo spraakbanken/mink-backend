@@ -7,12 +7,12 @@ import os
 import subprocess
 import zipfile
 from pathlib import Path
+from typing import List
 
 import yaml
-from flask import g
 from flask import Response
 from flask import current_app as app
-from flask import request
+from flask import g, request
 
 from mink.sparv import storage
 
@@ -37,12 +37,31 @@ def gatekeeper(function):
     return decorator
 
 
-def ssh_run(command, input=None):
+def ssh_run(command: List[str], input=None):
     """Execute 'command' on server and return process."""
     user = app.config.get("SPARV_USER")
+    assert user, "No configuration foud for 'SPARV_USER'!"
     host = app.config.get("SPARV_HOST")
-    p = subprocess.run(["ssh", "-i", app.config.get("SSH_KEY"), f"{user}@{host}", command],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, input=input)
+    if host is None or host == "localhost":
+        # Run command in home dir without using SSH
+        p = subprocess.run(command, cwd=f"/home/{user}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, input=input)
+    else:
+        p = subprocess.run(["ssh", "-i", app.config.get("SSH_KEY"), f"{user}@{host}", " ".join(command)],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, input=input)
+    return p
+
+
+def rsync_run(source, target, args=["-av"]):
+    """Use rsync to sync 'source' with 'target' on server."""
+    user = app.config.get("SPARV_USER")
+    host = app.config.get("SPARV_HOST")
+
+    if host is None or host == "localhost":
+        p = subprocess.run(["rsync"] + args + [source] + [f"~/{target}/"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    else:
+        p = subprocess.run(["rsync"] + args + [source] + [f"{user}@{host}:~/{target}/"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return p
 
 

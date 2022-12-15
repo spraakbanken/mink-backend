@@ -31,8 +31,8 @@ SSH_KEY = "~/.ssh/id_rsa"
 SPARV_HOST = ""  # Define this in instance/config.py!
 SPARV_USER = ""    # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
-SPARV_DEFAULT_CORPORA_DIR = "mink-data/default"  # Dir for running listings like 'sparv run -l'
-SPARV_CORPORA_DIR = "mink-data"                  # Dir where the user corpora are stored and run
+SPARV_DEFAULT_CORPORA_DIR = "~/mink-data/default"  # Dir for running listings like 'sparv run -l'
+SPARV_CORPORA_DIR = "~/mink-data"                  # Dir where the user corpora are stored and run
 SPARV_ENVIRON = "SPARV_DATADIR=~/mink-pipeline/data/"                       # Environment variables to set when running Sparv
 SPARV_COMMAND = "~/mink-pipeline/venv/bin/python -u -m sparv"               # Command for calling Sparv
 SPARV_RUN = "run --socket ~/mink-pipeline/sparv.socket --log-to-file info"  # Sparv's 'run' command
