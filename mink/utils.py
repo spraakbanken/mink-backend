@@ -134,8 +134,12 @@ def standardize_config(config, corpus_id):
     # Remove settings that a Mink user is not allowed to modify
     config_yaml.pop("cwb", None)
     config_yaml.pop("korp", None)
-    # Remove all install targets (this is handled in the installation step instead)
+    # Remove all install and uninstall targets (this is handled in the installation step instead)
     config_yaml.pop("install", None)
+    config_yaml.pop("uninstall", None)
+
+    # Make corpus protected
+    config_yaml["korp"] = {"protected": True}
 
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True)
 
