@@ -14,7 +14,7 @@ from mink import corpus_registry, queue
 from mink.memcached.cache import Cache
 
 
-def create_app():
+def create_app(debug=False):
     """Instanciate app."""
     app = Flask(__name__)
 
@@ -41,7 +41,7 @@ def create_app():
     logfmt = "%(asctime)-15s - %(levelname)s: %(message)s"
     datefmt = "%Y-%m-%d %H:%M:%S"
 
-    if app.config.get("DEBUG"):
+    if debug:
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=logfmt, datefmt=datefmt)
     else:
         today = time.strftime("%Y-%m-%d")

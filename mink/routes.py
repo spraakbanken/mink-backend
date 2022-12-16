@@ -15,17 +15,13 @@ bp = Blueprint("general", __name__)
 @bp.route("/")
 def hello():
     """Redirect to /api_doc."""
-    return redirect(url_for("general.api_doc", _external=True))
+    return redirect(app.config.get("MINK_URL") + url_for("general.api_doc"))
 
 
 @bp.route("/api-spec")
 def api_spec():
     """Return open API specification in json."""
-    if app.config.get("DEBUG"):
-        host = request.host_url.rstrip("/")
-    else:
-        # Proxy fix: When not in debug mode, use MINK_URL instead of host URL
-        host = app.config.get("MINK_URL")
+    host = app.config.get("MINK_URL")
     spec_file = os.path.join(app.static_folder, "oas.yaml")
     with open(spec_file, encoding="UTF-8") as f:
         strspec = f.read()
@@ -37,32 +33,19 @@ def api_spec():
 @bp.route("/api-doc")
 def api_doc():
     """Render HTML API documentation."""
-    if app.config.get("DEBUG"):
-        return render_template("apidoc.html",
-                               title="Mink API documentation",
-                               favicon=url_for("static", filename="favicon.ico", _external=True),
-                               logo=url_for("static", filename="mink.svg", _external=True),
-                               spec_url=url_for("general.api_spec", _external=True)
-                               )
-    else:
-        # Proxy fix: When not in debug mode, use MINK_URL instead
-        return render_template("apidoc.html",
-                               title="Mink API documentation",
-                               favicon=app.config.get("MINK_URL") + url_for("static", filename="favicon.ico"),
-                               logo=app.config.get("MINK_URL") + url_for("static", filename="mink.svg"),
-                               spec_url=app.config.get("MINK_URL") + url_for("general.api_spec")
-                               )
+    return render_template("apidoc.html",
+                           title="Mink API documentation",
+                           favicon=app.config.get("MINK_URL") + url_for("static", filename="favicon.ico"),
+                           logo=app.config.get("MINK_URL") + url_for("static", filename="mink.svg"),
+                           spec_url=app.config.get("MINK_URL") + url_for("general.api_spec")
+                           )
 
 
 @bp.route("/developers-guide")
 def developers_guide():
     """Render docsify HTML with the developer's guide."""
-    if app.config.get("DEBUG"):
-        return render_template("docsify.html", favicon=url_for("static", filename="favicon.ico", _external=True))
-    else:
-        # Proxy fix: When not in debug mode, use MINK_URL instead
-        return render_template("docsify.html",
-                               favicon=app.config.get("MINK_URL") + url_for("static", filename="favicon.ico"))
+    return render_template("docsify.html",
+                           favicon=app.config.get("MINK_URL") + url_for("static", filename="favicon.ico"))
 
 
 @bp.route("/developers-guide/<path:path>")
