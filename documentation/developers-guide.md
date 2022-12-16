@@ -23,7 +23,7 @@ description will give you a general idea of how the Mink backend works.
 Before any data can be uploaded and processed a user needs to create a corpus (when using the Mink frontend this is done
 behind the scenes). When creating a new corpus Mink will generate a unique corpus ID (prefixed with 'mink-') which will
 be stored in the backend's corpus registry. The generated corpus ID will also be registered in the authentication system
-and the user creating the corpus will recieve owner rights. Creating a new corpus is done through the `/create-corpus`
+and the user creating the corpus will receive owner rights. Creating a new corpus is done through the `/create-corpus`
 route.
 
 **2. Uploading corpus source files**
@@ -103,7 +103,7 @@ annotation or installation process for the next job in line.
 
 The queue manager is not part of the Flask application but can be seen as an external component that is run as a
 separate process. The Python package [APScheduler](https://apscheduler.readthedocs.io/en/3.x/) is used to run the queue
-manager in regular time intervalls. The queue manager will call the `/advance-queue` route of the mink backend API which
+manager in regular time intervals. The queue manager will call the `/advance-queue` route of the mink backend API which
 in turn will do three things:
 
 1. Unqueue jobs that are done, aborted or erroneous.
@@ -121,7 +121,7 @@ The following modules are considered to be core modules for general functionalit
 - `exceptions.py` containing Mink specific exceptions
 - `jobs.py` containing code for managing and running corpus jobs (for processing and installing corpora)
 - `queue.py` containing code for the job queuing system
-- `routes.py` containing some general routes that are independet of non-core functionality (like serving the
+- `routes.py` containing some general routes that are independent of non-core functionality (like serving the
   documentation)
 - `utils.py` containing general utility functions
 
@@ -147,7 +147,7 @@ The Mink backend is typically (but not necessarily) distributed over multiple se
   the storage server. In the current Mink setup no separate storage server is used and the Sparv server also acts as a
   storage server.
 
-- Installing corpora from Mink usually means syncinc specifig Sparv export files to servers where other applications
+- Installing corpora from Mink usually means syncing specific   Sparv export files to servers where other applications
   (e.g. Korp and Strix) are run.
 
 
@@ -178,7 +178,7 @@ This will produce a new version of `mink/static/oas.yaml`. Don't forget to check
 
 There are no automatic tests in place yet. For manual testing [Postman](https://www.postman.com/) is recommended. A
 Postman collection is included in the `documentation` folder which can be imported in the application and after setting
-some enviroment variables all the routes can be run from the interface. The necessary environment variables are listed
+some environment variables all the routes can be run from the interface. The necessary environment variables are listed
 in the table below.
 
 
