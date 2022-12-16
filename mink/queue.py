@@ -3,6 +3,7 @@
 The job queue lives in the cache and also on the local file system (as backup).
 """
 
+import json
 from pathlib import Path
 
 from flask import current_app as app
@@ -15,22 +16,31 @@ def init():
     """Init a queue from the filesystem if it has not been initialized already."""
     if not g.cache.get_queue_initialized():
         app.logger.info("Initializing queue")
-        queue = []
         all_jobs = []  # Storage for all jobs, including done, aborted and errorneous
         queue_dir = Path(app.instance_path) / app.config.get("QUEUE_DIR")
         queue_dir.mkdir(exist_ok=True)
-
+        # Load queue priorities
+        priorities_file = queue_dir / Path(app.config.get("QUEUE_FILE"))
+        if priorities_file.is_file():
+            with priorities_file.open() as p:
+                jsonstr = p.read()
+                queue = json.loads(jsonstr) or []
+        else:
+            queue = []
         g.cache.set_queue_initialized(True)
-
+        # Load jobs into memory, append to queue if necessary
         for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
+            if f == priorities_file:
+                continue
             with f.open() as fobj:
                 job = jobs.load_from_str(fobj.read())
                 job.save()  # Update job in file system and add to cache
                 all_jobs.append(job.corpus_id)
                 app.logger.debug(f"Job in cache: '{g.cache.get_job(job.corpus_id)}'")
             # Queue job unless it is done, aborted or erroneous
-            if job.status not in [jobs.Status.done_annotating, jobs.Status.error, jobs.Status.aborted]:
-                queue.append(job.corpus_id)
+            if job.corpus_id not in queue:
+                if job.status not in [jobs.Status.done_annotating, jobs.Status.error, jobs.Status.aborted]:
+                    queue.append(job.corpus_id)
         g.cache.set_job_queue(queue)
         g.cache.set_all_jobs(all_jobs)
         app.logger.debug(f"Queue in cache: {g.cache.get_job_queue()}")
@@ -49,10 +59,14 @@ def add(job, install=False):
         job.set_status(jobs.Status.waiting_install)
     else:
         job.set_status(jobs.Status.waiting)
+    # Unqueue if old job is queued since before
     if job.corpus_id in queue:
         queue.pop(queue.index(job.corpus_id))
+    # Add job to queue and save priority
     queue.append(job.corpus_id)
     g.cache.set_job_queue(queue)
+    save_priorities()
+    # Save to all_jobs
     all_jobs = g.cache.get_all_jobs()
     all_jobs.append(job.corpus_id)
     g.cache.set_all_jobs(all_jobs)
@@ -73,6 +87,7 @@ def remove(job):
     if job.corpus_id in queue:
         queue.pop(queue.index(job.corpus_id))
         g.cache.set_job_queue(queue)
+        save_priorities()
 
     all_jobs = g.cache.get_all_jobs()
     if job.corpus_id in all_jobs:
@@ -87,6 +102,16 @@ def get_priority(job):
         return queue.index(job.corpus_id) + 1
     except ValueError:
         return -1
+
+
+def save_priorities():
+    """Save queue order so it can be loaded from disk upon app restart."""
+    queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
+    queue_dir.mkdir(exist_ok=True)
+    queue = g.cache.get_job_queue()
+    priorities_file = queue_dir / Path(app.config.get("QUEUE_FILE"))
+    with priorities_file.open("w") as f:
+        f.write(json.dumps(queue))
 
 
 def get_running_waiting():
@@ -119,6 +144,7 @@ def unqueue_inactive():
             app.logger.info(f"Removing job {j}")
             queue.pop(queue.index(j))
         g.cache.set_job_queue(queue)
+        save_priorities()
 
 
 def get_jobs(corpora: list = None):
