@@ -134,11 +134,11 @@ class Job():
 
     def remove(self, abort=False):
         """Remove a job item from the cache and file system."""
-        if self.status == Status.annotating:
+        if Status.is_running(self.status):
             if abort:
                 try:
                     self.abort_sparv()
-                except exceptions.ProcessNotRunning:
+                except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
                     pass
                 except Exception as e:
                     raise e
@@ -288,6 +288,29 @@ class Job():
         self.installed_korp = True
         self.set_pid(int(p.stdout.decode()))
         self.set_status(Status.installing)
+
+    def uninstall_korp(self):
+        """Uninstall corpus from Korp."""
+        try:
+            self.abort_sparv()
+        except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
+            pass
+        except Exception as e:
+            raise e
+
+        sparv_uninstalls = app.config.get("SPARV_DEFAULT_UNINSTALLS")
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
+        sparv_env = app.config.get("SPARV_ENVIRON")
+
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            app.logger.error(f"Failed to uninstall corpus {self.corpus_id} from Korp: {stderr}")
+            raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stderr}")
+
+        self.installed_korp = False
+
 
     def abort_sparv(self):
         """Abort running Sparv process."""
@@ -475,7 +498,7 @@ class Job():
         """Remove corpus dir from the Sparv server and abort running job if necessary."""
         try:
             self.abort_sparv()
-        except exceptions.ProcessNotRunning:
+        except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
             pass
         except Exception as e:
             raise e

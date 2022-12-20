@@ -91,7 +91,15 @@ def list_korp_corpora(corpora: list):
 @login.login()
 def remove_corpus(corpus_id: str):
     """Remove corpus."""
-    # TODO: Uninstall corpus (if installed) using Sparv
+    # Get job
+    job = jobs.get_job(corpus_id)
+    queue.remove(job)
+    if job.installed_korp:
+        try:
+            # Uninstall corpus using Sparv
+            job.uninstall_korp()
+        except Exception as e:
+            return utils.response(f"Failed to remove job for corpus '{corpus_id}'. {e}", err=True, info=str(e)), 500
     try:
         # Remove from storage
         corpus_dir = str(storage.get_corpus_dir(corpus_id))
@@ -101,8 +109,6 @@ def remove_corpus(corpus_id: str):
 
     try:
         # Remove job
-        job = jobs.get_job(corpus_id)
-        queue.remove(job)
         job.remove()
     except Exception as e:
         return utils.response(f"Failed to remove job for corpus '{corpus_id}'. {e}", err=True, info=str(e)), 500
