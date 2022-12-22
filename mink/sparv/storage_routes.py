@@ -144,9 +144,20 @@ def upload_sources(corpus_id: str):
     if not files:
         return utils.response("No corpus files provided for upload", err=True), 400
 
+    # Check request size constraint
     try:
-        # Upload data
         source_dir = storage.get_source_dir(corpus_id)
+        if not utils.check_size_ok(source_dir, request.content_length):
+            h_max_size = str(round(app.config.get("MAX_CORPUS_LENGTH", 0) / 1024 / 1024, 2))
+            return utils.response(f"Failed to upload source files to '{corpus_id}'. "
+                                  f"Max corpus size ({h_max_size} MB) exceeded",
+                                  err=True, max_corpus_size=app.config.get("MAX_CORPUS_LENGTH")), 403
+    except Exception as e:
+        return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 500
+
+    try:
+        h_max_file_size = str(round(app.config.get("MAX_FILE_LENGTH", 0) / 1024 / 1024, 2))
+        # Upload data
         for f in files[0]:
             name = sparv_utils.secure_filename(f.filename)
             if not utils.check_file_ext(name, app.config.get("SPARV_IMPORTER_MODULES", {}).keys()):
@@ -158,6 +169,13 @@ def upload_sources(corpus_id: str):
                                       "file extensions", err=True, file=f.filename, info="incompatible file extensions",
                                       current_file_extension=current_ext, existing_file_extension=existing_ext), 400
             file_contents = f.read()
+
+            # Check file size constraint
+            if len(file_contents) > app.config.get("MAX_FILE_LENGTH"):
+                return utils.response(f"Failed to upload some source files to '{corpus_id}'. "
+                                      f"Max file size ({h_max_file_size} MB) exceeded",
+                                      err=True, file=f.filename, max_file_size=app.config.get("MAX_FILE_LENGTH")), 403
+
             # Validate XML files
             if current_ext == ".xml":
                 if not utils.validate_xml(file_contents):

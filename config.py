@@ -8,6 +8,11 @@ LOG_LEVEL = "INFO"   # Log level for the application
 # Prefix used when creating new resources
 RESOURCE_PREFIX = "mink-"
 
+# File upload settings
+MAX_CONTENT_LENGTH = 1024 * 1024 * 100 # Max size (bytes) for one request (which may contain multiple files)
+MAX_FILE_LENGTH = 1024 * 1024 * 10     # Max size (bytes) for one corpus source file
+MAX_CORPUS_LENGTH = 1024 * 1024 * 500  # Max size (bytes) for one corpus
+
 # sb-auth settings
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
 SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/resource/"
@@ -31,8 +36,8 @@ SSH_KEY = "~/.ssh/id_rsa"
 SPARV_HOST = ""  # Define this in instance/config.py!
 SPARV_USER = ""    # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
-SPARV_DEFAULT_CORPORA_DIR = "mink-data/default"  # Dir for running listings like 'sparv run -l'
-SPARV_CORPORA_DIR = "mink-data"                  # Dir where the user corpora are stored and run
+SPARV_DEFAULT_CORPORA_DIR = "~/mink-data/default"  # Dir for running listings like 'sparv run -l'
+SPARV_CORPORA_DIR = "mink-data"                    # Dir where the user corpora are stored and run, relative to the user's home dir
 SPARV_ENVIRON = "SPARV_DATADIR=~/mink-pipeline/data/"                       # Environment variables to set when running Sparv
 SPARV_COMMAND = "~/mink-pipeline/venv/bin/python -u -m sparv"               # Command for calling Sparv
 SPARV_RUN = "run --socket ~/mink-pipeline/sparv.socket --log-to-file info"  # Sparv's 'run' command

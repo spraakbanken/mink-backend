@@ -86,6 +86,16 @@ def check_file_compatible(filename, source_dir):
     return current_ext == existing_ext, current_ext, existing_ext
 
 
+def check_size_ok(source_dir, incoming_size):
+    """Check if the size of the incoming files exceeds the max corpus size."""
+    if app.config.get("MAX_CORPUS_LENGTH") is not None:
+        current_size = storage.get_size(str(source_dir))
+        total_size = current_size + incoming_size
+        if total_size > app.config.get("MAX_CORPUS_LENGTH"):
+            return False
+    return True
+
+
 def validate_xml(file_contents):
     """Check if inputfile is valid XML."""
     import xml.etree.ElementTree as etree

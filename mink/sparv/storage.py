@@ -72,6 +72,17 @@ def get_file_contents(filepath):
     return p.stdout.decode()
 
 
+def get_size(remote_path):
+    """Get the size of a file or directory."""
+    p = utils.ssh_run(f"du -s {shlex.quote(str(remote_path))}")
+    if p.stderr:
+        raise Exception(f"Failed to retrieve size for path '{remote_path}': {p.stderr.decode()}")
+    try:
+        return int(p.stdout.decode().split()[0])
+    except Exception as e:
+        raise Exception(f"Failed to retrieve size for path '{remote_path}': {e}")
+
+
 def write_file_contents(filepath: str, file_contents: bytes, corpus_id: str):
     """Write contents to a new file on the Sparv server."""
     if not _is_valid_path(filepath, corpus_id):

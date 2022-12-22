@@ -9,9 +9,9 @@ from pathlib import Path
 from flask import Flask, g, request
 from flask_cors import CORS
 
-from mink.sb_auth.login import read_jwt_key
-from mink import corpus_registry, queue
+from mink import corpus_registry, queue, utils
 from mink.memcached.cache import Cache
+from mink.sb_auth.login import read_jwt_key
 
 
 def create_app(debug=False):
@@ -87,6 +87,14 @@ def create_app(debug=False):
             local_user_dir = Path(app.instance_path) / app.config.get("TMP_DIR") / g.request_id
             shutil.rmtree(str(local_user_dir), ignore_errors=True)
         return response
+
+    @app.errorhandler(413)
+    def request_entity_too_large(error):
+        """Handle large requests."""
+        max_size = app.config.get('MAX_CONTENT_LENGTH', 0)
+        h_max_size = str(round(app.config.get('MAX_CONTENT_LENGTH', 0) / 1024 / 1024, 3))
+        return utils.response(
+            f"Request data too large (max {h_max_size} MB per upload)", max_content_length=max_size, err=True), 413
 
     # Register routes from blueprints
     from . import routes as general_routes
