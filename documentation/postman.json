@@ -771,6 +771,61 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+						},
+						{
+							"name": "upload sources 413",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "",
+											"type": "file",
+											"src": "testkorpus/source/dokument1.xml"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{host}}/upload-sources?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"upload-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "REQUEST ENTITY TOO LARGE",
+							"code": 413,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "113"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.10.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 22 Dec 2022 12:41:15 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Request data too large (max 100 MB per upload)\",\n    \"max_content_length\": 104857600\n}"
 						}
 					]
 				},

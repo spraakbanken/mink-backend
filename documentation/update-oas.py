@@ -41,7 +41,6 @@ def replace_vars(input_oas):
     oas_string = json.dumps(input_oas)
     # Do string replacements
     for var, value in info_yaml.get("variables", {}).items():
-        print(var, value)
         oas_string = oas_string.replace("{{" + var + "}}", value)
     # Convert back to object
     return json.loads(oas_string)

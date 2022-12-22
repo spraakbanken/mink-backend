@@ -473,6 +473,26 @@ paths:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+        '413':
+          description: REQUEST ENTITY TOO LARGE
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Request data too large (max 100 MB per upload)
+                  max_content_length:
+                    type: integer
+                    example: 104857600
+              example:
+                status: error
+                message: Request data too large (max 100 MB per upload)
+                max_content_length: 104857600
       deprecated: false
   /list-sources:
     get:
