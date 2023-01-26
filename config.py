@@ -17,6 +17,7 @@ MAX_CORPUS_LENGTH = 1024 * 1024 * 500  # Max size (bytes) for one corpus
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
 SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/resource/"
 SBAUTH_API_KEY = ""
+SBAUTH_MINK_APP_RESOURCE = "mink-app" # Name of the resource used to control admin grants
 
 # Sparv specific strings and settings
 SPARV_SOURCE_DIR = "source"

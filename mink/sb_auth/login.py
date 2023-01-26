@@ -135,7 +135,8 @@ def _get_corpora(auth_token, include_read=False):
         min_level = "READ"
     if "scope" in user_token and "corpora" in user_token["scope"]:
         # Check if user is mink admin
-        mink_admin = user_token["scope"].get("other", {}).get("mink-admin", 0) >= user_token["levels"]["WRITE"]
+        mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
+        mink_admin = user_token["scope"].get("other", {}).get(mink_app_name, 0) >= user_token["levels"]["ADMIN"]
         # Get list of corpora
         for corpus, level in user_token["scope"].get("corpora", {}).items():
             if level >= user_token["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
