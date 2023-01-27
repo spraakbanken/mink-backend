@@ -377,7 +377,7 @@ def list_exports(corpus_id: str):
     """List exports available for download for a given corpus."""
     path = str(storage.get_export_dir(corpus_id))
     try:
-        objlist = storage.list_contents(path)
+        objlist = storage.list_contents(path, blacklist=app.config.get("SPARV_EXPORT_BLACKLIST"))
         return utils.response(f"Current export files for '{corpus_id}'", contents=objlist)
     except Exception as e:
         return utils.response(f"Failed to list files in '{corpus_id}'", err=True, info=str(e)), 500
@@ -401,9 +401,10 @@ def download_export(corpus_id: str):
     storage_export_dir = str(storage.get_export_dir(corpus_id))
     local_corpus_dir = utils.get_corpus_dir(corpus_id, mkdir=True)
     local_export_dir = utils.get_export_dir(corpus_id, mkdir=True)
+    blacklist = app.config.get("SPARV_EXPORT_BLACKLIST")
 
     try:
-        export_contents = storage.list_contents(storage_export_dir, exclude_dirs=False)
+        export_contents = storage.list_contents(storage_export_dir, exclude_dirs=False, blacklist=blacklist)
         if export_contents == []:
             return utils.response(f"There are currently no exports available for corpus '{corpus_id}'", err=True), 404
     except Exception as e:
@@ -414,7 +415,8 @@ def download_export(corpus_id: str):
         try:
             zip_out = str(local_corpus_dir / f"{corpus_id}_export.zip")
             # Get files from storage server
-            storage.download_dir(storage_export_dir, local_export_dir, corpus_id, zipped=True, zippath=zip_out)
+            storage.download_dir(storage_export_dir, local_export_dir, corpus_id, zipped=True, zippath=zip_out,
+                                 excludes=blacklist)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
             return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500

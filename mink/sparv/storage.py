@@ -1,11 +1,10 @@
 """Functions related to storage on Sparv server."""
 
 import mimetypes
-import os
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from dateutil.parser import parse
 from flask import current_app as app
@@ -16,8 +15,12 @@ from mink.sparv import utils as sparv_utils
 local = True
 
 
-def list_contents(directory: Union[Path, str], exclude_dirs=True):
-    """List files in directory on Sparv server recursively."""
+def list_contents(directory: Union[Path, str], exclude_dirs: bool = True,
+                  blacklist: Optional[list] = None):
+    """
+    List files in directory on Sparv server recursively.
+    If a blacklist is specified, exclude paths that match anything on the blacklist.
+    """
     objlist = []
     directory_quoted = shlex.quote(str(directory))
     p = utils.ssh_run(f"test -d {directory_quoted} && cd {directory_quoted} && "
@@ -30,6 +33,8 @@ def list_contents(directory: Union[Path, str], exclude_dirs=True):
         if not line.strip():
             continue
         permissions, _, size, date, time, tz, obj_path = line.split(maxsplit=6)
+        if obj_path == ".":
+            continue
         f = Path(obj_path)
         mod_time = parse(f"{date} {time} {tz}").isoformat(timespec="seconds")
         is_dir = permissions.startswith("d")
@@ -38,9 +43,11 @@ def list_contents(directory: Union[Path, str], exclude_dirs=True):
             if exclude_dirs:
                 continue
             mimetype = "directory"
+        if blacklist:
+            if any(Path(f.parts[0]).match(item) for item in blacklist):
+                continue
         objlist.append({
-            "name": f.name, "type": mimetype,
-            "last_modified": mod_time, "size": size, "path": obj_path[2:]
+            "name": f.name, "type": mimetype, "last_modified": mod_time, "size": size, "path": obj_path[2:]
         })
     return objlist
 
@@ -93,8 +100,10 @@ def write_file_contents(filepath: str, file_contents: bytes, corpus_id: str):
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
 
-def download_dir(remote_dir, local_dir, corpus_id, zipped=False, zippath=None):
+def download_dir(remote_dir, local_dir, corpus_id, zipped=False, zippath=None, excludes=None):
     """Download remote_dir on Sparv server to local_dir by rsyncing."""
+    if not excludes:
+        excludes = []
     if not _is_valid_path(remote_dir, corpus_id):
         raise Exception(f"You don't have permission to download '{remote_dir}'")
 
@@ -105,8 +114,11 @@ def download_dir(remote_dir, local_dir, corpus_id, zipped=False, zippath=None):
         raise Exception("Parameter zippath needs to be supplied when 'zipped=True'")
 
     user, host = _get_login()
-    p = subprocess.run(["rsync", "--recursive", f"{user}@{host}:{remote_dir}/", f"{local_dir}"],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    command = ["rsync", "--recursive"]
+    for e in excludes:
+        command.append(f"--exclude={e}")
+    command.extend([f"{user}@{host}:{remote_dir}/", f"{local_dir}"])
+    p = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.stderr:
         raise Exception(f"Failed to download '{remote_dir}': {p.stderr.decode()}")
 
