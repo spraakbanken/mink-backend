@@ -217,8 +217,24 @@ def install_corpus(user_id: str, contact: str, corpus_id: str):
     scramble = request.args.get("scramble", "") or request.form.get("scramble", "")
     scramble = scramble.lower() == "true"
 
-    # Queue job
+    # Get job, check for changes and remove exports if necessary
     job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, install_scrambled=scramble)
+    try:
+        _, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
+        if changed_sources or deleted_sources or changed_config:
+            try:
+                success, sparv_output = job.clean_export()
+                assert success
+            except Exception as e:
+                app.logger.error(f"Failed to install corpus '{corpus_id}' because exports could not be removed! {e}")
+                return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
+                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output), 500
+    except exceptions.JobNotFound:
+        pass
+    except exceptions.CouldNotListSources as e:
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+
+    # Queue job
     job.reset_time()
     job.set_install_scrambled(scramble)
     try:
