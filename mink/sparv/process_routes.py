@@ -55,7 +55,6 @@ def run_sparv(user_id: str, contact: str, corpus_id: str):
                 success, sparv_output = job.clean_export()
                 assert success
             except Exception as e:
-                app.logger.error(f"Failed to run Sparv for corpus '{corpus_id}' because exports could not be removed! {e}")
                 return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
                                     "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output), 500
     except exceptions.JobNotFound:
@@ -226,7 +225,6 @@ def install_corpus(user_id: str, contact: str, corpus_id: str):
                 success, sparv_output = job.clean_export()
                 assert success
             except Exception as e:
-                app.logger.error(f"Failed to install corpus '{corpus_id}' because exports could not be removed! {e}")
                 return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
                                       "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output), 500
     except exceptions.JobNotFound:

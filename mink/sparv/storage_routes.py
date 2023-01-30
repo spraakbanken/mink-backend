@@ -477,8 +477,8 @@ def remove_exports(corpus_id: str):
             storage.remove_dir(export_dir, corpus_id)
             storage.get_export_dir(corpus_id, mkdir=True)
         except Exception as e:
-            app.logger.error(f"Failed to remove export files from storate server for '{corpus_id}'. {e}")
-            return utils.response(f"Failed to remove export files for corpus '{corpus_id}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to remove export files from storage server for corpus '{corpus_id}'",
+                                  err=True, info=str(e)), 500
 
     try:
         # Remove from Sparv server
@@ -488,7 +488,6 @@ def remove_exports(corpus_id: str):
             return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'", err=True,
                                   info=str(sparv_output)), 500
     except Exception as e:
-        app.logger.error(f"Failed to remove export files from Sparv server for '{corpus_id}'. {e}")
         return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'", err=True,
                               info=str(e)), 500
 

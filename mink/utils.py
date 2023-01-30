@@ -9,16 +9,21 @@ import zipfile
 from pathlib import Path
 
 import yaml
-from flask import g
 from flask import Response
 from flask import current_app as app
-from flask import request
+from flask import g, request
 
 from mink.sparv import storage
 
 
 def response(msg, err=False, **kwargs):
     """Create json error response."""
+    # Log error
+    if err:
+        args = "\n".join(f"{k}: {v}" for k, v in kwargs.items() if v != "")
+        args = "\n" + args if args else ""
+        app.logger.error(f"{msg}{args}")
+
     res = {"status": "error" if err else "success", "message": msg}
     for key, value in kwargs.items():
         if value != "":
