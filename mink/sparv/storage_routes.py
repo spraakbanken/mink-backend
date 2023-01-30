@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import dateutil
 import shortuuid
 from flask import Blueprint
 from flask import current_app as app
@@ -471,21 +470,27 @@ def download_export(corpus_id: str):
 @login.login()
 def remove_exports(corpus_id: str):
     """Remove export files."""
-    try:
-        # Remove export dir from storage server and create a new empty one
-        export_dir = str(storage.get_export_dir(corpus_id))
-        storage.remove_dir(export_dir, corpus_id)
-        storage.get_export_dir(corpus_id, mkdir=True)
-    except Exception as e:
-        return utils.response(f"Failed to remove export files for corpus '{corpus_id}'", err=True, info=str(e)), 500
+    if not storage.local:
+        try:
+            # Remove export dir from storage server and create a new empty one
+            export_dir = str(storage.get_export_dir(corpus_id))
+            storage.remove_dir(export_dir, corpus_id)
+            storage.get_export_dir(corpus_id, mkdir=True)
+        except Exception as e:
+            app.logger.error(f"Failed to remove export files from storate server for '{corpus_id}'. {e}")
+            return utils.response(f"Failed to remove export files for corpus '{corpus_id}'", err=True, info=str(e)), 500
 
     try:
         # Remove from Sparv server
         job = jobs.get_job(corpus_id)
-        sparv_output = job.clean_export()
-        app.logger.debug(f"Output from sparv clean --export: {sparv_output}")
+        success, sparv_output = job.clean_export()
+        if not success:
+            return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'", err=True,
+                                  info=str(sparv_output)), 500
     except Exception as e:
-        app.logger.error(f"Failed to remove export files from Sparv server. {str(e)}")
+        app.logger.error(f"Failed to remove export files from Sparv server for '{corpus_id}'. {e}")
+        return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'", err=True,
+                              info=str(e)), 500
 
     return utils.response(f"Export files for corpus '{corpus_id}' successfully removed")
 
@@ -537,53 +542,11 @@ def check_changes(corpus_id: str):
     """Check if config or source files have changed since the last job was started."""
     try:
         job = jobs.get_job(corpus_id)
-        if not job.started:
-            return utils.response(f"Corpus '{corpus_id}' has not been run")
-        started = dateutil.parser.isoparse(job.started)
-
-        # Get current source files on storage server
-        source_dir = str(storage.get_source_dir(corpus_id))
-        try:
-            source_files = storage.list_contents(source_dir)
-        except Exception as e:
-            return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
-        source_file_paths = [f["path"] for f in source_files]
-        available_file_paths = [f["path"] for f in job.available_files]
-
-        # Check for new source files
-        added_sources = []
-        for sf in source_files:
-            if sf["path"] not in available_file_paths:
-                added_sources.append(sf)
-
-        # Compare all source files modification time to the time stamp of the last job started
-        changed_sources = []
-        for sf in source_files:
-            if sf in added_sources:
-                continue
-            mod = dateutil.parser.isoparse(sf.get("last_modified"))
-            if mod > started:
-                changed_sources.append(sf)
-
-        # Check for deleted source files
-        deleted_sources = []
-        for fileobj in job.available_files:
-            if fileobj["path"] not in source_file_paths:
-                deleted_sources.append(fileobj)
-
-        # Compare the config file modification time to the time stamp of the last job started
-        changed_config = {}
-        corpus_dir = str(storage.get_corpus_dir(corpus_id))
-        corpus_files = storage.list_contents(corpus_dir)
-        config_file = storage.get_config_file(corpus_id)
-        for f in corpus_files:
-            if f.get("name") == config_file.name:
-                config_mod = dateutil.parser.isoparse(f.get("last_modified"))
-                if config_mod > started:
-                    changed_config = f
-                break
-
-        if added_sources or changed_sources or changed_config or deleted_sources:
+    except Exception as e:
+        return utils.response(f"Failed to get job for corpus '{corpus_id}'", err=True, info=str(e)), 500
+    try:
+        added_sources, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
+        if added_sources or changed_sources or deleted_sources or changed_config:
             return utils.response(f"Your input for the corpus '{corpus_id}' has changed since the last run",
                                   config_changed=bool(changed_config), sources_added=bool(added_sources),
                                   sources_changed=bool(changed_sources), sources_deleted=bool(deleted_sources),
@@ -592,6 +555,12 @@ def check_changes(corpus_id: str):
                                   last_run_started=job.started)
         return utils.response(f"Your input for the corpus '{corpus_id}' has not changed since the last run",
                               last_run_started=job.started)
+
+    except exceptions.JobNotFound:
+        return utils.response(f"Corpus '{corpus_id}' has not been run")
+
+    except exceptions.CouldNotListSources as e:
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
 
     except Exception as e:
         return utils.response(f"Failed to check changes for corpus '{corpus_id}'", err=True, info=str(e)), 500

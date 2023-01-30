@@ -180,7 +180,7 @@ class Job():
     def reset_time(self):
         """Reset the processing time for a job (e.g. when starting a new one)."""
         self.latest_seconds_taken = 0
-        self.started = None
+        # self.started = None
         self.done = None
         self.sparv_done = None
         self.save()
@@ -532,7 +532,10 @@ class Job():
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
-        return sparv_output
+        if not "Nothing to remove" in sparv_output or "'export' directory removed" in sparv_output:
+            app.logger.error(f"Failed to remove Sparv export dir for corpus '{self.corpus_id}': {sparv_output}")
+            return False, sparv_output
+        return True, sparv_output
 
 
 def get_job(corpus_id, user_id=None, contact=None, sparv_exports=None, files=None, available_files=None,

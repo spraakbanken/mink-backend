@@ -6,10 +6,10 @@ import subprocess
 from pathlib import Path
 from typing import Optional, Union
 
-from dateutil.parser import parse
+from dateutil.parser import isoparse, parse
 from flask import current_app as app
 
-from mink import utils
+from mink import exceptions, utils
 from mink.sparv import utils as sparv_utils
 
 local = True
@@ -175,6 +175,57 @@ def remove_file(path, corpus_id: str):
     p = utils.ssh_run(f"test -f {shlex.quote(str(path))} && rm {shlex.quote(str(path))}")
     if p.stderr:
         raise Exception(f"Failed to remove file '{path}' on Sparv server: {p.stderr.decode()}")
+
+
+def get_file_changes(corpus_id: str, job):
+    """Get changes for source files and config file."""
+    if not job.started:
+        raise exceptions.JobNotFound
+    started = isoparse(job.started)
+
+    # Get current source files
+    source_dir = str(get_source_dir(corpus_id))
+    try:
+        source_files = list_contents(source_dir)
+    except Exception as e:
+        raise exceptions.CouldNotListSources(str(e))
+    source_file_paths = [f["path"] for f in source_files]
+    available_file_paths = [f["path"] for f in job.available_files]
+
+    # Check for new source files
+    added_sources = []
+    for sf in source_files:
+        if sf["path"] not in available_file_paths:
+            added_sources.append(sf)
+
+    # Compare all source files modification time to the time stamp of the last job started
+    changed_sources = []
+    for sf in source_files:
+        if sf in added_sources:
+            continue
+        mod = isoparse(sf.get("last_modified"))
+        if mod > started:
+            changed_sources.append(sf)
+
+    # Check for deleted source files
+    deleted_sources = []
+    for fileobj in job.available_files:
+        if fileobj["path"] not in source_file_paths:
+            deleted_sources.append(fileobj)
+
+    # Compare the config file modification time to the time stamp of the last job started
+    changed_config = {}
+    corpus_dir = str(get_corpus_dir(corpus_id))
+    corpus_files = list_contents(corpus_dir)
+    config_file = get_config_file(corpus_id)
+    for f in corpus_files:
+        if f.get("name") == config_file.name:
+            config_mod = isoparse(f.get("last_modified"))
+            if config_mod > started:
+                changed_config = f
+            break
+
+    return added_sources, changed_sources, deleted_sources, changed_config
 
 
 def _get_login():

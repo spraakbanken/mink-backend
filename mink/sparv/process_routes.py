@@ -6,7 +6,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request, session
 
-from mink import corpus_registry, exceptions, jobs, queue, utils
+from mink import exceptions, jobs, queue, utils
 from mink.sb_auth import login
 from mink.sparv import storage
 
@@ -45,9 +45,25 @@ def run_sparv(user_id: str, contact: str, corpus_id: str):
     except Exception as e:
         return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e)), 500
 
-    # Queue job
+    # Get job, check for changes and remove exports if necessary
     job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, sparv_exports=sparv_exports, files=files,
                        available_files=source_files)
+    try:
+        _, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
+        if changed_sources or deleted_sources or changed_config:
+            try:
+                success, sparv_output = job.clean_export()
+                assert success
+            except Exception as e:
+                app.logger.error(f"Failed to run Sparv for corpus '{corpus_id}' because exports could not be removed! {e}")
+                return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
+                                    "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output), 500
+    except exceptions.JobNotFound:
+        pass
+    except exceptions.CouldNotListSources as e:
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+
+    # Queue job
     job.reset_time()
     try:
         job = queue.add(job)
