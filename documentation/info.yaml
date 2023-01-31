@@ -4,7 +4,7 @@ variables:
 
 info:
   title: Mink API
-  version: 0.0.dev0
+  version: 0.1.0
   description: |-
     # Introduction
     Web API serving as a backend to Mink.
