@@ -532,7 +532,7 @@ class Job():
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
-        if not "Nothing to remove" in sparv_output or "'export' directory removed" in sparv_output:
+        if not ("Nothing to remove" in sparv_output or "'export' directory removed" in sparv_output):
             app.logger.error(f"Failed to remove Sparv export dir for corpus '{self.corpus_id}': {sparv_output}")
             return False, sparv_output
         return True, sparv_output
