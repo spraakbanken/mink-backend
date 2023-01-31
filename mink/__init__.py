@@ -74,7 +74,7 @@ def create_app(debug=False):
     @app.before_request
     def debug_info():
         """Print some debugging info about the incoming request."""
-        app.logger.debug(f"URL:    {request.url}")
+        app.logger.debug(f"Request: {request.method} {request.url}")
         if request.values:
             app.logger.debug(f"Values: {list(request.values.items())}")
         if request.files:
