@@ -39,7 +39,7 @@ def init():
                 app.logger.debug(f"Job in cache: '{g.cache.get_job(job.corpus_id)}'")
             # Queue job unless it is done, aborted or erroneous
             if job.corpus_id not in queue:
-                if job.status not in [jobs.Status.done_annotating, jobs.Status.error, jobs.Status.aborted]:
+                if not jobs.Status.is_done_processing(job.status) and not jobs.Status.is_inactive(job.status):
                     queue.append(job.corpus_id)
         g.cache.set_job_queue(queue)
         g.cache.set_all_jobs(all_jobs)
