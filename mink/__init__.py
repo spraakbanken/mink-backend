@@ -74,11 +74,16 @@ def create_app(debug=False):
     @app.before_request
     def debug_info():
         """Print some debugging info about the incoming request."""
-        app.logger.debug(f"Request: {request.method} {request.url}")
-        if request.values:
-            app.logger.debug(f"Values: {list(request.values.items())}")
-        if request.files:
-            app.logger.debug(f"Files:  {request.files}")
+        # Don't log options and advance-queue requests (too much spam)
+        if request.method != "OPTIONS" and not request.url.endswith("/advance-queue"):
+            log_msg = [f"Request: {request.method} {request.url}"]
+            if request.values:
+                args = ", ".join(f"{k}: {v}" for k, v in request.values.items())
+                log_msg.append(f"{' '*29}Args: {args}")
+            if request.files:
+                files = ", ".join(str(i) for i in request.files.to_dict(flat=False).values())
+                log_msg.append(f"{' '*29}Files: {files}")
+            app.logger.debug("\n".join(log_msg))
 
     @app.after_request
     def cleanup(response):
