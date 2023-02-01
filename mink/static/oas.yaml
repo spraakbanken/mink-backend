@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Mink API
-  version: 0.1.0
+  version: 1.0.0-beta
   description: '# Introduction
 
     Web API serving as a backend to Mink.
@@ -1994,16 +1994,6 @@ paths:
                   contents:
                     type: array
                     example: &id017
-                    - name: dokument1.csv
-                      type: text/csv
-                      last_modified: '2022-06-10T16:07:33+02:00'
-                      size: '4'
-                      path: csv/dokument1.csv
-                    - name: dokument2.csv
-                      type: text/csv
-                      last_modified: '2022-06-10T16:07:41+02:00'
-                      size: '5'
-                      path: csv/dokument2.csv
                     - name: dokument2.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:54:15+02:00'
