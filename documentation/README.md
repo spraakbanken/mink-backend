@@ -1,6 +1,6 @@
 # Maintaining OAS
 
-The open API specification (OAS) in `minsb/static/oas.yaml` was created semi automatically.
+The open API specification (OAS) in `mink/static/oas.yaml` was created semi automatically.
 Requests and example responses were created with [Postman](https://www.postman.com/),
 converted into OAS with [APITransform](https://apitransform.com/convert/) and extended with the manually maintained
 file `info.yaml`.

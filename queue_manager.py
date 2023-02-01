@@ -1,11 +1,12 @@
 """Script for advancing the job queue with scheduled jobs.
 
-This scheduler will make a call to the 'advance-queue' route of the min-sb API.
+This scheduler will make a call to the 'advance-queue' route of the mink API.
 """
 
 import logging
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from urllib import error, parse, request
 
@@ -15,9 +16,9 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 def advance_queue(config):
     """Check the queue and run jobs if possible."""
     logging.debug("Calling '/advance-queue'...")
-    url = f"{config.get('MIN_SB_URL')}/advance-queue"
+    url = f"{config.get('MINK_URL')}/advance-queue"
     try:
-        data = parse.urlencode({"secret_key": config.get("MIN_SB_SECRET_KEY")}).encode()
+        data = parse.urlencode({"secret_key": config.get("MINK_SECRET_KEY")}).encode()
         req = request.Request(url, data=data, method="PUT")
         with request.urlopen(req) as f:
             logging.debug(f.read().decode("UTF-8"))
@@ -40,17 +41,17 @@ def ping_healthchecks(config):
 
 
 def import_config():
-    """Import default and user config."""
+    """Import default and instance config."""
     import config
-    Config = {item: getattr(config, item) for item in dir(config) if item.isupper()}
+    my_config = {item: getattr(config, item) for item in dir(config) if item.isupper()}
 
-    user_config_path = Path("instance") / "config.py"
-    if user_config_path.is_file():
-        from instance import config as user_config
-        User_Config = {item: getattr(user_config, item) for item in dir(user_config) if item.isupper()}
-        Config.update(User_Config)
+    instance_config_path = Path("instance") / "config.py"
+    if instance_config_path.is_file():
+        from instance import config as instance_config
+        Instance_Config = {item: getattr(instance_config, item) for item in dir(instance_config) if item.isupper()}
+        my_config.update(Instance_Config)
 
-    return Config
+    return my_config
 
 
 if __name__ == '__main__':
@@ -84,9 +85,10 @@ if __name__ == '__main__':
 
     # Start scheduler
     scheduler = BlockingScheduler()
-    scheduler.add_executor("processpool")
+    scheduler.add_executor("threadpool", max_workers=1)
     scheduler.add_job(advance_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
-    scheduler.add_job(ping_healthchecks, "interval", [config], minutes=config.get("PING_FREQUENCY", 60))
+    scheduler.add_job(ping_healthchecks, "interval", [config], minutes=config.get("PING_FREQUENCY", 60),
+                      next_run_time=datetime.now())
 
     try:
         scheduler.start()

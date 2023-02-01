@@ -1,14 +1,23 @@
-"""Default configuration for sparv_backed.
+"""Default configuration for mink.
 
 Can be overridden with config.py in instance folder.
 """
 
 LOG_LEVEL = "INFO"   # Log level for the application
 
-# Nextcloud settings
-NC_DOMAIN = "https://spraakbanken.gu.se/nextcloud"  # Nextcloud domain
-NC_CORPORA_DIR = "Min Språkbank"  # Directory on Nextcloud where the corpora are stored
-NC_STATUS_FILE = "status.json"    # File where a job status is stored
+# Prefix used when creating new resources
+RESOURCE_PREFIX = "mink-"
+
+# File upload settings
+MAX_CONTENT_LENGTH = 1024 * 1024 * 100 # Max size (bytes) for one request (which may contain multiple files)
+MAX_FILE_LENGTH = 1024 * 1024 * 10     # Max size (bytes) for one corpus source file
+MAX_CORPUS_LENGTH = 1024 * 1024 * 500  # Max size (bytes) for one corpus
+
+# sb-auth settings
+SBAUTH_PUBKEY_FILE = "pubkey.pem"
+SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/resource/"
+SBAUTH_API_KEY = ""
+SBAUTH_MINK_APP_RESOURCE = "mink-app" # Name of the resource used to control admin grants
 
 # Sparv specific strings and settings
 SPARV_SOURCE_DIR = "source"
@@ -24,26 +33,38 @@ SPARV_IMPORTER_MODULES = {  # File extensions for corpus input and the modules t
 }
 
 # Settings for the server where Sparv is run
-SPARV_SERVER = ""  # Define this in instance/config.py!
+SSH_KEY = "~/.ssh/id_rsa"
+SPARV_HOST = ""  # Define this in instance/config.py!
 SPARV_USER = ""    # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
-SPARV_DEFAULT_CORPORA_DIR = "min-sb-data/default"  # Dir for running listings like 'sparv run -l'
-SPARV_CORPORA_DIR = "min-sb-data"                  # Dir where the user corpora are stored and run
-SPARV_ENVIRON = "SPARV_DATADIR=~/min-sb-pipeline/data/"                       # Environment variables to set when running Sparv
-SPARV_COMMAND = "~/min-sb-pipeline/venv/bin/python -u -m sparv"               # Command for calling Sparv
-SPARV_RUN = "run --socket ~/min-sb-pipeline/sparv.socket --log-to-file info"  # Sparv's 'run' command
+SPARV_DEFAULT_CORPORA_DIR = "~/mink-data/default"  # Dir for running listings like 'sparv run -l'
+SPARV_CORPORA_DIR = "mink-data"                    # Dir where the user corpora are stored and run, relative to the user's home dir
+SPARV_ENVIRON = "SPARV_DATADIR=~/mink-pipeline/data/"                       # Environment variables to set when running Sparv
+SPARV_COMMAND = "~/mink-pipeline/venv/bin/python -u -m sparv"               # Command for calling Sparv
+SPARV_RUN = "run --socket ~/mink-pipeline/sparv.socket --log-to-file info"  # Sparv's 'run' command
+SPARV_INSTALL = "install --log-to-file info"                                # Sparv's 'install' command
+SPARV_UNINSTALL = "uninstall --log-to-file info"                            # Sparv's 'uninstall' command
 SPARV_DEFAULT_EXPORTS = ["xml_export:pretty"]  # Default export format to create if nothing is specified
-SPARV_NOHUP_FILE = "min-sb.out"                # File collecting Sparv output for a job
+SPARV_EXPORT_BLACKLIST = [  # Glob patterns for exports that will be excluded from listings and downloads
+    "cwb.*",
+    "korp.*",
+    "sbx_strix.*",
+]
+SPARV_DEFAULT_INSTALLS = ["korp:install_timespan", "korp:install_config", "korp:install_lemgrams"]  # Default install targets to create
+SPARV_DEFAULT_UNINSTALLS = ["cwb:uninstall_corpus", "korp:uninstall_timespan", "korp:uninstall_config", "korp:uninstall_lemgrams"]  # Default uninstall targets
+SPARV_NOHUP_FILE = "mink.out"                # File collecting Sparv output for a job
 SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"          # Temporary Sparv run script created for every job
 
 # Local files relative to flask instance dir
 TMP_DIR = "tmp"                      # Temporary file storage
 MEMCACHED_SOCKET = "memcached.sock"  # Memcached socket file
 QUEUE_DIR = "queue"                  # Directory for storing job files
+QUEUE_FILE = "priorities"            # File to store the queue priorities
+CORPUS_REGISTRY = "corpus_registry"  # Directory for storing corpus IDs
 
 # Settings for queue manager
-MIN_SB_URL = "https://ws.spraakbanken.gu.se/ws/min-sb"  # URL for min-sb API
+MINK_URL = "https://ws.spraakbanken.gu.se/ws/min-sb"  # URL for mink API
 CHECK_QUEUE_FREQUENCY = 20  # How often the queue will be checked for new jobs (in seconds)
-MIN_SB_SECRET_KEY = ""  # Define this in instance/config.py!
+MINK_SECRET_KEY = ""  # Define this in instance/config.py!
 HEALTHCHECKS_URL = ""   # Healthchecks URL, define this in instance/config.py!
 PING_FREQUENCY = 60     # Frequency (in minutes) for how often healthchecks should be pinged

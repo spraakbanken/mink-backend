@@ -1,13 +1,14 @@
 """Add info from INFO_YAML to infile and output OUTPUT_FILE."""
 
 import argparse
+import json
 from pathlib import Path
 
 import requests  # https://docs.python-requests.org/en/master/
 import yaml
 
 INFO_YAML = "info.yaml"
-OUTPUT_FILE = "../minsb/static/oas.yaml"
+OUTPUT_FILE = "../mink/static/oas.yaml"
 HOST = "https://ws.spraakbanken.gu.se/ws/min-sb"
 
 
@@ -29,6 +30,20 @@ def convert_from_postman(filepath):
     destination.write_bytes(Path(filepath).read_bytes())
 
     return oas
+
+
+def replace_vars(input_oas):
+    """Search and replace Postman variables with their values."""
+    with open(INFO_YAML) as f:
+        info_yaml = yaml.load(f, Loader=yaml.FullLoader)
+
+    # Convert to string
+    oas_string = json.dumps(input_oas)
+    # Do string replacements
+    for var, value in info_yaml.get("variables", {}).items():
+        oas_string = oas_string.replace("{{" + var + "}}", value)
+    # Convert back to object
+    return json.loads(oas_string)
 
 
 def update(input_oas):
@@ -136,5 +151,12 @@ if __name__ == "__main__":
     parser.add_argument("input", type=str, help="The input OAS file (in json)")
     args = parser.parse_args()
 
-    oas = convert_from_postman(args.input)
+    # oas = convert_from_postman(args.input)
+    # oas = replace_vars(oas)
+    # update(oas)
+
+    # Use this if run with https://www.apimatic.io/dashboard?modal=transform
+    with open(args.input) as f:
+        oas = yaml.load(f, Loader=yaml.FullLoader)
+        oas = replace_vars(oas)
     update(oas)

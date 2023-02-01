@@ -1,38 +1,33 @@
+variables:
+  standard-corpus: mink-dxh6e6wtff
+  fake-corpus: mink-dxh6e6wtfg
+
 info:
-  title: Min SB API
-  version: 0.0.dev0
+  title: Mink API
+  version: 1.0.0-beta
   description: |-
     # Introduction
-    Web API serving as a backend to Min Språkbank.
+    Web API serving as a backend to Mink.
 
     For now the API is used for uploading corpus data to a storage server and processing that data with Sparv.
 
-    Since Nextcloud is currently used as the storage server a user must have a valid [Nextcloud
-    account](https://spraakbanken.gu.se/nextcloud) at Språkbanken Text. Before any data can be uploaded, Min Språkbank
-    must be initialized (see <a href="#operation/initMinSB">init Min SB</a>).
-
     # Workflow
-    A workflow for processing data with Sparv via Min Språkbank could look like this:
+    A workflow for processing data with Sparv via Mink could look like this:
     
-    1. <a href="#operation/initMinSB">Initialize Min Språkbank</a> (only once per user)
-    2. <a href="#operation/createcorpus">Create a new corpus</a>
-    3. <a href="#operation/uploadsources">Upload some corpus source files</a>
-    4. <a href="#operation/uploadconfig">Upload a corpus config file</a>
-    5. <a href="#operation/runSparv">Run Sparv</a>
-    6. <a href="#operation/checkstatus">Check the status</a>
-    7. <a href="#operation/downloadexports">Download export files</a>
-
-    Please note that the user needs to make a `/check-status` call after the annotation process in order for the export
-    files to be synced to the storage server. This is due to authentication restrictions. Once the annotation process
-    with Sparv is complete and a `/check-status` call is made, the export files will by synced automatically.
+    1. <a href="#operation/createcorpus">Create a new corpus</a>
+    2. <a href="#operation/uploadsources">Upload some corpus source files</a>
+    3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
+    4. <a href="#operation/runSparv">Run Sparv</a>
+    5. <a href="#operation/checkstatus">Check the status</a>
+    6. <a href="#operation/downloadexports">Download export files</a>
 
     # Parameters
     Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
     The following two examples will thus result in the same response:
 
-    `curl -X GET -u some_username '{{host}}/list-sources?corpus_id=some_corpus_name'`
+    `curl -X GET '{{host}}/list-sources?corpus_id=some_corpus_name' -H 'Authorization: Bearer YOUR_JWT`
 
-    `curl -X GET -u some_username -F "corpus_id=some_corpus_name" '{{host}}/list-sources'`
+    `curl -X GET -F "corpus_id=some_corpus_name" '{{host}}/list-sources' -H 'Authorization: Bearer YOUR_JWT`
 
     # Responses
     Most responses will be in json format. Json responses contain a `status` field which will have the value `success`
@@ -54,9 +49,13 @@ servers:
     description: Test server
 
 securitySchemes:
-  basicAuth:
+  bearerAuth:
     type: http
-    scheme: basic
+    scheme: bearer
+    bearerFormat: JWT
+#   basicAuth:
+#     type: http
+#     scheme: basic
   ApiKeyAuth:
     type: apiKey
     in: query
@@ -89,7 +88,7 @@ parameters:
         example: 'true'
 
 security:
-  - basicAuth: []
+  - bearerAuth: []
 
 tags:
   - name: Manage Corpora
@@ -102,6 +101,8 @@ tags:
     description: Routes for listing, downloading and removing export files.
   - name: Process Corpus
     description: Routes for starting/aborting corpus annotation jobs with Sparv and checking job status.
+  - name: Admin Mode
+    description: Activate/deactivate admin mode.
   - name: Documentation
     description: Routes used for documentation purposes.
   - name: Internal Routes
@@ -130,7 +131,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dxh6e6wtff
   /sparv-languages:
     get:
       security: []
@@ -155,7 +156,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dxh6e6wtff
       - name: zip
         in: query
         required: false
@@ -169,7 +170,7 @@ paths:
         style: form
         schema:
           type: string
-          example: /Min Språkbank/min-testkorpus/export/csv/dokument2.csv
+          example: csv/dokument2.csv
       - name: dir
         in: query
         required: false
@@ -186,7 +187,7 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dxh6e6wtff
       - name: file
         in: query
         required: false
@@ -210,16 +211,33 @@ paths:
         style: form
         schema:
           type: string
-          example: min-testkorpus
+          example: mink-dxh6e6wtff
       - name: config
         in: query
         required: false
         style: form
         schema:
           type: string
-          example: 'metadata:\n    id: min-testkorpus\nimport:\n    document_annotation:
+          example: 'metadata:\n    id: mink-dxh6e6wtff\nimport:\n    document_annotation:
             text\n    importer: xml_import:parse\nexport:\n    annotations:\n        -
             <sentence>:misc.id\n        - <token:baseform>\n        - <token:pos>\n        -
             <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -
             dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        -
             text:id\n        - text:date\n        - text:forfattare as author'
+  /install-corpus:
+    put:
+      parameters:
+      - name: corpus_id
+        in: query
+        required: true
+        style: form
+        schema:
+          type: string
+          example: mink-dxh6e6wtff
+      - name: scramble
+        in: query
+        required: false
+        style: form
+        schema:
+          type: string
+          example: 'true'
