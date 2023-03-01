@@ -76,7 +76,7 @@ def check_file_ext(filename, valid_extensions=None) -> bool:
     """Check if file extension is valid."""
     filename = Path(filename)
     if valid_extensions:
-        if filename.suffix not in valid_extensions:
+        if not any(i.lower() == filename.suffix.lower() for i in valid_extensions):
             return False
     return True
 
