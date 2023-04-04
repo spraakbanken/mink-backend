@@ -9,7 +9,6 @@ import yaml
 
 INFO_YAML = "info.yaml"
 OUTPUT_FILE = "../mink/static/oas.yaml"
-HOST = "https://ws.spraakbanken.gu.se/ws/min-sb"
 
 
 def convert_from_postman(filepath):
