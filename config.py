@@ -44,7 +44,7 @@ SPARV_COMMAND = "~/mink-pipeline/venv/bin/python -u -m sparv"               # Co
 SPARV_RUN = "run --socket ~/mink-pipeline/sparv.socket --log-to-file info"  # Sparv's 'run' command
 SPARV_INSTALL = "install --log-to-file info"                                # Sparv's 'install' command
 SPARV_UNINSTALL = "uninstall --log-to-file info"                            # Sparv's 'uninstall' command
-SPARV_DEFAULT_EXPORTS = ["xml_export:pretty"]  # Default export format to create if nothing is specified
+SPARV_DEFAULT_EXPORTS = ["xml_export:pretty", "csv_export:csv", "stats_export:freq_list"]  # Default export format to create if nothing is specified
 SPARV_EXPORT_BLACKLIST = [  # Glob patterns for exports that will be excluded from listings and downloads
     "cwb.*",
     "korp.*",
