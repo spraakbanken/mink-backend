@@ -50,7 +50,7 @@ def run_sparv(user_id: str, contact: str, corpus_id: str):
                        available_files=source_files)
     try:
         _, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
-        if changed_sources or deleted_sources or changed_config:
+        if any([changed_sources, deleted_sources, changed_config]):
             try:
                 success, sparv_output = job.clean_export()
                 assert success
@@ -220,7 +220,7 @@ def install_corpus(user_id: str, contact: str, corpus_id: str):
     job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, install_scrambled=scramble)
     try:
         _, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
-        if changed_sources or deleted_sources or changed_config:
+        if any([changed_sources, deleted_sources, changed_config]):
             try:
                 success, sparv_output = job.clean_export()
                 assert success

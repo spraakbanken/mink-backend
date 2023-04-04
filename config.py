@@ -50,6 +50,7 @@ SPARV_EXPORT_BLACKLIST = [  # Glob patterns for exports that will be excluded fr
     "korp.*",
     "sbx_strix.*",
 ]
+SPARV_DEFAULT_PREINSTALLS = ["korp:timespan_sql", "korp:config", "korp:lemgram_sql"]  # Default targets to create before installing (necessary when re-installing after file removal)
 SPARV_DEFAULT_INSTALLS = ["korp:install_timespan", "korp:install_config", "korp:install_lemgrams"]  # Default install targets to create
 SPARV_DEFAULT_UNINSTALLS = ["cwb:uninstall_corpus", "korp:uninstall_timespan", "korp:uninstall_config", "korp:uninstall_lemgrams"]  # Default uninstall targets
 SPARV_NOHUP_FILE = "mink.out"                # File collecting Sparv output for a job

@@ -258,18 +258,26 @@ class Job():
             raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
 
         # Get pid from Sparv process and store job info
-        self.set_pid(int(p.stdout.decode()))
+        try:
+            float(p.stdout.decode())
+            self.set_pid(int(p.stdout.decode()))
+        except ValueError:
+            pass
         self.set_status(Status.annotating)
 
     def install_korp(self):
         """Install a corpus on Korp."""
+        sparv_preinstalls = app.config.get("SPARV_DEFAULT_PREINSTALLS")
         sparv_installs = app.config.get("SPARV_DEFAULT_INSTALLS")
         if self.install_scrambled:
+            sparv_preinstalls.append("cwb:encode_scrambled")
             sparv_installs.append("cwb:install_corpus_scrambled")
         else:
+            sparv_preinstalls.append("cwb:encode")
             sparv_installs.extend(["cwb:install_corpus"])
 
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(sparv_preinstalls)} " \
+                        f"; {app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
         sparv_env = app.config.get("SPARV_ENVIRON")
 
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
@@ -286,7 +294,11 @@ class Job():
 
         # Get pid from Sparv process and store job info
         self.installed_korp = True
-        self.set_pid(int(p.stdout.decode()))
+        try:
+            float(p.stdout.decode())
+            self.set_pid(int(p.stdout.decode()))
+        except ValueError:
+            pass
         self.set_status(Status.installing)
 
     def uninstall_korp(self):
