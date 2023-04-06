@@ -310,6 +310,8 @@ def make_status_response(job, admin=False):
                               sparv_output=misc_output, **job_attrs)
 
     if status == jobs.Status.error:
+        app.logger.error(f"An error occurred during processing, warnings: {warnings}, errors: {errors}, "
+                         f"sparv_output: {misc_output}, job_attrs: {job_attrs}")
         return utils.response("An error occurred during processing", warnings=warnings, errors=errors,
                               sparv_output=misc_output, **job_attrs)
 

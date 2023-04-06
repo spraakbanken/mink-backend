@@ -276,15 +276,15 @@ class Job():
             sparv_preinstalls.append("cwb:encode")
             sparv_installs.extend(["cwb:install_corpus"])
 
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(sparv_preinstalls)} " \
-                        f"; {app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
         sparv_env = app.config.get("SPARV_ENVIRON")
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(sparv_preinstalls)} " \
+                        f"&& {app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
 
+        script_content = f"{sparv_env} nohup time -p sh -c '{sparv_command}' >{self.nohupfile} 2>&1 &\necho $!"
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
-                          f"echo '{sparv_env} nohup time -p {sparv_command} >{self.nohupfile} 2>&1 &\necho $!' "
-                          f"> {shlex.quote(self.runscript)}"
-                          f" && chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
+                          f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
+                          f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -292,8 +292,8 @@ class Job():
             self.set_status(Status.error)
             raise exceptions.JobError(f"Failed to install corpus with Sparv. {stderr}")
 
-        # Get pid from Sparv process and store job info
         self.installed_korp = True
+        # Get pid from Sparv process and store job info
         try:
             float(p.stdout.decode())
             self.set_pid(int(p.stdout.decode()))
@@ -322,7 +322,6 @@ class Job():
             raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stderr}")
 
         self.installed_korp = False
-
 
     def abort_sparv(self):
         """Abort running Sparv process."""
@@ -436,7 +435,7 @@ class Job():
         """
         if self.started == None or Status.is_waiting(self.status):
             seconds_taken = 0
-        elif Status.is_running(self.status):
+        elif Status.is_running(self.status) or self.status == Status.error:
             now = datetime.datetime.now(datetime.timezone.utc)
             delta = now - dateutil.parser.isoparse(self.started)
             seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
@@ -445,8 +444,9 @@ class Job():
             seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
             self.done = (dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=seconds_taken)).isoformat()
         else:
-            # TODO: This should never happen. Can probably be removed.
-            app.logger.debug(f"Something went wrong while calculating time taken. Job status: {self.status}")
+            # TODO: This should never happen!
+            app.logger.error(f"Something went wrong while calculating time taken. Job status: {self.status.name}; "
+                             f"Job started: {self.started}")
             seconds_taken = 0
 
         self.set_latest_seconds_taken(seconds_taken)
