@@ -89,7 +89,7 @@ class Job():
 
     def __init__(self, corpus_id, user_id=None, contact=None, status=Status.none, pid=None, started=None, done=None,
                  sparv_exports=None, files=None, available_files=None, install_scrambled=None, installed_korp=False,
-                 latest_seconds_taken=0, **_obsolete):
+                 latest_seconds_taken=0, latest_status=Status.none, **_obsolete):
         # **_obsolete is needed to catch invalid arguments from outdated job items in the queue (this avoids crashes)
         self.corpus_id = corpus_id
         self.contact = contact
@@ -105,6 +105,7 @@ class Job():
         self.install_scrambled = install_scrambled
         self.installed_korp = installed_korp
         self.latest_seconds_taken = latest_seconds_taken
+        self.latest_status = latest_status
         self.progress_output = "0%"
 
         self.sparv_user = app.config.get("SPARV_USER")
@@ -118,7 +119,8 @@ class Job():
                            "status": self.status.name, "pid": self.pid, "started": self.started, "done": self.done,
                            "sparv_exports": self.sparv_exports, "files": self.files, "available_files":
                            self.available_files, "install_scrambled": self.install_scrambled, "installed_korp":
-                           self.installed_korp, "latest_seconds_taken": self.latest_seconds_taken})
+                           self.installed_korp, "latest_seconds_taken": self.latest_seconds_taken,
+                           "latest_status": self.latest_status.name})
 
     def save(self):
         """Write a job item to the cache and filesystem."""
@@ -158,6 +160,7 @@ class Job():
     def set_status(self, status):
         """Change the status of a job."""
         if self.status != status:
+            self.latest_status = self.status
             self.status = status
             self.save()
 
@@ -565,6 +568,7 @@ def load_from_str(jsonstr, user_id=None, contact=None, sparv_exports=None, files
     """Load a job object from a json string."""
     job_info = json.loads(jsonstr)
     job_info["status"] = getattr(Status, job_info.get("status"))
+    job_info["latest_status"] = getattr(Status, job_info.get("latest_status", str(Status.none.name)))
     if user_id is not None:
         job_info["user_id"] = user_id
     if contact is not None:

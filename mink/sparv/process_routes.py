@@ -257,6 +257,8 @@ def make_status_response(job, admin=False):
     job_attrs["files"] = job.files or ""
     if job.install_scrambled is not None:
         job_attrs["install_scrambled"] = job.install_scrambled
+    if job.latest_status is not None:
+        job_attrs["latest_status"] = job.latest_status.name
     job_attrs["seconds_taken"] = job.seconds_taken or ""
     job_attrs["last_run_started"] = job.started or ""
     job_attrs["last_run_ended"] = job.done or ""
