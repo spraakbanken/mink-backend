@@ -46,13 +46,12 @@ def run_sparv(user_id: str, contact: str, corpus_id: str):
         return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e)), 500
 
     # Get job, check for changes and remove exports if necessary
-    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, sparv_exports=sparv_exports, files=files,
-                       available_files=source_files)
     try:
-        _, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
-        if any([changed_sources, deleted_sources, changed_config]):
+        old_job = jobs.get_job(corpus_id)
+        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        if deleted_sources or changed_config:
             try:
-                success, sparv_output = job.clean_export()
+                success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
                 return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
@@ -62,6 +61,8 @@ def run_sparv(user_id: str, contact: str, corpus_id: str):
     except exceptions.CouldNotListSources as e:
         return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
 
+    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, sparv_exports=sparv_exports, files=files,
+                       available_files=source_files)
     # Queue job
     job.reset_time()
     try:
@@ -217,12 +218,12 @@ def install_corpus(user_id: str, contact: str, corpus_id: str):
     scramble = scramble.lower() == "true"
 
     # Get job, check for changes and remove exports if necessary
-    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, install_scrambled=scramble)
     try:
-        _, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
-        if any([changed_sources, deleted_sources, changed_config]):
+        old_job = jobs.get_job(corpus_id)
+        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        if deleted_sources or changed_config:
             try:
-                success, sparv_output = job.clean_export()
+                success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
                 return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
@@ -233,6 +234,7 @@ def install_corpus(user_id: str, contact: str, corpus_id: str):
         return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
 
     # Queue job
+    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, install_scrambled=scramble)
     job.reset_time()
     job.set_install_scrambled(scramble)
     try:
