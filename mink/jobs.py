@@ -106,7 +106,7 @@ class Job():
         self.installed_korp = installed_korp
         self.latest_seconds_taken = latest_seconds_taken
         self.latest_status = latest_status
-        self.progress_output = "0%"
+        self.progress_output = 0
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_HOST")
@@ -280,10 +280,12 @@ class Job():
             sparv_installs.extend(["cwb:install_corpus"])
 
         sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(sparv_preinstalls)} " \
+        sparv_processes = 2
+        sparv_command = f"echo PROCESSES: {sparv_processes} " \
+                        f"&& {app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(sparv_preinstalls)} " \
                         f"&& {app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
 
-        script_content = f"{sparv_env} nohup time -p sh -c '{sparv_command}' >{self.nohupfile} 2>&1 &\necho $!"
+        script_content = f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
                           f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
@@ -362,7 +364,7 @@ class Job():
             self.set_pid(None)
 
         _warnings, errors, misc = self.get_output()
-        if (self.progress_output == "100%"):
+        if (self.progress_output == 100):
             if self.status == Status.annotating:
                 if storage.local:
                     self.set_status(Status.done_syncing)
@@ -375,6 +377,7 @@ class Job():
                 app.logger.debug(f"Error in Sparv: {errors}")
             if misc:
                 app.logger.debug(f"Sparv output: {misc}")
+            app.logger.debug("Sparv process was not completed successfully.")
             self.set_status(Status.error)
         return False
 
@@ -389,18 +392,29 @@ class Job():
         p = utils.ssh_run(f"cd {shlex.quote(remote_corpus_dir)} && cat {shlex.quote(nohupfile)}")
 
         stdout = p.stdout.decode().strip() if p.stdout else ""
-        progress = warnings = errors = misc = ""
+        warnings = errors = misc = ""
+        progress = 0
         if stdout:
             warnings = []
             errors = []
             misc = []
             latest_msg = misc
+            total_processes = 1
+            done_processes = 0
             for line in stdout.split("\n"):
+                if line.startswith("PROCESSES:"):
+                    total_processes = int(line[10:])
+                elif line.startswith("Nothing to be done."):
+                    progress = 0
+                    done_processes += 1
                 matchobj = re.match(r"(?:\d\d:\d\d:\d\d|\s{8}) ([A-Z]+)\s+(.+)$", line)
                 if matchobj:
                     msg = matchobj.group(2).strip()
                     if matchobj.group(1) == "PROGRESS":
-                        progress = msg
+                        progress = int(msg[:-1])
+                        if progress == 100:
+                            done_processes += 1
+                            progress = 0
                     elif matchobj.group(1) == "WARNING":
                         warnings.append(matchobj.group(1) + " " + msg)
                         latest_msg = warnings
@@ -421,12 +435,17 @@ class Job():
                 else:
                     if line.strip():
                         misc.append(line.strip())
+
+            if done_processes == total_processes:
+                progress = 100
+            else:
+                # Correct progress percentage in case multiple processes are being run
+                progress = int(progress / total_processes + 100 / total_processes * done_processes)
+            self.progress_output = progress
+
             warnings = "\n".join(warnings)
             errors = "\n".join(errors)
             misc = "\n".join(misc)
-            if misc.startswith("Nothing to be done."):
-                progress = "100%"
-            self.progress_output = progress
 
         return warnings, errors, misc
 
@@ -460,10 +479,10 @@ class Job():
     def progress(self):
         """Get the Sparv progesss but don't report 100% before the job status has been changed to done."""
         if Status.has_process_output(self.status):
-            if self.progress_output == "100%" and not Status.is_done_processing(self.status):
+            if self.progress_output == 100 and not Status.is_done_processing(self.status):
                 return "99%"
             else:
-                return self.progress_output
+                return f"{self.progress_output}%"
         elif Status.is_active(self.status):
             return "0%"
         else:
