@@ -47,7 +47,7 @@ def list_contents(directory: Union[Path, str], exclude_dirs: bool = True,
             if any(Path(f.parts[0]).match(item) for item in blacklist):
                 continue
         objlist.append({
-            "name": f.name, "type": mimetype, "last_modified": mod_time, "size": size, "path": obj_path[2:]
+            "name": f.name, "type": mimetype, "last_modified": mod_time, "size": int(size), "path": obj_path[2:]
         })
     return objlist
 
