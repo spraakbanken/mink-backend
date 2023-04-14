@@ -542,12 +542,12 @@ paths:
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:05:18+02:00'
-                      size: '1397'
+                      size: 1397
                       path: dokument1.xml
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:05:16+02:00'
-                      size: '116'
+                      size: 116
                       path: dokument2.xml
               example:
                 status: success
@@ -1187,12 +1187,12 @@ paths:
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-10T15:05:37+02:00'
-                      size: '116'
+                      size: 116
                       path: mink-data/d/mink-dxh6e6wtff/source/dokument2.xml
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2022-06-10T15:05:38+02:00'
-                      size: '1397'
+                      size: 1397
                       path: mink-data/d/mink-dxh6e6wtff/source/dokument1.xml
                   files:
                     type: array
@@ -1329,6 +1329,155 @@ paths:
                   jobs:
                     type: array
                     example: &id009
+                    - corpus_id: mink-dxh6e6wtff
+                      message: Job has been queued for annotation
+                      job_status: waiting
+                      sparv_exports:
+                      - xml_export:pretty
+                      - csv_export:csv
+                      - stats_export:sbx_freq_list
+                      available_files:
+                      - name: dokument2.xml
+                        type: text/xml
+                        last_modified: '2022-12-22T11:25:25+01:00'
+                        size: 115
+                        path: dokument2.xml
+                      - name: dokument1.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:11:42+02:00'
+                        size: 1394
+                        path: dokument1.xml
+                      - name: dokument3.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:11:42+02:00'
+                        size: 41
+                        path: dokument3.xml
+                      - name: dokument4.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:11:42+02:00'
+                        size: 461
+                        path: dokument4.xml
+                      installed_korp: true
+                      install_scrambled: false
+                      latest_status: done_syncing
+                      last_run_started: '2023-04-14T15:24:42+02:00'
+                      progress: 0%
+                      priority: 1
+                    - corpus_id: mink-vcghkzqgux
+                      message: Corpus is done processing and the results have been
+                        synced
+                      sparv_output: Nothing to be done.
+                      job_status: done_syncing
+                      sparv_exports:
+                      - xml_export:pretty
+                      - csv_export:csv
+                      - stats_export:sbx_freq_list
+                      available_files:
+                      - name: artikel1.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:37+02:00'
+                        size: 43428
+                        path: artikel1.odt
+                      - name: artikel2.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:37+02:00'
+                        size: 43529
+                        path: artikel2.odt
+                      - name: artikel3.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:38+02:00'
+                        size: 38061
+                        path: artikel3.odt
+                      - name: artikel4.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:38+02:00'
+                        size: 33932
+                        path: artikel4.odt
+                      - name: artikel5.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:38+02:00'
+                        size: 38634
+                        path: artikel5.odt
+                      - name: artikel6.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:02:44+02:00'
+                        size: 33762
+                        path: artikel6.odt
+                      installed_korp: false
+                      install_scrambled: false
+                      latest_status: annotating
+                      seconds_taken: 1.7
+                      last_run_started: '2023-04-14T15:23:51+02:00'
+                      last_run_ended: '2023-04-14T15:23:52.700000+02:00'
+                      progress: 100%
+                    - corpus_id: mink-49d3yxuvbp
+                      message: Sparv is running
+                      job_status: annotating
+                      sparv_exports:
+                      - xml_export:pretty
+                      - csv_export:csv
+                      - stats_export:sbx_freq_list
+                      available_files:
+                      - name: familjeliv-1.xml
+                        type: text/xml
+                        last_modified: '2023-04-03T13:34:56+02:00'
+                        size: 83970
+                        path: familjeliv-1.xml
+                      - name: familjeliv-2.xml
+                        type: text/xml
+                        last_modified: '2023-04-03T13:34:59+02:00'
+                        size: 74395
+                        path: familjeliv-2.xml
+                      - name: familjeliv-3-1.xml
+                        type: text/xml
+                        last_modified: '2023-04-03T13:42:10+02:00'
+                        size: 41797
+                        path: familjeliv-3-1.xml
+                      installed_korp: true
+                      install_scrambled: false
+                      latest_status: waiting
+                      seconds_taken: 12.183238
+                      last_run_started: '2023-04-14T15:33:40+02:00'
+                      progress: 42%
+                    - corpus_id: mink-jamdycuesk
+                      message: Corpus is done processing and the results have been
+                        synced
+                      sparv_output: 'The exported files can be found in the following
+                        locations:
+
+                        • export/csv_export/
+
+                        • export/stats_export.frequency_list_sbx/
+
+                        • export/xml_export.pretty/'
+                      job_status: done_syncing
+                      sparv_exports:
+                      - xml_export:pretty
+                      - csv_export:csv
+                      - stats_export:sbx_freq_list
+                      available_files:
+                      - name: igelkottar.xml
+                        type: text/xml
+                        last_modified: '2023-01-31T14:04:15+01:00'
+                        size: 3559
+                        path: igelkottar.xml
+                      - name: rävar.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:22:54+02:00'
+                        size: 3195
+                        path: rävar.xml
+                      - name: ugglor.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:22:54+02:00'
+                        size: 1415
+                        path: ugglor.xml
+                      installed_korp: true
+                      install_scrambled: false
+                      latest_status: annotating
+                      seconds_taken: 32.9
+                      last_run_started: '2023-04-14T15:24:02+02:00'
+                      last_run_ended: '2023-04-14T15:24:34.900000+02:00'
+                      progress: 100%
                     - corpus_id: mink-kuumlw3oyy
                       message: An error occurred during processing
                       sparv_output: "Sparv exited with the following error messages:\n\
@@ -1354,79 +1503,12 @@ paths:
                         size: 115
                         path: dokument2.xml
                       installed_korp: false
-                      last_run_started: '2021-11-17T09:28:32+00:00'
+                      install_scrambled: false
+                      latest_status: annotating
+                      last_run_started: '2023-04-14T15:24:02+02:00'
+                      last_run_ended: '2023-04-14T15:24:44+02:00'
                       seconds_taken: 42.23
-                    - corpus_id: mink-dxh6e6wtff
-                      message: Corpus is done processing and the results have been
-                        synced
-                      sparv_output: 'The exported files can be found in the following
-                        locations:
-
-                        • export/csv/
-
-                        • export/frequency_list/
-
-                        • export/xml_pretty/'
-                      job_status: done
-                      sparv_exports:
-                      - csv_export:csv
-                      available_files:
-                      - name: dokument1.xml
-                        type: application/xml
-                        last_modified: '2021-11-19T13:39:09+00:00'
-                        size: 1396
-                        path: dokument1.xml
-                      - name: dokument2.xml
-                        type: application/xml
-                        last_modified: '2021-11-19T13:39:08+00:00'
-                        size: 115
-                        path: dokument2.xml
-                      installed_korp: false
-                      files:
-                      - dokument1
-                      - dokument2
-                      last_run_started: '2021-11-19T13:27:50+00:00'
-                      last_run_ended: '2021-11-19T15:16:15+01:00'
-                      seconds_taken: 6505.04
-                    - corpus_id: mink-eiyu8mjxui
-                      message: Sparv is running
-                      progress: 18%
-                      job_status: annotating
-                      sparv_exports:
-                      - stats_export:freq_list
-                      - xml_export:pretty
-                      available_files:
-                      - name: dokument1.xml
-                        type: application/xml
-                        last_modified: '2021-11-19T10:39:09+00:00'
-                        size: 1396
-                        path: dokument1.xml
-                      - name: dokument2.xml
-                        type: application/xml
-                        last_modified: '2021-11-19T10:39:08+00:00'
-                        size: 115
-                        path: dokument2.xml
-                      installed_korp: false
-                      last_run_started: '2021-11-19T10:54:10+00:00'
-                      seconds_taken: 632.63
-                    - corpus_id: mink-neyfev2rdm
-                      message: Job has been queued
-                      job_status: waiting
-                      sparv_exports:
-                      - xml_export:pretty
-                      available_files:
-                      - name: dokument1.xml
-                        type: application/xml
-                        last_modified: '2021-11-29T13:39:09+00:00'
-                        size: 1396
-                        path: dokument1.xml
-                      - name: dokument2.xml
-                        type: application/xml
-                        last_modified: '2021-11-29T13:39:08+00:00'
-                        size: 115
-                        path: dokument2.xml
-                      installed_korp: false
-                      priority: 1
+                      progress: 100%
               example:
                 status: success
                 message: Listing jobs
@@ -1875,12 +1957,12 @@ paths:
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-23T17:44:02+02:00'
-                      size: '115'
+                      size: 115
                       path: dokument2.xml
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2022-06-23T17:44:03+02:00'
-                      size: '1396'
+                      size: 1396
                       path: dokument1.xml
                   installed_korp:
                     type: integer
@@ -1997,27 +2079,27 @@ paths:
                     - name: dokument2.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:54:15+02:00'
-                      size: '538'
+                      size: 538
                       path: csv_export/dokument2.csv
                     - name: dokument1.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:55:37+02:00'
-                      size: '4876'
+                      size: 4876
                       path: csv_export/dokument1.csv
                     - name: stats_mink-dxh6e6wtff.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:55:39+02:00'
-                      size: '10838'
+                      size: 10838
                       path: stats_export.frequency_list/stats_mink-dxh6e6wtff.csv
                     - name: dokument2_export.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:55:37+02:00'
-                      size: '1497'
+                      size: 1497
                       path: xml_export.pretty/dokument2_export.xml
                     - name: dokument1_export.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:55:38+02:00'
-                      size: '13429'
+                      size: 13429
                       path: xml_export.pretty/dokument1_export.xml
               example:
                 status: success
