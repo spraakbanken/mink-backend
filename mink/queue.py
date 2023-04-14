@@ -97,9 +97,10 @@ def remove(job):
 
 def get_priority(job):
     """Get the queue priority of the job."""
-    queue = g.cache.get_job_queue()
+    _, waiting_jobs = get_running_waiting()
+    waiting_jobs = [j.corpus_id for j in waiting_jobs]
     try:
-        return queue.index(job.corpus_id) + 1
+        return waiting_jobs.index(job.corpus_id) + 1
     except ValueError:
         return -1
 
