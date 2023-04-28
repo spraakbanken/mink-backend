@@ -267,7 +267,7 @@ def download_sources(corpus_id: str):
             storage.download_file(full_download_file, local_path, corpus_id)
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
-                utils.create_zip(local_path, outf)
+                utils.create_zip(local_path, outf, zip_rootdir=corpus_id)
                 return send_file(outf, mimetype="application/zip")
             else:
                 # Determine content type
@@ -451,7 +451,7 @@ def download_export(corpus_id: str):
             if zipped:
                 outf = str(local_corpus_dir / Path(f"{corpus_id}_{download_file_name}.zip"))
                 storage.download_file(full_download_file, local_path, corpus_id)
-                utils.create_zip(local_path, outf)
+                utils.create_zip(local_path, outf, zip_rootdir=corpus_id)
                 return send_file(outf, mimetype="application/zip")
             else:
                 storage.download_file(full_download_file, local_path, corpus_id)

@@ -61,14 +61,20 @@ def uncompress_gzip(inpath, outpath=None):
             f.write(data)
 
 
-def create_zip(inpath, outpath):
-    """Zip files in inpath into an archive at outpath."""
+def create_zip(inpath, outpath, zip_rootdir=None):
+    """Zip files in inpath into an archive at outpath.
+
+    zip_rootdir: name that the root folder inside the zip file should be renamed to.
+    """
     zipf = zipfile.ZipFile(outpath, "w")
     if Path(inpath).is_file():
         zipf.write(inpath, Path(inpath).name)
-    for root, _dirs, files in os.walk(inpath):
-        for f in files:
-            zipf.write(os.path.join(root, f), os.path.relpath(os.path.join(root, f), os.path.join(inpath, "..")))
+    else:
+        for filepath in Path(inpath).rglob("*"):
+            zippath = filepath.relative_to(Path(inpath).parent)
+            if zip_rootdir:
+                zippath = Path(zip_rootdir) / Path(*zippath.parts[1:])
+            zipf.write(filepath, zippath)
     zipf.close()
 
 

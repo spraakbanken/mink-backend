@@ -125,7 +125,7 @@ def download_dir(remote_dir, local_dir, corpus_id, zipped=False, zippath=None, e
     if not zipped:
         return local_dir
 
-    utils.create_zip(local_dir, zippath)
+    utils.create_zip(local_dir, zippath, zip_rootdir=corpus_id)
     return zippath
 
 
