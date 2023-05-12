@@ -30,6 +30,7 @@ SPARV_IMPORTER_MODULES = {  # File extensions for corpus input and the modules t
     ".txt": "text_import",
     ".docx": "docx_import",
     ".odt": "odt_import",
+    ".pdf": "pdf_import",
 }
 
 # Settings for the server where Sparv is run
