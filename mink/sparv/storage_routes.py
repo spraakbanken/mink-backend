@@ -7,7 +7,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request, send_file
 
-from mink import corpus_registry, exceptions, jobs, queue, utils
+from mink.core import corpus_registry, exceptions, jobs, queue, utils
 from mink.sb_auth import login
 from mink.sparv import storage
 from mink.sparv import utils as sparv_utils

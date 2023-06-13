@@ -9,7 +9,7 @@ from pathlib import Path
 from flask import current_app as app
 from flask import g
 
-from mink import jobs
+from mink.core import jobs
 
 
 def init():

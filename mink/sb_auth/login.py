@@ -15,7 +15,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import g, request, session
 
-from mink import corpus_registry, exceptions, utils
+from mink.core import corpus_registry, exceptions, utils
 
 bp = Blueprint("sb_auth_login", __name__)
 

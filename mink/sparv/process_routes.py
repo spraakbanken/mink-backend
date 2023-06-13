@@ -6,10 +6,10 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request, session
 
-from mink import exceptions, jobs, queue, utils
+from mink.core import exceptions, jobs, queue, utils
+from mink.core.status import JobStatuses, ProcessName, Status
 from mink.sb_auth import login
 from mink.sparv import storage
-from mink.status import JobStatuses, ProcessName, Status
 
 bp = Blueprint("sparv", __name__)
 

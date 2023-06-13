@@ -116,13 +116,14 @@ in turn will do three things:
 The Mink backend is organised into different modules. The application should be kept as modular as possible so that
 different components can be replaced more easily.
 
-The following modules are considered to be core modules for general functionality and cannot be easily exchanged:
+The following scripts belong to the core module which provides general functionality and cannot be easily exchanged:
 - `corpus_registry.py` containing code for keeping track of all corpora uploaded to Mink
 - `exceptions.py` containing Mink specific exceptions
 - `jobs.py` containing code for managing and running corpus jobs (for processing and installing corpora)
 - `queue.py` containing code for the job queuing system
 - `routes.py` containing some general routes that are independent of non-core functionality (like serving the
   documentation)
+- `status.py` containing classes for handling job statuses
 - `utils.py` containing general utility functions
 
 Furthermore there are some modules (Python subpackages) for more specific purposes that may be replaced by other

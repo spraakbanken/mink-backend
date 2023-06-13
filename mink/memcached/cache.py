@@ -7,7 +7,7 @@ from flask import g
 from pymemcache import serde
 from pymemcache.client.base import Client
 
-from mink import corpus_registry, queue
+from mink.core import corpus_registry, queue
 
 
 class Cache():

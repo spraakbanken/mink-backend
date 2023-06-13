@@ -9,7 +9,7 @@ from pathlib import Path
 from flask import Flask, g, request
 from flask_cors import CORS
 
-from mink import corpus_registry, queue, utils
+from mink.core import corpus_registry, queue, utils
 from mink.memcached.cache import Cache
 from mink.sb_auth.login import read_jwt_key
 
@@ -102,7 +102,7 @@ def create_app(debug=False):
             f"Request data too large (max {h_max_size} MB per upload)", max_content_length=max_size, err=True), 413
 
     # Register routes from blueprints
-    from . import routes as general_routes
+    from .core import routes as general_routes
     app.register_blueprint(general_routes.bp)
     from .sparv import process_routes
     app.register_blueprint(process_routes.bp)

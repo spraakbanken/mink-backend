@@ -12,10 +12,10 @@ import dateutil
 from flask import current_app as app
 from flask import g
 
-from mink import exceptions, queue, utils
+from mink.core import exceptions, queue, utils
+from mink.core.status import JobStatuses, ProcessName, Status
 from mink.sparv import storage
 from mink.sparv import utils as sparv_utils
-from mink.status import JobStatuses, ProcessName, Status
 
 
 class Job():

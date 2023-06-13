@@ -9,7 +9,7 @@ from typing import Optional, Union
 from dateutil.parser import isoparse, parse
 from flask import current_app as app
 
-from mink import exceptions, utils
+from mink.core import exceptions, utils
 from mink.sparv import utils as sparv_utils
 
 local = True
