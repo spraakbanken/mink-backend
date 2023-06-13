@@ -7,6 +7,8 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, send_from_directory, url_for
 
+from mink.core import utils
+
 
 bp = Blueprint("general", __name__)
 
@@ -60,11 +62,11 @@ def developers_guide_files(path):
 #     return utils.response("Listing available routes", routes=routes)
 
 
-# @bp.route("/status-codes")
-# def status_codes():
-#     """Show existing job status codes."""
-#     from mink.jobs import Status
-#     status_codes = []
-#     for s in Status:
-#         status_codes.append({"code": s._value_, "name": s.name, "description": s.desc})
-#     return utils.response("Listing existing job status codes", status_codes=status_codes)
+@bp.route("/status-codes")
+def status_codes():
+    """Show existing job status codes."""
+    from mink.core.status import Status
+    status_codes = []
+    for s in Status:
+        status_codes.append({"name": s.name, "description": s.value})
+    return utils.response("Listing existing job status codes", status_codes=status_codes)
