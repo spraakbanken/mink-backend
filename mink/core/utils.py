@@ -3,7 +3,6 @@
 import functools
 import gzip
 import json
-import os
 import subprocess
 import zipfile
 from pathlib import Path
@@ -173,7 +172,7 @@ def get_corpora_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
     corpora_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / g.request_id
     if mkdir:
-        os.makedirs(str(corpora_dir), exist_ok=True)
+        corpora_dir.mkdir(parents=True, exist_ok=True)
     return corpora_dir
 
 
@@ -182,7 +181,7 @@ def get_corpus_dir(corpus_id: str, mkdir: bool = False) -> Path:
     corpora_dir = get_corpora_dir(mkdir=mkdir)
     corpus_dir = corpora_dir / Path(corpus_id)
     if mkdir:
-        os.makedirs(str(corpus_dir), exist_ok=True)
+        corpus_dir.mkdir(parents=True, exist_ok=True)
     return corpus_dir
 
 
@@ -191,7 +190,7 @@ def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
     corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     export_dir = corpus_dir / Path(app.config.get("SPARV_EXPORT_DIR"))
     if mkdir:
-        os.makedirs(str(export_dir), exist_ok=True)
+        export_dir.mkdir(parents=True, exist_ok=True)
     return export_dir
 
 
@@ -200,7 +199,7 @@ def get_work_dir(corpus_id: str, mkdir: bool = False) -> Path:
     corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     work_dir = corpus_dir / Path(app.config.get("SPARV_WORK_DIR"))
     if mkdir:
-        os.makedirs(str(work_dir), exist_ok=True)
+        work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
 
 
@@ -209,7 +208,7 @@ def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
     corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     source_dir = corpus_dir / Path(app.config.get("SPARV_SOURCE_DIR"))
     if mkdir:
-        os.makedirs(str(source_dir), exist_ok=True)
+        source_dir.mkdir(parents=True, exist_ok=True)
     return source_dir
 
 

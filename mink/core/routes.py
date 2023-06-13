@@ -1,6 +1,6 @@
 """Collection of general routes."""
 
-import os
+from pathlib import Path
 
 import yaml
 from flask import Blueprint
@@ -23,7 +23,7 @@ def hello():
 def api_spec():
     """Return open API specification in json."""
     host = app.config.get("MINK_URL")
-    spec_file = os.path.join(app.static_folder, "oas.yaml")
+    spec_file = Path(app.static_folder) / "oas.yaml"
     with open(spec_file, encoding="UTF-8") as f:
         strspec = f.read()
         # Replace {{host}} in examples with real URL
