@@ -20,6 +20,7 @@ info:
     4. <a href="#operation/runSparv">Run Sparv</a>
     5. <a href="#operation/checkstatus">Check the status</a>
     6. <a href="#operation/downloadexports">Download export files</a>
+    7. <a href="#operation/installcorpus">Install the corpus in Korp</a>
 
     # Parameters
     Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
@@ -100,7 +101,7 @@ tags:
   - name: Manage Exports
     description: Routes for listing, downloading and removing export files.
   - name: Process Corpus
-    description: Routes for starting/aborting corpus annotation jobs with Sparv and checking job status.
+    description: Routes for managing annotation and installation jobs with Sparv and checking job status.
   - name: Admin Mode
     description: Activate/deactivate admin mode.
   - name: Documentation

@@ -28,6 +28,8 @@ info:
 
     6. <a href="#operation/downloadexports">Download export files</a>
 
+    7. <a href="#operation/installcorpus">Install the corpus in Korp</a>
+
 
     # Parameters
 
@@ -631,7 +633,7 @@ paths:
         schema:
           type: string
           example: dokument1.xml
-      - &id018
+      - &id019
         name: zip
         in: query
         required: false
@@ -1331,7 +1333,11 @@ paths:
                     example: &id009
                     - corpus_id: mink-dxh6e6wtff
                       message: Job has been queued for annotation
-                      job_status: waiting
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: waiting
+                        korp: none
                       sparv_exports:
                       - xml_export:pretty
                       - csv_export:csv
@@ -1359,7 +1365,6 @@ paths:
                         path: dokument4.xml
                       installed_korp: true
                       install_scrambled: false
-                      latest_status: done_syncing
                       last_run_started: '2023-04-14T15:24:42+02:00'
                       progress: 0%
                       priority: 1
@@ -1367,7 +1372,11 @@ paths:
                       message: Corpus is done processing and the results have been
                         synced
                       sparv_output: Nothing to be done.
-                      job_status: done_syncing
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: done
+                        korp: none
                       sparv_exports:
                       - xml_export:pretty
                       - csv_export:csv
@@ -1405,14 +1414,17 @@ paths:
                         path: artikel6.odt
                       installed_korp: false
                       install_scrambled: false
-                      latest_status: annotating
                       seconds_taken: 1.7
                       last_run_started: '2023-04-14T15:23:51+02:00'
                       last_run_ended: '2023-04-14T15:23:52.700000+02:00'
                       progress: 100%
                     - corpus_id: mink-49d3yxuvbp
                       message: Sparv is running
-                      job_status: annotating
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: running
+                        korp: none
                       sparv_exports:
                       - xml_export:pretty
                       - csv_export:csv
@@ -1435,7 +1447,6 @@ paths:
                         path: familjeliv-3-1.xml
                       installed_korp: true
                       install_scrambled: false
-                      latest_status: waiting
                       seconds_taken: 12.183238
                       last_run_started: '2023-04-14T15:33:40+02:00'
                       progress: 42%
@@ -1450,7 +1461,11 @@ paths:
                         • export/stats_export.frequency_list_sbx/
 
                         • export/xml_export.pretty/'
-                      job_status: done_syncing
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: done
+                        korp: none
                       sparv_exports:
                       - xml_export:pretty
                       - csv_export:csv
@@ -1473,7 +1488,6 @@ paths:
                         path: ugglor.xml
                       installed_korp: true
                       install_scrambled: false
-                      latest_status: annotating
                       seconds_taken: 32.9
                       last_run_started: '2023-04-14T15:24:02+02:00'
                       last_run_ended: '2023-04-14T15:24:34.900000+02:00'
@@ -1486,7 +1500,11 @@ paths:
                         \ reasons for this. Please make sure that there are no problems\
                         \ \nwith the corpus configuration file, like misspelled annotation\
                         \ names or \nreferences to non-existent source annotations."
-                      job_status: error
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: error
+                        korp: none
                       sparv_exports:
                       - csv_export:csv
                       - stats_export:freq_list
@@ -1504,7 +1522,6 @@ paths:
                         path: dokument2.xml
                       installed_korp: false
                       install_scrambled: false
-                      latest_status: annotating
                       last_run_started: '2023-04-14T15:24:02+02:00'
                       last_run_ended: '2023-04-14T15:24:44+02:00'
                       seconds_taken: 42.23
@@ -1595,12 +1612,16 @@ paths:
                     type: string
                     example: Successfully aborted running job for 'mink-dxh6e6wtff'
                   job_status:
-                    type: string
-                    example: aborted
+                    type: object
+                    example: &id010
+                      sync2sparv: none
+                      sync2storage: none
+                      sparv: aborted
+                      korp: none
               example:
                 status: success
                 message: Successfully aborted running job for 'mink-dxh6e6wtff'
-                job_status: aborted
+                job_status: *id010
         '401':
           description: UNAUTHORIZED
           content:
@@ -1781,7 +1802,7 @@ paths:
                     example: true
                   changed_config:
                     type: object
-                    example: &id010
+                    example: &id011
                       name: config.yaml
                       type: application/yaml
                       last_modified: '2021-11-25T15:52:17+00:00'
@@ -1789,7 +1810,7 @@ paths:
                       path: config.yaml
                   added_sources:
                     type: array
-                    example: &id011
+                    example: &id012
                     - name: dokument4.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:35:30+00:00'
@@ -1797,7 +1818,7 @@ paths:
                       path: dokument4.xml
                   changed_sources:
                     type: array
-                    example: &id012
+                    example: &id013
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2021-11-25T15:56:51+00:00'
@@ -1810,7 +1831,7 @@ paths:
                       path: dokument2.xml
                   deleted_sources:
                     type: array
-                    example: &id013
+                    example: &id014
                     - name: dokument3.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:22:54+00:00'
@@ -1827,10 +1848,10 @@ paths:
                 sources_added: true
                 sources_changed: true
                 sources_deleted: true
-                changed_config: *id010
-                added_sources: *id011
-                changed_sources: *id012
-                deleted_sources: *id013
+                changed_config: *id011
+                added_sources: *id012
+                changed_sources: *id013
+                deleted_sources: *id014
                 last_run_started: '2021-11-19T14:16:10+00:00'
         '400':
           description: BAD REQUEST
@@ -1947,13 +1968,13 @@ paths:
                     example: waiting_install
                   sparv_exports:
                     type: array
-                    example: &id014
+                    example: &id015
                     - csv_export:csv
                     - stats_export:freq_list
                     - xml_export:pretty
                   available_files:
                     type: array
-                    example: &id015
+                    example: &id016
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-23T17:44:02+02:00'
@@ -1969,7 +1990,7 @@ paths:
                     example: false
                   files:
                     type: array
-                    example: &id016
+                    example: &id017
                     - dokument1
                     - dokument2
                   install_scrambled:
@@ -1985,10 +2006,10 @@ paths:
                 status: success
                 message: Job has been queued for installation
                 job_status: waiting_install
-                sparv_exports: *id014
-                available_files: *id015
+                sparv_exports: *id015
+                available_files: *id016
                 installed_korp: false
-                files: *id016
+                files: *id017
                 install_scrambled: true
                 last_run_started: '2022-07-28T11:39:58+02:00'
                 priority: 1
@@ -2075,7 +2096,7 @@ paths:
                     example: Current export files for 'mink-dxh6e6wtff'
                   contents:
                     type: array
-                    example: &id017
+                    example: &id018
                     - name: dokument2.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:54:15+02:00'
@@ -2104,7 +2125,7 @@ paths:
               example:
                 status: success
                 message: Current export files for 'mink-dxh6e6wtff'
-                contents: *id017
+                contents: *id018
         '401':
           description: UNAUTHORIZED
           content:
@@ -2189,7 +2210,7 @@ paths:
         schema:
           type: string
           example: mink-dxh6e6wtff
-      - *id018
+      - *id019
       - name: file
         in: query
         required: false
@@ -3616,52 +3637,31 @@ paths:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                    example: success
                   message:
                     type: string
                     example: Listing existing job status codes
+                  status:
+                    type: string
+                    example: success
                   status_codes:
                     type: array
-                    example: &id019
-                    - code: 0
+                    example: &id020
+                    - description: Process does not exist
                       name: none
-                      description: Job does not exist
-                    - code: 1
-                      name: syncing_corpus
-                      description: Syncing from the storage server to Sparv server
-                    - code: 2
+                    - description: Waiting to be processed
                       name: waiting
-                      description: Waiting to be run with Sparv
-                    - code: 3
-                      name: annotating
-                      description: Sparv annotation process is running
-                    - code: 4
-                      name: done_annotating
-                      description: Annotation process has finished
-                    - code: 5
-                      name: syncing_results
-                      description: Syncing results from Sparv to the storage server
-                    - code: 6
-                      name: done_syncing
-                      description: Results have been synced to storage server
-                    - code: 7
-                      name: installing
-                      description: Corpus is being installed
-                    - code: 8
-                      name: done_installing
-                      description: Corpus is done installing
-                    - code: 9
+                    - description: Process is running
+                      name: running
+                    - description: Process has finished
+                      name: done
+                    - description: An error occurred in the process
                       name: error
-                      description: An error occurred
-                    - code: 10
+                    - description: Process was aborted by the user
                       name: aborted
-                      description: Aborted by the user
               example:
-                status: success
                 message: Listing existing job status codes
-                status_codes: *id019
+                status: success
+                status_codes: *id020
       deprecated: false
       security: []
   /sparv-languages:
@@ -3688,7 +3688,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id020
+                    example: &id021
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -3734,7 +3734,7 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id020
+                languages: *id021
       deprecated: false
       security: []
   /sparv-exports:
@@ -3776,7 +3776,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id021
+                    example: &id022
                     - export: xml_export:pretty
                       description: XML export with one token element per line
                     - export: conll_export:conllu
@@ -3829,7 +3829,7 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id021
+                exports: *id022
       deprecated: false
       security: []
   /advance-queue:
@@ -3909,7 +3909,7 @@ tags:
 - name: Manage Exports
   description: Routes for listing, downloading and removing export files.
 - name: Process Corpus
-  description: Routes for starting/aborting corpus annotation jobs with Sparv and
+  description: Routes for managing annotation and installation jobs with Sparv and
     checking job status.
 - name: Admin Mode
   description: Activate/deactivate admin mode.
