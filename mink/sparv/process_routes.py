@@ -173,13 +173,13 @@ def abort_job(corpus_id: str):
     job = jobs.get_job(corpus_id)
     # Syncing
     if job.status.is_syncing():
-        return utils.response(f"Cannot abort job while syncing files", job_status=job.status), 503
+        return utils.response(f"Cannot abort job while syncing files", job_status=job.status.dump()), 503
     # Waiting
     if job.status.is_waiting():
         try:
             queue.remove(job)
             job.set_status(Status.aborted)
-            return utils.response(f"Successfully unqueued job for '{corpus_id}'", job_status=job.status)
+            return utils.response(f"Successfully unqueued job for '{corpus_id}'", job_status=job.status.dump())
         except Exception as e:
             return utils.response(f"Failed to unqueue job for '{corpus_id}'", err=True, info=str(e)), 500
     # No running job
@@ -192,7 +192,7 @@ def abort_job(corpus_id: str):
         return utils.response(f"No running job found for '{corpus_id}'")
     except Exception as e:
         return utils.response(f"Failed to abort job for '{corpus_id}'", err=True, info=str(e)), 500
-    return utils.response(f"Successfully aborted running job for '{corpus_id}'", job_status=job.status)
+    return utils.response(f"Successfully aborted running job for '{corpus_id}'", job_status=job.status.dump())
 
 
 @bp.route("/clear-annotations", methods=["DELETE"])
