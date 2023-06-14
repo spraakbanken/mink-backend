@@ -231,20 +231,14 @@ class Job():
 
     def install_korp(self):
         """Install a corpus on Korp."""
-        sparv_preinstalls = app.config.get("SPARV_DEFAULT_PREINSTALLS")
         sparv_installs = app.config.get("SPARV_DEFAULT_INSTALLS")
         if self.install_scrambled:
-            sparv_preinstalls.append("cwb:encode_scrambled")
             sparv_installs.append("cwb:install_corpus_scrambled")
         else:
-            sparv_preinstalls.append("cwb:encode")
             sparv_installs.extend(["cwb:install_corpus"])
 
         sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_processes = 2
-        sparv_command = f"echo PROCESSES: {sparv_processes} " \
-                        f"&& {app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(sparv_preinstalls)} " \
-                        f"&& {app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
 
         script_content = f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
@@ -357,22 +351,14 @@ class Job():
             errors = []
             misc = []
             latest_msg = misc
-            total_processes = 1
-            done_processes = 0
             for line in stdout.split("\n"):
-                if line.startswith("PROCESSES:"):
-                    total_processes = int(line[10:])
-                elif line.startswith("Nothing to be done."):
-                    progress = 0
-                    done_processes += 1
+                if line.startswith("Nothing to be done."):
+                    progress = 100
                 matchobj = re.match(r"(?:\d\d:\d\d:\d\d|\s{8}) ([A-Z]+)\s+(.+)$", line)
                 if matchobj:
                     msg = matchobj.group(2).strip()
                     if matchobj.group(1) == "PROGRESS":
                         progress = int(msg[:-1])
-                        if progress == 100:
-                            done_processes += 1
-                            progress = 0
                     elif matchobj.group(1) == "WARNING":
                         warnings.append(matchobj.group(1) + " " + msg)
                         latest_msg = warnings
@@ -394,11 +380,6 @@ class Job():
                     if line.strip():
                         misc.append(line.strip())
 
-            if done_processes == total_processes:
-                progress = 100
-            else:
-                # Correct progress percentage in case multiple processes are being run
-                progress = int(progress / total_processes + 100 / total_processes * done_processes)
             self.progress_output = progress
 
             warnings = "\n".join(warnings)
