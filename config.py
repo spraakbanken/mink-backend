@@ -40,10 +40,10 @@ SPARV_USER = ""    # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
 SPARV_DEFAULT_CORPORA_DIR = "~/mink-data/default"  # Dir for running listings like 'sparv run -l'
 SPARV_CORPORA_DIR = "mink-data"                    # Dir where the user corpora are stored and run, relative to the user's home dir
-SPARV_ENVIRON = "SPARV_DATADIR=~/mink-pipeline/data/"                       # Environment variables to set when running Sparv
-SPARV_COMMAND = "~/mink-pipeline/venv/bin/python -u -m sparv"               # Command for calling Sparv
-SPARV_RUN = "run --socket ~/mink-pipeline/sparv.socket --log-to-file info"  # Sparv's 'run' command
-SPARV_INSTALL = "install --log-to-file info"                                # Sparv's 'install' command
+SPARV_ENVIRON = "SPARV_DATADIR=~/sparv-pipeline/data/"                       # Environment variables to set when running Sparv
+SPARV_COMMAND = "~/sparv-pipeline/venv/bin/python -u -m sparv"               # Command for calling Sparv
+SPARV_RUN = "run --socket ~/sparv-pipeline/sparv.socket --json-log --log-to-file info"  # Sparv's 'run' command
+SPARV_INSTALL = "install --json-log --log-to-file info"                                 # Sparv's 'install' command
 SPARV_UNINSTALL = "uninstall --log-to-file info"                            # Sparv's 'uninstall' command
 SPARV_DEFAULT_EXPORTS = ["xml_export:pretty", "csv_export:csv", "stats_export:freq_list"]  # Default export format to create if nothing is specified
 SPARV_EXPORT_BLACKLIST = [  # Glob patterns for exports that will be excluded from listings and downloads

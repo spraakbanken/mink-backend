@@ -350,35 +350,30 @@ class Job():
             warnings = []
             errors = []
             misc = []
-            latest_msg = misc
             for line in stdout.split("\n"):
-                if line.startswith("Nothing to be done."):
-                    progress = 100
-                matchobj = re.match(r"(?:\d\d:\d\d:\d\d|\s{8}) ([A-Z]+)\s+(.+)$", line)
-                if matchobj:
-                    msg = matchobj.group(2).strip()
-                    if matchobj.group(1) == "PROGRESS":
+                try:
+                    json_output = json.loads(line)
+                    msg = json_output.get("message")
+                    if json_output.get("level") == "FINAL" and msg == "Nothing to be done.":
+                        progress = 100
+                        misc.append(msg)
+                    elif json_output.get("level") == "PROGRESS":
                         progress = int(msg[:-1])
-                    elif matchobj.group(1) == "WARNING":
-                        warnings.append(matchobj.group(1) + " " + msg)
-                        latest_msg = warnings
-                    elif matchobj.group(1) == "ERROR":
-                        errors.append(matchobj.group(1) + " " + msg)
-                        latest_msg = errors
-                # Catch line continuations
-                elif re.match(r"\s{8,}.+", line):
-                    latest_msg.append(line.strip())
-                # Catch "real" time output
-                elif re.match(r"real \d.+", line):
-                    real_seconds = float(line[5:].strip())
-                    self.sparv_done = (dateutil.parser.isoparse(self.started) +
-                                       datetime.timedelta(seconds=real_seconds)).isoformat()
-                # Ignore "user" and "sys" time output
-                elif re.match(r"user|sys \d.+", line):
-                    pass
-                else:
-                    if line.strip():
-                        misc.append(line.strip())
+                    elif json_output.get("level") == "WARNING":
+                        warnings.append("WARNING " + msg)
+                    elif json_output.get("level") == "ERROR":
+                        errors.append("ERROR " + msg)
+                    else:
+                        misc.append(msg)
+                except json.JSONDecodeError:
+                    # Catch "real" time output
+                    if re.match(r"real \d.+", line):
+                        real_seconds = float(line[5:].strip())
+                        self.sparv_done = (dateutil.parser.isoparse(self.started) +
+                                        datetime.timedelta(seconds=real_seconds)).isoformat()
+                    # Ignore "user" and "sys" time output
+                    elif re.match(r"user|sys \d.+", line):
+                        pass
 
             self.progress_output = progress
 
