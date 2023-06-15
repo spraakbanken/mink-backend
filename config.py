@@ -12,6 +12,8 @@ RESOURCE_PREFIX = "mink-"
 MAX_CONTENT_LENGTH = 1024 * 1024 * 100 # Max size (bytes) for one request (which may contain multiple files)
 MAX_FILE_LENGTH = 1024 * 1024 * 10     # Max size (bytes) for one corpus source file
 MAX_CORPUS_LENGTH = 1024 * 1024 * 500  # Max size (bytes) for one corpus
+RECOMMENDED_MIN_FILE_LENGTH = 1024 * 1024 * 1 # Recommended min size (bytes) for one corpus source file (when uploading may files)
+RECOMMENDED_MAX_FILE_LENGTH = 1024 * 1024 * 5 # Recommended max size (bytes) for one corpus source file
 
 # sb-auth settings
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
