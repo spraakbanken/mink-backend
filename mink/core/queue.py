@@ -77,13 +77,18 @@ def get():
     return job
 
 
-def remove(job):
-    """Remove job item from queue, e.g. when a job is aborted or a corpus is deleted."""
+def pop(job):
+    """Remove job item from queue (but keep in all jobs), e.g. when a job is aborted."""
     queue = g.cache.get_job_queue()
     if job.corpus_id in queue:
         queue.pop(queue.index(job.corpus_id))
         g.cache.set_job_queue(queue)
         save_priorities()
+
+
+def remove(job):
+    """Remove job item from queue and from stored jobs, e.g. when a corpus is deleted."""
+    pop(job)
 
     all_jobs = g.cache.get_all_jobs()
     if job.corpus_id in all_jobs:

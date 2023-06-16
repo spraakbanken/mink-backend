@@ -286,7 +286,7 @@ class Job():
     def abort_sparv(self):
         """Abort running Sparv process."""
         if self.status.is_waiting(self.current_process):
-            queue.remove(self)
+            queue.pop(self)
             self.set_status(Status.aborted)
             return
         if not self.status.is_running():

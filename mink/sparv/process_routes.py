@@ -108,10 +108,13 @@ def advance_queue():
     for job in running_jobs:
         try:
             if not job.process_running():
-                running_jobs.remove(job)
+                job.abort_sparv()
+                queue.pop(job)
         except Exception as e:
             app.logger.error(f"Failed to check if process is running for '{job.corpus_id}' {str(e)}")
 
+    # Get running jobs again in case jobs were unqueued in the previous step
+    running_jobs, waiting_jobs = queue.get_running_waiting()
     # If there are fewer running jobs than allowed, start the next one in the queue
     while waiting_jobs and len(running_jobs) < app.config.get("SPARV_WORKERS", 1):
         job = waiting_jobs.pop(0)
@@ -177,7 +180,7 @@ def abort_job(corpus_id: str):
     # Waiting
     if job.status.is_waiting():
         try:
-            queue.remove(job)
+            queue.pop(job)
             job.set_status(Status.aborted)
             return utils.response(f"Successfully unqueued job for '{corpus_id}'", job_status=job.status.dump())
         except Exception as e:
