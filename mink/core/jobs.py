@@ -389,9 +389,11 @@ class Job():
         When a Sparv job is finished it reads the time Sparv took and compensates for extra time the backend
         may take.
         """
-        if self.started == None or self.status.is_waiting(self.current_process):
+        if self.started == None or self.status.is_waiting(self.current_process) or \
+            self.status.is_none(self.current_process) or self.status.is_error(self.current_process) or \
+            self.status.is_aborted(self.current_process):
             seconds_taken = 0
-        elif self.status.is_running(self.current_process) or self.status.is_error(self.current_process):
+        elif self.status.is_running(self.current_process):
             now = datetime.datetime.now(datetime.timezone.utc)
             delta = now - dateutil.parser.isoparse(self.started)
             seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
