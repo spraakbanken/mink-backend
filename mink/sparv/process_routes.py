@@ -215,9 +215,10 @@ def clear_annotations(corpus_id: str):
 
 
 @bp.route("/install-corpus", methods=["PUT"])
+@bp.route("/install-korp", methods=["PUT"])
 @login.login()
-def install_corpus(user_id: str, contact: str, corpus_id: str):
-    """Install a corpus on Korp with Sparv."""
+def install_korp(user_id: str, contact: str, corpus_id: str):
+    """Install a corpus in Korp with Sparv."""
     # Get info about whether the corpus should be scrambled in Korp. Default to not scrambling.
     scramble = request.args.get("scramble", "") or request.form.get("scramble", "")
     scramble = scramble.lower() == "true"
