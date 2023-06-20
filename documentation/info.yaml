@@ -20,7 +20,7 @@ info:
     4. <a href="#operation/runSparv">Run Sparv</a>
     5. <a href="#operation/checkstatus">Check the status</a>
     6. <a href="#operation/downloadexports">Download export files</a>
-    7. <a href="#operation/installcorpus">Install the corpus in Korp</a>
+    7. <a href="#operation/installkorp">Install the corpus in Korp</a>
 
     # Parameters
     Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
@@ -116,7 +116,7 @@ paths:
   /api-doc:
     get:
       security: []
-  /status-codes:
+  /info:
     get:
       security: []
   /advance-queue:
@@ -225,7 +225,7 @@ paths:
             <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -
             dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        -
             text:id\n        - text:date\n        - text:forfattare as author'
-  /install-corpus:
+  /install-korp:
     put:
       parameters:
       - name: corpus_id

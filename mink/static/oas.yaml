@@ -28,7 +28,7 @@ info:
 
     6. <a href="#operation/downloadexports">Download export files</a>
 
-    7. <a href="#operation/installcorpus">Install the corpus in Korp</a>
+    7. <a href="#operation/installkorp">Install the corpus in Korp</a>
 
 
     # Parameters
@@ -1910,11 +1910,11 @@ paths:
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
-  /install-corpus:
+  /install-korp:
     put:
       tags:
       - Process Corpus
-      summary: install corpus
+      summary: install in Korp
       description: 'Adds an installation job to the queue to tries to install the
         corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`
         parameter to `true` (the original order will be kept by default.
@@ -1933,7 +1933,7 @@ paths:
         -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
-      operationId: installcorpus
+      operationId: installinKorp
       parameters:
       - name: corpus_id
         in: query
@@ -3621,13 +3621,14 @@ paths:
           description: ''
       deprecated: false
       security: []
-  /status-codes:
+  /info:
     get:
       tags:
       - Documentation
-      summary: status codes
-      description: List job status codes along with their descriptions.
-      operationId: statuscodes
+      summary: API info
+      description: Show info about data processing, e.g. job status codes, file size
+        limits and Sparv importer modules.
+      operationId: APIinfo
       parameters: []
       responses:
         '200':
@@ -3637,31 +3638,79 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: Listing existing job status codes
                   status:
                     type: string
                     example: success
+                  message:
+                    type: string
+                    example: Listing information about data processing
                   status_codes:
-                    type: array
+                    type: object
                     example: &id020
-                    - description: Process does not exist
-                      name: none
-                    - description: Waiting to be processed
-                      name: waiting
-                    - description: Process is running
-                      name: running
-                    - description: Process has finished
-                      name: done
-                    - description: An error occurred in the process
-                      name: error
-                    - description: Process was aborted by the user
-                      name: aborted
+                      info: job status codes
+                      data:
+                      - name: none
+                        description: Process does not exist
+                      - name: waiting
+                        description: Waiting to be processed
+                      - name: running
+                        description: Process is running
+                      - name: done
+                        description: Process has finished
+                      - name: error
+                        description: An error occurred in the process
+                      - name: aborted
+                        description: Process was aborted by the user
+                  importer_modules:
+                    type: object
+                    example: &id021
+                      info: Sparv importers that need to be used for different file
+                        extensions
+                      data:
+                      - file_extension: .xml
+                        importer: xml_import
+                      - file_extension: .txt
+                        importer: text_import
+                      - file_extension: .docx
+                        importer: docx_import
+                      - file_extension: .odt
+                        importer: odt_import
+                      - file_extension: .pdf
+                        importer: pdf_import
+                  file_size_limits:
+                    type: object
+                    example: &id022
+                      info: size limits (in bytes) for uploaded files
+                      data:
+                      - name: max_content_length
+                        description: max size for one request (which may contain multiple
+                          files)
+                        value: 1024
+                      - name: max_file_length
+                        description: max size for one corpus source file
+                        value: 10485760
+                      - name: max_corpus_length
+                        description: max size for one corpus
+                        value: 524288000
+                  recommended_file_size:
+                    type: object
+                    example: &id023
+                      info: approximate recommended file sizes (in bytes) when processing
+                        many files with Sparv
+                      data:
+                      - name: max_file_length
+                        description: recommended min size for one corpus source file
+                        value: 1048576
+                      - name: min_file_length
+                        description: recommended max size for one corpus source file
+                        value: 5242880
               example:
-                message: Listing existing job status codes
                 status: success
+                message: Listing information about data processing
                 status_codes: *id020
+                importer_modules: *id021
+                file_size_limits: *id022
+                recommended_file_size: *id023
       deprecated: false
       security: []
   /sparv-languages:
@@ -3688,7 +3737,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id021
+                    example: &id024
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -3734,7 +3783,7 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id021
+                languages: *id024
       deprecated: false
       security: []
   /sparv-exports:
@@ -3776,7 +3825,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id022
+                    example: &id025
                     - export: xml_export:pretty
                       description: XML export with one token element per line
                     - export: conll_export:conllu
@@ -3829,7 +3878,7 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id022
+                exports: *id025
       deprecated: false
       security: []
   /advance-queue:

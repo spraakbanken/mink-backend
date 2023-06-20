@@ -2992,17 +2992,17 @@
 					]
 				},
 				{
-					"name": "install corpus",
+					"name": "install in Korp",
 					"request": {
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/install-corpus?corpus_id={{standard-corpus}}&scramble=true",
+							"raw": "{{host}}/install-korp?corpus_id={{standard-corpus}}&scramble=true",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
-								"install-corpus"
+								"install-korp"
 							],
 							"query": [
 								{
@@ -4335,34 +4335,34 @@
 					"response": []
 				},
 				{
-					"name": "status codes",
+					"name": "API info",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/status-codes",
+							"raw": "{{host}}/info",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
-								"status-codes"
+								"info"
 							]
 						},
-						"description": "List job status codes along with their descriptions."
+						"description": "Show info about data processing, e.g. job status codes, file size limits and Sparv importer modules."
 					},
 					"response": [
 						{
-							"name": "status codes 200",
+							"name": "status codes",
 							"originalRequest": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/status-codes",
+									"raw": "{{host}}/info",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"status-codes"
+										"info"
 									]
 								}
 							},
@@ -4371,12 +4371,12 @@
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
-									"key": "Date",
-									"value": "Thu, 28 Jul 2022 12:26:32 GMT"
+									"key": "Server",
+									"value": "Werkzeug/2.3.6 Python/3.10.6"
 								},
 								{
-									"key": "Server",
-									"value": "gunicorn"
+									"key": "Date",
+									"value": "Tue, 20 Jun 2023 11:32:49 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -4384,23 +4384,15 @@
 								},
 								{
 									"key": "Content-Length",
-									"value": "1021"
-								},
-								{
-									"key": "Via",
-									"value": "1.1 ws.spraakbanken.gu.se"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=1, max=500"
+									"value": "1657"
 								},
 								{
 									"key": "Connection",
-									"value": "Keep-Alive"
+									"value": "close"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"message\": \"Listing existing job status codes\",\n    \"status\": \"success\",\n    \"status_codes\": [\n        {\n            \"description\": \"Process does not exist\",\n            \"name\": \"none\"\n        },\n        {\n            \"description\": \"Waiting to be processed\",\n            \"name\": \"waiting\"\n        },\n        {\n            \"description\": \"Process is running\",\n            \"name\": \"running\"\n        },\n        {\n            \"description\": \"Process has finished\",\n            \"name\": \"done\"\n        },\n        {\n            \"description\": \"An error occurred in the process\",\n            \"name\": \"error\"\n        },\n        {\n            \"description\": \"Process was aborted by the user\",\n            \"name\": \"aborted\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing information about data processing\",\n    \"status_codes\": {\n        \"info\": \"job status codes\",\n        \"data\": [\n            {\n                \"name\": \"none\",\n                \"description\": \"Process does not exist\"\n            },\n            {\n                \"name\": \"waiting\",\n                \"description\": \"Waiting to be processed\"\n            },\n            {\n                \"name\": \"running\",\n                \"description\": \"Process is running\"\n            },\n            {\n                \"name\": \"done\",\n                \"description\": \"Process has finished\"\n            },\n            {\n                \"name\": \"error\",\n                \"description\": \"An error occurred in the process\"\n            },\n            {\n                \"name\": \"aborted\",\n                \"description\": \"Process was aborted by the user\"\n            }\n        ]\n    },\n    \"importer_modules\": {\n        \"info\": \"Sparv importers that need to be used for different file extensions\",\n        \"data\": [\n            {\n                \"file_extension\": \".xml\",\n                \"importer\": \"xml_import\"\n            },\n            {\n                \"file_extension\": \".txt\",\n                \"importer\": \"text_import\"\n            },\n            {\n                \"file_extension\": \".docx\",\n                \"importer\": \"docx_import\"\n            },\n            {\n                \"file_extension\": \".odt\",\n                \"importer\": \"odt_import\"\n            },\n            {\n                \"file_extension\": \".pdf\",\n                \"importer\": \"pdf_import\"\n            }\n        ]\n    },\n    \"file_size_limits\": {\n        \"info\": \"size limits (in bytes) for uploaded files\",\n        \"data\": [\n            {\n                \"name\": \"max_content_length\",\n                \"description\": \"max size for one request (which may contain multiple files)\",\n                \"value\": 1024\n            },\n            {\n                \"name\": \"max_file_length\",\n                \"description\": \"max size for one corpus source file\",\n                \"value\": 10485760\n            },\n            {\n                \"name\": \"max_corpus_length\",\n                \"description\": \"max size for one corpus\",\n                \"value\": 524288000\n            }\n        ]\n    },\n    \"recommended_file_size\": {\n        \"info\": \"approximate recommended file sizes (in bytes) when processing many files with Sparv\",\n        \"data\": [\n            {\n                \"name\": \"max_file_length\",\n                \"description\": \"recommended min size for one corpus source file\",\n                \"value\": 1048576\n            },\n            {\n                \"name\": \"min_file_length\",\n                \"description\": \"recommended max size for one corpus source file\",\n                \"value\": 5242880\n            }\n        ]\n    }\n}"
 						}
 					]
 				},
