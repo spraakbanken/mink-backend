@@ -214,7 +214,6 @@ def clear_annotations(corpus_id: str):
         return utils.response("Failed to clear annotations", err=True, info=str(e)), 500
 
 
-@bp.route("/install-corpus", methods=["PUT"])
 @bp.route("/install-korp", methods=["PUT"])
 @login.login()
 def install_korp(user_id: str, contact: str, corpus_id: str):
