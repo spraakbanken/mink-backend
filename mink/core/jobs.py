@@ -390,14 +390,13 @@ class Job():
         may take.
         """
         if self.started == None or self.status.is_waiting(self.current_process) or \
-            self.status.is_none(self.current_process) or self.status.is_error(self.current_process) or \
-            self.status.is_aborted(self.current_process):
+            self.status.is_none(self.current_process) or self.status.is_aborted(self.current_process):
             seconds_taken = 0
         elif self.status.is_running(self.current_process):
             now = datetime.datetime.now(datetime.timezone.utc)
             delta = now - dateutil.parser.isoparse(self.started)
             seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
-        elif self.sparv_done:
+        elif self.sparv_done or self.status.is_error(self.current_process):
             delta = dateutil.parser.isoparse(self.sparv_done) - dateutil.parser.isoparse(self.started)
             seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
             self.done = (dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=seconds_taken)).isoformat()
