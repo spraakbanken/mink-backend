@@ -98,7 +98,7 @@ def remove_corpus(corpus_id: str):
             # Uninstall corpus using Sparv
             job.uninstall_korp()
         except Exception as e:
-            return utils.response(f"Failed to remove job for corpus '{corpus_id}'. {e}", err=True, info=str(e)), 500
+            return utils.response(f"Failed to remove job for corpus '{corpus_id}'", err=True, info=str(e)), 500
     try:
         # Remove from storage
         corpus_dir = str(storage.get_corpus_dir(corpus_id))
@@ -110,7 +110,7 @@ def remove_corpus(corpus_id: str):
         # Remove job
         job.remove()
     except Exception as e:
-        return utils.response(f"Failed to remove job for corpus '{corpus_id}'. {e}", err=True, info=str(e)), 500
+        return utils.response(f"Failed to remove job for corpus '{corpus_id}'", err=True, info=str(e)), 500
 
     try:
         # Remove from auth system
@@ -193,7 +193,7 @@ def list_sources(corpus_id: str):
     source_dir = str(storage.get_source_dir(corpus_id))
     try:
         objlist = storage.list_contents(source_dir)
-        return utils.response(f"Current source files for '{corpus_id}'", contents=objlist)
+        return utils.response(f"Listing current source files for '{corpus_id}'", contents=objlist)
     except Exception as e:
         return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
 
@@ -221,10 +221,10 @@ def remove_sources(corpus_id: str):
             fails.append(rf)
 
     if fails and successes:
-        return utils.response(f"Failed to remove some source files form '{corpus_id}'.",
+        return utils.response(f"Failed to remove some source files form '{corpus_id}'",
                               failed=fails, succeeded=successes, err=True), 500
     if fails:
-        return utils.response("Failed to remove files", err=True), 500
+        return utils.response("Failed to remove files form '{corpus_id}'", err=True), 500
 
     return utils.response(f"Source files for '{corpus_id}' successfully removed")
 
@@ -329,7 +329,7 @@ def upload_config(corpus_id: str):
             storage.write_file_contents(str(storage.get_config_file(corpus_id)), new_config.encode("UTF-8"), corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
-            return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
+            return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e)), 500
 
     elif config_txt:
         try:
@@ -342,7 +342,7 @@ def upload_config(corpus_id: str):
             storage.write_file_contents(str(storage.get_config_file(corpus_id)), new_config.encode("UTF-8"), corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
         except Exception as e:
-            return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e))
+            return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e)), 500
 
     else:
         return utils.response("No config file provided for upload", err=True), 400
@@ -377,7 +377,7 @@ def list_exports(corpus_id: str):
     path = str(storage.get_export_dir(corpus_id))
     try:
         objlist = storage.list_contents(path, blacklist=app.config.get("SPARV_EXPORT_BLACKLIST"))
-        return utils.response(f"Current export files for '{corpus_id}'", contents=objlist)
+        return utils.response(f"Listing current export files for '{corpus_id}'", contents=objlist)
     except Exception as e:
         return utils.response(f"Failed to list files in '{corpus_id}'", err=True, info=str(e)), 500
 
@@ -507,7 +507,7 @@ def download_source_text(corpus_id: str):
     local_corpus_dir = str(utils.get_corpus_dir(corpus_id, mkdir=True))
 
     if not download_file:
-        return utils.response("Please specify the source file to download", err=True), 400
+        return utils.response("No source file specified for download", err=True), 400
 
     try:
         source_texts = storage.list_contents(storage_work_dir, exclude_dirs=False)
