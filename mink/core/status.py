@@ -21,6 +21,7 @@ class ProcessName(Enum):
     sync2storage = "sync2storage"
     sparv = "sparv"
     korp = "korp"
+    strix = "strix"
 
 
 class JobStatuses(dict):

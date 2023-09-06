@@ -98,7 +98,14 @@ def remove_corpus(corpus_id: str):
             # Uninstall corpus using Sparv
             job.uninstall_korp()
         except Exception as e:
-            return utils.response(f"Failed to remove job for corpus '{corpus_id}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to remove corpus '{corpus_id}' from Korp", err=True, info=str(e)), 500
+    if job.installed_strix:
+        try:
+            # Uninstall corpus using Sparv
+            job.uninstall_strix()
+        except Exception as e:
+            return utils.response(f"Failed to remove corpus '{corpus_id}' from Strix", err=True, info=str(e)), 500
+
     try:
         # Remove from storage
         corpus_dir = str(storage.get_corpus_dir(corpus_id))

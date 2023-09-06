@@ -35,6 +35,7 @@ class Job():
                  available_files=None,
                  install_scrambled=None,
                  installed_korp=False,
+                 installed_strix=False,
                  latest_seconds_taken=0,
                  **_obsolete  # needed to catch invalid arguments from outdated job items (avoids crashes)
                 ):
@@ -52,6 +53,7 @@ class Job():
         self.available_files = available_files or []
         self.install_scrambled = install_scrambled
         self.installed_korp = installed_korp
+        self.installed_strix = installed_strix
         self.latest_seconds_taken = latest_seconds_taken
         self.progress_output = 0
 
@@ -75,6 +77,7 @@ class Job():
                            "available_files": self.available_files,
                            "install_scrambled": self.install_scrambled,
                            "installed_korp": self.installed_korp,
+                           "installed_strix": self.installed_strix,
                            "latest_seconds_taken": self.latest_seconds_taken,
                            })
 
@@ -230,8 +233,8 @@ class Job():
         self.set_status(Status.running, ProcessName.sparv)
 
     def install_korp(self):
-        """Install a corpus on Korp."""
-        sparv_installs = app.config.get("SPARV_DEFAULT_INSTALLS")
+        """Install a corpus in Korp."""
+        sparv_installs = app.config.get("SPARV_DEFAULT_KORP_INSTALLS")
         if self.install_scrambled:
             sparv_installs.append("cwb:install_corpus_scrambled")
         else:
@@ -250,7 +253,7 @@ class Job():
             stderr = p.stderr.decode() if p.stderr else ""
             self.reset_time()
             self.set_status(Status.error, ProcessName.korp)
-            raise exceptions.JobError(f"Failed to install corpus with Sparv. {stderr}")
+            raise exceptions.JobError(f"Failed to install corpus in Korp. {stderr}")
 
         self.installed_korp = True
         # Get pid from Sparv process and store job info
@@ -270,7 +273,7 @@ class Job():
         except Exception as e:
             raise e
 
-        sparv_uninstalls = app.config.get("SPARV_DEFAULT_UNINSTALLS")
+        sparv_uninstalls = app.config.get("SPARV_DEFAULT_KORP_UNINSTALLS")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
         sparv_env = app.config.get("SPARV_ENVIRON")
 
@@ -282,6 +285,55 @@ class Job():
             raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stderr}")
 
         self.installed_korp = False
+
+    def install_strix(self):
+        """Install a corpus in Strix."""
+        sparv_installs = app.config.get("SPARV_DEFAULT_STRIX_INSTALLS")
+        sparv_env = app.config.get("SPARV_ENVIRON")
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+
+        script_content = f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
+        self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
+                          f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
+                          f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            self.reset_time()
+            self.set_status(Status.error, ProcessName.strix)
+            raise exceptions.JobError(f"Failed to install corpus in Strix. {stderr}")
+
+        self.installed_strix = True
+        # Get pid from Sparv process and store job info
+        try:
+            float(p.stdout.decode())
+            self.set_pid(int(p.stdout.decode()))
+        except ValueError:
+            pass
+        self.set_status(Status.running, ProcessName.strix)
+
+    def uninstall_strix(self):
+        """Uninstall corpus from Strix."""
+        try:
+            self.abort_sparv()
+        except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
+            pass
+        except Exception as e:
+            raise e
+
+        sparv_uninstalls = app.config.get("SPARV_DEFAULT_STRIX_UNINSTALLS")
+        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
+        sparv_env = app.config.get("SPARV_ENVIRON")
+
+        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            app.logger.error(f"Failed to uninstall corpus {self.corpus_id} from Strix: {stderr}")
+            raise exceptions.JobError(f"Failed to uninstall corpus from Strix: {stderr}")
+
+        self.installed_strix = False
 
     def abort_sparv(self):
         """Abort running Sparv process."""

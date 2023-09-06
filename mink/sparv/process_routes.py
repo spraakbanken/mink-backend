@@ -125,7 +125,10 @@ def advance_queue():
                     app.logger.info(f"Started annotation process for '{job.corpus_id}'")
                 elif job.current_process == ProcessName.korp.name:
                     job.install_korp()
-                    app.logger.info(f"Started installation process for '{job.corpus_id}'")
+                    app.logger.info(f"Started Korp installation process for '{job.corpus_id}'")
+                elif job.current_process == ProcessName.strix.name:
+                    job.install_strix()
+                    app.logger.info(f"Started Strix installation process for '{job.corpus_id}'")
             running_jobs.append(job)
         except Exception as e:
             app.logger.error(f"Failed to run Sparv on '{job.corpus_id}' {str(e)}")
@@ -248,6 +251,41 @@ def install_korp(user_id: str, contact: str, corpus_id: str):
         return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 500
 
     job.set_status(Status.waiting, ProcessName.korp)
+
+    # Wait a few seconds to check whether anything terminated early
+    time.sleep(3)
+    return make_status_response(job)
+
+
+@bp.route("/install-strix", methods=["PUT"])
+@login.login()
+def install_strix(user_id: str, contact: str, corpus_id: str):
+    """Install a corpus in Strix with Sparv."""
+    # Get job, check for changes and remove exports if necessary
+    try:
+        old_job = jobs.get_job(corpus_id)
+        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        if deleted_sources or changed_config:
+            try:
+                success, sparv_output = old_job.clean_export()
+                assert success
+            except Exception as e:
+                return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
+                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output), 500
+    except exceptions.JobNotFound:
+        pass
+    except exceptions.CouldNotListSources as e:
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+
+    # Queue job
+    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact)
+    job.reset_time()
+    try:
+        job = queue.add(job)
+    except Exception as e:
+        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 500
+
+    job.set_status(Status.waiting, ProcessName.strix)
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
