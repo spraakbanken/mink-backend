@@ -294,7 +294,7 @@ def download_sources(corpus_id: str):
         download_file_name = Path(download_file).name
         full_download_file = str(Path(storage_source_dir) / download_file)
         if download_file not in [i.get("path") for i in source_contents]:
-            return utils.response(f"The file '{download_file}' you are trying to download does not exist",
+            return utils.response(f"The source file you are trying to download does not exist",
                                   err=True, return_code="source_not_found"), 404
         try:
             local_path = local_source_dir / download_file_name
@@ -314,8 +314,8 @@ def download_sources(corpus_id: str):
                         break
                 return send_file(local_path, mimetype=content_type)
         except Exception as e:
-            return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e),
-                                  return_code="failed_downloading_source"), 500
+            return utils.response(f"Failed to download file", err=True, info=str(e),
+                                  return_code="failed_downloading_file"), 500
 
     # Download all files as zip archive
     try:
@@ -474,7 +474,7 @@ def download_export(corpus_id: str):
         download_folder_name = "_".join(Path(download_folder).parts)
         full_download_folder = str(Path(storage_export_dir) / download_folder)
         if download_folder not in [i.get("path") for i in export_contents]:
-            return utils.response(f"The folder '{download_folder}' you are trying to download does not exist",
+            return utils.response(f"The export folder you are trying to download does not exist",
                                   err=True, return_code="export_folder_not_found"), 404
         try:
             zip_out = str(local_corpus_dir / f"{corpus_id}_{download_folder_name}.zip")
@@ -483,7 +483,7 @@ def download_export(corpus_id: str):
                                  zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
-            return utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e),
+            return utils.response(f"Failed to download export folder", err=True, info=str(e),
                                   return_code="failed_downloading_export_folder"), 500
 
     # Download and zip file specified in args
@@ -513,8 +513,8 @@ def download_export(corpus_id: str):
                         break
                 return send_file(local_path, mimetype=content_type)
         except Exception as e:
-            return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e),
-                                  file=str(download_file), return_code="failed_downloading_export"), 500
+            return utils.response(f"Failed to download file", err=True, info=str(e),
+                                  file=str(download_file), return_code="failed_downloading_file"), 500
 
 
 @bp.route("/remove-exports", methods=["DELETE"])
@@ -568,14 +568,14 @@ def download_source_text(corpus_id: str):
                                    "You must run Sparv before you can view source texts.", err=True,
                                    return_code="no_source_texts_run_sparv"), 404
     except Exception as e:
-        return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e),
+        return utils.response(f"Failed to download source text", err=True, info=str(e),
                               return_code="failed_downloading_source_text"), 500
 
     # Download file specified in args
     download_file_stem = Path(download_file).stem
     short_path = str(Path(download_file_stem) / app.config.get("SPARV_PLAIN_TEXT_FILE"))
     if short_path not in [i.get("path") for i in source_texts]:
-        return utils.response(f"The source text for the file '{download_file}' does not exist",
+        return utils.response(f"The source text for this file does not exist",
                               err=True, return_code="source_text_not_found"), 404
     try:
         full_download_path = str(Path(storage_work_dir) / Path(download_file).parent / download_file_stem /
@@ -586,7 +586,7 @@ def download_source_text(corpus_id: str):
         utils.uncompress_gzip(local_path)
         return send_file(local_path, mimetype="text/plain")
     except Exception as e:
-        return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e),
+        return utils.response(f"Failed to download source text", err=True, info=str(e),
                               return_code="failed_downloading_source_text"), 500
 
 
