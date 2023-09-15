@@ -633,7 +633,7 @@ paths:
         schema:
           type: string
           example: dokument1.xml
-      - &id019
+      - &id022
         name: zip
         in: query
         required: false
@@ -2052,6 +2052,143 @@ paths:
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
       deprecated: false
+  /install-strix:
+    put:
+      tags:
+      - Process Corpus
+      summary: install in Strix
+      description: 'Adds an installation job to the queue to tries to install the
+        corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`
+        parameter to `true` (the original order will be kept by default.
+
+
+        There can only be one active job (annotation or installation) for each corpus
+        at a time. A job must finish or be aborted before a new one can be started.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-corpus''
+        -H ''Authorization: Bearer YOUR_JWT''
+
+        ```'
+      operationId: installinStrix
+      parameters:
+      - name: corpus_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: mink-dxh6e6wtff
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Job has been queued for installation
+                  job_status:
+                    type: string
+                    example: waiting_install
+                  sparv_exports:
+                    type: array
+                    example: &id018
+                    - csv_export:csv
+                    - stats_export:freq_list
+                    - xml_export:pretty
+                  available_files:
+                    type: array
+                    example: &id019
+                    - name: dokument2.xml
+                      type: application/xml
+                      last_modified: '2022-06-23T17:44:02+02:00'
+                      size: 115
+                      path: dokument2.xml
+                    - name: dokument1.xml
+                      type: application/xml
+                      last_modified: '2022-06-23T17:44:03+02:00'
+                      size: 1396
+                      path: dokument1.xml
+                  installed_korp:
+                    type: integer
+                    example: false
+                  files:
+                    type: array
+                    example: &id020
+                    - dokument1
+                    - dokument2
+                  install_scrambled:
+                    type: integer
+                    example: true
+                  last_run_started:
+                    type: string
+                    example: '2022-07-28T11:39:58+02:00'
+                  priority:
+                    type: integer
+                    example: 1
+              example:
+                status: success
+                message: Job has been queued for installation
+                job_status: waiting_install
+                sparv_exports: *id018
+                available_files: *id019
+                installed_korp: false
+                files: *id020
+                install_scrambled: true
+                last_run_started: '2022-07-28T11:39:58+02:00'
+                priority: 1
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
+                      have access to it
+              example:
+                status: error
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
+                  access to it
+      deprecated: false
   /list-exports:
     get:
       tags:
@@ -2096,7 +2233,7 @@ paths:
                     example: Current export files for 'mink-dxh6e6wtff'
                   contents:
                     type: array
-                    example: &id018
+                    example: &id021
                     - name: dokument2.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:54:15+02:00'
@@ -2125,7 +2262,7 @@ paths:
               example:
                 status: success
                 message: Current export files for 'mink-dxh6e6wtff'
-                contents: *id018
+                contents: *id021
         '401':
           description: UNAUTHORIZED
           content:
@@ -2210,7 +2347,7 @@ paths:
         schema:
           type: string
           example: mink-dxh6e6wtff
-      - *id019
+      - *id022
       - name: file
         in: query
         required: false
@@ -3646,7 +3783,7 @@ paths:
                     example: Listing information about data processing
                   status_codes:
                     type: object
-                    example: &id020
+                    example: &id023
                       info: job status codes
                       data:
                       - name: none
@@ -3663,7 +3800,7 @@ paths:
                         description: Process was aborted by the user
                   importer_modules:
                     type: object
-                    example: &id021
+                    example: &id024
                       info: Sparv importers that need to be used for different file
                         extensions
                       data:
@@ -3679,7 +3816,7 @@ paths:
                         importer: pdf_import
                   file_size_limits:
                     type: object
-                    example: &id022
+                    example: &id025
                       info: size limits (in bytes) for uploaded files
                       data:
                       - name: max_content_length
@@ -3694,7 +3831,7 @@ paths:
                         value: 524288000
                   recommended_file_size:
                     type: object
-                    example: &id023
+                    example: &id026
                       info: approximate recommended file sizes (in bytes) when processing
                         many files with Sparv
                       data:
@@ -3707,10 +3844,10 @@ paths:
               example:
                 status: success
                 message: Listing information about data processing
-                status_codes: *id020
-                importer_modules: *id021
-                file_size_limits: *id022
-                recommended_file_size: *id023
+                status_codes: *id023
+                importer_modules: *id024
+                file_size_limits: *id025
+                recommended_file_size: *id026
       deprecated: false
       security: []
   /sparv-languages:
@@ -3737,7 +3874,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id024
+                    example: &id027
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -3783,7 +3920,7 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id024
+                languages: *id027
       deprecated: false
       security: []
   /sparv-exports:
@@ -3825,7 +3962,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id025
+                    example: &id028
                     - export: xml_export:pretty
                       description: XML export with one token element per line
                     - export: conll_export:conllu
@@ -3878,7 +4015,7 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id025
+                exports: *id028
       deprecated: false
       security: []
   /advance-queue:
