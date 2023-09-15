@@ -30,7 +30,8 @@ def create_corpus(corpora: list, auth_token: str):
     while corpus_id is None:
         # Give up after 3 tries
         if tries > 3:
-            return utils.response("Failed to create resource", err=True), 500
+            return utils.response("Failed to create corpus", err=True,
+                                  return_code="failed_creating_corpus"), 500
         tries += 1
         corpus_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
         corpora = corpus_registry.get_all()
@@ -42,14 +43,16 @@ def create_corpus(corpora: list, auth_token: str):
             # Corpus ID is in use, try to create another one
             corpus_id = None
         except Exception as e:
-            return utils.response("Failed to create resource", err=True, info=str(e)), 500
+            return utils.response("Failed to create corpus", err=True, info=str(e),
+                                  return_code="failed_creating_corpus"), 500
 
     # Create corpus dir with subdirs
     try:
         corpus_dir = str(storage.get_corpus_dir(corpus_id, mkdir=True))
         storage.get_source_dir(corpus_id, mkdir=True)
         corpus_registry.add(corpus_id)
-        return utils.response(f"Corpus '{corpus_id}' created successfully", corpus_id=corpus_id), 201
+        return utils.response(f"Corpus '{corpus_id}' created successfully", corpus_id=corpus_id,
+                              return_code="created_corpus"), 201
     except Exception as e:
         try:
             # Try to remove partially uploaded corpus data
@@ -60,14 +63,15 @@ def create_corpus(corpora: list, auth_token: str):
             login.remove_resource(corpus_id)
         except Exception as err:
             app.logger.error(f"Failed to remove corpus '{corpus_id}' from auth system. {err}")
-        return utils.response("Failed to create corpus dir", err=True, info=str(e)), 500
+        return utils.response("Failed to create corpus dir", err=True, info=str(e),
+                              return_code="failed_creating_corpus_dir"), 500
 
 
 @bp.route("/list-corpora", methods=["GET"])
 @login.login(require_corpus_id=False, require_corpus_exists=False)
 def list_corpora(corpora: list):
     """List all available corpora."""
-    return utils.response("Listing available corpora", corpora=corpora)
+    return utils.response("Listing available corpora", corpora=corpora, return_code="listing_corpora")
 
 
 @bp.route("/list-korp-corpora", methods=["GET"])
@@ -82,8 +86,10 @@ def list_korp_corpora(corpora: list):
             if job.installed_korp:
                 installed_corpora.append(job.corpus_id)
     except Exception as e:
-        return utils.response(f"Failed to list corpora installed in Korp", err=True, info=str(e)), 500
-    return utils.response("Listing corpora installed in Korp", corpora=installed_corpora)
+        return utils.response(f"Failed to list corpora installed in Korp", err=True, info=str(e),
+                              return_code="failed_listing_korp_corpora"), 500
+    return utils.response("Listing corpora installed in Korp", corpora=installed_corpora,
+                          return_code="listing_korp_corpora")
 
 
 @bp.route("/remove-corpus", methods=["DELETE"])
@@ -98,32 +104,37 @@ def remove_corpus(corpus_id: str):
             # Uninstall corpus using Sparv
             job.uninstall_korp()
         except Exception as e:
-            return utils.response(f"Failed to remove corpus '{corpus_id}' from Korp", err=True, info=str(e)), 500
+            return utils.response(f"Failed to remove corpus '{corpus_id}' from Korp", err=True, info=str(e),
+                                  return_code="failed_removing_korp"), 500
     if job.installed_strix:
         try:
             # Uninstall corpus using Sparv
             job.uninstall_strix()
         except Exception as e:
-            return utils.response(f"Failed to remove corpus '{corpus_id}' from Strix", err=True, info=str(e)), 500
+            return utils.response(f"Failed to remove corpus '{corpus_id}' from Strix", err=True, info=str(e),
+                                  return_code="failed_removing_strix"), 500
 
     try:
         # Remove from storage
         corpus_dir = str(storage.get_corpus_dir(corpus_id))
         storage.remove_dir(corpus_dir, corpus_id)
     except Exception as e:
-        return utils.response(f"Failed to remove corpus '{corpus_id}' from storage", err=True, info=str(e)), 500
+        return utils.response(f"Failed to remove corpus '{corpus_id}' from storage", err=True, info=str(e),
+                              return_code="failed_removing_storage"), 500
 
     try:
         # Remove job
         job.remove()
     except Exception as e:
-        return utils.response(f"Failed to remove job for corpus '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to remove job for corpus '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_removing_job"), 500
 
     try:
         # Remove from auth system
         login.remove_resource(corpus_id)
     except Exception as e:
-        return utils.response(f"Failed to remove corpus '{corpus_id}' from auth system", err=True, info=str(e)), 500
+        return utils.response(f"Failed to remove corpus '{corpus_id}' from authentication system", err=True,
+                              info=str(e), return_code="failed_removing_auth"), 500
 
     try:
         # Remove from corpus registry
@@ -131,7 +142,7 @@ def remove_corpus(corpus_id: str):
     except Exception as e:
         app.logger.error(f"Failed to remove corpus '{corpus_id}' from corpus registry: {e}")
 
-    return utils.response(f"Corpus '{corpus_id}' successfully removed")
+    return utils.response(f"Corpus '{corpus_id}' successfully removed", return_code="removed_corpus")
 
 
 # ------------------------------------------------------------------------------
@@ -148,7 +159,8 @@ def upload_sources(corpus_id: str):
     # Check if corpus files were provided
     files = list(request.files.listvalues())
     if not files:
-        return utils.response("No corpus files provided for upload", err=True), 400
+        return utils.response("No corpus files provided for upload", err=True,
+                              return_code="missing_sources_upload"), 400
 
     # Check request size constraint
     try:
@@ -157,9 +169,12 @@ def upload_sources(corpus_id: str):
             h_max_size = str(round(app.config.get("MAX_CORPUS_LENGTH", 0) / 1024 / 1024, 2))
             return utils.response(f"Failed to upload source files to '{corpus_id}'. "
                                   f"Max corpus size ({h_max_size} MB) exceeded",
-                                  err=True, max_corpus_size=app.config.get("MAX_CORPUS_LENGTH")), 403
+                                  info="max corpus size exceeded",
+                                  err=True, max_corpus_size=app.config.get("MAX_CORPUS_LENGTH"),
+                                  return_code="failed_uploading_sources_corpus_size"), 403
     except Exception as e:
-        return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_uploading_sources"), 500
 
     try:
         h_max_file_size = str(round(app.config.get("MAX_FILE_LENGTH", 0) / 1024 / 1024, 2))
@@ -168,29 +183,36 @@ def upload_sources(corpus_id: str):
             name = sparv_utils.secure_filename(f.filename)
             if not utils.check_file_ext(name, app.config.get("SPARV_IMPORTER_MODULES", {}).keys()):
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid "
-                                      "file extension", err=True, file=f.filename, info="invalid file extension"), 400
+                                      "file extension", err=True, file=f.filename, info="invalid file extension",
+                                      return_code="failed_uploading_sources_invalid_file_extension"), 400
             compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir)
             if not compatible:
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to incompatible "
                                       "file extensions", err=True, file=f.filename, info="incompatible file extensions",
-                                      current_file_extension=current_ext, existing_file_extension=existing_ext), 400
+                                      current_file_extension=current_ext, existing_file_extension=existing_ext,
+                                      return_code="failed_uploading_sources_incompatible_file_extension"), 400
             file_contents = f.read()
 
             # Check file size constraint
             if len(file_contents) > app.config.get("MAX_FILE_LENGTH"):
                 return utils.response(f"Failed to upload some source files to '{corpus_id}'. "
                                       f"Max file size ({h_max_file_size} MB) exceeded",
-                                      err=True, file=f.filename, max_file_size=app.config.get("MAX_FILE_LENGTH")), 403
+                                      info="max file size exceeded",
+                                      err=True, file=f.filename, max_file_size=app.config.get("MAX_FILE_LENGTH"),
+                                      return_code="failed_uploading_sources_file_size"), 403
 
             # Validate XML files
             if current_ext == ".xml":
                 if not utils.validate_xml(file_contents):
                     return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid XML",
-                                          err=True, file=f.filename, info="invalid XML"), 400
+                                          err=True, file=f.filename, info="invalid XML",
+                                          return_code="failed_uploading_sources_invalid_xml"), 400
             storage.write_file_contents(str(source_dir / name), file_contents, corpus_id)
-        return utils.response(f"Source files successfully added to '{corpus_id}'")
+        return utils.response(f"Source files successfully added to '{corpus_id}'",
+                              return_code="uploaded_sources")
     except Exception as e:
-        return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_uploading_sources"), 500
 
 
 @bp.route("/list-sources", methods=["GET"])
@@ -200,9 +222,11 @@ def list_sources(corpus_id: str):
     source_dir = str(storage.get_source_dir(corpus_id))
     try:
         objlist = storage.list_contents(source_dir)
-        return utils.response(f"Listing current source files for '{corpus_id}'", contents=objlist)
+        return utils.response(f"Listing current source files for '{corpus_id}'", contents=objlist,
+                              return_code="listing_sources")
     except Exception as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+                              retrun_code="failed_listing_sources"), 500
 
 
 @bp.route("/remove-sources", methods=["DELETE"])
@@ -212,7 +236,8 @@ def remove_sources(corpus_id: str):
     remove_files = request.args.get("remove") or request.form.get("remove") or ""
     remove_files = [i.strip() for i in remove_files.split(",") if i]
     if not remove_files:
-        return utils.response("No files provided for removal", err=True), 400
+        return utils.response("No files provided for removal", err=True,
+                              return_code="missing_sources_remove"), 400
 
     source_dir = storage.get_source_dir(corpus_id)
 
@@ -229,11 +254,13 @@ def remove_sources(corpus_id: str):
 
     if fails and successes:
         return utils.response(f"Failed to remove some source files form '{corpus_id}'",
-                              failed=fails, succeeded=successes, err=True), 500
+                              failed=fails, succeeded=successes, err=True,
+                              return_code="failed_removing_some_sources"), 500
     if fails:
-        return utils.response("Failed to remove files form '{corpus_id}'", err=True), 500
+        return utils.response(f"Failed to remove source files form '{corpus_id}'", err=True,
+                              return_code="failed_removing_sources"), 500
 
-    return utils.response(f"Source files for '{corpus_id}' successfully removed")
+    return utils.response(f"Source files for '{corpus_id}' successfully removed", return_code="removed_sources")
 
 
 @bp.route("/download-sources", methods=["GET"])
@@ -253,9 +280,11 @@ def download_sources(corpus_id: str):
     try:
         source_contents = storage.list_contents(storage_source_dir, exclude_dirs=False)
         if source_contents == []:
-            return utils.response(f"You have not uploaded any source files for corpus '{corpus_id}'", err=True), 404
+            return utils.response(f"You have not uploaded any source files for corpus '{corpus_id}'", err=True,
+                                  return_code="missing_sources_download"), 404
     except Exception as e:
-        return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_listing_sources"), 500
 
     local_source_dir = utils.get_source_dir(corpus_id, mkdir=True)
     local_corpus_dir = utils.get_corpus_dir(corpus_id, mkdir=True)
@@ -266,7 +295,7 @@ def download_sources(corpus_id: str):
         full_download_file = str(Path(storage_source_dir) / download_file)
         if download_file not in [i.get("path") for i in source_contents]:
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
-                                  err=True), 404
+                                  err=True, return_code="source_not_found"), 404
         try:
             local_path = local_source_dir / download_file_name
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
@@ -285,7 +314,8 @@ def download_sources(corpus_id: str):
                         break
                 return send_file(local_path, mimetype=content_type)
         except Exception as e:
-            return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e),
+                                  return_code="failed_downloading_source"), 500
 
     # Download all files as zip archive
     try:
@@ -295,7 +325,7 @@ def download_sources(corpus_id: str):
         return send_file(zip_out, mimetype="application/zip")
     except Exception as e:
         return utils.response(f"Failed to download source files for corpus '{corpus_id}'", err=True,
-                              info=str(e)), 500
+                              info=str(e), return_code="failed_downloading_sources"), 500
 
 
 # ------------------------------------------------------------------------------
@@ -311,7 +341,7 @@ def upload_config(corpus_id: str):
 
     if attached_files and config_txt:
         return utils.response("Found both a config file and a plain text config but can only process one of these",
-                              err=True), 400
+                              err=True, return_code="too_many_params_upload_config"), 400
 
     source_dir = str(storage.get_source_dir(corpus_id))
     source_files = storage.list_contents(str(source_dir))
@@ -321,7 +351,7 @@ def upload_config(corpus_id: str):
         # Check if config file is YAML
         config_file = attached_files[0]
         if config_file.mimetype not in ("application/x-yaml", "text/yaml"):
-            return utils.response("Config file needs to be YAML", err=True), 400
+            return utils.response("Config file needs to be YAML", err=True, return_code="wrong_config_format"), 400
 
         config_contents = config_file.read()
 
@@ -334,9 +364,11 @@ def upload_config(corpus_id: str):
         try:
             new_config = utils.standardize_config(config_contents, corpus_id)
             storage.write_file_contents(str(storage.get_config_file(corpus_id)), new_config.encode("UTF-8"), corpus_id)
-            return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
+            return utils.response(f"Config file successfully uploaded for '{corpus_id}'",
+                                  return_code="uploaded_config"), 201
         except Exception as e:
-            return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e),
+                                  return_code="failed_uploading_config"), 500
 
     elif config_txt:
         try:
@@ -347,12 +379,14 @@ def upload_config(corpus_id: str):
                     return resp, 400
             new_config = utils.standardize_config(config_txt, corpus_id)
             storage.write_file_contents(str(storage.get_config_file(corpus_id)), new_config.encode("UTF-8"), corpus_id)
-            return utils.response(f"Config file successfully uploaded for '{corpus_id}'"), 201
+            return utils.response(f"Config file successfully uploaded for '{corpus_id}'",
+                                  return_code="uploaded_config"), 201
         except Exception as e:
-            return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to upload config file for '{corpus_id}'", err=True, info=str(e),
+                                  return_code="failed_uploading_config"), 500
 
     else:
-        return utils.response("No config file provided for upload", err=True), 400
+        return utils.response("No config file provided for upload", err=True, return_code="missing_config_upload"), 400
 
 
 @bp.route("/download-config", methods=["GET"])
@@ -368,9 +402,11 @@ def download_config(corpus_id: str):
         if storage.download_file(storage_config_file, local_config_file, corpus_id, ignore_missing=True):
             return send_file(local_config_file, mimetype="text/yaml")
         else:
-            return utils.response(f"No config file found for corpus '{corpus_id}'", err=True), 404
+            return utils.response(f"No config file found for corpus '{corpus_id}'", err=True,
+                                  return_code="config_not_found"), 404
     except Exception as e:
-        return utils.response(f"Failed to download config file for corpus '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to download config file for corpus '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_downloading_config"), 500
 
 
 # ------------------------------------------------------------------------------
@@ -384,9 +420,11 @@ def list_exports(corpus_id: str):
     path = str(storage.get_export_dir(corpus_id))
     try:
         objlist = storage.list_contents(path, blacklist=app.config.get("SPARV_EXPORT_BLACKLIST"))
-        return utils.response(f"Listing current export files for '{corpus_id}'", contents=objlist)
+        return utils.response(f"Listing current export files for '{corpus_id}'", contents=objlist,
+                              return_code="listing_exports")
     except Exception as e:
-        return utils.response(f"Failed to list files in '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to list export files in '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_listing_exports"), 500
 
 
 @bp.route("/download-exports", methods=["GET"])
@@ -402,7 +440,8 @@ def download_export(corpus_id: str):
     download_folder = request.args.get("dir") or request.form.get("dir") or ""
 
     if download_file and download_folder:
-        return utils.response("The parameters 'dir' and 'file' must not be supplied simultaneously", err=True), 400
+        return utils.response("The parameters 'dir' and 'file' must not be supplied simultaneously", err=True,
+                              return_code="too_many_params_download_exports"), 400
 
     storage_export_dir = str(storage.get_export_dir(corpus_id))
     local_corpus_dir = utils.get_corpus_dir(corpus_id, mkdir=True)
@@ -412,9 +451,11 @@ def download_export(corpus_id: str):
     try:
         export_contents = storage.list_contents(storage_export_dir, exclude_dirs=False, blacklist=blacklist)
         if export_contents == []:
-            return utils.response(f"There are currently no exports available for corpus '{corpus_id}'", err=True), 404
+            return utils.response(f"There are currently no exports available for corpus '{corpus_id}'", err=True,
+                                  return_code="no_exports_available"), 404
     except Exception as e:
-        return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_downloading_exports"), 500
 
     # Download all export files
     if not (download_file or download_folder):
@@ -425,7 +466,8 @@ def download_export(corpus_id: str):
                                  excludes=blacklist)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
-            return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to download exports for corpus '{corpus_id}'", err=True, info=str(e),
+                                  return_code="failed_downloading_exports"), 500
 
     # Download and zip folder specified in args
     if download_folder:
@@ -433,7 +475,7 @@ def download_export(corpus_id: str):
         full_download_folder = str(Path(storage_export_dir) / download_folder)
         if download_folder not in [i.get("path") for i in export_contents]:
             return utils.response(f"The folder '{download_folder}' you are trying to download does not exist",
-                                  err=True), 404
+                                  err=True, return_code="export_folder_not_found"), 404
         try:
             zip_out = str(local_corpus_dir / f"{corpus_id}_{download_folder_name}.zip")
             (local_export_dir / download_folder).mkdir(exist_ok=True)
@@ -441,7 +483,8 @@ def download_export(corpus_id: str):
                                  zipped=True, zippath=zip_out)
             return send_file(zip_out, mimetype="application/zip")
         except Exception as e:
-            return utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to download folder '{download_folder}'", err=True, info=str(e),
+                                  return_code="failed_downloading_export_folder"), 500
 
     # Download and zip file specified in args
     if download_file:
@@ -449,7 +492,7 @@ def download_export(corpus_id: str):
         full_download_file = str(Path(storage_export_dir) / download_file)
         if download_file not in [i.get("path") for i in export_contents]:
             return utils.response(f"The file '{download_file}' you are trying to download does not exist",
-                                  err=True), 404
+                                  err=True, file=str(download_file), return_code="export_not_found"), 404
         try:
             local_path = local_export_dir / download_file
             (local_export_dir / download_file).parent.mkdir(exist_ok=True)
@@ -470,7 +513,8 @@ def download_export(corpus_id: str):
                         break
                 return send_file(local_path, mimetype=content_type)
         except Exception as e:
-            return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to download file '{download_file}'", err=True, info=str(e),
+                                  file=str(download_file), return_code="failed_downloading_export"), 500
 
 
 @bp.route("/remove-exports", methods=["DELETE"])
@@ -485,7 +529,7 @@ def remove_exports(corpus_id: str):
             storage.get_export_dir(corpus_id, mkdir=True)
         except Exception as e:
             return utils.response(f"Failed to remove export files from storage server for corpus '{corpus_id}'",
-                                  err=True, info=str(e)), 500
+                                  err=True, info=str(e), return_code="failed_removing_exports_storage"), 500
 
     try:
         # Remove from Sparv server
@@ -493,12 +537,12 @@ def remove_exports(corpus_id: str):
         success, sparv_output = job.clean_export()
         if not success:
             return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'", err=True,
-                                  info=str(sparv_output)), 500
+                                  info=str(sparv_output), return_code="failed_removing_exports_sparv"), 500
     except Exception as e:
         return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'", err=True,
-                              info=str(e)), 500
+                              info=str(e), return_code="failed_removing_exports_sparv"), 500
 
-    return utils.response(f"Export files for corpus '{corpus_id}' successfully removed")
+    return utils.response(f"Export files for corpus '{corpus_id}' successfully removed", return_code="removed_exports")
 
 
 @bp.route("/download-source-text", methods=["GET"])
@@ -514,22 +558,25 @@ def download_source_text(corpus_id: str):
     local_corpus_dir = str(utils.get_corpus_dir(corpus_id, mkdir=True))
 
     if not download_file:
-        return utils.response("No source file specified for download", err=True), 400
+        return utils.response("No source file specified for download", err=True,
+                              return_code="missing_sources_download_text"), 400
 
     try:
         source_texts = storage.list_contents(storage_work_dir, exclude_dirs=False)
         if source_texts == []:
-            return utils.response((f"There are currently no source texts for corpus '{corpus_id}'. "
-                                   "You must run Sparv before you can view source texts."), err=True), 404
+            return utils.response(f"There are currently no source texts for corpus '{corpus_id}'. "
+                                   "You must run Sparv before you can view source texts.", err=True,
+                                   return_code="no_source_texts_run_sparv"), 404
     except Exception as e:
-        return utils.response(f"Failed to download source text for corpus '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e),
+                              return_code="failed_downloading_source_text"), 500
 
     # Download file specified in args
     download_file_stem = Path(download_file).stem
     short_path = str(Path(download_file_stem) / app.config.get("SPARV_PLAIN_TEXT_FILE"))
     if short_path not in [i.get("path") for i in source_texts]:
         return utils.response(f"The source text for the file '{download_file}' does not exist",
-                              err=True), 404
+                              err=True, return_code="source_text_not_found"), 404
     try:
         full_download_path = str(Path(storage_work_dir) / Path(download_file).parent / download_file_stem /
                                 app.config.get("SPARV_PLAIN_TEXT_FILE"))
@@ -539,7 +586,8 @@ def download_source_text(corpus_id: str):
         utils.uncompress_gzip(local_path)
         return send_file(local_path, mimetype="text/plain")
     except Exception as e:
-        return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to download source text for file '{download_file}'", err=True, info=str(e),
+                              return_code="failed_downloading_source_text"), 500
 
 
 @bp.route("/check-changes", methods=["GET"])
@@ -549,7 +597,8 @@ def check_changes(corpus_id: str):
     try:
         job = jobs.get_job(corpus_id)
     except Exception as e:
-        return utils.response(f"Failed to get job for corpus '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to get job for corpus '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_getting_job"), 500
     try:
         added_sources, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
         if added_sources or changed_sources or deleted_sources or changed_config:
@@ -558,15 +607,18 @@ def check_changes(corpus_id: str):
                                   sources_changed=bool(changed_sources), sources_deleted=bool(deleted_sources),
                                   changed_config=changed_config, added_sources=added_sources,
                                   changed_sources=changed_sources, deleted_sources=deleted_sources,
-                                  last_run_started=job.started)
+                                  last_run_started=job.started,
+                                  return_code="input_changed")
         return utils.response(f"Your input for the corpus '{corpus_id}' has not changed since the last run",
-                              last_run_started=job.started)
+                              last_run_started=job.started, return_code="input_not_changed")
 
     except exceptions.JobNotFound:
-        return utils.response(f"Corpus '{corpus_id}' has not been run")
+        return utils.response(f"Corpus '{corpus_id}' has not been run", return_code="corpus_not_run")
 
     except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_listing_sources"), 500
 
     except Exception as e:
-        return utils.response(f"Failed to check changes for corpus '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to check changes for corpus '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_checking_changes"), 500

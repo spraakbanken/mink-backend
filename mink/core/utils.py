@@ -131,7 +131,8 @@ def config_compatible(config, source_file):
     if current_importer == expected_importer:
         return True, None
     return False, response("The importer in your config file is not compatible with your source files",
-                            err=True, current_importer=current_importer, expected_importer=expected_importer)
+                            err=True, current_importer=current_importer, expected_importer=expected_importer,
+                            return_code="incompatible_config_importer")
 
 
 def standardize_config(config, corpus_id):

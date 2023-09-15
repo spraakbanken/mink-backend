@@ -121,4 +121,5 @@ def info():
                           status_codes=status_codes,
                           importer_modules=importer_modules,
                           file_size_limits=file_size_limits,
-                          recommended_file_size=recommended_file_size)
+                          recommended_file_size=recommended_file_size,
+                          return_code="listing_info")
