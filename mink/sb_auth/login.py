@@ -15,7 +15,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import g, request, session
 
-from mink import corpus_registry, exceptions, utils
+from mink.core import corpus_registry, exceptions, utils
 
 bp = Blueprint("sb_auth_login", __name__)
 
@@ -38,20 +38,24 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 
             auth_header = request.headers.get("Authorization")
             if not auth_header:
-                return utils.response("No login credentials provided", err=True), 401
+                return utils.response("No login credentials provided", err=True,
+                                      return_code="missing_login_credentials"), 401
             try:
                 auth_token = auth_header.split(" ")[1]
             except Exception:
-                return utils.response("No authorization token provided", err=True), 401
+                return utils.response("No authorization token provided", err=True,
+                                      return_code="missing_auth_token"), 401
 
             try:
                 user_id, corpora, mink_admin, username, email = _get_corpora(auth_token, include_read)
                 contact = f"{username} <{email}>"
             except Exception as e:
-                return utils.response("Failed to authenticate", err=True, info=str(e)), 401
+                return utils.response("Failed to authenticate", err=True, info=str(e),
+                                      return_code="failed_authenticating"), 401
 
             if require_admin and not mink_admin:
-                    return utils.response("Mink admin status could not be confirmed", err=True), 401
+                    return utils.response("Mink admin status could not be confirmed", err=True,
+                                          return_code="not_admin"), 401
 
             # Give access to all corpora if admin mode is on and user is mink admin
             if session.get("admin_mode") and mink_admin:
@@ -71,7 +75,7 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
                 # Check if corpus ID was provided
                 corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
                 if not corpus_id:
-                    return utils.response("No corpus ID provided", err=True), 400
+                    return utils.response("No corpus ID provided", err=True, return_code="missing_corpus_id"), 400
 
                 # Check if corpus exists
                 if not require_corpus_exists:
@@ -82,7 +86,7 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
                 # Check if user is admin for corpus
                 if corpus_id not in corpora:
                     return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
-                                          err=True), 404
+                                          err=True, return_code="corpus_not_found"), 404
                 return function(**{k: v for k, v in {"user_id": user_id, "contact": contact, "corpora": corpora,
                                                      "corpus_id": corpus_id, "auth_token": auth_token
                                                     }.items() if k in params})
@@ -90,7 +94,8 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
             # Catch everything else and return a traceback
             except Exception as e:
                 traceback_str = f"{e}: {''.join(traceback.format_tb(e.__traceback__))}"
-                return utils.response("Something went wrong", err=True, info=traceback_str), 500
+                return utils.response("Something went wrong", err=True, info=traceback_str,
+                                      return_code="something_went_wrong"), 500
 
         return wrapper
     return decorator
@@ -100,21 +105,22 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 @login(require_corpus_exists=False, require_corpus_id=False, require_admin=True)
 def admin_mode_on():
     session["admin_mode"] = True
-    return utils.response("Admin mode turned on")
+    return utils.response("Admin mode turned on", return_code="admin_on")
 
 
 @bp.route("/admin-mode-off", methods=["POST"])
 @login(require_corpus_exists=False, require_corpus_id=False)
 def admin_mode_off():
     session["admin_mode"] = False
-    return utils.response("Admin mode turned off")
+    return utils.response("Admin mode turned off", return_code="admin_off")
 
 
 @bp.route("/admin-mode-status", methods=["GET"])
 @login(require_corpus_exists=False, require_corpus_id=False)
 def admin_mode_status():
     admin_status = session.get("admin_mode", False)
-    return utils.response("Returning status of admin mode", admin_mode_status=admin_status)
+    return utils.response("Returning status of admin mode", admin_mode_status=admin_status,
+                          return_code="returning_admin_status")
 
 
 def read_jwt_key():
@@ -128,7 +134,7 @@ def _get_corpora(auth_token, include_read=False):
     mink_admin = False
     user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
     if user_token["exp"] < time.time():
-        return utils.response("The provided JWT has expired", err=True), 401
+        return utils.response("The provided JWT has expired", err=True, return_code="jwt_expired"), 401
 
     min_level = "WRITE"
     if include_read:

@@ -6,7 +6,8 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request, session
 
-from mink import exceptions, jobs, queue, utils
+from mink.core import exceptions, jobs, queue, utils
+from mink.core.status import JobStatuses, ProcessName, Status
 from mink.sb_auth import login
 from mink.sparv import storage
 
@@ -29,10 +30,11 @@ def run_sparv(user_id: str, contact: str, corpus_id: str):
     try:
         source_files = storage.list_contents(source_dir)
     except Exception as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_listing_sources"), 500
 
     if not source_files:
-        return utils.response(f"No source files found for '{corpus_id}'", err=True), 404
+        return utils.response(f"No source files found for '{corpus_id}'", err=True, return_code="no_sources_found"), 404
 
     # Check compatibility between source files and config
     try:
@@ -43,43 +45,49 @@ def run_sparv(user_id: str, contact: str, corpus_id: str):
             if not compatible:
                 return resp, 400
     except Exception as e:
-        return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_getting_config"), 500
 
     # Get job, check for changes and remove exports if necessary
-    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, sparv_exports=sparv_exports, files=files,
-                       available_files=source_files)
     try:
-        _, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
-        if changed_sources or deleted_sources or changed_config:
+        old_job = jobs.get_job(corpus_id)
+        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        if deleted_sources or changed_config:
             try:
-                success, sparv_output = job.clean_export()
+                success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
                 return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
-                                    "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output), 500
+                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
+                                      return_code="failed_removing_exports"), 500
     except exceptions.JobNotFound:
         pass
     except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_listing_sources"), 500
 
+    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, sparv_exports=sparv_exports, files=files,
+                       available_files=source_files)
     # Queue job
     job.reset_time()
     try:
         job = queue.add(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_queuing"), 500
 
     # Check that all required files are present
     job.check_requirements()
 
     if storage.local:
-        job.set_status(jobs.Status.waiting)
+        job.set_status(Status.waiting, ProcessName.sparv)
     else:
         # Sync files
         try:
             job.sync_to_sparv()
         except Exception as e:
-            return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e),
+                                  return_code="failed_starting_job"), 500
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
@@ -106,25 +114,32 @@ def advance_queue():
     for job in running_jobs:
         try:
             if not job.process_running():
-                running_jobs.remove(job)
+                job.abort_sparv()
+                queue.pop(job)
         except Exception as e:
             app.logger.error(f"Failed to check if process is running for '{job.corpus_id}' {str(e)}")
 
+    # Get running jobs again in case jobs were unqueued in the previous step
+    running_jobs, waiting_jobs = queue.get_running_waiting()
     # If there are fewer running jobs than allowed, start the next one in the queue
     while waiting_jobs and len(running_jobs) < app.config.get("SPARV_WORKERS", 1):
         job = waiting_jobs.pop(0)
         try:
-            if job.status == jobs.Status.waiting:
-                job.run_sparv()
-                app.logger.info(f"Started annotation process for '{job.corpus_id}'")
-            elif job.status == jobs.Status.waiting_install:
-                job.install_korp()
-                app.logger.info(f"Started installation process for '{job.corpus_id}'")
+            if job.status.is_waiting():
+                if job.current_process == ProcessName.sparv.name:
+                    job.run_sparv()
+                    app.logger.info(f"Started annotation process for '{job.corpus_id}'")
+                elif job.current_process == ProcessName.korp.name:
+                    job.install_korp()
+                    app.logger.info(f"Started Korp installation process for '{job.corpus_id}'")
+                elif job.current_process == ProcessName.strix.name:
+                    job.install_strix()
+                    app.logger.info(f"Started Strix installation process for '{job.corpus_id}'")
             running_jobs.append(job)
         except Exception as e:
             app.logger.error(f"Failed to run Sparv on '{job.corpus_id}' {str(e)}")
 
-    return utils.response("Queue advancing completed")
+    return utils.response("Queue advancing completed", return_code="advanced_queue")
 
 
 @bp.route("/check-status", methods=["GET"])
@@ -137,14 +152,16 @@ def check_status(corpora: list):
             # Check if corpus exists
             if corpus_id not in corpora:
                 return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
-                                      err=True), 404
+                                      err=True, return_code="corpus_not_found"), 404
             job = queue.get_job_by_corpus_id(corpus_id)
             if not job:
-                return utils.response(f"There is no active job for '{corpus_id}'", job_status=jobs.Status.none.name)
+                return utils.response(f"There is no active job for '{corpus_id}'", job_status=JobStatuses().dump(),
+                                      return_code="no_active_job")
 
             return make_status_response(job, admin=session.get("admin_mode", False))
         except Exception as e:
-            return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e),
+                                  return_code="failed_getting_job_status"), 500
 
     try:
         # Get all job statuses for this user's corpora
@@ -158,9 +175,10 @@ def check_status(corpora: list):
             job_status.update(resp.get_json())
             job_status.pop("status")
             job_list.append(job_status)
-        return utils.response("Listing jobs", jobs=job_list)
+        return utils.response("Listing jobs", jobs=job_list, return_code="listing_jobs")
     except Exception as e:
-        return utils.response("Failed to get job statuses", err=True, info=str(e)), 500
+        return utils.response("Failed to get job statuses", err=True, info=str(e),
+                              return_code="failed_getting_job_statuses"), 500
 
 
 @bp.route("/abort-job", methods=["POST"])
@@ -169,27 +187,32 @@ def abort_job(corpus_id: str):
     """Try to abort a running job."""
     job = jobs.get_job(corpus_id)
     # Syncing
-    if jobs.Status.is_syncing(job.status):
-        return utils.response(f"Cannot abort job while syncing files", job_status=job.status.name), 503
+    if job.status.is_syncing():
+        return utils.response(f"Cannot abort job while syncing files", job_status=job.status.dump(),
+                              return_code="failed_aborting_job_syncing"), 503
     # Waiting
-    if jobs.Status.is_waiting(job.status):
+    if job.status.is_waiting():
         try:
-            queue.remove(job)
-            job.set_status(job.status.aborted)
-            return utils.response(f"Successfully unqueued job for '{corpus_id}'", job_status=job.status.name)
+            queue.pop(job)
+            job.set_status(Status.aborted)
+            return utils.response(f"Successfully aborted job for '{corpus_id}'", job_status=job.status.dump(),
+                                  return_code="aborted_job")
         except Exception as e:
-            return utils.response(f"Failed to unqueue job for '{corpus_id}'", err=True, info=str(e)), 500
+            return utils.response(f"Failed to unqueue job for '{corpus_id}'", err=True, info=str(e),
+                                  return_code="failed_unqueuing_job"), 500
     # No running job
-    if not jobs.Status.is_running(job.status):
-        return utils.response(f"No running job found for '{corpus_id}'")
+    if not job.status.is_running():
+        return utils.response(f"No running job found for '{corpus_id}'", return_code="no_running_job")
     # Running job, try to abort
     try:
         job.abort_sparv()
     except exceptions.ProcessNotRunning:
         return utils.response(f"No running job found for '{corpus_id}'")
     except Exception as e:
-        return utils.response(f"Failed to abort job for '{corpus_id}'", err=True, info=str(e)), 500
-    return utils.response(f"Successfully aborted running job for '{corpus_id}'", job_status=job.status.name)
+        return utils.response(f"Failed to abort job for '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_aborting_job"), 500
+    return utils.response(f"Successfully aborted job for '{corpus_id}'", job_status=job.status.dump(),
+                          return_code="aborted_job")
 
 
 @bp.route("/clear-annotations", methods=["DELETE"])
@@ -198,49 +221,94 @@ def clear_annotations(corpus_id: str):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
     job = jobs.get_job(corpus_id)
-    if jobs.Status.is_running(job.status):
-        return utils.response("Cannot clear annotations while a job is running", err=True), 503
+    if job.status.is_running():
+        return utils.response("Cannot clear annotations while a job is running", err=True,
+                              return_code="failed_clearing_annotations_job_running"), 503
 
     try:
         sparv_output = job.clean()
-        return utils.response(f"Annotations for '{corpus_id}' successfully removed", sparv_output=sparv_output)
+        return utils.response(f"Annotations for '{corpus_id}' successfully removed", sparv_output=sparv_output,
+                              return_code="removed_annotations")
     except Exception as e:
-        return utils.response("Failed to clear annotations", err=True, info=str(e)), 500
+        return utils.response("Failed to clear annotations", err=True, info=str(e),
+                              return_code="failed_clearing_annotations"), 500
 
 
-@bp.route("/install-corpus", methods=["PUT"])
+@bp.route("/install-korp", methods=["PUT"])
 @login.login()
-def install_corpus(user_id: str, contact: str, corpus_id: str):
-    """Install a corpus on Korp with Sparv."""
+def install_korp(user_id: str, contact: str, corpus_id: str):
+    """Install a corpus in Korp with Sparv."""
     # Get info about whether the corpus should be scrambled in Korp. Default to not scrambling.
     scramble = request.args.get("scramble", "") or request.form.get("scramble", "")
     scramble = scramble.lower() == "true"
 
     # Get job, check for changes and remove exports if necessary
-    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, install_scrambled=scramble)
     try:
-        _, changed_sources, deleted_sources, changed_config = storage.get_file_changes(corpus_id, job)
-        if changed_sources or deleted_sources or changed_config:
+        old_job = jobs.get_job(corpus_id)
+        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        if deleted_sources or changed_config:
             try:
-                success, sparv_output = job.clean_export()
+                success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
                 return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
-                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output), 500
+                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
+                                      return_code="failed_removing_exports"), 500
     except exceptions.JobNotFound:
         pass
     except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_listing_sources"), 500
 
     # Queue job
+    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact, install_scrambled=scramble)
     job.reset_time()
     job.set_install_scrambled(scramble)
     try:
-        job = queue.add(job, install=True)
+        job = queue.add(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e)), 500
+        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_queuing"), 500
 
-    job.set_status(jobs.Status.waiting_install)
+    job.set_status(Status.waiting, ProcessName.korp)
+
+    # Wait a few seconds to check whether anything terminated early
+    time.sleep(3)
+    return make_status_response(job)
+
+
+@bp.route("/install-strix", methods=["PUT"])
+@login.login()
+def install_strix(user_id: str, contact: str, corpus_id: str):
+    """Install a corpus in Strix with Sparv."""
+    # Get job, check for changes and remove exports if necessary
+    try:
+        old_job = jobs.get_job(corpus_id)
+        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        if deleted_sources or changed_config:
+            try:
+                success, sparv_output = old_job.clean_export()
+                assert success
+            except Exception as e:
+                return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
+                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
+                                      return_code="failed_removing_exports"), 500
+    except exceptions.JobNotFound:
+        pass
+    except exceptions.CouldNotListSources as e:
+        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_listing_sources"), 500
+
+    # Queue job
+    job = jobs.get_job(corpus_id, user_id=user_id, contact=contact)
+    job.reset_time()
+    try:
+        job = queue.add(job)
+    except Exception as e:
+        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e),
+                              return_code="failed_queuing"), 500
+
+    job.set_status(Status.waiting, ProcessName.strix)
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
@@ -250,13 +318,15 @@ def install_corpus(user_id: str, contact: str, corpus_id: str):
 def make_status_response(job, admin=False):
     """Check the annotation status for a given corpus and return response."""
     status = job.status
-    job_attrs = {"job_status": status.name, "sparv_exports": job.sparv_exports, "available_files": job.available_files,
-                 "installed_korp": job.installed_korp}
+    job_attrs = {"job_status": status.dump(), "sparv_exports": job.sparv_exports,
+                 "available_files": job.available_files, "installed_korp": job.installed_korp}
     warnings, errors, misc_output = job.get_output()
 
     job_attrs["files"] = job.files or ""
     if job.install_scrambled is not None:
         job_attrs["install_scrambled"] = job.install_scrambled
+    if job.current_process is not None:
+        job_attrs["current_process"] = job.current_process
     job_attrs["seconds_taken"] = job.seconds_taken or ""
     job_attrs["last_run_started"] = job.started or ""
     job_attrs["last_run_ended"] = job.done or ""
@@ -265,56 +335,48 @@ def make_status_response(job, admin=False):
     if admin:
         job_attrs["user"] = job.contact
 
-    if status == jobs.Status.none:
-        return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.name)
+    if status.is_none():
+        return utils.response(f"There is no active job for '{job.corpus_id}'", job_status=status.dump(),
+                              return_code="no_active_job")
 
-    if status == jobs.Status.syncing_corpus:
-        return utils.response("Corpus files are being synced to the Sparv server", **job_attrs)
+    if status.is_syncing():
+        return utils.response("Files are being synced", **job_attrs,
+                              return_code="syncing_files")
 
-    if status == jobs.Status.waiting:
-        return utils.response("Job has been queued for annotation", **job_attrs, priority=queue.get_priority(job))
+    if status.is_waiting():
+        return utils.response("Job has been queued", **job_attrs, priority=queue.get_priority(job),
+                              return_code="job_queued")
 
-    if status == jobs.Status.waiting_install:
-        return utils.response("Job has been queued for installation", **job_attrs, priority=queue.get_priority(job))
+    if status.is_aborted(job.current_process):
+        return utils.response("Job was aborted by the user", **job_attrs,
+                              return_code="job_aborted_by_user")
 
-    if status == jobs.Status.aborted:
-        return utils.response("Job was aborted by the user", **job_attrs)
-
-    if status == jobs.Status.annotating:
-        return utils.response("Sparv is running", warnings=warnings, errors=errors, sparv_output=misc_output,
-                              **job_attrs)
+    if status.is_running():
+        return utils.response("Job is running", warnings=warnings, errors=errors, sparv_output=misc_output,
+                              **job_attrs, return_code="job_running")
 
     # If done annotating, retrieve exports from Sparv
-    if status == jobs.Status.done_annotating and not admin:
+    if status.is_done(ProcessName.sparv) and not admin:
         try:
             job.sync_results()
         except Exception as e:
             return utils.response("Sparv was run successfully but exports failed to upload to the storage server",
-                                  info=str(e))
+                                  info=str(e), return_code="sparv_success_export_upload_fail")
         return utils.response("Sparv was run successfully! Starting to sync results", warnings=warnings, errors=errors,
-                              sparv_output=misc_output, **job_attrs)
+                              sparv_output=misc_output, **job_attrs, return_code="sparv_success_start_sync")
 
-    if status == jobs.Status.syncing_results:
-        return utils.response("Result files are being synced from the Sparv server", **job_attrs)
+    if status.is_done(job.current_process):
+        return utils.response("Job was completed successfully!", warnings=warnings, errors=errors,
+                              sparv_output=misc_output, **job_attrs, return_code="job_completed")
 
-    if status == jobs.Status.done_syncing:
-        return utils.response("Corpus is done processing and the results have been synced", warnings=warnings,
-                              errors=errors, sparv_output=misc_output, **job_attrs)
-
-    if status == jobs.Status.installing:
-        return utils.response("Korp installation is in progress", warnings=warnings, errors=errors,
-                              sparv_output=misc_output, **job_attrs)
-
-    if status == jobs.Status.done_installing:
-        return utils.response("Installation on Korp was successful!", warnings=warnings, errors=errors,
-                              sparv_output=misc_output, **job_attrs)
-
-    if status == jobs.Status.error:
+    if status.is_error(job.current_process):
+        app.logger.error(f"An error occurred during processing, warnings: {warnings}, errors: {errors}, "
+                         f"sparv_output: {misc_output}, job_attrs: {job_attrs}")
         return utils.response("An error occurred during processing", warnings=warnings, errors=errors,
-                              sparv_output=misc_output, **job_attrs)
+                              sparv_output=misc_output, **job_attrs, return_code="processing_error")
 
-    return utils.response("Cannot handle this Sparv status yet", warnings=warnings, errors=errors,
-                          sparv_output=misc_output, **job_attrs), 501
+    return utils.response("Cannot handle this Job status yet", warnings=warnings, errors=errors,
+                          sparv_output=misc_output, **job_attrs, return_code="cannot_handle_status"), 501
 
 
 @bp.route("/sparv-languages", methods=["GET"])
@@ -324,8 +386,10 @@ def sparv_languages():
         job = jobs.DefaultJob()
         languages = job.list_languages()
     except Exception as e:
-        return utils.response("Failed to retrieve languages listing", err=True, info=str(e)), 500
-    return utils.response("Listing languages available in Sparv", languages=languages)
+        return utils.response("Failed listing languages", err=True, info=str(e),
+                              return_code="failed_listing_languages"), 500
+    return utils.response("Listing languages available in Sparv", languages=languages,
+                          return_code="listing_languages")
 
 
 @bp.route("/sparv-exports", methods=["GET"])
@@ -336,5 +400,7 @@ def sparv_exports():
         job = jobs.DefaultJob(language=language)
         exports = job.list_exports()
     except Exception as e:
-        return utils.response("Failed to retrieve exports listing", err=True, info=str(e)), 500
-    return utils.response("Listing exports available in Sparv", language=language, exports=exports)
+        return utils.response("Failed listing exports", err=True, info=str(e),
+                              return_code="failed_listing_sparv_exports"), 500
+    return utils.response("Listing exports available in Sparv", language=language, exports=exports,
+                          return_code="listing_sparv_exports")

@@ -62,7 +62,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus '{{standard-corpus}}' created successfully\",\n    \"corpus_id\": \"{{standard-corpus}}\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus '{{standard-corpus}}' created successfully\",\n    \"corpus_id\": \"{{standard-corpus}}\",\n    \"return_code\": \"created_corpus\"\n}"
 						},
 						{
 							"name": "create corpus 401",
@@ -101,7 +101,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "create corpus 500",
@@ -144,7 +144,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to create resource\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to create corpus\",\n    \"return_code\": \"failed_creating_corpus\"\n}"
 						}
 					]
 				},
@@ -202,7 +202,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing available corpora\",\n    \"corpora\": [\n        \"{{standard-corpus}}\"\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing available corpora\",\n    \"corpora\": [\n        \"{{standard-corpus}}\"\n    ],\n    \"return_code\": \"listing_corpora\"\n}"
 						},
 						{
 							"name": "list corpora 401",
@@ -241,7 +241,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						}
 					]
 				},
@@ -299,7 +299,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing corpora installed in Korp\",\n    \"corpora\": [\n        \"{{standard-corpus}}\"\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing corpora installed in Korp\",\n    \"corpora\": [\n        \"{{standard-corpus}}\"\n    ],\n    \"return_code\": \"listing_korp_corpora\"\n}"
 						},
 						{
 							"name": "list Korp corpora 401",
@@ -338,7 +338,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						}
 					]
 				},
@@ -408,7 +408,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus '{{standard-corpus}}' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus '{{standard-corpus}}' successfully removed\",\n    \"return_code\": \"removed_corpus\"\n}"
 						},
 						{
 							"name": "remove corpus 401",
@@ -453,7 +453,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "remove corpus 404",
@@ -498,7 +498,52 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "remove corpus 500",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/remove-corpus?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-corpus"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "127"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 02 Jun 2022 12:04:04 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove corpus '{{standard-corpus}}' from Korp\",\n    \"return_code\": \"failed_removing_korp\"\n}"
 						}
 					]
 				}
@@ -599,7 +644,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to '{{standard-corpus}}'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files successfully added to '{{standard-corpus}}'\",\n    \"return_code\": \"uploaded_sources\"\n}"
 						},
 						{
 							"name": "upload sources 400",
@@ -654,7 +699,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to '{{standard-corpus}}' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload some source files to '{{standard-corpus}}' due to incompatible file extensions\",\n    \"file\": \"text.txt\",\n    \"info\": \"incompatible file extensions\",\n    \"current_file_extension\": \".txt\",\n    \"existing_file_extension\": \".xml\",\n    \"return_code\": \"failed_uploading_sources_incompatible_file_extension\"\n}"
 						},
 						{
 							"name": "upload sources 401",
@@ -712,7 +757,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "upload sources 404",
@@ -770,7 +815,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
 						},
 						{
 							"name": "upload sources 413",
@@ -825,7 +870,62 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Request data too large (max 100 MB per upload)\",\n    \"max_content_length\": 104857600\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Request data too large (max 100 MB per upload)\",\n    \"max_content_length\": 104857600,\n    \"return_code\": \"data_too_large\"\n}"
+						},
+						{
+							"name": "upload sources 500",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "",
+											"type": "file",
+											"src": "testkorpus/source/dokument1.xml"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{host}}/upload-sources?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"upload-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "113"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.10.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 22 Dec 2022 12:41:15 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to upload source files to '{{standard-corpus}}'\",\n    \"return_code\": \"failed_uploading_sources\"\n}"
 						}
 					]
 				},
@@ -895,7 +995,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current source files for '{{standard-corpus}}'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:18+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:16+02:00\",\n            \"size\": \"116\",\n            \"path\": \"dokument2.xml\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current source files for '{{standard-corpus}}'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:18+02:00\",\n            \"size\": 1397,\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:05:16+02:00\",\n            \"size\": 116,\n            \"path\": \"dokument2.xml\"\n        }\n    ],\n    \"return_code\": \"listing_sources\"\n}"
 						},
 						{
 							"name": "list sources 401",
@@ -940,7 +1040,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "list sources 404",
@@ -985,7 +1085,52 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "list sources 500",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/list-sources?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"list-sources"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 12:58:24 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to list source files in '{{standard-corpus}}'\",\n    \"return_code\": \"failed_listing_sources\"\n}"
 						}
 					]
 				},
@@ -1126,10 +1271,10 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
-							"name": "download sources 404 not exist",
+							"name": "download sources 500 source-not-found",
 							"originalRequest": {
 								"method": "GET",
 								"header": [],
@@ -1157,29 +1302,45 @@
 									]
 								}
 							},
-							"status": "NOT FOUND",
+							"status": "Not Found",
 							"code": 404,
 							"_postman_previewlanguage": "json",
 							"header": [
+								{
+									"key": "Date",
+									"value": "Tue, 19 Sep 2023 10:53:56 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Caddy"
+								},
+								{
+									"key": "Content-Length",
+									"value": "126"
+								},
 								{
 									"key": "Content-Type",
 									"value": "application/json"
 								},
 								{
-									"key": "Content-Length",
-									"value": "100"
+									"key": "Vary",
+									"value": "Cookie"
 								},
 								{
-									"key": "Server",
-									"value": "Werkzeug/2.0.2 Python/3.9.7"
+									"key": "Via",
+									"value": "1.1 ws.spraakbanken.gu.se"
 								},
 								{
-									"key": "Date",
-									"value": "Fri, 03 Jun 2022 14:21:48 GMT"
+									"key": "Keep-Alive",
+									"value": "timeout=1, max=500"
+								},
+								{
+									"key": "Connection",
+									"value": "Keep-Alive"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The file 'dokument5.xml' you are trying to download does not exist\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The source file you are trying to download does not exist\",\n    \"return_code\": \"source_not_found\"\n}"
 						},
 						{
 							"name": "download sources 404 no access",
@@ -1224,7 +1385,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
 						}
 					]
 				},
@@ -1302,7 +1463,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for '{{standard-corpus}}' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Source files for '{{standard-corpus}}' successfully removed\",\n    \"return_code\": \"removed_sources\"\n}"
 						},
 						{
 							"name": "remove sources 400",
@@ -1347,7 +1508,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No files provided for removal\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No files provided for removal\",\n    \"return_code\": \"missing_sources_remove\"\n}"
 						},
 						{
 							"name": "remove sources 401",
@@ -1396,7 +1557,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "remove sources 404",
@@ -1445,7 +1606,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
 						},
 						{
 							"name": "remove sources 500",
@@ -1494,7 +1655,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove some source files form '{{standard-corpus}}'.\",\n    \"failed\": [\n        \"dokument2.xml\"\n    ],\n    \"succeeded\": [\n        \"dokument1.xml\"\n    ]\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove some source files form '{{standard-corpus}}'.\",\n    \"failed\": [\n        \"dokument2.xml\"\n    ],\n    \"succeeded\": [\n        \"dokument1.xml\"\n    ],\n    \"return_code\": \"failed_removing_some_sources\"\n}"
 						}
 					]
 				}
@@ -1585,7 +1746,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Config file successfully uploaded for '{{standard-corpus}}'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Config file successfully uploaded for '{{standard-corpus}}'\",\n    \"return_code\": \"uploaded_config\"\n}"
 						},
 						{
 							"name": "upload config 400",
@@ -1638,7 +1799,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The importer in your config file is not compatible with your source files\",\n    \"current_importer\": \"text_import\",\n    \"expected_importer\": \"xml_import\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The importer in your config file is not compatible with your source files\",\n    \"current_importer\": \"text_import\",\n    \"expected_importer\": \"xml_import\",\n    \"return_code\": \"incompatible_config_importer\"\n}"
 						},
 						{
 							"name": "upload config 401",
@@ -1691,7 +1852,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "upload config 404",
@@ -1744,7 +1905,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
 						}
 					]
 				},
@@ -1875,7 +2036,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "download config 404 no config",
@@ -1932,7 +2093,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No config file found for corpus 'mink-nchh7fijyp'\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No config file found for corpus '{{standard-corpus}}'\",\n    \"return_code\": \"config_not_found\"\n}"
 						},
 						{
 							"name": "download config 404 no access",
@@ -1977,7 +2138,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
 						}
 					]
 				}
@@ -2068,7 +2229,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:37+02:00\",\n            \"size\": \"116\",\n            \"path\": \"mink-data/d/{{standard-corpus}}/source/dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:38+02:00\",\n            \"size\": \"1397\",\n            \"path\": \"mink-data/d/{{standard-corpus}}/source/dokument1.xml\"\n        }\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"priority\": 1\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": \"waiting\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:37+02:00\",\n            \"size\": 116,\n            \"path\": \"mink-data/d/{{standard-corpus}}/source/dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T15:05:38+02:00\",\n            \"size\": 1397,\n            \"path\": \"mink-data/d/{{standard-corpus}}/source/dokument1.xml\"\n        }\n    ],\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"priority\": 1,\n    \"return_code\": \"job_queued\"\n}"
 						},
 						{
 							"name": "run Sparv 400",
@@ -2121,7 +2282,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The importer in your config file is not compatible with your source files\",\n    \"current_importer\": \"text_import\",\n    \"expected_importer\": \"xml_import\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"The importer in your config file is not compatible with your source files\",\n    \"current_importer\": \"text_import\",\n    \"expected_importer\": \"xml_import\",\n    \"return_code\": \"incompatible_config_importer\"\n}"
 						},
 						{
 							"name": "run Sparv 401",
@@ -2170,7 +2331,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "run Sparv 404 no source files",
@@ -2223,7 +2384,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No source files found for '{{standard-corpus}}'\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No source files found for '{{standard-corpus}}'\",\n    \"return_code\": \"no_sources_found\"\n}"
 						},
 						{
 							"name": "run Sparv 404 no access",
@@ -2268,7 +2429,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
 						}
 					]
 				},
@@ -2326,7 +2487,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-kuumlw3oyy\",\n            \"message\": \"An error occurred during processing\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": \"error\",\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-17T09:28:32+00:00\",\n            \"seconds_taken\": 42.23\n        },\n        {\n            \"corpus_id\": \"{{standard-corpus}}\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv/\\n• export/frequency_list/\\n• export/xml_pretty/\",\n            \"job_status\": \"done\",\n            \"sparv_exports\": [\n                \"csv_export:csv\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"files\": [\n                \"dokument1\",\n                \"dokument2\"\n            ],\n            \"last_run_started\": \"2021-11-19T13:27:50+00:00\",\n            \"last_run_ended\": \"2021-11-19T15:16:15+01:00\",\n            \"seconds_taken\": 6505.04\n        },\n        {\n            \"corpus_id\": \"mink-eiyu8mjxui\",\n            \"message\": \"Sparv is running\",\n            \"progress\": \"18%\",\n            \"job_status\": \"annotating\",\n            \"sparv_exports\": [\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-19T10:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"last_run_started\": \"2021-11-19T10:54:10+00:00\",\n            \"seconds_taken\": 632.63\n        },\n        {\n            \"corpus_id\": \"mink-neyfev2rdm\",\n            \"message\": \"Job has been queued\",\n            \"job_status\": \"waiting\",\n            \"sparv_exports\": [\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-29T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"priority\": 1\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing jobs\",\n    \"jobs\": [\n        {\n            \"corpus_id\": \"mink-dxh6e6wtff\",\n            \"message\": \"Job has been queued for annotation\",\n            \"job_status\": {\n                \"sync2sparv\": \"none\",\n                \"sync2storage\": \"none\",\n                \"sparv\": \"waiting\",\n                \"korp\": \"none\",\n                \"strix\": \"none\"\n            },\n            \"sparv_exports\": [\n                \"xml_export:pretty\",\n                \"csv_export:csv\",\n                \"stats_export:sbx_freq_list\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2022-12-22T11:25:25+01:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                },\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-04-14T15:11:42+02:00\",\n                    \"size\": 1394,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument3.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-04-14T15:11:42+02:00\",\n                    \"size\": 41,\n                    \"path\": \"dokument3.xml\"\n                },\n                {\n                    \"name\": \"dokument4.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-04-14T15:11:42+02:00\",\n                    \"size\": 461,\n                    \"path\": \"dokument4.xml\"\n                }\n            ],\n            \"installed_korp\": true,\n            \"install_scrambled\": false,\n            \"last_run_started\": \"2023-04-14T15:24:42+02:00\",\n            \"progress\": \"0%\",\n            \"priority\": 1\n        },\n        {\n            \"corpus_id\": \"mink-vcghkzqgux\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"Nothing to be done.\",\n            \"job_status\": {\n                \"sync2sparv\": \"none\",\n                \"sync2storage\": \"none\",\n                \"sparv\": \"done\",\n                \"korp\": \"none\",\n                \"strix\": \"none\"\n            },\n            \"sparv_exports\": [\n                \"xml_export:pretty\",\n                \"csv_export:csv\",\n                \"stats_export:sbx_freq_list\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"artikel1.odt\",\n                    \"type\": \"unknown\",\n                    \"last_modified\": \"2023-04-14T15:19:37+02:00\",\n                    \"size\": 43428,\n                    \"path\": \"artikel1.odt\"\n                },\n                {\n                    \"name\": \"artikel2.odt\",\n                    \"type\": \"unknown\",\n                    \"last_modified\": \"2023-04-14T15:19:37+02:00\",\n                    \"size\": 43529,\n                    \"path\": \"artikel2.odt\"\n                },\n                {\n                    \"name\": \"artikel3.odt\",\n                    \"type\": \"unknown\",\n                    \"last_modified\": \"2023-04-14T15:19:38+02:00\",\n                    \"size\": 38061,\n                    \"path\": \"artikel3.odt\"\n                },\n                {\n                    \"name\": \"artikel4.odt\",\n                    \"type\": \"unknown\",\n                    \"last_modified\": \"2023-04-14T15:19:38+02:00\",\n                    \"size\": 33932,\n                    \"path\": \"artikel4.odt\"\n                },\n                {\n                    \"name\": \"artikel5.odt\",\n                    \"type\": \"unknown\",\n                    \"last_modified\": \"2023-04-14T15:19:38+02:00\",\n                    \"size\": 38634,\n                    \"path\": \"artikel5.odt\"\n                },\n                {\n                    \"name\": \"artikel6.odt\",\n                    \"type\": \"unknown\",\n                    \"last_modified\": \"2023-04-14T15:02:44+02:00\",\n                    \"size\": 33762,\n                    \"path\": \"artikel6.odt\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"install_scrambled\": false,\n            \"seconds_taken\": 1.7,\n            \"last_run_started\": \"2023-04-14T15:23:51+02:00\",\n            \"last_run_ended\": \"2023-04-14T15:23:52.700000+02:00\",\n            \"progress\": \"100%\"\n        },\n        {\n            \"corpus_id\": \"mink-49d3yxuvbp\",\n            \"message\": \"Sparv is running\",\n            \"job_status\": {\n                \"sync2sparv\": \"none\",\n                \"sync2storage\": \"none\",\n                \"sparv\": \"running\",\n                \"korp\": \"none\",\n                \"strix\": \"none\"\n            },\n            \"sparv_exports\": [\n                \"xml_export:pretty\",\n                \"csv_export:csv\",\n                \"stats_export:sbx_freq_list\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"familjeliv-1.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-04-03T13:34:56+02:00\",\n                    \"size\": 83970,\n                    \"path\": \"familjeliv-1.xml\"\n                },\n                {\n                    \"name\": \"familjeliv-2.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-04-03T13:34:59+02:00\",\n                    \"size\": 74395,\n                    \"path\": \"familjeliv-2.xml\"\n                },\n                {\n                    \"name\": \"familjeliv-3-1.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-04-03T13:42:10+02:00\",\n                    \"size\": 41797,\n                    \"path\": \"familjeliv-3-1.xml\"\n                }\n            ],\n            \"installed_korp\": true,\n            \"install_scrambled\": false,\n            \"seconds_taken\": 12.183238,\n            \"last_run_started\": \"2023-04-14T15:33:40+02:00\",\n            \"progress\": \"42%\"\n        },\n        {\n            \"corpus_id\": \"mink-jamdycuesk\",\n            \"message\": \"Corpus is done processing and the results have been synced\",\n            \"sparv_output\": \"The exported files can be found in the following locations:\\n• export/csv_export/\\n• export/stats_export.frequency_list_sbx/\\n• export/xml_export.pretty/\",\n            \"job_status\": {\n                \"sync2sparv\": \"none\",\n                \"sync2storage\": \"none\",\n                \"sparv\": \"done\",\n                \"korp\": \"none\",\n                \"strix\": \"none\"\n            },\n            \"sparv_exports\": [\n                \"xml_export:pretty\",\n                \"csv_export:csv\",\n                \"stats_export:sbx_freq_list\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"igelkottar.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-01-31T14:04:15+01:00\",\n                    \"size\": 3559,\n                    \"path\": \"igelkottar.xml\"\n                },\n                {\n                    \"name\": \"rävar.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-04-14T15:22:54+02:00\",\n                    \"size\": 3195,\n                    \"path\": \"rävar.xml\"\n                },\n                {\n                    \"name\": \"ugglor.xml\",\n                    \"type\": \"text/xml\",\n                    \"last_modified\": \"2023-04-14T15:22:54+02:00\",\n                    \"size\": 1415,\n                    \"path\": \"ugglor.xml\"\n                }\n            ],\n            \"installed_korp\": true,\n            \"install_scrambled\": false,\n            \"seconds_taken\": 32.9,\n            \"last_run_started\": \"2023-04-14T15:24:02+02:00\",\n            \"last_run_ended\": \"2023-04-14T15:24:34.900000+02:00\",\n            \"progress\": \"100%\"\n        },\n        {\n            \"corpus_id\": \"mink-kuumlw3oyy\",\n            \"message\": \"An error occurred during processing\",\n            \"sparv_output\": \"Sparv exited with the following error messages:\\n\\nThe following output files were expected but are missing:\\n • sparv-workdir/dokument1/textt/@span\\nThere can be many reasons for this. Please make sure that there are no problems \\nwith the corpus configuration file, like misspelled annotation names or \\nreferences to non-existent source annotations.\",\n            \"job_status\": {\n                \"sync2sparv\": \"none\",\n                \"sync2storage\": \"none\",\n                \"sparv\": \"error\",\n                \"korp\": \"none\",\n                \"strix\": \"none\"\n            },\n            \"sparv_exports\": [\n                \"csv_export:csv\",\n                \"stats_export:freq_list\",\n                \"xml_export:pretty\"\n            ],\n            \"available_files\": [\n                {\n                    \"name\": \"dokument1.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:09+00:00\",\n                    \"size\": 1396,\n                    \"path\": \"dokument1.xml\"\n                },\n                {\n                    \"name\": \"dokument2.xml\",\n                    \"type\": \"application/xml\",\n                    \"last_modified\": \"2021-11-16T13:39:08+00:00\",\n                    \"size\": 115,\n                    \"path\": \"dokument2.xml\"\n                }\n            ],\n            \"installed_korp\": false,\n            \"install_scrambled\": false,\n            \"last_run_started\": \"2023-04-14T15:24:02+02:00\",\n            \"last_run_ended\": \"2023-04-14T15:24:44+02:00\",\n            \"seconds_taken\": 42.23,\n            \"progress\": \"100%\"\n        }\n    ],\n    \"return_code\": \"listing_jobs\"\n}"
 						},
 						{
 							"name": "check status 401",
@@ -2365,7 +2526,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "check status 404",
@@ -2404,7 +2565,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
 						}
 					]
 				},
@@ -2474,7 +2635,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully aborted running job for '{{standard-corpus}}'\",\n    \"job_status\": \"aborted\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Successfully aborted job for '{{standard-corpus}}'\",\n    \"job_status\": {\n        \"sync2sparv\": \"none\",\n        \"sync2storage\": \"none\",\n        \"sparv\": \"aborted\",\n        \"korp\": \"none\"\n    },\n    \"return_code\": \"aborted_job\"\n}"
 						},
 						{
 							"name": "abort job 200 no job",
@@ -2519,7 +2680,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"No running job found for '{{standard-corpus}}'\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"No running job found for '{{standard-corpus}}'\",\n    \"return_code\": \"no_running_job\"\n}"
 						},
 						{
 							"name": "abort job 401",
@@ -2564,7 +2725,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "abort job 404",
@@ -2609,7 +2770,97 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "abort job 500",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/abort-job?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"abort-job"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 16:09:20 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to abort job for '{{standard-corpus}}'\",\n    \"return_code\": \"failed_aborting_job\"\n}"
+						},
+						{
+							"name": "abort job 503",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/abort-job?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"abort-job"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Service Unavailable",
+							"code": 503,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 16:09:20 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Cannot abort job while syncing files\",\n    \"return_code\": \"failed_aborting_job_syncing\"\n}"
 						}
 					]
 				},
@@ -2679,7 +2930,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Annotations for '{{standard-corpus}}' successfully removed\",\n    \"sparv_output\": \"'export' directory removed, 'logs' directory removed, 'sparv-workdir' directory removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Annotations for '{{standard-corpus}}' successfully removed\",\n    \"sparv_output\": \"'export' directory removed, 'logs' directory removed, 'sparv-workdir' directory removed\",\n    \"return_code\": \"removed_annotations\"\n}"
 						},
 						{
 							"name": "clear annotations 401",
@@ -2724,7 +2975,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "clear annotations 404",
@@ -2782,7 +3033,64 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "clear annotations 500",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "",
+											"type": "file",
+											"src": [
+												"/home/anne/Downloads/testkorpus/source/dokument2.xml",
+												"/home/anne/Downloads/testkorpus/source/dokument1.xml"
+											]
+										}
+									]
+								},
+								"url": {
+									"raw": "{{host}}/clear-annotations?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"clear-annotations"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "74"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 18 Mar 2021 10:13:49 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to clear annotations\",\n    \"return_code\": \"failed_clearing_annotations\"\n}"
 						}
 					]
 				},
@@ -2852,52 +3160,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Your input for the corpus '{{standard-corpus}}' has changed since the last run\",\n    \"config_changed\": true,\n    \"sources_added\": true,\n    \"sources_changed\": true,\n    \"sources_deleted\": true,\n    \"changed_config\": {\n        \"name\": \"config.yaml\",\n        \"type\": \"application/yaml\",\n        \"last_modified\": \"2021-11-25T15:52:17+00:00\",\n        \"size\": 848,\n        \"path\": \"config.yaml\"\n    },\n    \"added_sources\": [\n        {\n            \"name\": \"dokument4.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:35:30+00:00\",\n            \"size\": 461,\n            \"path\": \"dokument4.xml\"\n        }\n    ],\n    \"changed_sources\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 1396,\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 115,\n            \"path\": \"dokument2.xml\"\n        }\n    ],\n    \"deleted_sources\": [\n        {\n            \"name\": \"dokument3.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:22:54+00:00\",\n            \"size\": 41,\n            \"path\": \"dokument3.xml\"\n        }\n    ],\n    \"last_run_started\": \"2021-11-19T14:16:10+00:00\"\n}"
-						},
-						{
-							"name": "check changes 400",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{host}}/check-status?corpus_id={{fake-corpus}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
-										"check-status"
-									],
-									"query": [
-										{
-											"key": "corpus_id",
-											"value": "{{fake-corpus}}"
-										}
-									]
-								}
-							},
-							"status": "BAD REQUEST",
-							"code": 400,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Content-Length",
-									"value": "114"
-								},
-								{
-									"key": "Server",
-									"value": "Werkzeug/2.0.2 Python/3.9.7"
-								},
-								{
-									"key": "Date",
-									"value": "Fri, 10 Jun 2022 12:58:24 GMT"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Your input for the corpus '{{standard-corpus}}' has changed since the last run\",\n    \"config_changed\": true,\n    \"sources_added\": true,\n    \"sources_changed\": true,\n    \"sources_deleted\": true,\n    \"changed_config\": {\n        \"name\": \"config.yaml\",\n        \"type\": \"application/yaml\",\n        \"last_modified\": \"2021-11-25T15:52:17+00:00\",\n        \"size\": 848,\n        \"path\": \"config.yaml\"\n    },\n    \"added_sources\": [\n        {\n            \"name\": \"dokument4.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:35:30+00:00\",\n            \"size\": 461,\n            \"path\": \"dokument4.xml\"\n        }\n    ],\n    \"changed_sources\": [\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 1396,\n            \"path\": \"dokument1.xml\"\n        },\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-25T15:56:51+00:00\",\n            \"size\": 115,\n            \"path\": \"dokument2.xml\"\n        }\n    ],\n    \"deleted_sources\": [\n        {\n            \"name\": \"dokument3.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2021-11-29T14:22:54+00:00\",\n            \"size\": 41,\n            \"path\": \"dokument3.xml\"\n        }\n    ],\n    \"last_run_started\": \"2021-11-19T14:16:10+00:00\",\n    \"return_code\": \"input_changed\"\n}"
 						},
 						{
 							"name": "check changes 401",
@@ -2942,7 +3205,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "check changes 404",
@@ -2987,22 +3250,67 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "check changes 500",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/check-changes?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"check-changes"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "748"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 25 Nov 2021 15:57:15 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Failed to check changes for corpus '{{standard-corpus}}'\",\n    \"return_code\": \"failed_checking_changes\"\n}"
 						}
 					]
 				},
 				{
-					"name": "install corpus",
+					"name": "install in Korp",
 					"request": {
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/install-corpus?corpus_id={{standard-corpus}}&scramble=true",
+							"raw": "{{host}}/install-korp?corpus_id={{standard-corpus}}&scramble=true",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
-								"install-corpus"
+								"install-korp"
 							],
 							"query": [
 								{
@@ -3019,17 +3327,17 @@
 					},
 					"response": [
 						{
-							"name": "install corpus 200",
+							"name": "install korp 200",
 							"originalRequest": {
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/install-corpus?corpus_id={{standard-corpus}}&scramble=true",
+									"raw": "{{host}}/install-korp?corpus_id={{standard-corpus}}&scramble=true",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"install-corpus"
+										"install-korp"
 									],
 									"query": [
 										{
@@ -3065,20 +3373,20 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued for installation\",\n    \"job_status\": \"waiting_install\",\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-23T17:44:02+02:00\",\n            \"size\": \"115\",\n            \"path\": \"dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-23T17:44:03+02:00\",\n            \"size\": \"1396\",\n            \"path\": \"dokument1.xml\"\n        }\n    ],\n    \"installed_korp\": false,\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"install_scrambled\": true,\n    \"last_run_started\": \"2022-07-28T11:39:58+02:00\",\n    \"priority\": 1\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": {\n        \"sync2sparv\": \"none\",\n        \"sync2storage\": \"none\",\n        \"sparv\": \"done\",\n        \"korp\": \"waiting\",\n        \"strix\": \"none\"\n    },\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-23T17:44:02+02:00\",\n            \"size\": 115,\n            \"path\": \"dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-23T17:44:03+02:00\",\n            \"size\": 1396,\n            \"path\": \"dokument1.xml\"\n        }\n    ],\n    \"installed_korp\": false,\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"install_scrambled\": true,\n    \"last_run_started\": \"2022-07-28T11:39:58+02:00\",\n    \"priority\": 1,\n    \"return_code\": \"job_queued\"\n}"
 						},
 						{
-							"name": "install corpus 401",
+							"name": "install korp 401",
 							"originalRequest": {
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/install-corpus?corpus_id={{standard-corpus}}",
+									"raw": "{{host}}/install-korp?corpus_id={{standard-corpus}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"install-corpus"
+										"install-korp"
 									],
 									"query": [
 										{
@@ -3110,20 +3418,20 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
-							"name": "install corpus 404",
+							"name": "install korp 404",
 							"originalRequest": {
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/install-corpus?corpus_id={{fake-corpus}}",
+									"raw": "{{host}}/install-korp?corpus_id={{fake-corpus}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"install-corpus"
+										"install-korp"
 									],
 									"query": [
 										{
@@ -3155,7 +3463,257 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "install korp 500",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/install-korp?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"install-korp"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 12:58:24 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove export files from Sparv server for corpus '{{standard-corpus}}'. Cannot run Sparv safely\",\n    \"return_code\": \"failed_removing_exports\"\n}"
+						}
+					]
+				},
+				{
+					"name": "install in Strix",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/install-strix?corpus_id={{standard-corpus}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"install-strix"
+							],
+							"query": [
+								{
+									"key": "corpus_id",
+									"value": "{{standard-corpus}}"
+								}
+							]
+						},
+						"description": "Adds an installation job to the queue to tries to install the corpus on Korp. The corpus may be sentence scrambled by setting the `scramble` parameter to `true` (the original order will be kept by default.\n\nThere can only be one active job (annotation or installation) for each corpus at a time. A job must finish or be aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -F \"corpus_id=some_corpus_name\" -F \"scrambled=true\" '{{host}}/install-corpus' -H 'Authorization: Bearer YOUR_JWT'\n```"
+					},
+					"response": [
+						{
+							"name": "install strix 200",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/install-strix?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"install-strix"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "644"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 28 Jul 2022 10:10:48 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Job has been queued\",\n    \"job_status\": {\n        \"sync2sparv\": \"none\",\n        \"sync2storage\": \"none\",\n        \"sparv\": \"done\",\n        \"korp\": \"done\",\n        \"strix\": \"waiting\"\n    },\n    \"sparv_exports\": [\n        \"csv_export:csv\",\n        \"stats_export:freq_list\",\n        \"xml_export:pretty\"\n    ],\n    \"available_files\": [\n        {\n            \"name\": \"dokument2.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-23T17:44:02+02:00\",\n            \"size\": 115,\n            \"path\": \"dokument2.xml\"\n        },\n        {\n            \"name\": \"dokument1.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-23T17:44:03+02:00\",\n            \"size\": 1396,\n            \"path\": \"dokument1.xml\"\n        }\n    ],\n    \"installed_korp\": false,\n    \"files\": [\n        \"dokument1\",\n        \"dokument2\"\n    ],\n    \"install_scrambled\": true,\n    \"last_run_started\": \"2022-07-28T11:39:58+02:00\",\n    \"priority\": 1,\n    \"return_code\": \"job_queued\"\n}"
+						},
+						{
+							"name": "install strix 401",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/install-strix?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"install-strix"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/1.0.1 Python/3.8.6"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 08 Mar 2021 12:37:15 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
+						},
+						{
+							"name": "install strix 404",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/install-strix?corpus_id={{fake-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"install-strix"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{fake-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 12:58:24 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "install strix 500",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/install-strix?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"install-strix"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 12:58:24 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove export files from Sparv server for corpus '{{standard-corpus}}'. Cannot run Sparv safely\",\n    \"return_code\": \"failed_removing_exports\"\n}"
 						}
 					]
 				}
@@ -3230,7 +3788,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current export files for '{{standard-corpus}}'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:54:15+02:00\",\n            \"size\": \"538\",\n            \"path\": \"csv_export/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"4876\",\n            \"path\": \"csv_export/dokument1.csv\"\n        },\n        {\n            \"name\": \"stats_{{standard-corpus}}.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:39+02:00\",\n            \"size\": \"10838\",\n            \"path\": \"stats_export.frequency_list/stats_{{standard-corpus}}.csv\"\n        },\n        {\n            \"name\": \"dokument2_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": \"1497\",\n            \"path\": \"xml_export.pretty/dokument2_export.xml\"\n        },\n        {\n            \"name\": \"dokument1_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:38+02:00\",\n            \"size\": \"13429\",\n            \"path\": \"xml_export.pretty/dokument1_export.xml\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Current export files for '{{standard-corpus}}'\",\n    \"contents\": [\n        {\n            \"name\": \"dokument2.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:54:15+02:00\",\n            \"size\": 538,\n            \"path\": \"csv_export/dokument2.csv\"\n        },\n        {\n            \"name\": \"dokument1.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": 4876,\n            \"path\": \"csv_export/dokument1.csv\"\n        },\n        {\n            \"name\": \"stats_{{standard-corpus}}.csv\",\n            \"type\": \"text/csv\",\n            \"last_modified\": \"2022-06-10T17:55:39+02:00\",\n            \"size\": 10838,\n            \"path\": \"stats_export.frequency_list/stats_{{standard-corpus}}.csv\"\n        },\n        {\n            \"name\": \"dokument2_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:37+02:00\",\n            \"size\": 1497,\n            \"path\": \"xml_export.pretty/dokument2_export.xml\"\n        },\n        {\n            \"name\": \"dokument1_export.xml\",\n            \"type\": \"application/xml\",\n            \"last_modified\": \"2022-06-10T17:55:38+02:00\",\n            \"size\": 13429,\n            \"path\": \"xml_export.pretty/dokument1_export.xml\"\n        }\n    ],\n    \"return_code\": \"listing_exports\"\n}"
 						},
 						{
 							"name": "list exports 401",
@@ -3275,7 +3833,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "list exports 404",
@@ -3320,7 +3878,52 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "list exports 500",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/list-exports?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"list-exports"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 16:07:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to list export files in '{{standard-corpus}}'\",\n    \"return_code\": \"failed_listing_exports\"\n}"
 						}
 					]
 				},
@@ -3466,7 +4069,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "download exports 404",
@@ -3511,7 +4114,52 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "download exports 500",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/download-exports?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"download-exports"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 16:07:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to download exports for corpus '{{standard-corpus}}'\",\n    \"return_code\": \"failed_downloading_exports\"\n}"
 						}
 					]
 				},
@@ -3581,7 +4229,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Export files for corpus '{{standard-corpus}}' successfully removed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Export files for corpus '{{standard-corpus}}' successfully removed\",\n    \"return_code\": \"removed_exports\"\n}"
 						},
 						{
 							"name": "remove exports 401",
@@ -3626,7 +4274,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "remove exports 404",
@@ -3671,7 +4319,52 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "remove exports 500",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/remove-exports?corpus_id={{standard-corpus}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-exports"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 16:07:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to remove export files from storage server for corpus '{{standard-corpus}}'\",\n    \"return_code\": \"failed_removing_exports_storage\"\n}"
 						}
 					]
 				},
@@ -3793,29 +4486,41 @@
 									]
 								}
 							},
-							"status": "BAD REQUEST",
+							"status": "Bad Request",
 							"code": 400,
 							"_postman_previewlanguage": "json",
 							"header": [
+								{
+									"key": "Date",
+									"value": "Tue, 19 Sep 2023 11:29:48 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Caddy"
+								},
+								{
+									"key": "Content-Length",
+									"value": "119"
+								},
 								{
 									"key": "Content-Type",
 									"value": "application/json"
 								},
 								{
-									"key": "Content-Length",
-									"value": "76"
+									"key": "Vary",
+									"value": "Cookie"
 								},
 								{
-									"key": "Server",
-									"value": "Werkzeug/2.0.2 Python/3.9.7"
+									"key": "Via",
+									"value": "1.1 ws.spraakbanken.gu.se"
 								},
 								{
-									"key": "Date",
-									"value": "Mon, 13 Jun 2022 13:32:53 GMT"
+									"key": "Connection",
+									"value": "close"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Please specify the source file to download\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No source file specified for download\",\n    \"return_code\": \"missing_sources_download_text\"\n}"
 						},
 						{
 							"name": "download source text 401",
@@ -3864,7 +4569,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						},
 						{
 							"name": "download source text 404 no texts",
@@ -3913,7 +4618,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"There are currently no source texts for corpus '{{standard-corpus}}'. You must run Sparv before you can view source texts.\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"There are currently no source texts for corpus '{{standard-corpus}}'. You must run Sparv before you can view source texts.\",\n    \"return_code\": \"no_source_texts_run_sparv\"\n}"
 						},
 						{
 							"name": "download source text 404 no access",
@@ -3958,7 +4663,56 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Corpus '{{fake-corpus}}' does not exist or you do not have access to it\",\n    \"return_code\": \"corpus_not_found\"\n}"
+						},
+						{
+							"name": "download source text 500",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/download-source-text?corpus_id={{standard-corpus}}&file=dokument1.xml",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"download-source-text"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-corpus}}"
+										},
+										{
+											"key": "file",
+											"value": "dokument1.xml"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "114"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 10 Jun 2022 16:07:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to download source text\",\n    \"return_code\": \"failed_downloading_source_text\"\n}"
 						}
 					]
 				}
@@ -4029,7 +4783,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Admin mode turned on\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Admin mode turned on\",\n    \"return_code\": \"admin_on\"\n}"
 						},
 						{
 							"name": "admin mode on 401",
@@ -4068,7 +4822,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Mink admin status could not be confirmed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Mink admin status could not be confirmed\",\n    \"return_code\": \"not_admin\"\n}"
 						}
 					]
 				},
@@ -4146,7 +4900,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Admin mode turned off\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Admin mode turned off\",\n    \"return_code\": \"admin_off\"\n}"
 						},
 						{
 							"name": "admin mode off 401",
@@ -4185,7 +4939,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						}
 					]
 				},
@@ -4247,7 +5001,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Returning status of admin mode\",\n    \"admin_mode_status\": true\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Returning status of admin mode\",\n    \"admin_mode_status\": true,\n    \"return_code\": \"returning_admin_status\"\n}"
 						},
 						{
 							"name": "admin mode status 401",
@@ -4286,7 +5040,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
 						}
 					]
 				}
@@ -4335,34 +5089,34 @@
 					"response": []
 				},
 				{
-					"name": "status codes",
+					"name": "API info",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/status-codes",
+							"raw": "{{host}}/info",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
-								"status-codes"
+								"info"
 							]
 						},
-						"description": "List job status codes along with their descriptions."
+						"description": "Show info about data processing, e.g. job status codes, file size limits and Sparv importer modules."
 					},
 					"response": [
 						{
-							"name": "status codes 200",
+							"name": "status codes",
 							"originalRequest": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}/status-codes",
+									"raw": "{{host}}/info",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"status-codes"
+										"info"
 									]
 								}
 							},
@@ -4371,12 +5125,12 @@
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
-									"key": "Date",
-									"value": "Thu, 28 Jul 2022 12:26:32 GMT"
+									"key": "Server",
+									"value": "Werkzeug/2.3.6 Python/3.10.6"
 								},
 								{
-									"key": "Server",
-									"value": "gunicorn"
+									"key": "Date",
+									"value": "Tue, 20 Jun 2023 11:32:49 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -4384,23 +5138,15 @@
 								},
 								{
 									"key": "Content-Length",
-									"value": "1021"
-								},
-								{
-									"key": "Via",
-									"value": "1.1 ws.spraakbanken.gu.se"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=1, max=500"
+									"value": "1657"
 								},
 								{
 									"key": "Connection",
-									"value": "Keep-Alive"
+									"value": "close"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing existing job status codes\",\n    \"status_codes\": [\n        {\n            \"code\": 0,\n            \"name\": \"none\",\n            \"description\": \"Job does not exist\"\n        },\n        {\n            \"code\": 1,\n            \"name\": \"syncing_corpus\",\n            \"description\": \"Syncing from the storage server to Sparv server\"\n        },\n        {\n            \"code\": 2,\n            \"name\": \"waiting\",\n            \"description\": \"Waiting to be run with Sparv\"\n        },\n        {\n            \"code\": 3,\n            \"name\": \"annotating\",\n            \"description\": \"Sparv annotation process is running\"\n        },\n        {\n            \"code\": 4,\n            \"name\": \"done_annotating\",\n            \"description\": \"Annotation process has finished\"\n        },\n        {\n            \"code\": 5,\n            \"name\": \"syncing_results\",\n            \"description\": \"Syncing results from Sparv to the storage server\"\n        },\n        {\n            \"code\": 6,\n            \"name\": \"done_syncing\",\n            \"description\": \"Results have been synced to storage server\"\n        },\n        {\n            \"code\": 7,\n            \"name\": \"installing\",\n            \"description\": \"Corpus is being installed\"\n        },\n        {\n            \"code\": 8,\n            \"name\": \"done_installing\",\n            \"description\": \"Corpus is done installing\"\n        },\n        {\n            \"code\": 9,\n            \"name\": \"error\",\n            \"description\": \"An error occurred\"\n        },\n        {\n            \"code\": 10,\n            \"name\": \"aborted\",\n            \"description\": \"Aborted by the user\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing information about data processing\",\n    \"status_codes\": {\n        \"info\": \"job status codes\",\n        \"data\": [\n            {\n                \"name\": \"none\",\n                \"description\": \"Process does not exist\"\n            },\n            {\n                \"name\": \"waiting\",\n                \"description\": \"Waiting to be processed\"\n            },\n            {\n                \"name\": \"running\",\n                \"description\": \"Process is running\"\n            },\n            {\n                \"name\": \"done\",\n                \"description\": \"Process has finished\"\n            },\n            {\n                \"name\": \"error\",\n                \"description\": \"An error occurred in the process\"\n            },\n            {\n                \"name\": \"aborted\",\n                \"description\": \"Process was aborted by the user\"\n            }\n        ]\n    },\n    \"importer_modules\": {\n        \"info\": \"Sparv importers that need to be used for different file extensions\",\n        \"data\": [\n            {\n                \"file_extension\": \".xml\",\n                \"importer\": \"xml_import\"\n            },\n            {\n                \"file_extension\": \".txt\",\n                \"importer\": \"text_import\"\n            },\n            {\n                \"file_extension\": \".docx\",\n                \"importer\": \"docx_import\"\n            },\n            {\n                \"file_extension\": \".odt\",\n                \"importer\": \"odt_import\"\n            },\n            {\n                \"file_extension\": \".pdf\",\n                \"importer\": \"pdf_import\"\n            }\n        ]\n    },\n    \"file_size_limits\": {\n        \"info\": \"size limits (in bytes) for uploaded files\",\n        \"data\": [\n            {\n                \"name\": \"max_content_length\",\n                \"description\": \"max size for one request (which may contain multiple files)\",\n                \"value\": 104857600\n            },\n            {\n                \"name\": \"max_file_length\",\n                \"description\": \"max size for one corpus source file\",\n                \"value\": 10485760\n            },\n            {\n                \"name\": \"max_corpus_length\",\n                \"description\": \"max size for one corpus\",\n                \"value\": 524288000\n            }\n        ]\n    },\n    \"recommended_file_size\": {\n        \"info\": \"approximate recommended file sizes (in bytes) when processing many files with Sparv\",\n        \"data\": [\n            {\n                \"name\": \"max_file_length\",\n                \"description\": \"recommended min size for one corpus source file\",\n                \"value\": 1048576\n            },\n            {\n                \"name\": \"min_file_length\",\n                \"description\": \"recommended max size for one corpus source file\",\n                \"value\": 5242880\n            }\n        ]\n    },\n    \"return_code\": \"listing_info\"\n}"
 						}
 					]
 				},
@@ -4458,7 +5204,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing languages available in Sparv\",\n    \"languages\": [\n        {\n            \"name\": \"Asturian\",\n            \"code\": \"ast\"\n        },\n        {\n            \"name\": \"Bulgarian\",\n            \"code\": \"bul\"\n        },\n        {\n            \"name\": \"Catalan\",\n            \"code\": \"cat\"\n        },\n        {\n            \"name\": \"Dutch\",\n            \"code\": \"nld\"\n        },\n        {\n            \"name\": \"English\",\n            \"code\": \"eng\"\n        },\n        {\n            \"name\": \"Estonian\",\n            \"code\": \"est\"\n        },\n        {\n            \"name\": \"Finnish\",\n            \"code\": \"fin\"\n        },\n        {\n            \"name\": \"French\",\n            \"code\": \"fra\"\n        },\n        {\n            \"name\": \"Galician\",\n            \"code\": \"glg\"\n        },\n        {\n            \"name\": \"German\",\n            \"code\": \"deu\"\n        },\n        {\n            \"name\": \"Italian\",\n            \"code\": \"ita\"\n        },\n        {\n            \"name\": \"Latin\",\n            \"code\": \"lat\"\n        },\n        {\n            \"name\": \"Norwegian Bokmål\",\n            \"code\": \"nob\"\n        },\n        {\n            \"name\": \"Polish\",\n            \"code\": \"pol\"\n        },\n        {\n            \"name\": \"Portuguese\",\n            \"code\": \"por\"\n        },\n        {\n            \"name\": \"Romanian\",\n            \"code\": \"ron\"\n        },\n        {\n            \"name\": \"Russian\",\n            \"code\": \"rus\"\n        },\n        {\n            \"name\": \"Slovak\",\n            \"code\": \"slk\"\n        },\n        {\n            \"name\": \"Slovenian\",\n            \"code\": \"slv\"\n        },\n        {\n            \"name\": \"Spanish\",\n            \"code\": \"spa\"\n        },\n        {\n            \"name\": \"Swedish\",\n            \"code\": \"swe\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing languages available in Sparv\",\n    \"languages\": [\n        {\n            \"name\": \"Asturian\",\n            \"code\": \"ast\"\n        },\n        {\n            \"name\": \"Bulgarian\",\n            \"code\": \"bul\"\n        },\n        {\n            \"name\": \"Catalan\",\n            \"code\": \"cat\"\n        },\n        {\n            \"name\": \"Dutch\",\n            \"code\": \"nld\"\n        },\n        {\n            \"name\": \"English\",\n            \"code\": \"eng\"\n        },\n        {\n            \"name\": \"Estonian\",\n            \"code\": \"est\"\n        },\n        {\n            \"name\": \"Finnish\",\n            \"code\": \"fin\"\n        },\n        {\n            \"name\": \"French\",\n            \"code\": \"fra\"\n        },\n        {\n            \"name\": \"Galician\",\n            \"code\": \"glg\"\n        },\n        {\n            \"name\": \"German\",\n            \"code\": \"deu\"\n        },\n        {\n            \"name\": \"Italian\",\n            \"code\": \"ita\"\n        },\n        {\n            \"name\": \"Latin\",\n            \"code\": \"lat\"\n        },\n        {\n            \"name\": \"Norwegian Bokmål\",\n            \"code\": \"nob\"\n        },\n        {\n            \"name\": \"Polish\",\n            \"code\": \"pol\"\n        },\n        {\n            \"name\": \"Portuguese\",\n            \"code\": \"por\"\n        },\n        {\n            \"name\": \"Romanian\",\n            \"code\": \"ron\"\n        },\n        {\n            \"name\": \"Russian\",\n            \"code\": \"rus\"\n        },\n        {\n            \"name\": \"Slovak\",\n            \"code\": \"slk\"\n        },\n        {\n            \"name\": \"Slovenian\",\n            \"code\": \"slv\"\n        },\n        {\n            \"name\": \"Spanish\",\n            \"code\": \"spa\"\n        },\n        {\n            \"name\": \"Swedish\",\n            \"code\": \"swe\"\n        }\n    ],\n    \"return_code\": \"listing_languages\"\n}"
 						}
 					]
 				},
@@ -4528,7 +5274,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing exports available in Sparv\",\n    \"language\": \"swe\",\n    \"exports\": [\n        {\n            \"export\": \"xml_export:pretty\",\n            \"description\": \"XML export with one token element per line\"\n        },\n        {\n            \"export\": \"conll_export:conllu\",\n            \"description\": \"CoNLL-U (SBX version) export\"\n        },\n        {\n            \"export\": \"csv_export:csv\",\n            \"description\": \"CSV export\"\n        },\n        {\n            \"export\": \"cwb:encode\",\n            \"description\": \"CWB encode\"\n        },\n        {\n            \"export\": \"cwb:encode_scrambled\",\n            \"description\": \"CWB encode, scrambled\"\n        },\n        {\n            \"export\": \"cwb:info\",\n            \"description\": \"CWB .info file\"\n        },\n        {\n            \"export\": \"cwb:info_scrambled\",\n            \"description\": \"CWB .info file for scrambled corpus\"\n        },\n        {\n            \"export\": \"cwb:vrt\",\n            \"description\": \"VRT export\"\n        },\n        {\n            \"export\": \"cwb:vrt_scrambled\",\n            \"description\": \"Scrambled VRT export\"\n        },\n        {\n            \"export\": \"korp:lemgram_sql\",\n            \"description\": \"Lemgram index SQL file for use in Korp\"\n        },\n        {\n            \"export\": \"korp:relations_sql\",\n            \"description\": \"Word Picture SQL for use in Korp\"\n        },\n        {\n            \"export\": \"korp:timespan_sql\",\n            \"description\": \"Timespan SQL data for use in Korp\"\n        },\n        {\n            \"export\": \"stats_export:freq_list\",\n            \"description\": \"Corpus word frequency list\"\n        },\n        {\n            \"export\": \"stats_export:sbx_freq_list\",\n            \"description\": \"Corpus word frequency list\"\n        },\n        {\n            \"export\": \"stats_export:sbx_freq_list_date\",\n            \"description\": \"Corpus word frequency list\"\n        },\n        {\n            \"export\": \"stats_export:sbx_freq_list_simple\",\n            \"description\": \"Corpus word frequency list (without Swedish annotations)\"\n        },\n        {\n            \"export\": \"stats_export:sbx_freq_list_simple_swe\",\n            \"description\": \"Corpus word frequency list (without Swedish annotations)\"\n        },\n        {\n            \"export\": \"version_info:yaml_export\",\n            \"description\": \"YAML file containing annotation version info\"\n        },\n        {\n            \"export\": \"xml_export:combined\",\n            \"description\": \"Combined XML export (all results in one file)\"\n        },\n        {\n            \"export\": \"xml_export:combined_scrambled\",\n            \"description\": \"Combined scrambled XML export\"\n        },\n        {\n            \"export\": \"xml_export:compressed\",\n            \"description\": \"Compressed combined XML export\"\n        },\n        {\n            \"export\": \"xml_export:compressed_scrambled\",\n            \"description\": \"Compressed combined scrambled XML export\"\n        },\n        {\n            \"export\": \"xml_export:preserved_format\",\n            \"description\": \"XML export preserving whitespaces from source file\"\n        },\n        {\n            \"export\": \"xml_export:scrambled\",\n            \"description\": \"Scrambled XML export\"\n        }\n    ]\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Listing exports available in Sparv\",\n    \"language\": \"swe\",\n    \"exports\": [\n        {\n            \"export\": \"xml_export:pretty\",\n            \"description\": \"XML export with one token element per line\"\n        },\n        {\n            \"export\": \"conll_export:conllu\",\n            \"description\": \"CoNLL-U (SBX version) export\"\n        },\n        {\n            \"export\": \"csv_export:csv\",\n            \"description\": \"CSV export\"\n        },\n        {\n            \"export\": \"cwb:encode\",\n            \"description\": \"CWB encode\"\n        },\n        {\n            \"export\": \"cwb:encode_scrambled\",\n            \"description\": \"CWB encode, scrambled\"\n        },\n        {\n            \"export\": \"cwb:info\",\n            \"description\": \"CWB .info file\"\n        },\n        {\n            \"export\": \"cwb:info_scrambled\",\n            \"description\": \"CWB .info file for scrambled corpus\"\n        },\n        {\n            \"export\": \"cwb:vrt\",\n            \"description\": \"VRT export\"\n        },\n        {\n            \"export\": \"cwb:vrt_scrambled\",\n            \"description\": \"Scrambled VRT export\"\n        },\n        {\n            \"export\": \"korp:config\",\n            \"description\": \"Create Korp config file for the corpus.\"\n        },\n        {\n            \"export\": \"korp:lemgram_sql\",\n            \"description\": \"Lemgram index SQL file for use in Korp\"\n        },\n        {\n            \"export\": \"korp:timespan_sql\",\n            \"description\": \"Timespan SQL data for use in Korp\"\n        },\n        {\n            \"export\": \"korp:wordpicture_sql\",\n            \"description\": \"Word Picture SQL for use in Korp\"\n        },\n        {\n            \"export\": \"sbx_strix:config\",\n            \"description\": \"Create Strix config file for the corpus.\"\n        },\n        {\n            \"export\": \"stats_export:freq_list\",\n            \"description\": \"Corpus word frequency list\"\n        },\n        {\n            \"export\": \"stats_export:sbx_freq_list\",\n            \"description\": \"Corpus word frequency list\"\n        },\n        {\n            \"export\": \"stats_export:sbx_freq_list_date\",\n            \"description\": \"Corpus word frequency list\"\n        },\n        {\n            \"export\": \"stats_export:sbx_freq_list_simple\",\n            \"description\": \"Corpus word frequency list (without Swedish annotations)\"\n        },\n        {\n            \"export\": \"stats_export:sbx_freq_list_simple_swe\",\n            \"description\": \"Corpus word frequency list (without Swedish annotations)\"\n        },\n        {\n            \"export\": \"version_info:yaml_export\",\n            \"description\": \"YAML file containing annotation version info\"\n        },\n        {\n            \"export\": \"xml_export:combined\",\n            \"description\": \"Combined XML export (all results in one file)\"\n        },\n        {\n            \"export\": \"xml_export:combined_scrambled\",\n            \"description\": \"Combined scrambled XML export\"\n        },\n        {\n            \"export\": \"xml_export:compressed\",\n            \"description\": \"Compressed combined XML export\"\n        },\n        {\n            \"export\": \"xml_export:compressed_scrambled\",\n            \"description\": \"Compressed combined scrambled XML export\"\n        },\n        {\n            \"export\": \"xml_export:preserved_format\",\n            \"description\": \"XML export preserving whitespaces from source file\"\n        },\n        {\n            \"export\": \"xml_export:scrambled\",\n            \"description\": \"Scrambled XML export\"\n        }\n    ],\n    \"return_code\": \"listing_sparv_exports\"\n}"
 						}
 					]
 				}
@@ -4614,7 +5360,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to confirm secret key for protected route\"\n}"
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to confirm secret key for protected route\",\n    \"return_code\": \"failed_confirming_secret_key\"\n}"
 						},
 						{
 							"name": "advance queue 200",
@@ -4653,7 +5399,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Queue advancing completed\"\n}"
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Queue advancing completed\",\n    \"return_code\": \"advanced_queue\"\n}"
 						}
 					]
 				}

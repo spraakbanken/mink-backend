@@ -20,6 +20,7 @@ info:
     4. <a href="#operation/runSparv">Run Sparv</a>
     5. <a href="#operation/checkstatus">Check the status</a>
     6. <a href="#operation/downloadexports">Download export files</a>
+    7. <a href="#operation/installinKorp">Install the corpus in Korp</a> / <a href="#operation/installinStrix">Strix</a>
 
     # Parameters
     Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
@@ -30,10 +31,14 @@ info:
     `curl -X GET -F "corpus_id=some_corpus_name" '{{host}}/list-sources' -H 'Authorization: Bearer YOUR_JWT`
 
     # Responses
-    Most responses will be in json format. Json responses contain a `status` field which will have the value `success`
-    if the response code is 200 and `error` otherwise. Thus this `status` merely reports whether the call was processed
-    correctly. Most responses contain a `message` field with information about what was done during the call or where
-    things went wrong. Each call may have an arbitrary amount of additional fields containing more information or data.
+    - Most responses will be in json format.
+    - Json responses contain a `status` field which will have the value `success` if the response code is 200 and
+      `error` otherwise. Thus this `status` merely reports whether the call was processed correctly.
+    - All json responses also contain a `return_code` field with a unique code that can be used for mapping to
+      human-friendly error messages.
+    - Most responses contain a `message` field with information about what was done during the call or where things went
+      wrong.
+    - Each call may have an arbitrary amount of additional fields containing more information or data.
 
   x-logo:
     url: placeholder
@@ -45,7 +50,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: https://ws.spraakbanken.gu.se/ws/min-sb
+  - url: https://ws.spraakbanken.gu.se/ws/mink
     description: Test server
 
 securitySchemes:
@@ -100,7 +105,7 @@ tags:
   - name: Manage Exports
     description: Routes for listing, downloading and removing export files.
   - name: Process Corpus
-    description: Routes for starting/aborting corpus annotation jobs with Sparv and checking job status.
+    description: Routes for managing annotation and installation jobs with Sparv and checking job status.
   - name: Admin Mode
     description: Activate/deactivate admin mode.
   - name: Documentation
@@ -115,7 +120,7 @@ paths:
   /api-doc:
     get:
       security: []
-  /status-codes:
+  /info:
     get:
       security: []
   /advance-queue:
@@ -224,7 +229,7 @@ paths:
             <token>:sensaldo.sentiment_label\n        - SWE_DEFAULT.swener\n    source_annotations:\n        -
             dokument as document\n        - text:forfattare as author\n        - ...\ncsv_export:\n    source_annotations:\n        -
             text:id\n        - text:date\n        - text:forfattare as author'
-  /install-corpus:
+  /install-korp:
     put:
       parameters:
       - name: corpus_id

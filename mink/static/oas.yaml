@@ -2,62 +2,29 @@ openapi: 3.0.0
 info:
   title: Mink API
   version: 1.0.0-beta
-  description: '# Introduction
-
-    Web API serving as a backend to Mink.
-
-
-    For now the API is used for uploading corpus data to a storage server and processing
-    that data with Sparv.
-
-
-    # Workflow
-
-    A workflow for processing data with Sparv via Mink could look like this:
-
-
-    1. <a href="#operation/createcorpus">Create a new corpus</a>
-
-    2. <a href="#operation/uploadsources">Upload some corpus source files</a>
-
-    3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
-
-    4. <a href="#operation/runSparv">Run Sparv</a>
-
-    5. <a href="#operation/checkstatus">Check the status</a>
-
-    6. <a href="#operation/downloadexports">Download export files</a>
-
-
-    # Parameters
-
-    Parameters such as `corpus_id` can usually be provided as a query parameter or
-    as form data.
-
-    The following two examples will thus result in the same response:
-
-
-    `curl -X GET ''{{host}}/list-sources?corpus_id=some_corpus_name'' -H ''Authorization:
-    Bearer YOUR_JWT`
-
-
-    `curl -X GET -F "corpus_id=some_corpus_name" ''{{host}}/list-sources'' -H ''Authorization:
-    Bearer YOUR_JWT`
-
-
-    # Responses
-
-    Most responses will be in json format. Json responses contain a `status` field
-    which will have the value `success`
-
-    if the response code is 200 and `error` otherwise. Thus this `status` merely reports
-    whether the call was processed
-
-    correctly. Most responses contain a `message` field with information about what
-    was done during the call or where
-
-    things went wrong. Each call may have an arbitrary amount of additional fields
-    containing more information or data.'
+  description: "# Introduction\nWeb API serving as a backend to Mink.\n\nFor now the\
+    \ API is used for uploading corpus data to a storage server and processing that\
+    \ data with Sparv.\n\n# Workflow\nA workflow for processing data with Sparv via\
+    \ Mink could look like this:\n\n1. <a href=\"#operation/createcorpus\">Create\
+    \ a new corpus</a>\n2. <a href=\"#operation/uploadsources\">Upload some corpus\
+    \ source files</a>\n3. <a href=\"#operation/uploadconfig\">Upload a corpus config\
+    \ file</a>\n4. <a href=\"#operation/runSparv\">Run Sparv</a>\n5. <a href=\"#operation/checkstatus\"\
+    >Check the status</a>\n6. <a href=\"#operation/downloadexports\">Download export\
+    \ files</a>\n7. <a href=\"#operation/installinKorp\">Install the corpus in Korp</a>\
+    \ / <a href=\"#operation/installinStrix\">Strix</a>\n\n# Parameters\nParameters\
+    \ such as `corpus_id` can usually be provided as a query parameter or as form\
+    \ data.\nThe following two examples will thus result in the same response:\n\n\
+    `curl -X GET '{{host}}/list-sources?corpus_id=some_corpus_name' -H 'Authorization:\
+    \ Bearer YOUR_JWT`\n\n`curl -X GET -F \"corpus_id=some_corpus_name\" '{{host}}/list-sources'\
+    \ -H 'Authorization: Bearer YOUR_JWT`\n\n# Responses\n- Most responses will be\
+    \ in json format.\n- Json responses contain a `status` field which will have the\
+    \ value `success` if the response code is 200 and\n  `error` otherwise. Thus this\
+    \ `status` merely reports whether the call was processed correctly.\n- All json\
+    \ responses also contain a `return_code` field with a unique code that can be\
+    \ used for mapping to\n  human-friendly error messages.\n- Most responses contain\
+    \ a `message` field with information about what was done during the call or where\
+    \ things went\n  wrong.\n- Each call may have an arbitrary amount of additional\
+    \ fields containing more information or data."
   x-logo:
     url: placeholder
   contact:
@@ -68,7 +35,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-- url: https://ws.spraakbanken.gu.se/ws/min-sb
+- url: https://ws.spraakbanken.gu.se/ws/mink
   description: Test server
 paths:
   /create-corpus:
@@ -106,10 +73,14 @@ paths:
                   corpus_id:
                     type: string
                     example: mink-dxh6e6wtff
+                  return_code:
+                    type: string
+                    example: created_corpus
               example:
                 status: success
                 message: Corpus 'mink-dxh6e6wtff' created successfully
                 corpus_id: mink-dxh6e6wtff
+                return_code: created_corpus
         '401':
           description: UNAUTHORIZED
           content:
@@ -126,10 +97,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '500':
           description: Internal Server Error
           content:
@@ -142,10 +117,14 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Failed to create resource
+                    example: Failed to create corpus
+                  return_code:
+                    type: string
+                    example: failed_creating_corpus
               example:
                 status: error
-                message: Failed to create resource
+                message: Failed to create corpus
+                return_code: failed_creating_corpus
       deprecated: false
   /list-corpora:
     get:
@@ -183,10 +162,14 @@ paths:
                     type: array
                     example: &id001
                     - mink-dxh6e6wtff
+                  return_code:
+                    type: string
+                    example: listing_corpora
               example:
                 status: success
                 message: Listing available corpora
                 corpora: *id001
+                return_code: listing_corpora
         '401':
           description: UNAUTHORIZED
           content:
@@ -203,10 +186,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
       deprecated: false
   /list-korp-corpora:
     get:
@@ -244,10 +231,14 @@ paths:
                     type: array
                     example: &id002
                     - mink-dxh6e6wtff
+                  return_code:
+                    type: string
+                    example: listing_korp_corpora
               example:
                 status: success
                 message: Listing corpora installed in Korp
                 corpora: *id002
+                return_code: listing_korp_corpora
         '401':
           description: UNAUTHORIZED
           content:
@@ -264,10 +255,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
       deprecated: false
   /remove-corpus:
     delete:
@@ -312,9 +307,13 @@ paths:
                   message:
                     type: string
                     example: Corpus 'mink-dxh6e6wtff' successfully removed
+                  return_code:
+                    type: string
+                    example: removed_corpus
               example:
                 status: success
                 message: Corpus 'mink-dxh6e6wtff' successfully removed
+                return_code: removed_corpus
         '401':
           description: UNAUTHORIZED
           content:
@@ -331,10 +330,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -349,10 +352,34 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to remove corpus 'mink-dxh6e6wtff' from Korp
+                  return_code:
+                    type: string
+                    example: failed_removing_korp
+              example:
+                status: error
+                message: Failed to remove corpus 'mink-dxh6e6wtff' from Korp
+                return_code: failed_removing_korp
       deprecated: false
   /upload-sources:
     put:
@@ -398,9 +425,13 @@ paths:
                   message:
                     type: string
                     example: Source files successfully added to 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: uploaded_sources
               example:
                 status: success
                 message: Source files successfully added to 'mink-dxh6e6wtff'
+                return_code: uploaded_sources
         '400':
           description: NOT FOUND
           content:
@@ -427,6 +458,9 @@ paths:
                   existing_file_extension:
                     type: string
                     example: .xml
+                  return_code:
+                    type: string
+                    example: failed_uploading_sources_incompatible_file_extension
               example:
                 status: error
                 message: Failed to upload some source files to 'mink-dxh6e6wtff' due
@@ -435,6 +469,7 @@ paths:
                 info: incompatible file extensions
                 current_file_extension: .txt
                 existing_file_extension: .xml
+                return_code: failed_uploading_sources_incompatible_file_extension
         '401':
           description: UNAUTHORIZED
           content:
@@ -451,10 +486,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -469,10 +508,14 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
         '413':
           description: REQUEST ENTITY TOO LARGE
           content:
@@ -489,10 +532,34 @@ paths:
                   max_content_length:
                     type: integer
                     example: 104857600
+                  return_code:
+                    type: string
+                    example: data_too_large
               example:
                 status: error
                 message: Request data too large (max 100 MB per upload)
                 max_content_length: 104857600
+                return_code: data_too_large
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to upload source files to 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: failed_uploading_sources
+              example:
+                status: error
+                message: Failed to upload source files to 'mink-dxh6e6wtff'
+                return_code: failed_uploading_sources
       deprecated: false
   /list-sources:
     get:
@@ -542,17 +609,21 @@ paths:
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:05:18+02:00'
-                      size: '1397'
+                      size: 1397
                       path: dokument1.xml
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:05:16+02:00'
-                      size: '116'
+                      size: 116
                       path: dokument2.xml
+                  return_code:
+                    type: string
+                    example: listing_sources
               example:
                 status: success
                 message: Current source files for 'mink-dxh6e6wtff'
                 contents: *id003
+                return_code: listing_sources
         '401':
           description: UNAUTHORIZED
           content:
@@ -569,10 +640,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -587,10 +662,34 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to list source files in 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: failed_listing_sources
+              example:
+                status: error
+                message: Failed to list source files in 'mink-dxh6e6wtff'
+                return_code: failed_listing_sources
       deprecated: false
   /download-sources:
     get:
@@ -631,7 +730,7 @@ paths:
         schema:
           type: string
           example: dokument1.xml
-      - &id018
+      - &id024
         name: zip
         in: query
         required: false
@@ -727,12 +826,16 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
-          description: NOT FOUND
+          description: Not Found
           content:
             application/json:
               schema:
@@ -743,12 +846,14 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: The file 'dokument5.xml' you are trying to download does
-                      not exist
+                    example: The source file you are trying to download does not exist
+                  return_code:
+                    type: string
+                    example: source_not_found
               example:
                 status: error
-                message: The file 'dokument5.xml' you are trying to download does
-                  not exist
+                message: The source file you are trying to download does not exist
+                return_code: source_not_found
       deprecated: false
   /remove-sources:
     delete:
@@ -806,9 +911,13 @@ paths:
                   message:
                     type: string
                     example: Source files for 'mink-dxh6e6wtff' successfully removed
+                  return_code:
+                    type: string
+                    example: removed_sources
               example:
                 status: success
                 message: Source files for 'mink-dxh6e6wtff' successfully removed
+                return_code: removed_sources
         '400':
           description: Bad Request
           content:
@@ -822,9 +931,13 @@ paths:
                   message:
                     type: string
                     example: No files provided for removal
+                  return_code:
+                    type: string
+                    example: missing_sources_remove
               example:
                 status: error
                 message: No files provided for removal
+                return_code: missing_sources_remove
         '401':
           description: UNAUTHORIZED
           content:
@@ -841,10 +954,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -859,10 +976,14 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
         '500':
           description: Internal Server Error
           content:
@@ -884,11 +1005,15 @@ paths:
                     type: array
                     example: &id005
                     - dokument1.xml
+                  return_code:
+                    type: string
+                    example: failed_removing_some_sources
               example:
                 status: error
                 message: Failed to remove some source files form 'mink-dxh6e6wtff'.
                 failed: *id004
                 succeeded: *id005
+                return_code: failed_removing_some_sources
       deprecated: false
   /upload-config:
     put:
@@ -951,9 +1076,13 @@ paths:
                   message:
                     type: string
                     example: Config file successfully uploaded for 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: uploaded_config
               example:
                 status: success
                 message: Config file successfully uploaded for 'mink-dxh6e6wtff'
+                return_code: uploaded_config
         '400':
           description: Bad Request
           content:
@@ -974,12 +1103,16 @@ paths:
                   expected_importer:
                     type: string
                     example: xml_import
+                  return_code:
+                    type: string
+                    example: incompatible_config_importer
               example:
                 status: error
                 message: The importer in your config file is not compatible with your
                   source files
                 current_importer: text_import
                 expected_importer: xml_import
+                return_code: incompatible_config_importer
         '401':
           description: UNAUTHORIZED
           content:
@@ -996,10 +1129,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -1014,10 +1151,14 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
       deprecated: false
   /download-config:
     get:
@@ -1083,10 +1224,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: NOT FOUND
           content:
@@ -1099,10 +1244,14 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: No config file found for corpus 'mink-nchh7fijyp'
+                    example: No config file found for corpus 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: config_not_found
               example:
                 status: error
-                message: No config file found for corpus 'mink-nchh7fijyp'
+                message: No config file found for corpus 'mink-dxh6e6wtff'
+                return_code: config_not_found
       deprecated: false
   /run-sparv:
     put:
@@ -1187,12 +1336,12 @@ paths:
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-10T15:05:37+02:00'
-                      size: '116'
+                      size: 116
                       path: mink-data/d/mink-dxh6e6wtff/source/dokument2.xml
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2022-06-10T15:05:38+02:00'
-                      size: '1397'
+                      size: 1397
                       path: mink-data/d/mink-dxh6e6wtff/source/dokument1.xml
                   files:
                     type: array
@@ -1202,6 +1351,9 @@ paths:
                   priority:
                     type: integer
                     example: 1
+                  return_code:
+                    type: string
+                    example: job_queued
               example:
                 status: success
                 message: Job has been queued
@@ -1210,6 +1362,7 @@ paths:
                 available_files: *id007
                 files: *id008
                 priority: 1
+                return_code: job_queued
         '400':
           description: Bad Request
           content:
@@ -1230,12 +1383,16 @@ paths:
                   expected_importer:
                     type: string
                     example: xml_import
+                  return_code:
+                    type: string
+                    example: incompatible_config_importer
               example:
                 status: error
                 message: The importer in your config file is not compatible with your
                   source files
                 current_importer: text_import
                 expected_importer: xml_import
+                return_code: incompatible_config_importer
         '401':
           description: UNAUTHORIZED
           content:
@@ -1252,10 +1409,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -1269,9 +1430,13 @@ paths:
                   message:
                     type: string
                     example: No source files found for 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: no_sources_found
               example:
                 status: error
                 message: No source files found for 'mink-dxh6e6wtff'
+                return_code: no_sources_found
       deprecated: false
   /check-status:
     get:
@@ -1329,6 +1494,171 @@ paths:
                   jobs:
                     type: array
                     example: &id009
+                    - corpus_id: mink-dxh6e6wtff
+                      message: Job has been queued for annotation
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: waiting
+                        korp: none
+                        strix: none
+                      sparv_exports:
+                      - xml_export:pretty
+                      - csv_export:csv
+                      - stats_export:sbx_freq_list
+                      available_files:
+                      - name: dokument2.xml
+                        type: text/xml
+                        last_modified: '2022-12-22T11:25:25+01:00'
+                        size: 115
+                        path: dokument2.xml
+                      - name: dokument1.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:11:42+02:00'
+                        size: 1394
+                        path: dokument1.xml
+                      - name: dokument3.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:11:42+02:00'
+                        size: 41
+                        path: dokument3.xml
+                      - name: dokument4.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:11:42+02:00'
+                        size: 461
+                        path: dokument4.xml
+                      installed_korp: true
+                      install_scrambled: false
+                      last_run_started: '2023-04-14T15:24:42+02:00'
+                      progress: 0%
+                      priority: 1
+                    - corpus_id: mink-vcghkzqgux
+                      message: Corpus is done processing and the results have been
+                        synced
+                      sparv_output: Nothing to be done.
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: done
+                        korp: none
+                        strix: none
+                      sparv_exports:
+                      - xml_export:pretty
+                      - csv_export:csv
+                      - stats_export:sbx_freq_list
+                      available_files:
+                      - name: artikel1.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:37+02:00'
+                        size: 43428
+                        path: artikel1.odt
+                      - name: artikel2.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:37+02:00'
+                        size: 43529
+                        path: artikel2.odt
+                      - name: artikel3.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:38+02:00'
+                        size: 38061
+                        path: artikel3.odt
+                      - name: artikel4.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:38+02:00'
+                        size: 33932
+                        path: artikel4.odt
+                      - name: artikel5.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:19:38+02:00'
+                        size: 38634
+                        path: artikel5.odt
+                      - name: artikel6.odt
+                        type: unknown
+                        last_modified: '2023-04-14T15:02:44+02:00'
+                        size: 33762
+                        path: artikel6.odt
+                      installed_korp: false
+                      install_scrambled: false
+                      seconds_taken: 1.7
+                      last_run_started: '2023-04-14T15:23:51+02:00'
+                      last_run_ended: '2023-04-14T15:23:52.700000+02:00'
+                      progress: 100%
+                    - corpus_id: mink-49d3yxuvbp
+                      message: Sparv is running
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: running
+                        korp: none
+                        strix: none
+                      sparv_exports:
+                      - xml_export:pretty
+                      - csv_export:csv
+                      - stats_export:sbx_freq_list
+                      available_files:
+                      - name: familjeliv-1.xml
+                        type: text/xml
+                        last_modified: '2023-04-03T13:34:56+02:00'
+                        size: 83970
+                        path: familjeliv-1.xml
+                      - name: familjeliv-2.xml
+                        type: text/xml
+                        last_modified: '2023-04-03T13:34:59+02:00'
+                        size: 74395
+                        path: familjeliv-2.xml
+                      - name: familjeliv-3-1.xml
+                        type: text/xml
+                        last_modified: '2023-04-03T13:42:10+02:00'
+                        size: 41797
+                        path: familjeliv-3-1.xml
+                      installed_korp: true
+                      install_scrambled: false
+                      seconds_taken: 12.183238
+                      last_run_started: '2023-04-14T15:33:40+02:00'
+                      progress: 42%
+                    - corpus_id: mink-jamdycuesk
+                      message: Corpus is done processing and the results have been
+                        synced
+                      sparv_output: 'The exported files can be found in the following
+                        locations:
+
+                        • export/csv_export/
+
+                        • export/stats_export.frequency_list_sbx/
+
+                        • export/xml_export.pretty/'
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: done
+                        korp: none
+                        strix: none
+                      sparv_exports:
+                      - xml_export:pretty
+                      - csv_export:csv
+                      - stats_export:sbx_freq_list
+                      available_files:
+                      - name: igelkottar.xml
+                        type: text/xml
+                        last_modified: '2023-01-31T14:04:15+01:00'
+                        size: 3559
+                        path: igelkottar.xml
+                      - name: rävar.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:22:54+02:00'
+                        size: 3195
+                        path: rävar.xml
+                      - name: ugglor.xml
+                        type: text/xml
+                        last_modified: '2023-04-14T15:22:54+02:00'
+                        size: 1415
+                        path: ugglor.xml
+                      installed_korp: true
+                      install_scrambled: false
+                      seconds_taken: 32.9
+                      last_run_started: '2023-04-14T15:24:02+02:00'
+                      last_run_ended: '2023-04-14T15:24:34.900000+02:00'
+                      progress: 100%
                     - corpus_id: mink-kuumlw3oyy
                       message: An error occurred during processing
                       sparv_output: "Sparv exited with the following error messages:\n\
@@ -1337,7 +1667,12 @@ paths:
                         \ reasons for this. Please make sure that there are no problems\
                         \ \nwith the corpus configuration file, like misspelled annotation\
                         \ names or \nreferences to non-existent source annotations."
-                      job_status: error
+                      job_status:
+                        sync2sparv: none
+                        sync2storage: none
+                        sparv: error
+                        korp: none
+                        strix: none
                       sparv_exports:
                       - csv_export:csv
                       - stats_export:freq_list
@@ -1354,83 +1689,19 @@ paths:
                         size: 115
                         path: dokument2.xml
                       installed_korp: false
-                      last_run_started: '2021-11-17T09:28:32+00:00'
+                      install_scrambled: false
+                      last_run_started: '2023-04-14T15:24:02+02:00'
+                      last_run_ended: '2023-04-14T15:24:44+02:00'
                       seconds_taken: 42.23
-                    - corpus_id: mink-dxh6e6wtff
-                      message: Corpus is done processing and the results have been
-                        synced
-                      sparv_output: 'The exported files can be found in the following
-                        locations:
-
-                        • export/csv/
-
-                        • export/frequency_list/
-
-                        • export/xml_pretty/'
-                      job_status: done
-                      sparv_exports:
-                      - csv_export:csv
-                      available_files:
-                      - name: dokument1.xml
-                        type: application/xml
-                        last_modified: '2021-11-19T13:39:09+00:00'
-                        size: 1396
-                        path: dokument1.xml
-                      - name: dokument2.xml
-                        type: application/xml
-                        last_modified: '2021-11-19T13:39:08+00:00'
-                        size: 115
-                        path: dokument2.xml
-                      installed_korp: false
-                      files:
-                      - dokument1
-                      - dokument2
-                      last_run_started: '2021-11-19T13:27:50+00:00'
-                      last_run_ended: '2021-11-19T15:16:15+01:00'
-                      seconds_taken: 6505.04
-                    - corpus_id: mink-eiyu8mjxui
-                      message: Sparv is running
-                      progress: 18%
-                      job_status: annotating
-                      sparv_exports:
-                      - stats_export:freq_list
-                      - xml_export:pretty
-                      available_files:
-                      - name: dokument1.xml
-                        type: application/xml
-                        last_modified: '2021-11-19T10:39:09+00:00'
-                        size: 1396
-                        path: dokument1.xml
-                      - name: dokument2.xml
-                        type: application/xml
-                        last_modified: '2021-11-19T10:39:08+00:00'
-                        size: 115
-                        path: dokument2.xml
-                      installed_korp: false
-                      last_run_started: '2021-11-19T10:54:10+00:00'
-                      seconds_taken: 632.63
-                    - corpus_id: mink-neyfev2rdm
-                      message: Job has been queued
-                      job_status: waiting
-                      sparv_exports:
-                      - xml_export:pretty
-                      available_files:
-                      - name: dokument1.xml
-                        type: application/xml
-                        last_modified: '2021-11-29T13:39:09+00:00'
-                        size: 1396
-                        path: dokument1.xml
-                      - name: dokument2.xml
-                        type: application/xml
-                        last_modified: '2021-11-29T13:39:08+00:00'
-                        size: 115
-                        path: dokument2.xml
-                      installed_korp: false
-                      priority: 1
+                      progress: 100%
+                  return_code:
+                    type: string
+                    example: listing_jobs
               example:
                 status: success
                 message: Listing jobs
                 jobs: *id009
+                return_code: listing_jobs
         '401':
           description: UNAUTHORIZED
           content:
@@ -1447,10 +1718,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -1465,10 +1740,14 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
       deprecated: false
   /abort-job:
     post:
@@ -1511,14 +1790,22 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Successfully aborted running job for 'mink-dxh6e6wtff'
+                    example: Successfully aborted job for 'mink-dxh6e6wtff'
                   job_status:
+                    type: object
+                    example: &id010
+                      sync2sparv: none
+                      sync2storage: none
+                      sparv: aborted
+                      korp: none
+                  return_code:
                     type: string
-                    example: aborted
+                    example: aborted_job
               example:
                 status: success
-                message: Successfully aborted running job for 'mink-dxh6e6wtff'
-                job_status: aborted
+                message: Successfully aborted job for 'mink-dxh6e6wtff'
+                job_status: *id010
+                return_code: aborted_job
         '401':
           description: UNAUTHORIZED
           content:
@@ -1535,10 +1822,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -1553,10 +1844,54 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to abort job for 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: failed_aborting_job
+              example:
+                status: error
+                message: Failed to abort job for 'mink-dxh6e6wtff'
+                return_code: failed_aborting_job
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Cannot abort job while syncing files
+                  return_code:
+                    type: string
+                    example: failed_aborting_job_syncing
+              example:
+                status: error
+                message: Cannot abort job while syncing files
+                return_code: failed_aborting_job_syncing
       deprecated: false
   /clear-annotations:
     delete:
@@ -1606,11 +1941,15 @@ paths:
                     type: string
                     example: '''export'' directory removed, ''logs'' directory removed,
                       ''sparv-workdir'' directory removed'
+                  return_code:
+                    type: string
+                    example: removed_annotations
               example:
                 status: success
                 message: Annotations for 'mink-dxh6e6wtff' successfully removed
                 sparv_output: '''export'' directory removed, ''logs'' directory removed,
                   ''sparv-workdir'' directory removed'
+                return_code: removed_annotations
         '401':
           description: UNAUTHORIZED
           content:
@@ -1627,10 +1966,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -1645,10 +1988,34 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to clear annotations
+                  return_code:
+                    type: string
+                    example: failed_clearing_annotations
+              example:
+                status: error
+                message: Failed to clear annotations
+                return_code: failed_clearing_annotations
       deprecated: false
   /check-changes:
     get:
@@ -1699,7 +2066,7 @@ paths:
                     example: true
                   changed_config:
                     type: object
-                    example: &id010
+                    example: &id011
                       name: config.yaml
                       type: application/yaml
                       last_modified: '2021-11-25T15:52:17+00:00'
@@ -1707,7 +2074,7 @@ paths:
                       path: config.yaml
                   added_sources:
                     type: array
-                    example: &id011
+                    example: &id012
                     - name: dokument4.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:35:30+00:00'
@@ -1715,7 +2082,7 @@ paths:
                       path: dokument4.xml
                   changed_sources:
                     type: array
-                    example: &id012
+                    example: &id013
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2021-11-25T15:56:51+00:00'
@@ -1728,7 +2095,7 @@ paths:
                       path: dokument2.xml
                   deleted_sources:
                     type: array
-                    example: &id013
+                    example: &id014
                     - name: dokument3.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:22:54+00:00'
@@ -1737,6 +2104,9 @@ paths:
                   last_run_started:
                     type: string
                     example: '2021-11-19T14:16:10+00:00'
+                  return_code:
+                    type: string
+                    example: input_changed
               example:
                 status: success
                 message: Your input for the corpus 'mink-dxh6e6wtff' has changed since
@@ -1745,29 +2115,12 @@ paths:
                 sources_added: true
                 sources_changed: true
                 sources_deleted: true
-                changed_config: *id010
-                added_sources: *id011
-                changed_sources: *id012
-                deleted_sources: *id013
+                changed_config: *id011
+                added_sources: *id012
+                changed_sources: *id013
+                deleted_sources: *id014
                 last_run_started: '2021-11-19T14:16:10+00:00'
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
-                      have access to it
-              example:
-                status: error
-                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
-                  access to it
+                return_code: input_changed
         '401':
           description: UNAUTHORIZED
           content:
@@ -1784,10 +2137,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -1802,16 +2159,40 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Failed to check changes for corpus 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: failed_checking_changes
+              example:
+                status: success
+                message: Failed to check changes for corpus 'mink-dxh6e6wtff'
+                return_code: failed_checking_changes
       deprecated: false
-  /install-corpus:
+  /install-korp:
     put:
       tags:
       - Process Corpus
-      summary: install corpus
+      summary: install in Korp
       description: 'Adds an installation job to the queue to tries to install the
         corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`
         parameter to `true` (the original order will be kept by default.
@@ -1830,7 +2211,7 @@ paths:
         -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
-      operationId: installcorpus
+      operationId: installinKorp
       parameters:
       - name: corpus_id
         in: query
@@ -1859,35 +2240,40 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Job has been queued for installation
+                    example: Job has been queued
                   job_status:
-                    type: string
-                    example: waiting_install
+                    type: object
+                    example: &id015
+                      sync2sparv: none
+                      sync2storage: none
+                      sparv: done
+                      korp: waiting
+                      strix: none
                   sparv_exports:
                     type: array
-                    example: &id014
+                    example: &id016
                     - csv_export:csv
                     - stats_export:freq_list
                     - xml_export:pretty
                   available_files:
                     type: array
-                    example: &id015
+                    example: &id017
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-23T17:44:02+02:00'
-                      size: '115'
+                      size: 115
                       path: dokument2.xml
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2022-06-23T17:44:03+02:00'
-                      size: '1396'
+                      size: 1396
                       path: dokument1.xml
                   installed_korp:
                     type: integer
                     example: false
                   files:
                     type: array
-                    example: &id016
+                    example: &id018
                     - dokument1
                     - dokument2
                   install_scrambled:
@@ -1899,17 +2285,21 @@ paths:
                   priority:
                     type: integer
                     example: 1
+                  return_code:
+                    type: string
+                    example: job_queued
               example:
                 status: success
-                message: Job has been queued for installation
-                job_status: waiting_install
-                sparv_exports: *id014
-                available_files: *id015
+                message: Job has been queued
+                job_status: *id015
+                sparv_exports: *id016
+                available_files: *id017
                 installed_korp: false
-                files: *id016
+                files: *id018
                 install_scrambled: true
                 last_run_started: '2022-07-28T11:39:58+02:00'
                 priority: 1
+                return_code: job_queued
         '401':
           description: UNAUTHORIZED
           content:
@@ -1926,10 +2316,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -1944,10 +2338,212 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to remove export files from Sparv server for corpus
+                      'mink-dxh6e6wtff'. Cannot run Sparv safely
+                  return_code:
+                    type: string
+                    example: failed_removing_exports
+              example:
+                status: error
+                message: Failed to remove export files from Sparv server for corpus
+                  'mink-dxh6e6wtff'. Cannot run Sparv safely
+                return_code: failed_removing_exports
+      deprecated: false
+  /install-strix:
+    put:
+      tags:
+      - Process Corpus
+      summary: install in Strix
+      description: 'Adds an installation job to the queue to tries to install the
+        corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`
+        parameter to `true` (the original order will be kept by default.
+
+
+        There can only be one active job (annotation or installation) for each corpus
+        at a time. A job must finish or be aborted before a new one can be started.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-corpus''
+        -H ''Authorization: Bearer YOUR_JWT''
+
+        ```'
+      operationId: installinStrix
+      parameters:
+      - name: corpus_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: mink-dxh6e6wtff
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Job has been queued
+                  job_status:
+                    type: object
+                    example: &id019
+                      sync2sparv: none
+                      sync2storage: none
+                      sparv: done
+                      korp: done
+                      strix: waiting
+                  sparv_exports:
+                    type: array
+                    example: &id020
+                    - csv_export:csv
+                    - stats_export:freq_list
+                    - xml_export:pretty
+                  available_files:
+                    type: array
+                    example: &id021
+                    - name: dokument2.xml
+                      type: application/xml
+                      last_modified: '2022-06-23T17:44:02+02:00'
+                      size: 115
+                      path: dokument2.xml
+                    - name: dokument1.xml
+                      type: application/xml
+                      last_modified: '2022-06-23T17:44:03+02:00'
+                      size: 1396
+                      path: dokument1.xml
+                  installed_korp:
+                    type: integer
+                    example: false
+                  files:
+                    type: array
+                    example: &id022
+                    - dokument1
+                    - dokument2
+                  install_scrambled:
+                    type: integer
+                    example: true
+                  last_run_started:
+                    type: string
+                    example: '2022-07-28T11:39:58+02:00'
+                  priority:
+                    type: integer
+                    example: 1
+                  return_code:
+                    type: string
+                    example: job_queued
+              example:
+                status: success
+                message: Job has been queued
+                job_status: *id019
+                sparv_exports: *id020
+                available_files: *id021
+                installed_korp: false
+                files: *id022
+                install_scrambled: true
+                last_run_started: '2022-07-28T11:39:58+02:00'
+                priority: 1
+                return_code: job_queued
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+                return_code: failed_authenticating
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
+                      have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
+              example:
+                status: error
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
+                  access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to remove export files from Sparv server for corpus
+                      'mink-dxh6e6wtff'. Cannot run Sparv safely
+                  return_code:
+                    type: string
+                    example: failed_removing_exports
+              example:
+                status: error
+                message: Failed to remove export files from Sparv server for corpus
+                  'mink-dxh6e6wtff'. Cannot run Sparv safely
+                return_code: failed_removing_exports
       deprecated: false
   /list-exports:
     get:
@@ -1993,36 +2589,40 @@ paths:
                     example: Current export files for 'mink-dxh6e6wtff'
                   contents:
                     type: array
-                    example: &id017
+                    example: &id023
                     - name: dokument2.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:54:15+02:00'
-                      size: '538'
+                      size: 538
                       path: csv_export/dokument2.csv
                     - name: dokument1.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:55:37+02:00'
-                      size: '4876'
+                      size: 4876
                       path: csv_export/dokument1.csv
                     - name: stats_mink-dxh6e6wtff.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:55:39+02:00'
-                      size: '10838'
+                      size: 10838
                       path: stats_export.frequency_list/stats_mink-dxh6e6wtff.csv
                     - name: dokument2_export.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:55:37+02:00'
-                      size: '1497'
+                      size: 1497
                       path: xml_export.pretty/dokument2_export.xml
                     - name: dokument1_export.xml
                       type: application/xml
                       last_modified: '2022-06-10T17:55:38+02:00'
-                      size: '13429'
+                      size: 13429
                       path: xml_export.pretty/dokument1_export.xml
+                  return_code:
+                    type: string
+                    example: listing_exports
               example:
                 status: success
                 message: Current export files for 'mink-dxh6e6wtff'
-                contents: *id017
+                contents: *id023
+                return_code: listing_exports
         '401':
           description: UNAUTHORIZED
           content:
@@ -2039,10 +2639,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -2057,10 +2661,34 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to list export files in 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: failed_listing_exports
+              example:
+                status: error
+                message: Failed to list export files in 'mink-dxh6e6wtff'
+                return_code: failed_listing_exports
       deprecated: false
   /download-exports:
     get:
@@ -2107,7 +2735,7 @@ paths:
         schema:
           type: string
           example: mink-dxh6e6wtff
-      - *id018
+      - *id024
       - name: file
         in: query
         required: false
@@ -3096,10 +3724,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -3114,10 +3746,34 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to download exports for corpus 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: failed_downloading_exports
+              example:
+                status: error
+                message: Failed to download exports for corpus 'mink-dxh6e6wtff'
+                return_code: failed_downloading_exports
       deprecated: false
       security: []
   /remove-exports:
@@ -3165,9 +3821,13 @@ paths:
                     type: string
                     example: Export files for corpus 'mink-dxh6e6wtff' successfully
                       removed
+                  return_code:
+                    type: string
+                    example: removed_exports
               example:
                 status: success
                 message: Export files for corpus 'mink-dxh6e6wtff' successfully removed
+                return_code: removed_exports
         '401':
           description: UNAUTHORIZED
           content:
@@ -3184,10 +3844,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: Not Found
           content:
@@ -3202,10 +3866,36 @@ paths:
                     type: string
                     example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
                       have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
               example:
                 status: error
                 message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
                   access to it
+                return_code: corpus_not_found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to remove export files from storage server for
+                      corpus 'mink-dxh6e6wtff'
+                  return_code:
+                    type: string
+                    example: failed_removing_exports_storage
+              example:
+                status: error
+                message: Failed to remove export files from storage server for corpus
+                  'mink-dxh6e6wtff'
+                return_code: failed_removing_exports_storage
       deprecated: false
   /download-source-text:
     get:
@@ -3262,7 +3952,7 @@ paths:
 
                 '
         '400':
-          description: BAD REQUEST
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -3273,10 +3963,14 @@ paths:
                     example: error
                   message:
                     type: string
-                    example: Please specify the source file to download
+                    example: No source file specified for download
+                  return_code:
+                    type: string
+                    example: missing_sources_download_text
               example:
                 status: error
-                message: Please specify the source file to download
+                message: No source file specified for download
+                return_code: missing_sources_download_text
         '401':
           description: UNAUTHORIZED
           content:
@@ -3293,10 +3987,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
         '404':
           description: NOT FOUND
           content:
@@ -3311,10 +4009,34 @@ paths:
                     type: string
                     example: There are currently no source texts for corpus 'mink-dxh6e6wtff'.
                       You must run Sparv before you can view source texts.
+                  return_code:
+                    type: string
+                    example: no_source_texts_run_sparv
               example:
                 status: error
                 message: There are currently no source texts for corpus 'mink-dxh6e6wtff'.
                   You must run Sparv before you can view source texts.
+                return_code: no_source_texts_run_sparv
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to download source text
+                  return_code:
+                    type: string
+                    example: failed_downloading_source_text
+              example:
+                status: error
+                message: Failed to download source text
+                return_code: failed_downloading_source_text
       deprecated: false
   /admin-mode-on:
     post:
@@ -3355,9 +4077,13 @@ paths:
                   message:
                     type: string
                     example: Admin mode turned on
+                  return_code:
+                    type: string
+                    example: admin_on
               example:
                 status: success
                 message: Admin mode turned on
+                return_code: admin_on
         '401':
           description: UNAUTHORIZED
           content:
@@ -3371,9 +4097,13 @@ paths:
                   message:
                     type: string
                     example: Mink admin status could not be confirmed
+                  return_code:
+                    type: string
+                    example: not_admin
               example:
                 status: error
                 message: Mink admin status could not be confirmed
+                return_code: not_admin
       deprecated: false
   /admin-mode-off:
     post:
@@ -3408,9 +4138,13 @@ paths:
                   message:
                     type: string
                     example: Admin mode turned off
+                  return_code:
+                    type: string
+                    example: admin_off
               example:
                 status: success
                 message: Admin mode turned off
+                return_code: admin_off
         '401':
           description: UNAUTHORIZED
           content:
@@ -3427,10 +4161,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
       deprecated: false
   /admin-mode-status:
     get:
@@ -3467,10 +4205,14 @@ paths:
                   admin_mode_status:
                     type: integer
                     example: true
+                  return_code:
+                    type: string
+                    example: returning_admin_status
               example:
                 status: success
                 message: Returning status of admin mode
                 admin_mode_status: true
+                return_code: returning_admin_status
         '401':
           description: UNAUTHORIZED
           content:
@@ -3487,10 +4229,14 @@ paths:
                   info:
                     type: string
                     example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
               example:
                 status: error
                 message: Failed to authenticate
                 info: Signature verification failed
+                return_code: failed_authenticating
       deprecated: false
   /api-spec:
     get:
@@ -3518,13 +4264,14 @@ paths:
           description: ''
       deprecated: false
       security: []
-  /status-codes:
+  /info:
     get:
       tags:
       - Documentation
-      summary: status codes
-      description: List job status codes along with their descriptions.
-      operationId: statuscodes
+      summary: API info
+      description: Show info about data processing, e.g. job status codes, file size
+        limits and Sparv importer modules.
+      operationId: APIinfo
       parameters: []
       responses:
         '200':
@@ -3539,47 +4286,78 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Listing existing job status codes
+                    example: Listing information about data processing
                   status_codes:
-                    type: array
-                    example: &id019
-                    - code: 0
-                      name: none
-                      description: Job does not exist
-                    - code: 1
-                      name: syncing_corpus
-                      description: Syncing from the storage server to Sparv server
-                    - code: 2
-                      name: waiting
-                      description: Waiting to be run with Sparv
-                    - code: 3
-                      name: annotating
-                      description: Sparv annotation process is running
-                    - code: 4
-                      name: done_annotating
-                      description: Annotation process has finished
-                    - code: 5
-                      name: syncing_results
-                      description: Syncing results from Sparv to the storage server
-                    - code: 6
-                      name: done_syncing
-                      description: Results have been synced to storage server
-                    - code: 7
-                      name: installing
-                      description: Corpus is being installed
-                    - code: 8
-                      name: done_installing
-                      description: Corpus is done installing
-                    - code: 9
-                      name: error
-                      description: An error occurred
-                    - code: 10
-                      name: aborted
-                      description: Aborted by the user
+                    type: object
+                    example: &id025
+                      info: job status codes
+                      data:
+                      - name: none
+                        description: Process does not exist
+                      - name: waiting
+                        description: Waiting to be processed
+                      - name: running
+                        description: Process is running
+                      - name: done
+                        description: Process has finished
+                      - name: error
+                        description: An error occurred in the process
+                      - name: aborted
+                        description: Process was aborted by the user
+                  importer_modules:
+                    type: object
+                    example: &id026
+                      info: Sparv importers that need to be used for different file
+                        extensions
+                      data:
+                      - file_extension: .xml
+                        importer: xml_import
+                      - file_extension: .txt
+                        importer: text_import
+                      - file_extension: .docx
+                        importer: docx_import
+                      - file_extension: .odt
+                        importer: odt_import
+                      - file_extension: .pdf
+                        importer: pdf_import
+                  file_size_limits:
+                    type: object
+                    example: &id027
+                      info: size limits (in bytes) for uploaded files
+                      data:
+                      - name: max_content_length
+                        description: max size for one request (which may contain multiple
+                          files)
+                        value: 104857600
+                      - name: max_file_length
+                        description: max size for one corpus source file
+                        value: 10485760
+                      - name: max_corpus_length
+                        description: max size for one corpus
+                        value: 524288000
+                  recommended_file_size:
+                    type: object
+                    example: &id028
+                      info: approximate recommended file sizes (in bytes) when processing
+                        many files with Sparv
+                      data:
+                      - name: max_file_length
+                        description: recommended min size for one corpus source file
+                        value: 1048576
+                      - name: min_file_length
+                        description: recommended max size for one corpus source file
+                        value: 5242880
+                  return_code:
+                    type: string
+                    example: listing_info
               example:
                 status: success
-                message: Listing existing job status codes
-                status_codes: *id019
+                message: Listing information about data processing
+                status_codes: *id025
+                importer_modules: *id026
+                file_size_limits: *id027
+                recommended_file_size: *id028
+                return_code: listing_info
       deprecated: false
       security: []
   /sparv-languages:
@@ -3606,7 +4384,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id020
+                    example: &id029
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -3649,10 +4427,14 @@ paths:
                       code: spa
                     - name: Swedish
                       code: swe
+                  return_code:
+                    type: string
+                    example: listing_languages
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id020
+                languages: *id029
+                return_code: listing_languages
       deprecated: false
       security: []
   /sparv-exports:
@@ -3694,7 +4476,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id021
+                    example: &id030
                     - export: xml_export:pretty
                       description: XML export with one token element per line
                     - export: conll_export:conllu
@@ -3713,12 +4495,16 @@ paths:
                       description: VRT export
                     - export: cwb:vrt_scrambled
                       description: Scrambled VRT export
+                    - export: korp:config
+                      description: Create Korp config file for the corpus.
                     - export: korp:lemgram_sql
                       description: Lemgram index SQL file for use in Korp
-                    - export: korp:relations_sql
-                      description: Word Picture SQL for use in Korp
                     - export: korp:timespan_sql
                       description: Timespan SQL data for use in Korp
+                    - export: korp:wordpicture_sql
+                      description: Word Picture SQL for use in Korp
+                    - export: sbx_strix:config
+                      description: Create Strix config file for the corpus.
                     - export: stats_export:freq_list
                       description: Corpus word frequency list
                     - export: stats_export:sbx_freq_list
@@ -3743,11 +4529,15 @@ paths:
                       description: XML export preserving whitespaces from source file
                     - export: xml_export:scrambled
                       description: Scrambled XML export
+                  return_code:
+                    type: string
+                    example: listing_sparv_exports
               example:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id021
+                exports: *id030
+                return_code: listing_sparv_exports
       deprecated: false
       security: []
   /advance-queue:
@@ -3782,9 +4572,13 @@ paths:
                   message:
                     type: string
                     example: Failed to confirm secret key for protected route
+                  return_code:
+                    type: string
+                    example: failed_confirming_secret_key
               example:
                 status: error
                 message: Failed to confirm secret key for protected route
+                return_code: failed_confirming_secret_key
         '200':
           description: OK
           content:
@@ -3798,9 +4592,13 @@ paths:
                   message:
                     type: string
                     example: Queue advancing completed
+                  return_code:
+                    type: string
+                    example: advanced_queue
               example:
                 status: success
                 message: Queue advancing completed
+                return_code: advanced_queue
       deprecated: false
       security:
       - ApiKeyAuth: []
@@ -3827,7 +4625,7 @@ tags:
 - name: Manage Exports
   description: Routes for listing, downloading and removing export files.
 - name: Process Corpus
-  description: Routes for starting/aborting corpus annotation jobs with Sparv and
+  description: Routes for managing annotation and installation jobs with Sparv and
     checking job status.
 - name: Admin Mode
   description: Activate/deactivate admin mode.

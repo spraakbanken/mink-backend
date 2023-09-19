@@ -9,7 +9,7 @@ from typing import Optional, Union
 from dateutil.parser import isoparse, parse
 from flask import current_app as app
 
-from mink import exceptions, utils
+from mink.core import exceptions, utils
 from mink.sparv import utils as sparv_utils
 
 local = True
@@ -47,7 +47,7 @@ def list_contents(directory: Union[Path, str], exclude_dirs: bool = True,
             if any(Path(f.parts[0]).match(item) for item in blacklist):
                 continue
         objlist.append({
-            "name": f.name, "type": mimetype, "last_modified": mod_time, "size": size, "path": obj_path[2:]
+            "name": f.name, "type": mimetype, "last_modified": mod_time, "size": int(size), "path": obj_path[2:]
         })
     return objlist
 
@@ -125,7 +125,7 @@ def download_dir(remote_dir, local_dir, corpus_id, zipped=False, zippath=None, e
     if not zipped:
         return local_dir
 
-    utils.create_zip(local_dir, zippath)
+    utils.create_zip(local_dir, zippath, zip_rootdir=corpus_id)
     return zippath
 
 

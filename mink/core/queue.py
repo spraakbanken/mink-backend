@@ -9,7 +9,7 @@ from pathlib import Path
 from flask import current_app as app
 from flask import g
 
-from mink import jobs
+from mink.core import jobs
 
 
 def init():
@@ -39,7 +39,7 @@ def init():
                 app.logger.debug(f"Job in cache: '{g.cache.get_job(job.corpus_id)}'")
             # Queue job unless it is done, aborted or erroneous
             if job.corpus_id not in queue:
-                if job.status not in [jobs.Status.done_annotating, jobs.Status.error, jobs.Status.aborted]:
+                if not job.status.is_done(job.current_process) and not job.status.is_inactive():
                     queue.append(job.corpus_id)
         g.cache.set_job_queue(queue)
         g.cache.set_all_jobs(all_jobs)
@@ -47,18 +47,14 @@ def init():
         app.logger.debug(f"All jobs in cache: {g.cache.get_all_jobs()}")
 
 
-def add(job, install=False):
+def add(job):
     """Add a job item to the queue."""
     queue = g.cache.get_job_queue()
 
     # Avoid starting multiple jobs for the same corpus simultaneously
-    if job.corpus_id in queue and jobs.Status.is_active(job.status):
+    if job.corpus_id in queue and job.status.is_active():
         raise Exception("There is an unfinished job for this corpus!")
 
-    if install:
-        job.set_status(jobs.Status.waiting_install)
-    else:
-        job.set_status(jobs.Status.waiting)
     # Unqueue if old job is queued since before
     if job.corpus_id in queue:
         queue.pop(queue.index(job.corpus_id))
@@ -81,13 +77,18 @@ def get():
     return job
 
 
-def remove(job):
-    """Remove job item from queue, e.g. when a job is aborted or a corpus is deleted."""
+def pop(job):
+    """Remove job item from queue (but keep in all jobs), e.g. when a job is aborted."""
     queue = g.cache.get_job_queue()
     if job.corpus_id in queue:
         queue.pop(queue.index(job.corpus_id))
         g.cache.set_job_queue(queue)
         save_priorities()
+
+
+def remove(job):
+    """Remove job item from queue and from stored jobs, e.g. when a corpus is deleted."""
+    pop(job)
 
     all_jobs = g.cache.get_all_jobs()
     if job.corpus_id in all_jobs:
@@ -97,9 +98,10 @@ def remove(job):
 
 def get_priority(job):
     """Get the queue priority of the job."""
-    queue = g.cache.get_job_queue()
+    _, waiting_jobs = get_running_waiting()
+    waiting_jobs = [j.corpus_id for j in waiting_jobs]
     try:
-        return queue.index(job.corpus_id) + 1
+        return waiting_jobs.index(job.corpus_id) + 1
     except ValueError:
         return -1
 
@@ -122,9 +124,9 @@ def get_running_waiting():
     queue = g.cache.get_job_queue()
     for j in queue:
         job = jobs.load_from_str(g.cache.get_job(j))
-        if jobs.Status.is_running(job.status):
+        if job.status.is_running():
             running_jobs.append(job)
-        elif jobs.Status.is_waiting(job.status):
+        elif job.status.is_waiting():
             waiting_jobs.append(job)
 
     return running_jobs, waiting_jobs
@@ -136,7 +138,7 @@ def unqueue_inactive():
     old_jobs = []
     for j in queue:
         job = jobs.load_from_str(g.cache.get_job(j))
-        if jobs.Status.is_inactive(job.status):
+        if job.status.is_inactive():
             old_jobs.append(j)
 
     if old_jobs:

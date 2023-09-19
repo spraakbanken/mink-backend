@@ -3,7 +3,6 @@
 import functools
 import gzip
 import json
-import os
 import subprocess
 import zipfile
 from pathlib import Path
@@ -37,7 +36,8 @@ def gatekeeper(function):
     def decorator(*args, **kwargs):
         secret_key = request.args.get("secret_key") or request.form.get("secret_key")
         if secret_key != app.config.get("MINK_SECRET_KEY"):
-            return response("Failed to confirm secret key for protected route", err=True), 401
+            return response("Failed to confirm secret key for protected route", err=True,
+                            return_code="failed_confirming_secret_key"), 401
         return function(*args, **kwargs)
     return decorator
 
@@ -61,14 +61,20 @@ def uncompress_gzip(inpath, outpath=None):
             f.write(data)
 
 
-def create_zip(inpath, outpath):
-    """Zip files in inpath into an archive at outpath."""
+def create_zip(inpath, outpath, zip_rootdir=None):
+    """Zip files in inpath into an archive at outpath.
+
+    zip_rootdir: name that the root folder inside the zip file should be renamed to.
+    """
     zipf = zipfile.ZipFile(outpath, "w")
     if Path(inpath).is_file():
         zipf.write(inpath, Path(inpath).name)
-    for root, _dirs, files in os.walk(inpath):
-        for f in files:
-            zipf.write(os.path.join(root, f), os.path.relpath(os.path.join(root, f), os.path.join(inpath, "..")))
+    else:
+        for filepath in Path(inpath).rglob("*"):
+            zippath = filepath.relative_to(Path(inpath).parent)
+            if zip_rootdir:
+                zippath = Path(zip_rootdir) / Path(*zippath.parts[1:])
+            zipf.write(filepath, zippath)
     zipf.close()
 
 
@@ -76,7 +82,7 @@ def check_file_ext(filename, valid_extensions=None) -> bool:
     """Check if file extension is valid."""
     filename = Path(filename)
     if valid_extensions:
-        if filename.suffix not in valid_extensions:
+        if not any(i.lower() == filename.suffix.lower() for i in valid_extensions):
             return False
     return True
 
@@ -126,7 +132,8 @@ def config_compatible(config, source_file):
     if current_importer == expected_importer:
         return True, None
     return False, response("The importer in your config file is not compatible with your source files",
-                            err=True, current_importer=current_importer, expected_importer=expected_importer)
+                            err=True, current_importer=current_importer, expected_importer=expected_importer,
+                            return_code="incompatible_config_importer")
 
 
 def standardize_config(config, corpus_id):
@@ -149,12 +156,19 @@ def standardize_config(config, corpus_id):
     # Remove settings that a Mink user is not allowed to modify
     config_yaml.pop("cwb", None)
     config_yaml.pop("korp", None)
+    config_yaml.pop("sbx_strix", None)
     # Remove all install and uninstall targets (this is handled in the installation step instead)
     config_yaml.pop("install", None)
     config_yaml.pop("uninstall", None)
 
     # Make corpus protected
     config_yaml["korp"] = {"protected": True}
+    # Make Strix corpora appear in correct mode
+    config_yaml["sbx_strix"] = {"modes": [{"name": "mink"}]}
+    # Add '<text>:misc.id as _id' to annotations for Strix' sake
+    if "export" in config_yaml and "annotations" in config_yaml["export"]:
+        if "<text>:misc.id as _id" not in config_yaml["export"]["annotations"]:
+            config_yaml["export"]["annotations"].append("<text>:misc.id as _id")
 
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True)
 
@@ -167,7 +181,7 @@ def get_corpora_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
     corpora_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / g.request_id
     if mkdir:
-        os.makedirs(str(corpora_dir), exist_ok=True)
+        corpora_dir.mkdir(parents=True, exist_ok=True)
     return corpora_dir
 
 
@@ -176,7 +190,7 @@ def get_corpus_dir(corpus_id: str, mkdir: bool = False) -> Path:
     corpora_dir = get_corpora_dir(mkdir=mkdir)
     corpus_dir = corpora_dir / Path(corpus_id)
     if mkdir:
-        os.makedirs(str(corpus_dir), exist_ok=True)
+        corpus_dir.mkdir(parents=True, exist_ok=True)
     return corpus_dir
 
 
@@ -185,7 +199,7 @@ def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
     corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     export_dir = corpus_dir / Path(app.config.get("SPARV_EXPORT_DIR"))
     if mkdir:
-        os.makedirs(str(export_dir), exist_ok=True)
+        export_dir.mkdir(parents=True, exist_ok=True)
     return export_dir
 
 
@@ -194,7 +208,7 @@ def get_work_dir(corpus_id: str, mkdir: bool = False) -> Path:
     corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     work_dir = corpus_dir / Path(app.config.get("SPARV_WORK_DIR"))
     if mkdir:
-        os.makedirs(str(work_dir), exist_ok=True)
+        work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
 
 
@@ -203,7 +217,7 @@ def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
     corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
     source_dir = corpus_dir / Path(app.config.get("SPARV_SOURCE_DIR"))
     if mkdir:
-        os.makedirs(str(source_dir), exist_ok=True)
+        source_dir.mkdir(parents=True, exist_ok=True)
     return source_dir
 
 
