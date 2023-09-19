@@ -1,5 +1,7 @@
 """Instanciation of flask app."""
 
+__version__ = "1.0.0"
+
 import logging
 import shutil
 import sys
