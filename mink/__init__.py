@@ -99,7 +99,8 @@ def create_app(debug=False):
         max_size = app.config.get('MAX_CONTENT_LENGTH', 0)
         h_max_size = str(round(app.config.get('MAX_CONTENT_LENGTH', 0) / 1024 / 1024, 3))
         return utils.response(
-            f"Request data too large (max {h_max_size} MB per upload)", max_content_length=max_size, err=True), 413
+            f"Request data too large (max {h_max_size} MB per upload)", max_content_length=max_size, err=True,
+            return_code="data_too_large"), 413
 
     # Register routes from blueprints
     from .core import routes as general_routes

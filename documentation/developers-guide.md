@@ -72,12 +72,11 @@ subdirectories or files.
 **7. Installing in Korp and/or Strix**
 
 Instead of downloading files the user may want to install the corpus in our corpus search tools Korp or Strix (or both).
-This can be done with the `/install-corpus` route. Installation is done with Sparv and thus an installation process
-needs to be queued just like an annotation process.
+This can be done with the `/install-korp` and `/install-strix` routes. Installation is done with Sparv and thus an
+installation process needs to be queued just like an annotation process.
 
-After a successful installation the user can log into Korp/Strix and
-search their own corpora as usual. Installations are private which means that they can only be viewed by the logged-in
-user owning the installed corpus.
+After a successful installation the user can log into Korp/Strix and search their own corpora as usual. Installations
+are private which means that they can only be viewed by the logged-in user owning the installed corpus.
 
 
 ## Project Structure
@@ -116,7 +115,7 @@ in turn will do three things:
 The Mink backend is organised into different modules. The application should be kept as modular as possible so that
 different components can be replaced more easily.
 
-The following scripts belong to the core module which provides general functionality and cannot be easily exchanged:
+The following scripts belong to the `core` module which provides general functionality and cannot be easily exchanged:
 - `corpus_registry.py` containing code for keeping track of all corpora uploaded to Mink
 - `exceptions.py` containing Mink specific exceptions
 - `jobs.py` containing code for managing and running corpus jobs (for processing and installing corpora)
@@ -136,19 +135,19 @@ components in the future:
 
 The Mink backend is typically (but not necessarily) distributed over multiple servers:
 
-- The **backend server** is where the flask application is running receiving and processing the requests.
+- The **backend server** is where the flask application is running, receiving and processing the requests.
 
 - The **storage server** is where the user's corpus source files, the corpus config file and the resulting export files
   are being stored.
 
-- The **Sparv server** is where Sparv is run and ideally this is a server with a GPU. The corpus files and the corpus
-  config files must be synced here from the storage server before corpora can be processed. The working files used by
-  Sparv are stored here but they may be deleted when a corpus is done processing or installing or when a user has not
-  accessed it for some time. The export files resulting from running Sparv are also stored here and will be synced to
-  the storage server. In the current Mink setup no separate storage server is used and the Sparv server also acts as a
-  storage server.
+- The **Sparv server** is where Sparv is run and ideally this is a server with a GPU. The corpus source files and the
+  corpus config files must be synced here from the storage server before corpora can be processed. The working files
+  used by Sparv are stored here but they may be deleted when a corpus is done processing or installing or when a user
+  has not accessed it for some time. The export files resulting from running Sparv are also stored here and will be
+  synced to the storage server. In the current Mink setup no separate storage server is used and the Sparv server also
+  acts as a storage server.
 
-- Installing corpora from Mink usually means syncing specific   Sparv export files to servers where other applications
+- Installing corpora from Mink usually means syncing specific Sparv export files to servers where other applications
   (e.g. Korp and Strix) are run.
 
 

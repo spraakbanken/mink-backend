@@ -20,7 +20,7 @@ info:
     4. <a href="#operation/runSparv">Run Sparv</a>
     5. <a href="#operation/checkstatus">Check the status</a>
     6. <a href="#operation/downloadexports">Download export files</a>
-    7. <a href="#operation/installkorp">Install the corpus in Korp</a>
+    7. <a href="#operation/installinKorp">Install the corpus in Korp</a> / <a href="#operation/installinStrix">Strix</a>
 
     # Parameters
     Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
@@ -31,10 +31,14 @@ info:
     `curl -X GET -F "corpus_id=some_corpus_name" '{{host}}/list-sources' -H 'Authorization: Bearer YOUR_JWT`
 
     # Responses
-    Most responses will be in json format. Json responses contain a `status` field which will have the value `success`
-    if the response code is 200 and `error` otherwise. Thus this `status` merely reports whether the call was processed
-    correctly. Most responses contain a `message` field with information about what was done during the call or where
-    things went wrong. Each call may have an arbitrary amount of additional fields containing more information or data.
+    - Most responses will be in json format.
+    - Json responses contain a `status` field which will have the value `success` if the response code is 200 and
+      `error` otherwise. Thus this `status` merely reports whether the call was processed correctly.
+    - All json responses also contain a `return_code` field with a unique code that can be used for mapping to
+      human-friendly error messages.
+    - Most responses contain a `message` field with information about what was done during the call or where things went
+      wrong.
+    - Each call may have an arbitrary amount of additional fields containing more information or data.
 
   x-logo:
     url: placeholder
