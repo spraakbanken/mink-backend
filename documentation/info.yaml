@@ -4,7 +4,7 @@ variables:
 
 info:
   title: Mink API
-  version: 1.0.0-beta
+  version: 1.0.0
   description: |-
     # Introduction
     Web API serving as a backend to Mink.
@@ -41,7 +41,7 @@ info:
     - Each call may have an arbitrary amount of additional fields containing more information or data.
 
   x-logo:
-    url: placeholder
+    url: https://raw.githubusercontent.com/spraakbanken/mink-backend/main/mink/static/mink.svg
   contact:
     name: Språkbanken
     url: https://spraakbanken.gu.se/
