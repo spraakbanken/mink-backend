@@ -85,7 +85,7 @@ class Cache():
             g.all_jobs = list(set(value))
 
     def get_job(self, job):
-        """Get 'job' from memcached (or from job_queue in app context) and return it."""
+        """Get 'job' from memcached (or from jobs_dict in app context) and return it."""
         queue.init()
 
         if self.client is not None:
@@ -94,7 +94,7 @@ class Cache():
             return g.jobs_dict.get(job)
 
     def set_job(self, job, value):
-        """Set 'job' to 'value' in memcached (or in job_queue in app context)."""
+        """Set 'job' to 'value' in memcached (or in jobs_dict in app context)."""
         queue.init()
 
         if self.client is not None:
@@ -103,7 +103,7 @@ class Cache():
             g.jobs_dict[job] = value
 
     def remove_job(self, job):
-        """Remove 'job' from memcached (or job_queue in app context)."""
+        """Remove 'job' from memcached (or jobs_dict in app context)."""
         queue.init()
 
         if self.client is not None:

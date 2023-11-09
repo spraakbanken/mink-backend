@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.?.?] - date
+
+### Added
+
+### Changed
+
+- The corpus registry and the job queue have been combined. Now, upon resource creation a job item is created immediately
+  (instead of it being created first upon starting a Sparv job).
+
+### Fixed
+
+
+
 ## [1.0.0] - 2023-09-19
 
 This is the first release of the Mink backend! This application contains functionality for uploading and downloading
