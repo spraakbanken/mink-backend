@@ -7,7 +7,7 @@ from flask import g
 from pymemcache import serde
 from pymemcache.client.base import Client
 
-from mink.core import corpus_registry, queue
+from mink.core import queue
 
 
 class Cache():
@@ -23,11 +23,7 @@ class Cache():
         g.queue_initialized = False
         g.job_queue = []  # Active jobs
         g.jobs_dict = {}
-        g.all_jobs = []  # All jobs, including those with status done, error and aborted
-
-        # Corpora
-        g.corpus_registry_initialized = False
-        g.corpora = []
+        g.all_jobs = []  # All jobs IDs
 
         self.client = None
         self.connect()
@@ -114,34 +110,3 @@ class Cache():
             self.client.delete(job)
         else:
             del g.jobs_dict[job]
-
-    def get_corpus_registry_initialized(self):
-        """Get bool value for 'corpus_registry_initialized' from memcached (or app context)."""
-        if self.client is not None:
-            return self.client.get("corpus_registry_initialized")
-        else:
-            return g.corpus_registry_initialized
-
-    def set_corpus_registry_initialized(self, is_initialized):
-        """Set 'corpus_registry_initialized' to bool 'is_initialized' in memcached (or app context)."""
-        if self.client is not None:
-            self.client.set("corpus_registry_initialized", bool(is_initialized))
-        else:
-            g.corpus_registry_initialized = bool(is_initialized)
-
-    def set_corpora(self, corpora):
-        """Set list of corpus IDs in memcached (or app context)."""
-        corpus_registry.init()
-
-        if self.client is not None:
-            self.client.set("corpora", corpora)
-        else:
-            g.corpora = corpora
-
-    def get_corpora(self):
-        """Get list of all corpus IDs from memcached (or app context)."""
-        corpus_registry.init()
-        if self.client is not None:
-            return self.client.get("corpora")
-        else:
-            return g.corpora

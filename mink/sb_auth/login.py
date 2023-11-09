@@ -1,12 +1,12 @@
 """Login functions."""
 
 import functools
+import inspect
 import json
 import re
 import time
 import traceback
 from pathlib import Path
-import inspect
 
 import jwt
 import requests
@@ -15,7 +15,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import g, request, session
 
-from mink.core import corpus_registry, exceptions, utils
+from mink.core import exceptions, queue, utils
 
 bp = Blueprint("sb_auth_login", __name__)
 
@@ -59,7 +59,7 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 
             # Give access to all corpora if admin mode is on and user is mink admin
             if session.get("admin_mode") and mink_admin:
-                corpora = corpus_registry.get_all()
+                corpora = queue.get_all_jobs()
             else:
                 # Turn off admin mode if user is not admin
                 session["admin_mode"] = False

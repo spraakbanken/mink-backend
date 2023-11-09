@@ -7,7 +7,7 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request, send_file
 
-from mink.core import corpus_registry, exceptions, jobs, queue, utils
+from mink.core import exceptions, jobs, queue, utils
 from mink.sb_auth import login
 from mink.sparv import storage
 from mink.sparv import utils as sparv_utils
@@ -21,7 +21,7 @@ bp = Blueprint("sparv_storage", __name__)
 
 @bp.route("/create-corpus", methods=["POST"])
 @login.login(require_corpus_exists=False, require_corpus_id=False)
-def create_corpus(corpora: list, auth_token: str):
+def create_corpus(user_id: str, contact: str, auth_token: str):
     """Create a new corpus."""
     # Create corpus ID
     corpus_id = None
@@ -34,23 +34,25 @@ def create_corpus(corpora: list, auth_token: str):
                                   return_code="failed_creating_corpus"), 500
         tries += 1
         corpus_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
-        corpora = corpus_registry.get_all()
-        if corpus_id in corpora:
+        if corpus_id in queue.get_all_jobs():
             corpus_id = None
-        try:
-            login.create_resource(auth_token, corpus_id)
-        except exceptions.CorpusExists:
-            # Corpus ID is in use, try to create another one
-            corpus_id = None
-        except Exception as e:
-            return utils.response("Failed to create corpus", err=True, info=str(e),
-                                  return_code="failed_creating_corpus"), 500
+        else:
+            try:
+                login.create_resource(auth_token, corpus_id)
+                job = jobs.get_job(corpus_id, user_id=user_id, contact=contact)
+                queue.create(job)
+                job.save()
+            except exceptions.CorpusExists:
+                # Corpus ID is in use in authentication system, try to create another one
+                corpus_id = None
+            except Exception as e:
+                return utils.response("Failed to create corpus", err=True, info=str(e),
+                                    return_code="failed_creating_corpus"), 500
 
     # Create corpus dir with subdirs
     try:
         corpus_dir = str(storage.get_corpus_dir(corpus_id, mkdir=True))
         storage.get_source_dir(corpus_id, mkdir=True)
-        corpus_registry.add(corpus_id)
         return utils.response(f"Corpus '{corpus_id}' created successfully", corpus_id=corpus_id,
                               return_code="created_corpus"), 201
     except Exception as e:
@@ -63,6 +65,10 @@ def create_corpus(corpora: list, auth_token: str):
             login.remove_resource(corpus_id)
         except Exception as err:
             app.logger.error(f"Failed to remove corpus '{corpus_id}' from auth system. {err}")
+        try:
+            job.remove()
+        except Exception as err:
+            app.logger.error(f"Failed to remove job '{corpus_id}'. {err}")
         return utils.response("Failed to create corpus dir", err=True, info=str(e),
                               return_code="failed_creating_corpus_dir"), 500
 
@@ -135,12 +141,6 @@ def remove_corpus(corpus_id: str):
     except Exception as e:
         return utils.response(f"Failed to remove corpus '{corpus_id}' from authentication system", err=True,
                               info=str(e), return_code="failed_removing_auth"), 500
-
-    try:
-        # Remove from corpus registry
-        corpus_registry.remove(corpus_id)
-    except Exception as e:
-        app.logger.error(f"Failed to remove corpus '{corpus_id}' from corpus registry: {e}")
 
     return utils.response(f"Corpus '{corpus_id}' successfully removed", return_code="removed_corpus")
 

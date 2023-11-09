@@ -63,9 +63,8 @@ SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"          # Temporary Sparv run script crea
 # Local files relative to flask instance dir
 TMP_DIR = "tmp"                      # Temporary file storage
 MEMCACHED_SOCKET = "memcached.sock"  # Memcached socket file
-QUEUE_DIR = "queue"                  # Directory for storing job files
-QUEUE_FILE = "priorities"            # File to store the queue priorities
-CORPUS_REGISTRY = "corpus_registry"  # Directory for storing corpus IDs
+REGISTRY_DIR = "registry"            # Directory for storing job files
+QUEUE_FILE = "queue"                 # File to store the queue priorities
 
 # Settings for queue manager
 MINK_URL = "https://ws.spraakbanken.gu.se/ws/mink"  # URL for mink API

@@ -21,10 +21,10 @@ description will give you a general idea of how the Mink backend works.
 **1. Creating a new corpus**
 
 Before any data can be uploaded and processed a user needs to create a corpus (when using the Mink frontend this is done
-behind the scenes). When creating a new corpus Mink will generate a unique corpus ID (prefixed with 'mink-') which will
-be stored in the backend's corpus registry. The generated corpus ID will also be registered in the authentication system
-and the user creating the corpus will receive owner rights. Creating a new corpus is done through the `/create-corpus`
-route.
+behind the scenes). When creating a new corpus Mink will generate a unique corpus ID (prefixed with 'mink-') and a job
+item which will be stored in the backend's corpus registry. The generated corpus ID will also be registered in the
+authentication system and the user creating the corpus will receive owner rights. Creating a new corpus is done through
+the `/create-corpus` route.
 
 **2. Uploading corpus source files**
 
@@ -116,10 +116,9 @@ The Mink backend is organised into different modules. The application should be 
 different components can be replaced more easily.
 
 The following scripts belong to the `core` module which provides general functionality and cannot be easily exchanged:
-- `corpus_registry.py` containing code for keeping track of all corpora uploaded to Mink
 - `exceptions.py` containing Mink specific exceptions
 - `jobs.py` containing code for managing and running corpus jobs (for processing and installing corpora)
-- `queue.py` containing code for the job queuing system
+- `queue.py` containing code for the resource registry and job queuing system
 - `routes.py` containing some general routes that are independent of non-core functionality (like serving the
   documentation)
 - `status.py` containing classes for handling job statuses

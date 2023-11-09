@@ -1,6 +1,6 @@
-"""Utilities related to a queue of Sparv jobs.
+"""Utilities related to the resource registry and queue of Sparv jobs.
 
-The job queue lives in the cache and also on the local file system (as backup).
+The registry and job queue live in the cache and also on the local file system (as backup).
 """
 
 import json
@@ -9,42 +9,52 @@ from pathlib import Path
 from flask import current_app as app
 from flask import g
 
-from mink.core import jobs
+from mink.core import exceptions, jobs
 
 
 def init():
-    """Init a queue from the filesystem if it has not been initialized already."""
+    """Init the registry and queue from the filesystem if it has not been initialized already."""
     if not g.cache.get_queue_initialized():
         app.logger.info("Initializing queue")
-        all_jobs = []  # Storage for all jobs, including done, aborted and errorneous
-        queue_dir = Path(app.instance_path) / app.config.get("QUEUE_DIR")
-        queue_dir.mkdir(exist_ok=True)
+        all_jobs = []  # Storage for all job IDs
+        registry_dir = Path(app.instance_path) / app.config.get("REGISTRY_DIR")
+        registry_dir.mkdir(exist_ok=True)
         # Load queue priorities
-        priorities_file = queue_dir / Path(app.config.get("QUEUE_FILE"))
-        if priorities_file.is_file():
-            with priorities_file.open() as p:
+        queue_file = registry_dir / Path(app.config.get("QUEUE_FILE"))
+        if queue_file.is_file():
+            with queue_file.open() as p:
                 jsonstr = p.read()
                 queue = json.loads(jsonstr) or []
         else:
             queue = []
         g.cache.set_queue_initialized(True)
         # Load jobs into memory, append to queue if necessary
-        for f in sorted(queue_dir.iterdir(), key=lambda x: x.stat().st_mtime):
-            if f == priorities_file:
+        for f in sorted(registry_dir.glob("*/*"), key=lambda x: x.stat().st_mtime):
+            if f == queue_file:
                 continue
-            with f.open() as fobj:
-                job = jobs.load_from_str(fobj.read())
-                job.save()  # Update job in file system and add to cache
-                all_jobs.append(job.corpus_id)
-                app.logger.debug(f"Job in cache: '{g.cache.get_job(job.corpus_id)}'")
-            # Queue job unless it is done, aborted or erroneous
-            if job.corpus_id not in queue:
-                if not job.status.is_done(job.current_process) and not job.status.is_inactive():
-                    queue.append(job.corpus_id)
+            if f.is_file():
+                with f.open() as fobj:
+                    job = jobs.load_from_str(fobj.read())
+                    job.save()  # Update job in file system and add to cache
+                    all_jobs.append(job.corpus_id)
+                    app.logger.debug(f"Job in cache: '{g.cache.get_job(job.corpus_id)}'")
+                # Queue job unless it is done, aborted or erroneous
+                if job.corpus_id not in queue:
+                    if not job.status.is_done(job.current_process) and not job.status.is_inactive():
+                        queue.append(job.corpus_id)
         g.cache.set_job_queue(queue)
         g.cache.set_all_jobs(all_jobs)
         app.logger.debug(f"Queue in cache: {g.cache.get_job_queue()}")
         app.logger.debug(f"All jobs in cache: {g.cache.get_all_jobs()}")
+
+
+def create(job):
+    """Creates (initializes) a job without putting it in the queue."""
+    all_jobs = g.cache.get_all_jobs()
+    if job.corpus_id in all_jobs:
+        raise exceptions.CorpusExists("Corpus ID already exists!")
+    all_jobs.append(job.corpus_id)
+    g.cache.set_all_jobs(all_jobs)
 
 
 def add(job):
@@ -108,11 +118,11 @@ def get_priority(job):
 
 def save_priorities():
     """Save queue order so it can be loaded from disk upon app restart."""
-    queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
-    queue_dir.mkdir(exist_ok=True)
+    registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
+    registry_dir.mkdir(exist_ok=True)
     queue = g.cache.get_job_queue()
-    priorities_file = queue_dir / Path(app.config.get("QUEUE_FILE"))
-    with priorities_file.open("w") as f:
+    queue_file = registry_dir / Path(app.config.get("QUEUE_FILE"))
+    with queue_file.open("w") as f:
         f.write(json.dumps(queue))
 
 
@@ -167,3 +177,8 @@ def get_job_by_corpus_id(corpus_id):
         job = jobs.load_from_str(g.cache.get_job(corpus_id))
         return job
     return False
+
+
+def get_all_jobs():
+    """Get a list of all existing jobs."""
+    return g.cache.get_all_jobs()

@@ -87,9 +87,10 @@ class Job():
         # Save in cache
         g.cache.set_job(self.corpus_id, dump)
         # Save backup to file system queue
-        queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
-        queue_dir.mkdir(exist_ok=True)
-        backup_file = queue_dir / Path(self.corpus_id)
+        registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
+        subdir = registry_dir / self.corpus_id[len(app.config.get("RESOURCE_PREFIX"))]
+        subdir.mkdir(parents=True, exist_ok=True)
+        backup_file = subdir / Path(self.corpus_id)
         with backup_file.open("w") as f:
             f.write(dump)
 
@@ -112,8 +113,9 @@ class Job():
         except Exception as e:
             app.logger.error(f"Failed to delete job ID from cache client: {e}")
         # Remove backup from file system
-        queue_dir = Path(app.instance_path) / Path(app.config.get("QUEUE_DIR"))
-        filename = queue_dir / Path(self.corpus_id)
+        registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
+        subdir = registry_dir / self.corpus_id[len(app.config.get("RESOURCE_PREFIX"))]
+        filename = subdir / Path(self.corpus_id)
         filename.unlink(missing_ok=True)
 
     def set_status(self, status: Status, process: Optional[ProcessName] = None):
