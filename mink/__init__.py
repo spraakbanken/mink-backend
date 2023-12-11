@@ -11,7 +11,7 @@ from pathlib import Path
 from flask import Flask, g, request
 from flask_cors import CORS
 
-from mink.core import queue, utils
+from mink.core import registry, utils
 from mink.memcached.cache import Cache
 from mink.sb_auth.login import read_jwt_key
 
@@ -60,9 +60,9 @@ def create_app(debug=False):
         logging.basicConfig(filename=logfile, level=log_level, format=logfmt, datefmt=datefmt)
 
     with app.app_context():
-        # Connect to cache and init job queue
+        # Connect to cache and init the resource registry
         g.cache = Cache()
-        queue.init()
+        registry.initialize()
 
         # Save JWT key in memory
         read_jwt_key()

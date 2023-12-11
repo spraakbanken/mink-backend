@@ -5,14 +5,12 @@ import json
 import re
 import shlex
 import subprocess
-from pathlib import Path
 from typing import Optional
 
 import dateutil
 from flask import current_app as app
-from flask import g
 
-from mink.core import exceptions, queue, utils
+from mink.core import exceptions, registry, utils
 from mink.core.status import JobStatuses, ProcessName, Status
 from mink.sparv import storage
 from mink.sparv import utils as sparv_utils
@@ -22,26 +20,22 @@ class Job():
     """A job item holding information about a Sparv job."""
 
     def __init__(self,
-                 corpus_id,
-                 user_id=None,
-                 contact=None,
+                 id,
                  status=None,
                  current_process=None,
                  pid=None,
                  started=None,
                  done=None,
                  sparv_exports=None,
-                 files=None,
-                 available_files=None,
+                 current_files=None,
+                 source_files=None,
                  install_scrambled=None,
                  installed_korp=False,
                  installed_strix=False,
                  latest_seconds_taken=0,
                  **_obsolete  # needed to catch invalid arguments from outdated job items (avoids crashes)
                 ):
-        self.corpus_id = corpus_id
-        self.contact = contact
-        self.user_id = user_id
+        self.id = id
         self.status = JobStatuses(status)
         self.current_process = current_process
         self.pid = pid
@@ -49,8 +43,8 @@ class Job():
         self.done = done
         self.sparv_done = None
         self.sparv_exports = sparv_exports or []
-        self.files = files or []
-        self.available_files = available_files or []
+        self.current_files = current_files or []
+        self.source_files = source_files or []
         self.install_scrambled = install_scrambled
         self.installed_korp = installed_korp
         self.installed_strix = installed_strix
@@ -61,62 +55,40 @@ class Job():
         self.sparv_server = app.config.get("SPARV_HOST")
         self.nohupfile = app.config.get("SPARV_NOHUP_FILE")
         self.runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
-        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(corpus_id))
+        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.id))
 
     def __str__(self):
-        return json.dumps({"user_id": self.user_id,
-                           "contact": self.contact,
-                           "corpus_id": self.corpus_id,
-                           "status": self.status.dump(),
-                           "current_process": self.current_process,
-                           "pid": self.pid,
-                           "started": self.started,
-                           "done": self.done,
-                           "sparv_exports": self.sparv_exports,
-                           "files": self.files,
-                           "available_files": self.available_files,
-                           "install_scrambled": self.install_scrambled,
-                           "installed_korp": self.installed_korp,
-                           "installed_strix": self.installed_strix,
-                           "latest_seconds_taken": self.latest_seconds_taken,
-                           })
+        return str(self.serialize())
 
-    def save(self):
-        """Write a job item to the cache and filesystem."""
-        dump = str(self)
-        # Save in cache
-        g.cache.set_job(self.corpus_id, dump)
-        # Save backup to file system queue
-        registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
-        subdir = registry_dir / self.corpus_id[len(app.config.get("RESOURCE_PREFIX"))]
-        subdir.mkdir(parents=True, exist_ok=True)
-        backup_file = subdir / Path(self.corpus_id)
-        with backup_file.open("w") as f:
-            f.write(dump)
+    def serialize(self):
+        """Convert class data into dict."""
+        warnings, errors, misc_output = self.get_output()
+        priority = registry.get_priority(self) if not registry.get_priority(self) == -1 else ""
+        return {
+            "status": self.status,
+            "current_process": self.current_process,
+            "pid": self.pid,
+            "started": self.started,
+            "done": self.done,
+            "sparv_exports": self.sparv_exports,
+            "current_files": self.current_files,
+            "install_scrambled": self.install_scrambled,
+            "installed_korp": self.installed_korp,
+            "installed_strix": self.installed_strix,
+            "latest_seconds_taken": self.latest_seconds_taken,
 
-    def remove(self, abort=False):
-        """Remove a job item from the cache and file system."""
-        if self.status.is_running():
-            if abort:
-                try:
-                    self.abort_sparv()
-                except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
-                    pass
-                except Exception as e:
-                    raise e
-            else:
-                raise exceptions.JobError("Job cannot be removed due to a running Sparv process!")
+            "priority": priority,
+            "warnings": warnings,
+            "errors": errors,
+            "sparv_output": misc_output,
+            "last_run_started": self.started or "",
+            "last_run_ended": self.done or "",
+            "progress": self.progress or ""
+            }
 
-        # Remove from cache
-        try:
-            g.cache.remove_job(self.corpus_id)
-        except Exception as e:
-            app.logger.error(f"Failed to delete job ID from cache client: {e}")
-        # Remove backup from file system
-        registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
-        subdir = registry_dir / self.corpus_id[len(app.config.get("RESOURCE_PREFIX"))]
-        filename = subdir / Path(self.corpus_id)
-        filename.unlink(missing_ok=True)
+    def set_parent(self, parent):
+        """Save reference to parent class."""
+        self.parent = parent
 
     def set_status(self, status: Status, process: Optional[ProcessName] = None):
         """Change the status of a job."""
@@ -128,23 +100,33 @@ class Job():
             self.status[process] = status
             if self.status.is_active():
                 self.current_process = process
-            self.save()
+            self.parent.update()
 
     def set_pid(self, pid):
         """Set pid of job and save."""
         self.pid = pid
-        self.save()
+        self.parent.update()
 
     def set_install_scrambled(self, scramble):
         """Set status of 'install_scrambled' and save."""
         self.install_scrambled = scramble
-        self.save()
+        self.parent.update()
+
+    def set_sparv_exports(self, sparv_exports):
+        """Set the Sparv exports to be created during the next run."""
+        self.sparv_exports = sparv_exports
+        self.parent.update()
+
+    def set_current_files(self, current_files):
+        """Set the input files to be processed during the next run."""
+        self.current_files = current_files
+        self.parent.update()
 
     def set_latest_seconds_taken(self, seconds_taken):
         """Set 'latest_seconds_taken' and save."""
         if self.latest_seconds_taken != seconds_taken:
             self.latest_seconds_taken = seconds_taken
-            self.save()
+            self.parent.update()
 
     def reset_time(self):
         """Reset the processing time for a job (e.g. when starting a new one)."""
@@ -152,25 +134,25 @@ class Job():
         # self.started = None
         self.done = None
         self.sparv_done = None
-        self.save()
+        self.parent.update()
 
     def check_requirements(self):
         """Check if required corpus contents are present."""
-        remote_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
+        remote_corpus_dir = str(storage.get_corpus_dir(self.id))
         corpus_contents = storage.list_contents(remote_corpus_dir, exclude_dirs=False)
         if not app.config.get("SPARV_CORPUS_CONFIG") in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
-            raise Exception(f"No config file provided for '{self.corpus_id}'!")
+            raise Exception(f"No config file provided for '{self.id}'!")
         if not len([i for i in corpus_contents if i.get("path").startswith(app.config.get("SPARV_SOURCE_DIR"))]):
             self.set_status(Status.error)
-            raise Exception(f"No input files provided for '{self.corpus_id}'!")
+            raise Exception(f"No input files provided for '{self.id}'!")
 
     def sync_to_sparv(self):
         """Sync corpus files from storage server to the Sparv server."""
         self.set_status(Status.running, ProcessName.sync2sparv)
 
         # Get relevant directories
-        remote_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
+        remote_corpus_dir = str(storage.get_corpus_dir(self.id))
         local_user_dir = utils.get_corpora_dir(mkdir=True)
 
         # Create user and corpus dir on Sparv server
@@ -183,13 +165,13 @@ class Job():
         # Download from storage server to local tmp dir
         # TODO: do this async?
         try:
-            storage.download_dir(remote_corpus_dir, local_user_dir, self.corpus_id)
+            storage.download_dir(remote_corpus_dir, local_user_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to download corpus '{self.corpus_id}' from the storage server! {e}")
+            raise Exception(f"Failed to download corpus '{self.id}' from the storage server! {e}")
 
         # Sync corpus config to Sparv server
-        p = subprocess.run(["rsync", "-av", utils.get_config_file(self.corpus_id),
+        p = subprocess.run(["rsync", "-av", utils.get_config_file(self.id),
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
@@ -198,7 +180,7 @@ class Job():
 
         # Sync corpus files to Sparv server
         # TODO: do this async!
-        local_source_dir = utils.get_source_dir(self.corpus_id)
+        local_source_dir = utils.get_source_dir(self.id)
         p = subprocess.run(["rsync", "-av", "--delete", local_source_dir,
                             f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -212,8 +194,8 @@ class Job():
         """Start a Sparv annotation process."""
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
-        if self.files:
-            sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.files)}"
+        if self.current_files:
+            sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.current_files)}"
         script_content = f"{sparv_env} nohup time -p {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
@@ -283,7 +265,7 @@ class Job():
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            app.logger.error(f"Failed to uninstall corpus {self.corpus_id} from Korp: {stderr}")
+            app.logger.error(f"Failed to uninstall corpus {self.id} from Korp: {stderr}")
             raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stderr}")
 
         self.installed_korp = False
@@ -332,7 +314,7 @@ class Job():
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            app.logger.error(f"Failed to uninstall corpus {self.corpus_id} from Strix: {stderr}")
+            app.logger.error(f"Failed to uninstall corpus {self.id} from Strix: {stderr}")
             raise exceptions.JobError(f"Failed to uninstall corpus from Strix: {stderr}")
 
         self.installed_strix = False
@@ -340,7 +322,7 @@ class Job():
     def abort_sparv(self):
         """Abort running Sparv process."""
         if self.status.is_waiting(self.current_process):
-            queue.pop(self)
+            registry.pop_queue(self)
             self.set_status(Status.aborted)
             return
         if not self.status.is_running():
@@ -393,7 +375,7 @@ class Job():
             return "", "", ""
 
         nohupfile = app.config.get("SPARV_NOHUP_FILE")
-        remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.corpus_id))
+        remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.id))
 
         p = utils.ssh_run(f"cd {shlex.quote(remote_corpus_dir)} && cat {shlex.quote(nohupfile)}")
 
@@ -463,7 +445,6 @@ class Job():
         self.set_latest_seconds_taken(seconds_taken)
         return seconds_taken
 
-
     @property
     def progress(self):
         """Get the Sparv progesss but don't report 100% before the job status has been changed to done."""
@@ -477,15 +458,14 @@ class Job():
         else:
             return None
 
-
     def sync_results(self):
         """Sync exports from Sparv server to the storage server."""
         self.set_status(Status.running, ProcessName.sync2storage)
-        remote_corpus_dir = str(storage.get_corpus_dir(self.corpus_id))
-        local_corpus_dir = str(utils.get_corpus_dir(self.corpus_id, mkdir=True))
+        remote_corpus_dir = str(storage.get_corpus_dir(self.id))
+        local_corpus_dir = str(utils.get_corpus_dir(self.id, mkdir=True))
 
         # Get exports from Sparv
-        remote_export_dir = sparv_utils.get_export_dir(self.corpus_id)
+        remote_export_dir = sparv_utils.get_export_dir(self.id)
         p = subprocess.run(["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p.stderr:
@@ -493,24 +473,24 @@ class Job():
             return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 500
 
         # Get plain text sources from Sparv
-        remote_work_dir = sparv_utils.get_work_dir(self.corpus_id)
+        remote_work_dir = sparv_utils.get_work_dir(self.id)
         p = subprocess.run(["rsync", "-av", "--include=@text", "--include=*/", "--exclude=*", "--prune-empty-dirs",
                             f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
                             local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # Transfer exports to the storage server
-        local_export_dir = utils.get_export_dir(self.corpus_id)
+        local_export_dir = utils.get_export_dir(self.id)
         try:
-            storage.upload_dir(remote_corpus_dir, local_export_dir, self.corpus_id)
+            storage.upload_dir(remote_corpus_dir, local_export_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to upload exports to the storage server! {e}")
 
         # Transfer plain text sources to the storage server
-        local_work_dir = utils.get_work_dir(self.corpus_id)
+        local_work_dir = utils.get_work_dir(self.id)
         try:
             app.logger.warning(local_work_dir)
-            storage.upload_dir(remote_corpus_dir, local_work_dir, self.corpus_id)
+            storage.upload_dir(remote_corpus_dir, local_work_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
             app.logger.warning(e)
@@ -557,45 +537,13 @@ class Job():
         sparv_output = p.stdout.decode() if p.stdout else ""
         sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
         if not ("Nothing to remove" in sparv_output or "'export' directory removed" in sparv_output):
-            app.logger.error(f"Failed to remove Sparv export dir for corpus '{self.corpus_id}': {sparv_output}")
+            app.logger.error(f"Failed to remove Sparv export dir for corpus '{self.id}': {sparv_output}")
             return False, sparv_output
         return True, sparv_output
 
 
-def get_job(corpus_id, user_id=None, contact=None, sparv_exports=None, files=None, available_files=None,
-            install_scrambled=None):
-    """Get an existing job from the cache or create a new one."""
-    if g.cache.get_job(corpus_id) is not None:
-        return load_from_str(g.cache.get_job(corpus_id), user_id=user_id, contact=contact, sparv_exports=sparv_exports,
-                             files=files, available_files=available_files, install_scrambled=install_scrambled)
-    return Job(corpus_id, user_id, contact, sparv_exports=sparv_exports, files=files, available_files=available_files,
-               install_scrambled=install_scrambled)
-
-
-def load_from_str(jsonstr, user_id=None, contact=None, sparv_exports=None, files=None, available_files=None,
-                  install_scrambled=None):
-    """Load a job object from a json string."""
-    job_info = json.loads(jsonstr)
-    if user_id is not None:
-        job_info["user_id"] = user_id
-    if contact is not None:
-        job_info["contact"] = contact
-    if sparv_exports is not None:
-        job_info["sparv_exports"] = sparv_exports
-    if files is not None:
-        job_info["files"] = files
-    if available_files is not None:
-        job_info["available_files"] = available_files
-    if install_scrambled is not None:
-        job_info["install_scrambled"] = install_scrambled
-    return Job(**job_info)
-
-
 class DefaultJob():
-    """A default job item for running generic Sparv commands like `sparv run -l`.
-
-    A default job is not part of the job queue
-    """
+    """A default job item for running generic Sparv commands like `sparv run -l`."""
 
     def __init__(self, language="swe"):
         self.lang = language

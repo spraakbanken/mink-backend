@@ -190,7 +190,7 @@ def get_file_changes(corpus_id: str, job):
     except Exception as e:
         raise exceptions.CouldNotListSources(str(e))
     source_file_paths = [f["path"] for f in source_files]
-    available_file_paths = [f["path"] for f in job.available_files]
+    available_file_paths = [f["path"] for f in job.source_files]
 
     # Check for new source files
     added_sources = []
@@ -209,7 +209,7 @@ def get_file_changes(corpus_id: str, job):
 
     # Check for deleted source files
     deleted_sources = []
-    for fileobj in job.available_files:
+    for fileobj in job.source_files:
         if fileobj["path"] not in source_file_paths:
             deleted_sources.append(fileobj)
 

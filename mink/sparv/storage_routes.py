@@ -7,7 +7,8 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import request, send_file
 
-from mink.core import exceptions, jobs, queue, utils
+from mink.core import exceptions, registry, utils
+from mink.core.info import Info
 from mink.sb_auth import login
 from mink.sparv import storage
 from mink.sparv import utils as sparv_utils
@@ -20,8 +21,8 @@ bp = Blueprint("sparv_storage", __name__)
 # ------------------------------------------------------------------------------
 
 @bp.route("/create-corpus", methods=["POST"])
-@login.login(require_corpus_exists=False, require_corpus_id=False)
-def create_corpus(user_id: str, contact: str, auth_token: str):
+@login.login(require_resource_exists=False, require_resource_id=False)
+def create_corpus(user: dict, auth_token: str):
     """Create a new corpus."""
     # Create corpus ID
     corpus_id = None
@@ -34,14 +35,13 @@ def create_corpus(user_id: str, contact: str, auth_token: str):
                                   return_code="failed_creating_corpus"), 500
         tries += 1
         corpus_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
-        if corpus_id in queue.get_all_jobs():
+        if corpus_id in registry.get_all_resources():
             corpus_id = None
         else:
             try:
                 login.create_resource(auth_token, corpus_id)
-                job = jobs.get_job(corpus_id, user_id=user_id, contact=contact)
-                queue.create(job)
-                job.save()
+                info_obj = Info(corpus_id, owner=user)
+                info_obj.create()
             except exceptions.CorpusExists:
                 # Corpus ID is in use in authentication system, try to create another one
                 corpus_id = None
@@ -66,7 +66,7 @@ def create_corpus(user_id: str, contact: str, auth_token: str):
         except Exception as err:
             app.logger.error(f"Failed to remove corpus '{corpus_id}' from auth system. {err}")
         try:
-            job.remove()
+            info_obj.remove()
         except Exception as err:
             app.logger.error(f"Failed to remove job '{corpus_id}'. {err}")
         return utils.response("Failed to create corpus dir", err=True, info=str(e),
@@ -74,23 +74,23 @@ def create_corpus(user_id: str, contact: str, auth_token: str):
 
 
 @bp.route("/list-corpora", methods=["GET"])
-@login.login(require_corpus_id=False, require_corpus_exists=False)
+@login.login(require_resource_id=False, require_resource_exists=False)
 def list_corpora(corpora: list):
     """List all available corpora."""
     return utils.response("Listing available corpora", corpora=corpora, return_code="listing_corpora")
 
 
 @bp.route("/list-korp-corpora", methods=["GET"])
-@login.login(include_read=True, require_corpus_id=False, require_corpus_exists=False)
+@login.login(include_read=True, require_resource_id=False, require_resource_exists=False)
 def list_korp_corpora(corpora: list):
     """List all the user's corpora that are installed in Korp."""
     installed_corpora = []
     try:
-        # Get jobs beloning to corpora that the user may edit
-        all_jobs = queue.get_jobs(corpora)
-        for job in all_jobs:
-            if job.installed_korp:
-                installed_corpora.append(job.corpus_id)
+        # Get resource infos beloning to corpora that the user may edit
+        resources = registry.filter_resources(corpora)
+        for res in resources:
+            if res.job.installed_korp:
+                installed_corpora.append(res.id)
     except Exception as e:
         return utils.response(f"Failed to list corpora installed in Korp", err=True, info=str(e),
                               return_code="failed_listing_korp_corpora"), 500
@@ -103,19 +103,18 @@ def list_korp_corpora(corpora: list):
 def remove_corpus(corpus_id: str):
     """Remove corpus."""
     # Get job
-    job = jobs.get_job(corpus_id)
-    queue.remove(job)
-    if job.installed_korp:
+    info_obj = registry.get(corpus_id)
+    if info_obj.job.installed_korp:
         try:
-            # Uninstall corpus using Sparv
-            job.uninstall_korp()
+            # Uninstall corpus from Korp using Sparv
+            info_obj.job.uninstall_korp()
         except Exception as e:
             return utils.response(f"Failed to remove corpus '{corpus_id}' from Korp", err=True, info=str(e),
                                   return_code="failed_removing_korp"), 500
-    if job.installed_strix:
+    if info_obj.job.installed_strix:
         try:
-            # Uninstall corpus using Sparv
-            job.uninstall_strix()
+            # Uninstall corpus from Strix using Sparv
+            info_obj.job.uninstall_strix()
         except Exception as e:
             return utils.response(f"Failed to remove corpus '{corpus_id}' from Strix", err=True, info=str(e),
                                   return_code="failed_removing_strix"), 500
@@ -129,19 +128,17 @@ def remove_corpus(corpus_id: str):
                               return_code="failed_removing_storage"), 500
 
     try:
-        # Remove job
-        job.remove()
-    except Exception as e:
-        return utils.response(f"Failed to remove job for corpus '{corpus_id}'", err=True, info=str(e),
-                              return_code="failed_removing_job"), 500
-
-    try:
         # Remove from auth system
         login.remove_resource(corpus_id)
     except Exception as e:
         return utils.response(f"Failed to remove corpus '{corpus_id}' from authentication system", err=True,
                               info=str(e), return_code="failed_removing_auth"), 500
 
+    # Remove from Mink registry
+    try:
+        info_obj.remove()
+    except Exception as err:
+        app.logger.error(f"Failed to remove job '{corpus_id}'. {err}")
     return utils.response(f"Corpus '{corpus_id}' successfully removed", return_code="removed_corpus")
 
 
@@ -208,6 +205,10 @@ def upload_sources(corpus_id: str):
                                           err=True, file=f.filename, info="invalid XML",
                                           return_code="failed_uploading_sources_invalid_xml"), 400
             storage.write_file_contents(str(source_dir / name), file_contents, corpus_id)
+
+        job = registry.get(corpus_id).job
+        job.set_source_files()
+
         return utils.response(f"Source files successfully added to '{corpus_id}'",
                               return_code="uploaded_sources")
     except Exception as e:
@@ -259,6 +260,9 @@ def remove_sources(corpus_id: str):
     if fails:
         return utils.response(f"Failed to remove source files form '{corpus_id}'", err=True,
                               return_code="failed_removing_sources"), 500
+
+    job = registry.get(corpus_id).job
+    job.set_source_files()
 
     return utils.response(f"Source files for '{corpus_id}' successfully removed", return_code="removed_sources")
 
@@ -336,6 +340,10 @@ def download_sources(corpus_id: str):
 @login.login()
 def upload_config(corpus_id: str):
     """Upload a corpus config as file or plain text."""
+    def set_corpus_name(corpus_name):
+        job = registry.get(corpus_id).job
+        job.set_resource_name = corpus_name
+
     attached_files = list(request.files.values())
     config_txt = request.args.get("config") or request.form.get("config") or ""
 
@@ -362,7 +370,8 @@ def upload_config(corpus_id: str):
                 return resp, 400
 
         try:
-            new_config = utils.standardize_config(config_contents, corpus_id)
+            new_config, corpus_name = utils.standardize_config(config_contents, corpus_id)
+            set_corpus_name(corpus_name)
             storage.write_file_contents(str(storage.get_config_file(corpus_id)), new_config.encode("UTF-8"), corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'",
                                   return_code="uploaded_config"), 201
@@ -377,7 +386,8 @@ def upload_config(corpus_id: str):
                 compatible, resp = utils.config_compatible(config_txt, source_files[0])
                 if not compatible:
                     return resp, 400
-            new_config = utils.standardize_config(config_txt, corpus_id)
+            new_config, corpus_name = utils.standardize_config(config_txt, corpus_id)
+            set_corpus_name(corpus_name)
             storage.write_file_contents(str(storage.get_config_file(corpus_id)), new_config.encode("UTF-8"), corpus_id)
             return utils.response(f"Config file successfully uploaded for '{corpus_id}'",
                                   return_code="uploaded_config"), 201
@@ -533,7 +543,7 @@ def remove_exports(corpus_id: str):
 
     try:
         # Remove from Sparv server
-        job = jobs.get_job(corpus_id)
+        job = registry.get(corpus_id).job
         success, sparv_output = job.clean_export()
         if not success:
             return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'", err=True,
@@ -595,7 +605,7 @@ def download_source_text(corpus_id: str):
 def check_changes(corpus_id: str):
     """Check if config or source files have changed since the last job was started."""
     try:
-        job = jobs.get_job(corpus_id)
+        job = registry.get(corpus_id).job
     except Exception as e:
         return utils.response(f"Failed to get job for corpus '{corpus_id}'", err=True, info=str(e),
                               return_code="failed_getting_job"), 500

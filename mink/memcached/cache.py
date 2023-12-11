@@ -7,7 +7,7 @@ from flask import g
 from pymemcache import serde
 from pymemcache.client.base import Client
 
-from mink.core import queue
+from mink.core import registry
 
 
 class Cache():
@@ -21,9 +21,9 @@ class Cache():
         """
         # Queue
         g.queue_initialized = False
-        g.job_queue = []  # Active jobs
-        g.jobs_dict = {}
-        g.all_jobs = []  # All jobs IDs
+        g.job_queue = []  # List of IDs of all active jobs
+        g.all_resources = []  # All resource IDs
+        g.resource_dict = {}  # All resource info objects
 
         self.client = None
         self.connect()
@@ -55,7 +55,7 @@ class Cache():
 
     def get_job_queue(self):
         """Get entire job queue from memcached (or app context)."""
-        queue.init()
+        registry.initialize()
 
         if self.client is not None:
             return self.client.get("job_queue")
@@ -69,44 +69,44 @@ class Cache():
         else:
             g.job_queue = value
 
-    def get_all_jobs(self):
+    def get_all_resources(self):
         """Get list of all jobs from memcached (or app context)."""
-        queue.init()
+        registry.initialize()
         if self.client is not None:
-            return self.client.get("all_jobs")
+            return self.client.get("all_resources")
         else:
-            return g.all_jobs
+            return g.all_resources
 
-    def set_all_jobs(self, value):
+    def set_all_resources(self, value):
         """Set list of all jobs in memcached (or app context)."""
         if self.client is not None:
-            self.client.set("all_jobs", list(set(value)))
+            self.client.set("all_resources", list(set(value)))
         else:
-            g.all_jobs = list(set(value))
+            g.all_resources = list(set(value))
 
     def get_job(self, job):
-        """Get 'job' from memcached (or from jobs_dict in app context) and return it."""
-        queue.init()
+        """Get 'job' from memcached (or from resource_dict in app context) and return it."""
+        registry.initialize()
 
         if self.client is not None:
             return self.client.get(job)
         else:
-            return g.jobs_dict.get(job)
+            return g.resource_dict.get(job)
 
     def set_job(self, job, value):
-        """Set 'job' to 'value' in memcached (or in jobs_dict in app context)."""
-        queue.init()
+        """Set 'job' to 'value' in memcached (or in resource_dict in app context)."""
+        registry.initialize()
 
         if self.client is not None:
             self.client.set(job, value)
         else:
-            g.jobs_dict[job] = value
+            g.resource_dict[job] = value
 
     def remove_job(self, job):
-        """Remove 'job' from memcached (or jobs_dict in app context)."""
-        queue.init()
+        """Remove 'job' from memcached (or resource_dict in app context)."""
+        registry.initialize()
 
         if self.client is not None:
             self.client.delete(job)
         else:
-            del g.jobs_dict[job]
+            del g.resource_dict[job]

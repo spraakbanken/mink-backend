@@ -146,6 +146,9 @@ def standardize_config(config, corpus_id):
             config_yaml["metadata"] = {}
         config_yaml["metadata"]["id"] = corpus_id
 
+    # Get corpus name
+    name = config_yaml.get("metadata", {}).get("name", {})
+
     # Remove the compression setting in order to use the standard one given by the default config
     if config_yaml.get("sparv", {}).get("compression") != None:
         config_yaml["sparv"].pop("compression")
@@ -170,7 +173,7 @@ def standardize_config(config, corpus_id):
         if "<text>:misc.id as _id" not in config_yaml["export"]["annotations"]:
             config_yaml["export"]["annotations"].append("<text>:misc.id as _id")
 
-    return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True)
+    return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 
 
 ################################################################################

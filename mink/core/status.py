@@ -1,6 +1,5 @@
 """Classes defining job statuses."""
 
-import json
 from enum import Enum
 from typing import Optional
 
@@ -14,6 +13,10 @@ class Status(Enum):
     done = "Process has finished"
     error = "An error occurred in the process"
     aborted = "Process was aborted by the user"
+
+    def serialize(self):
+        """Convert class data into a string."""
+        return self.name
 
 
 class ProcessName(Enum):
@@ -37,9 +40,10 @@ class JobStatuses(dict):
         dict.__init__(self, mapping)
 
     def __str__(self):
-        return json.dumps(self.dump())
+        return str(self.serialize())
 
-    def dump(self):
+    def serialize(self):
+        """Convert class data into dict."""
         return {k: v.name for k, v in self.items()}
 
     def is_active(self, process_name=None):

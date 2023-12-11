@@ -15,18 +15,19 @@ from flask import Blueprint
 from flask import current_app as app
 from flask import g, request, session
 
-from mink.core import exceptions, queue, utils
+from mink.core import exceptions, registry, utils
+from mink.core.user import User
 
 bp = Blueprint("sb_auth_login", __name__)
 
 
-def login(include_read=False, require_corpus_id=True, require_corpus_exists=True, require_admin=False):
+def login(include_read=False, require_resource_id=True, require_resource_exists=True, require_admin=False):
     """Attempt to login on sb-auth.
 
     Args:
-        include_read (bool, optional): Include corpora that the user has read access to. Defaults to False.
-        require_corpus_id (bool, optional): This route requires the user to supply a corpus ID. Defaults to True.
-        require_corpus_exists (bool, optional): This route requires that the supplied corpus ID occurs in the JWT.
+        include_read (bool, optional): Include resources that the user has read access to. Defaults to False.
+        require_resource_id (bool, optional): This route requires the user to supply a resource ID. Defaults to True.
+        require_resource_exists (bool, optional): This route requires that the supplied resource ID occurs in the JWT.
             Defaults to True.
         require_admin (bool, optional): This route requires the user to be a mink admin. Defaults to False.
     """
@@ -48,7 +49,7 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 
             try:
                 user_id, corpora, mink_admin, username, email = _get_corpora(auth_token, include_read)
-                contact = f"{username} <{email}>"
+                user = User(id=user_id, name=username, email=email)
             except Exception as e:
                 return utils.response("Failed to authenticate", err=True, info=str(e),
                                       return_code="failed_authenticating"), 401
@@ -57,9 +58,9 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
                     return utils.response("Mink admin status could not be confirmed", err=True,
                                           return_code="not_admin"), 401
 
-            # Give access to all corpora if admin mode is on and user is mink admin
+            # Give access to all resources if admin mode is on and user is mink admin
             if session.get("admin_mode") and mink_admin:
-                corpora = queue.get_all_jobs()
+                corpora = registry.ge_all_resources()
             else:
                 # Turn off admin mode if user is not admin
                 session["admin_mode"] = False
@@ -68,28 +69,30 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
                 # Store random ID in app context, used for temporary storage
                 g.request_id = shortuuid.uuid()
 
-                if not require_corpus_id:
-                    return function(**{k: v for k, v in {"user_id": user_id, "contact": contact, "corpora": corpora,
-                                                         "auth_token": auth_token}.items() if k in params})
-
-                # Check if corpus ID was provided
-                corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
-                if not corpus_id:
-                    return utils.response("No corpus ID provided", err=True, return_code="missing_corpus_id"), 400
-
-                # Check if corpus exists
-                if not require_corpus_exists:
-                    return function(**{k: v for k, v in {"user_id": user_id, "contact": contact, "corpora": corpora,
-                                                         "corpus_id": corpus_id, "auth_token": auth_token
+                if not require_resource_id:
+                    return function(**{k: v for k, v in {"user_id": user_id, "user": user,
+                                                         "corpora": corpora, "auth_token": auth_token
                                                         }.items() if k in params})
 
-                # Check if user is admin for corpus
-                if corpus_id not in corpora:
-                    return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
+                # Check if resource ID was provided
+                resource_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+                if not resource_id:
+                    return utils.response("No corpus ID provided", err=True, return_code="missing_corpus_id"), 400
+
+                # Check if resource exists
+                if not require_resource_exists:
+                    return function(**{k: v for k, v in {"user_id": user_id, "user": user,
+                                                         "corpora": corpora, "corpus_id": resource_id,
+                                                         "auth_token": auth_token
+                                                        }.items() if k in params})
+
+                # Check if user is admin for resource
+                if resource_id not in corpora:
+                    return utils.response(f"Corpus '{resource_id}' does not exist or you do not have access to it",
                                           err=True, return_code="corpus_not_found"), 404
-                return function(**{k: v for k, v in {"user_id": user_id, "contact": contact, "corpora": corpora,
-                                                     "corpus_id": corpus_id, "auth_token": auth_token
-                                                    }.items() if k in params})
+                return function(**{k: v for k, v in {"user_id": user_id, "user": user,
+                                                     "corpora": corpora, "corpus_id": resource_id,
+                                                     "auth_token": auth_token}.items() if k in params})
 
             # Catch everything else and return a traceback
             except Exception as e:
@@ -102,21 +105,21 @@ def login(include_read=False, require_corpus_id=True, require_corpus_exists=True
 
 
 @bp.route("/admin-mode-on", methods=["POST"])
-@login(require_corpus_exists=False, require_corpus_id=False, require_admin=True)
+@login(require_resource_exists=False, require_resource_id=False, require_admin=True)
 def admin_mode_on():
     session["admin_mode"] = True
     return utils.response("Admin mode turned on", return_code="admin_on")
 
 
 @bp.route("/admin-mode-off", methods=["POST"])
-@login(require_corpus_exists=False, require_corpus_id=False)
+@login(require_resource_exists=False, require_resource_id=False)
 def admin_mode_off():
     session["admin_mode"] = False
     return utils.response("Admin mode turned off", return_code="admin_off")
 
 
 @bp.route("/admin-mode-status", methods=["GET"])
-@login(require_corpus_exists=False, require_corpus_id=False)
+@login(require_resource_exists=False, require_resource_id=False)
 def admin_mode_status():
     admin_status = session.get("admin_mode", False)
     return utils.response("Returning status of admin mode", admin_mode_status=admin_status,
