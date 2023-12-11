@@ -60,7 +60,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
 
             # Give access to all resources if admin mode is on and user is mink admin
             if session.get("admin_mode") and mink_admin:
-                corpora = registry.ge_all_resources()
+                corpora = registry.get_all_resources()
             else:
                 # Turn off admin mode if user is not admin
                 session["admin_mode"] = False
