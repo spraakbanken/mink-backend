@@ -55,7 +55,7 @@ previous queue items have been processed Sparv will start processing the corpus 
 
 **5. Checking the status**
 
-When a job has been queued its status can be checked with the `/check-status` route. The answer provides information
+When a job has been queued its status can be checked with the `/resource-info` route. The answer provides information
 about the queue priority, the status of the annotation process, how long it took to process the corpus and possible
 warnings and errors produced by Sparv. The meaning of the different status codes can be checked by calling the
 `/status-codes` route.
@@ -83,20 +83,26 @@ are private which means that they can only be viewed by the logged-in user ownin
 
 ### Important Concepts
 
-#### Job Object
+#### Info Object
 
-A job object is created when a user attempts to run a corpus through Sparv. It holds information about some general
-corpus properties, the user who created the job, the annotation process and of course the job status. The job object is
-stored in a json file in the instance directory of the backend and for quicker access it is also cached (using
-[Memcached](https://memcached.org/)). The information is updated upon `/check-status` calls (if any information has
-changed).
+An info object is created upon creation of a resource. An info object mainly consists of three sub-objects:
+- `resource`: containing general corpus properties like its ID, name in different languages, the resource type
+  and the available source files.
+- `owner`: containing information about the user who created the resource of the resource like the user's ID, name and
+  email adress.
+- `job`: containing information about the most recent Sparv job that was run, e.g. the job status, annotation progress,
+  queue priority etc.
+
+The info object is stored in a json file in the instance directory of the backend and for quicker access it is also
+cached (using [Memcached](https://memcached.org/)). The information is updated upon `/resource-info` calls (if any
+information has changed).
 
 #### Job Queue
 
 In order to prevent overloading Sparv with too many simultaneous annotation or installation processes the Mink backend
-has a queuing system. When a user attempts to run a corpus through Sparv a job object is created and the job will be
-added to the job queue. The queue manager will check regularly if there is capacity to run another job and start the
-annotation or installation process for the next job in line.
+has a queuing system. When a user attempts to run a corpus through Sparv a job for this resource will be added to the
+job queue. The queue manager will check regularly if there is capacity to run another job and start the annotation or
+installation process for the next job in line.
 
 #### Queue Manager
 
@@ -117,11 +123,14 @@ different components can be replaced more easily.
 
 The following scripts belong to the `core` module which provides general functionality and cannot be easily exchanged:
 - `exceptions.py` containing Mink specific exceptions
+- `info.py` containing code for creating and handling resource info objects
 - `jobs.py` containing code for managing and running corpus jobs (for processing and installing corpora)
-- `queue.py` containing code for the resource registry and job queuing system
+- `registry.py` containing code for the resource registry and job queuing system
+- `resource.py` containing classes for creating and handling resource objects
 - `routes.py` containing some general routes that are independent of non-core functionality (like serving the
   documentation)
 - `status.py` containing classes for handling job statuses
+- `user.py` containing code for handling user properties
 - `utils.py` containing general utility functions
 
 Furthermore there are some modules (Python subpackages) for more specific purposes that may be replaced by other

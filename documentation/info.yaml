@@ -18,7 +18,7 @@ info:
     2. <a href="#operation/uploadsources">Upload some corpus source files</a>
     3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
     4. <a href="#operation/runSparv">Run Sparv</a>
-    5. <a href="#operation/checkstatus">Check the status</a>
+    5. <a href="#operation/resourceinfo">Check the status</a>
     6. <a href="#operation/downloadexports">Download export files</a>
     7. <a href="#operation/installinKorp">Install the corpus in Korp</a> / <a href="#operation/installinStrix">Strix</a>
 

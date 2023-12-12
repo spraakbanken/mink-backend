@@ -8,7 +8,7 @@ info:
     \ Mink could look like this:\n\n1. <a href=\"#operation/createcorpus\">Create\
     \ a new corpus</a>\n2. <a href=\"#operation/uploadsources\">Upload some corpus\
     \ source files</a>\n3. <a href=\"#operation/uploadconfig\">Upload a corpus config\
-    \ file</a>\n4. <a href=\"#operation/runSparv\">Run Sparv</a>\n5. <a href=\"#operation/checkstatus\"\
+    \ file</a>\n4. <a href=\"#operation/runSparv\">Run Sparv</a>\n5. <a href=\"#operation/resourceinfo\"\
     >Check the status</a>\n6. <a href=\"#operation/downloadexports\">Download export\
     \ files</a>\n7. <a href=\"#operation/installinKorp\">Install the corpus in Korp</a>\
     \ / <a href=\"#operation/installinStrix\">Strix</a>\n\n# Parameters\nParameters\
@@ -730,7 +730,7 @@ paths:
         schema:
           type: string
           example: dokument1.xml
-      - &id024
+      - &id025
         name: zip
         in: query
         required: false
@@ -1749,6 +1749,290 @@ paths:
                   access to it
                 return_code: corpus_not_found
       deprecated: false
+  /resource-info:
+    get:
+      tags:
+      - Process Corpus
+      summary: resource info
+      description: 'Reports general information about a resource and the status of
+        the current job (if there is any).
+
+
+        On a setup where the storage server is separated from the Sparv server, this
+        request needs to be made once the corpus is done processing in order for the
+        results to be synced to the storage server.
+
+
+        When the `corpus_id` parameter is supplied only the job corresponding to that
+        corpus ID is reported.
+
+
+        The different `job_status` codes can be looked up by calling [{{host}}/status-codes]({{host}}/status-codes).
+        If the annotation process has been started successfully a percentage of the
+        completed annotation progress will be shown in the `progress` field.
+
+
+        ### Example
+
+
+        ```.bash
+
+        curl -X GET ''{{host}}/resource-info'' -H ''Authorization: Bearer YOUR_JWT''
+
+        ```'
+      operationId: resourceinfo
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Listing resource infos
+                  jobs:
+                    type: array
+                    example: &id010
+                    - status: success
+                      message: Job was completed successfully!
+                      resource:
+                        id: mink-vcghkzqgux
+                        name:
+                          swe: SVT
+                          eng: SVT
+                        type: corpus
+                        source_files:
+                        - last_modified: '2023-04-14T15:19:37+02:00'
+                          name: artikel1.odt
+                          path: artikel1.odt
+                          size: 43428
+                          type: unknown
+                        - last_modified: '2023-04-14T15:19:37+02:00'
+                          name: artikel2.odt
+                          path: artikel2.odt
+                          size: 43529
+                          type: unknown
+                        - last_modified: '2023-04-14T15:19:38+02:00'
+                          name: artikel3.odt
+                          path: artikel3.odt
+                          size: 38061
+                          type: unknown
+                        - last_modified: '2023-04-14T15:19:38+02:00'
+                          name: artikel4.odt
+                          path: artikel4.odt
+                          size: 33932
+                          type: unknown
+                        - last_modified: '2023-04-14T15:19:38+02:00'
+                          name: artikel5.odt
+                          path: artikel5.odt
+                          size: 38634
+                          type: unknown
+                        - last_modified: '2023-04-14T15:02:44+02:00'
+                          name: artikel6.odt
+                          path: artikel6.odt
+                          size: 33762
+                          type: unknown
+                      job:
+                        status:
+                          sync2sparv: none
+                          sync2storage: none
+                          sparv: done
+                          korp: none
+                          strix: done
+                        current_process: strix
+                        pid: null
+                        started: '2023-09-11T11:12:28+02:00'
+                        done: '2023-09-11T11:13:07.290000+02:00'
+                        sparv_exports:
+                        - xml_export:pretty
+                        - csv_export:csv
+                        - stats_export:sbx_freq_list
+                        current_files: []
+                        install_scrambled: false
+                        installed_korp: true
+                        installed_strix: true
+                        latest_seconds_taken: 39.29
+                        priority: ''
+                        warnings: WARNING 'text:misc.source' is missing a definition,
+                          and 'text_source' is not available as a preset. Annotation
+                          will not be included.
+                        errors: ''
+                        sparv_output: "The exported files can be found in the following\
+                          \ locations:\n • export/sbx_strix.config/\n • export/xml_export.pretty/\n\
+                          \nJob execution finished but 1 warning occurred. See log\
+                          \ messages above or logs/2023-09-11_11.12.28.686629.log\
+                          \ for details."
+                        last_run_started: '2023-09-11T11:12:28+02:00'
+                        last_run_ended: '2023-09-11T11:13:07.290000+02:00'
+                        progress: 100%
+                      return_code: job_completed
+                    - status: success
+                      message: Job was completed successfully!
+                      resource:
+                        id: mink-ezodmp4wxm
+                        name:
+                          swe: txt-korpus
+                          eng: txt-korpus
+                        type: corpus
+                        source_files:
+                        - name: text1.txt
+                          type: text/plain
+                          last_modified: '2023-05-15T10:40:44+02:00'
+                          size: 825
+                          path: text1.txt
+                        - name: text2.txt
+                          type: text/plain
+                          last_modified: '2023-05-15T10:40:45+02:00'
+                          size: 1169
+                          path: text2.txt
+                      job:
+                        status:
+                          sync2sparv: none
+                          sync2storage: none
+                          sparv: done
+                          korp: none
+                          strix: none
+                        current_process: sparv
+                        pid: null
+                        started: '2023-06-19T11:24:52+02:00'
+                        done: null
+                        sparv_exports:
+                        - xml_export:pretty
+                        - csv_export:csv
+                        - stats_export:sbx_freq_list
+                        current_files: []
+                        install_scrambled: false
+                        installed_korp: true
+                        installed_strix: false
+                        latest_seconds_taken: 10.353667
+                        priority: ''
+                        warnings: ''
+                        errors: ''
+                        sparv_output: Nothing to be done.
+                        last_run_started: '2023-06-19T11:24:52+02:00'
+                        last_run_ended: ''
+                        progress: 100%
+                      return_code: job_completed
+                    - status: success
+                      message: Job was completed successfully!
+                      resource:
+                        id: mink-dxh6e6wtff
+                        name:
+                          swe: Annes och Martins testkorpus
+                          eng: ''
+                        type: corpus
+                        source_files:
+                        - name: dokument2.xml
+                          type: text/xml
+                          last_modified: '2022-12-22T11:25:25+01:00'
+                          size: 115
+                          path: dokument2.xml
+                        - name: dokument3.xml
+                          type: text/xml
+                          last_modified: '2023-06-13T13:26:44+02:00'
+                          size: 41
+                          path: dokument3.xml
+                        - name: dokument4.xml
+                          type: text/xml
+                          last_modified: '2023-06-13T13:26:44+02:00'
+                          size: 461
+                          path: dokument4.xml
+                        - name: dokument1.xml
+                          type: text/xml
+                          last_modified: '2023-06-13T13:26:49+02:00'
+                          size: 1394
+                          path: dokument1.xml
+                      job:
+                        status:
+                          sync2sparv: none
+                          sync2storage: none
+                          sparv: done
+                          korp: aborted
+                          strix: done
+                        current_process: sparv
+                        pid: null
+                        started: '2023-12-11T13:24:09+01:00'
+                        done: null
+                        sparv_exports:
+                        - xml_export:pretty
+                        - csv_export:csv
+                        - stats_export:sbx_freq_list
+                        current_files: []
+                        install_scrambled: true
+                        installed_korp: true
+                        installed_strix: true
+                        latest_seconds_taken: 20.379222
+                        priority: ''
+                        warnings: ''
+                        errors: ''
+                        sparv_output: "The exported files can be found in the following\
+                          \ locations:\n • export/csv_export/\n • export/stats_export.frequency_list_sbx/\n\
+                          \ • export/xml_export.pretty/"
+                        last_run_started: '2023-12-11T13:24:09+01:00'
+                        last_run_ended: ''
+                        progress: 100%
+                      return_code: job_completed
+                  return_code:
+                    type: string
+                    example: listing_jobs
+              example:
+                status: success
+                message: Listing resource infos
+                jobs: *id010
+                return_code: listing_jobs
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+                return_code: failed_authenticating
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Corpus 'mink-dxh6e6wtfg' does not exist or you do not
+                      have access to it
+                  return_code:
+                    type: string
+                    example: corpus_not_found
+              example:
+                status: error
+                message: Corpus 'mink-dxh6e6wtfg' does not exist or you do not have
+                  access to it
+                return_code: corpus_not_found
+      deprecated: false
   /abort-job:
     post:
       tags:
@@ -1793,7 +2077,7 @@ paths:
                     example: Successfully aborted job for 'mink-dxh6e6wtff'
                   job_status:
                     type: object
-                    example: &id010
+                    example: &id011
                       sync2sparv: none
                       sync2storage: none
                       sparv: aborted
@@ -1804,7 +2088,7 @@ paths:
               example:
                 status: success
                 message: Successfully aborted job for 'mink-dxh6e6wtff'
-                job_status: *id010
+                job_status: *id011
                 return_code: aborted_job
         '401':
           description: UNAUTHORIZED
@@ -2066,7 +2350,7 @@ paths:
                     example: true
                   changed_config:
                     type: object
-                    example: &id011
+                    example: &id012
                       name: config.yaml
                       type: application/yaml
                       last_modified: '2021-11-25T15:52:17+00:00'
@@ -2074,7 +2358,7 @@ paths:
                       path: config.yaml
                   added_sources:
                     type: array
-                    example: &id012
+                    example: &id013
                     - name: dokument4.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:35:30+00:00'
@@ -2082,7 +2366,7 @@ paths:
                       path: dokument4.xml
                   changed_sources:
                     type: array
-                    example: &id013
+                    example: &id014
                     - name: dokument1.xml
                       type: application/xml
                       last_modified: '2021-11-25T15:56:51+00:00'
@@ -2095,7 +2379,7 @@ paths:
                       path: dokument2.xml
                   deleted_sources:
                     type: array
-                    example: &id014
+                    example: &id015
                     - name: dokument3.xml
                       type: application/xml
                       last_modified: '2021-11-29T14:22:54+00:00'
@@ -2115,10 +2399,10 @@ paths:
                 sources_added: true
                 sources_changed: true
                 sources_deleted: true
-                changed_config: *id011
-                added_sources: *id012
-                changed_sources: *id013
-                deleted_sources: *id014
+                changed_config: *id012
+                added_sources: *id013
+                changed_sources: *id014
+                deleted_sources: *id015
                 last_run_started: '2021-11-19T14:16:10+00:00'
                 return_code: input_changed
         '401':
@@ -2243,7 +2527,7 @@ paths:
                     example: Job has been queued
                   job_status:
                     type: object
-                    example: &id015
+                    example: &id016
                       sync2sparv: none
                       sync2storage: none
                       sparv: done
@@ -2251,13 +2535,13 @@ paths:
                       strix: none
                   sparv_exports:
                     type: array
-                    example: &id016
+                    example: &id017
                     - csv_export:csv
                     - stats_export:freq_list
                     - xml_export:pretty
                   available_files:
                     type: array
-                    example: &id017
+                    example: &id018
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-23T17:44:02+02:00'
@@ -2273,7 +2557,7 @@ paths:
                     example: false
                   files:
                     type: array
-                    example: &id018
+                    example: &id019
                     - dokument1
                     - dokument2
                   install_scrambled:
@@ -2291,11 +2575,11 @@ paths:
               example:
                 status: success
                 message: Job has been queued
-                job_status: *id015
-                sparv_exports: *id016
-                available_files: *id017
+                job_status: *id016
+                sparv_exports: *id017
+                available_files: *id018
                 installed_korp: false
-                files: *id018
+                files: *id019
                 install_scrambled: true
                 last_run_started: '2022-07-28T11:39:58+02:00'
                 priority: 1
@@ -2419,7 +2703,7 @@ paths:
                     example: Job has been queued
                   job_status:
                     type: object
-                    example: &id019
+                    example: &id020
                       sync2sparv: none
                       sync2storage: none
                       sparv: done
@@ -2427,13 +2711,13 @@ paths:
                       strix: waiting
                   sparv_exports:
                     type: array
-                    example: &id020
+                    example: &id021
                     - csv_export:csv
                     - stats_export:freq_list
                     - xml_export:pretty
                   available_files:
                     type: array
-                    example: &id021
+                    example: &id022
                     - name: dokument2.xml
                       type: application/xml
                       last_modified: '2022-06-23T17:44:02+02:00'
@@ -2449,7 +2733,7 @@ paths:
                     example: false
                   files:
                     type: array
-                    example: &id022
+                    example: &id023
                     - dokument1
                     - dokument2
                   install_scrambled:
@@ -2467,11 +2751,11 @@ paths:
               example:
                 status: success
                 message: Job has been queued
-                job_status: *id019
-                sparv_exports: *id020
-                available_files: *id021
+                job_status: *id020
+                sparv_exports: *id021
+                available_files: *id022
                 installed_korp: false
-                files: *id022
+                files: *id023
                 install_scrambled: true
                 last_run_started: '2022-07-28T11:39:58+02:00'
                 priority: 1
@@ -2589,7 +2873,7 @@ paths:
                     example: Current export files for 'mink-dxh6e6wtff'
                   contents:
                     type: array
-                    example: &id023
+                    example: &id024
                     - name: dokument2.csv
                       type: text/csv
                       last_modified: '2022-06-10T17:54:15+02:00'
@@ -2621,7 +2905,7 @@ paths:
               example:
                 status: success
                 message: Current export files for 'mink-dxh6e6wtff'
-                contents: *id023
+                contents: *id024
                 return_code: listing_exports
         '401':
           description: UNAUTHORIZED
@@ -2735,7 +3019,7 @@ paths:
         schema:
           type: string
           example: mink-dxh6e6wtff
-      - *id024
+      - *id025
       - name: file
         in: query
         required: false
@@ -4289,7 +4573,7 @@ paths:
                     example: Listing information about data processing
                   status_codes:
                     type: object
-                    example: &id025
+                    example: &id026
                       info: job status codes
                       data:
                       - name: none
@@ -4306,7 +4590,7 @@ paths:
                         description: Process was aborted by the user
                   importer_modules:
                     type: object
-                    example: &id026
+                    example: &id027
                       info: Sparv importers that need to be used for different file
                         extensions
                       data:
@@ -4322,7 +4606,7 @@ paths:
                         importer: pdf_import
                   file_size_limits:
                     type: object
-                    example: &id027
+                    example: &id028
                       info: size limits (in bytes) for uploaded files
                       data:
                       - name: max_content_length
@@ -4337,7 +4621,7 @@ paths:
                         value: 524288000
                   recommended_file_size:
                     type: object
-                    example: &id028
+                    example: &id029
                       info: approximate recommended file sizes (in bytes) when processing
                         many files with Sparv
                       data:
@@ -4353,10 +4637,10 @@ paths:
               example:
                 status: success
                 message: Listing information about data processing
-                status_codes: *id025
-                importer_modules: *id026
-                file_size_limits: *id027
-                recommended_file_size: *id028
+                status_codes: *id026
+                importer_modules: *id027
+                file_size_limits: *id028
+                recommended_file_size: *id029
                 return_code: listing_info
       deprecated: false
       security: []
@@ -4384,7 +4668,7 @@ paths:
                     example: Listing languages available in Sparv
                   languages:
                     type: array
-                    example: &id029
+                    example: &id030
                     - name: Asturian
                       code: ast
                     - name: Bulgarian
@@ -4433,7 +4717,7 @@ paths:
               example:
                 status: success
                 message: Listing languages available in Sparv
-                languages: *id029
+                languages: *id030
                 return_code: listing_languages
       deprecated: false
       security: []
@@ -4476,7 +4760,7 @@ paths:
                     example: swe
                   exports:
                     type: array
-                    example: &id030
+                    example: &id031
                     - export: xml_export:pretty
                       description: XML export with one token element per line
                     - export: conll_export:conllu
@@ -4536,7 +4820,7 @@ paths:
                 status: success
                 message: Listing exports available in Sparv
                 language: swe
-                exports: *id030
+                exports: *id031
                 return_code: listing_sparv_exports
       deprecated: false
       security: []
