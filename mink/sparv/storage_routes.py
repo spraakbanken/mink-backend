@@ -206,8 +206,8 @@ def upload_sources(corpus_id: str):
                                           return_code="failed_uploading_sources_invalid_xml"), 400
             storage.write_file_contents(str(source_dir / name), file_contents, corpus_id)
 
-        job = registry.get(corpus_id).job
-        job.set_source_files()
+        res = registry.get(corpus_id).resource
+        res.set_source_files()
 
         return utils.response(f"Source files successfully added to '{corpus_id}'",
                               return_code="uploaded_sources")
@@ -261,8 +261,8 @@ def remove_sources(corpus_id: str):
         return utils.response(f"Failed to remove source files form '{corpus_id}'", err=True,
                               return_code="failed_removing_sources"), 500
 
-    job = registry.get(corpus_id).job
-    job.set_source_files()
+    res = registry.get(corpus_id).resource
+    res.set_source_files()
 
     return utils.response(f"Source files for '{corpus_id}' successfully removed", return_code="removed_sources")
 
