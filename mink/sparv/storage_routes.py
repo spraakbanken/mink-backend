@@ -175,9 +175,14 @@ def upload_sources(corpus_id: str):
 
     try:
         h_max_file_size = str(round(app.config.get("MAX_FILE_LENGTH", 0) / 1024 / 1024, 2))
+        file_extension_warnings = []
         # Upload data
         for f in files[0]:
             name = sparv_utils.secure_filename(f.filename)
+            if Path(name).suffix.lower() != Path(name).suffix:
+                new_name = str(Path(name).stem + Path(name).suffix.lower())
+                file_extension_warnings.append((name, new_name))
+                name = new_name
             if not utils.check_file_ext(name, app.config.get("SPARV_IMPORTER_MODULES", {}).keys()):
                 return utils.response(f"Failed to upload some source files to '{corpus_id}' due to invalid "
                                       "file extension", err=True, file=f.filename, info="invalid file extension",
@@ -209,7 +214,14 @@ def upload_sources(corpus_id: str):
         res = registry.get(corpus_id).resource
         res.set_source_files()
 
-        return utils.response(f"Source files successfully added to '{corpus_id}'",
+        # Check if file names have been changed and produce a warning
+        warnings = ""
+        if file_extension_warnings:
+            name_changes = "'" + "', '".join(name for name, _ in file_extension_warnings) + "'"
+            warnings = (f"File extensions need to be in lower case! The following files have received new names during "
+                        f"upload: {name_changes}. This may lead to existing files being replaced.")
+
+        return utils.response(f"Source files successfully added to '{corpus_id}'", warnings=warnings,
                               return_code="uploaded_sources")
     except Exception as e:
         return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e),
