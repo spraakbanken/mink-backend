@@ -224,7 +224,7 @@ def upload_sources(corpus_id: str):
         return utils.response(f"Source files successfully added to '{corpus_id}'", warnings=warnings,
                               return_code="uploaded_sources")
     except Exception as e:
-        return utils.response(f"Failed to upload source files to '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to remove object '{corpus_id}' from registry", err=True, info=str(e),
                               return_code="failed_uploading_sources"), 500
 
 
@@ -353,8 +353,8 @@ def download_sources(corpus_id: str):
 def upload_config(corpus_id: str):
     """Upload a corpus config as file or plain text."""
     def set_corpus_name(corpus_name):
-        job = registry.get(corpus_id).job
-        job.set_resource_name = corpus_name
+        res = registry.get(corpus_id).resource
+        res.set_resource_name = corpus_name
 
     attached_files = list(request.files.values())
     config_txt = request.args.get("config") or request.form.get("config") or ""
