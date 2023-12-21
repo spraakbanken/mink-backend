@@ -48,7 +48,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
                                       return_code="missing_auth_token"), 401
 
             try:
-                user_id, corpora, mink_admin, username, email = _get_corpora(auth_token, include_read)
+                user_id, resources, mink_admin, username, email = _get_resources(auth_token, include_read)
                 user = User(id=user_id, name=username, email=email)
             except Exception as e:
                 return utils.response("Failed to authenticate", err=True, info=str(e),
@@ -60,7 +60,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
 
             # Give access to all resources if admin mode is on and user is mink admin
             if session.get("admin_mode") and mink_admin:
-                corpora = registry.get_all_resources()
+                resources = registry.get_all_resources()
             else:
                 # Turn off admin mode if user is not admin
                 session["admin_mode"] = False
@@ -71,27 +71,28 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
 
                 if not require_resource_id:
                     return function(**{k: v for k, v in {"user_id": user_id, "user": user,
-                                                         "corpora": corpora, "auth_token": auth_token
+                                                         "corpora": resources, "auth_token": auth_token
                                                         }.items() if k in params})
 
                 # Check if resource ID was provided
-                resource_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+                # TODO: change param name from corpus_id to resource_id!
+                resource_id = request.args.get("corpus_id") or request.form.get("resource_id")
                 if not resource_id:
-                    return utils.response("No corpus ID provided", err=True, return_code="missing_corpus_id"), 400
+                    return utils.response("No resource ID provided", err=True, return_code="missing_corpus_id"), 400
 
                 # Check if resource exists
                 if not require_resource_exists:
                     return function(**{k: v for k, v in {"user_id": user_id, "user": user,
-                                                         "corpora": corpora, "corpus_id": resource_id,
+                                                         "corpora": resources, "resource_id": resource_id,
                                                          "auth_token": auth_token
                                                         }.items() if k in params})
 
                 # Check if user is admin for resource
-                if resource_id not in corpora:
+                if resource_id not in resources:
                     return utils.response(f"Corpus '{resource_id}' does not exist or you do not have access to it",
                                           err=True, return_code="corpus_not_found"), 404
                 return function(**{k: v for k, v in {"user_id": user_id, "user": user,
-                                                     "corpora": corpora, "corpus_id": resource_id,
+                                                     "corpora": resources, "resource_id": resource_id,
                                                      "auth_token": auth_token}.items() if k in params})
 
             # Catch everything else and return a traceback
@@ -131,9 +132,9 @@ def read_jwt_key():
     app.config["JWT_KEY"] = open(Path(app.instance_path) / app.config.get("SBAUTH_PUBKEY_FILE")).read()
 
 
-def _get_corpora(auth_token, include_read=False):
-    """Check validity of auth_token and get Mink corpora that user has write access for."""
-    corpora = []
+def _get_resources(auth_token, include_read=False):
+    """Check validity of auth_token and get Mink resources that user has write access for."""
+    resources = []
     mink_admin = False
     user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
     if user_token["exp"] < time.time():
@@ -142,22 +143,27 @@ def _get_corpora(auth_token, include_read=False):
     min_level = "WRITE"
     if include_read:
         min_level = "READ"
-    if "scope" in user_token and "corpora" in user_token["scope"]:
+    if "scope" in user_token:
         # Check if user is mink admin
         mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
         mink_admin = user_token["scope"].get("other", {}).get(mink_app_name, 0) >= user_token["levels"]["ADMIN"]
         # Get list of corpora
         for corpus, level in user_token["scope"].get("corpora", {}).items():
             if level >= user_token["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
-                corpora.append(corpus)
+                resources.append(corpus)
+        # Get list of metadata resources
+        for metadata, level in user_token["scope"].get("metadata", {}).items():
+            if level >= user_token["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
+                resources.append(metadata)
     user = re.sub(r"[^\w\-_\.]", "", (user_token["idp"] + "-" + user_token["sub"]))
     username = user_token.get("name", "")
     email = user_token.get("email", "")
-    return user, corpora, mink_admin, username, email
+    return user, resources, mink_admin, username, email
 
 
-def create_resource(auth_token, resource_id):
+def create_resource(auth_token, resource_id, resource_type=None):
     """Create a new resource in sb-auth."""
+    # TODO: specify resource_type when sbauth is ready
     url = app.config.get("SBAUTH_URL") + resource_id
     api_key = app.config.get("SBAUTH_API_KEY")
     headers = {"Authorization": f"apikey {api_key}", "Content-Type": "application/json"}

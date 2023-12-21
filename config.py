@@ -40,8 +40,8 @@ SSH_KEY = "~/.ssh/id_rsa"
 SPARV_HOST = ""  # Define this in instance/config.py!
 SPARV_USER = ""    # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
-SPARV_DEFAULT_CORPORA_DIR = "~/mink-data/default"  # Dir for running listings like 'sparv run -l'
-SPARV_CORPORA_DIR = "mink-data"                    # Dir where the user corpora are stored and run, relative to the user's home dir
+SPARV_DEFAULT_CORPORA_DIR = "~/mink-data/corpus/default"  # Dir for running listings like 'sparv run -l'
+SPARV_CORPORA_DIR = "mink-data/corpus"                    # Dir where the user corpora are stored and run, relative to the user's home dir
 SPARV_ENVIRON = "SPARV_DATADIR=~/sparv-pipeline/data/"                       # Environment variables to set when running Sparv
 SPARV_COMMAND = "~/sparv-pipeline/venv/bin/python -u -m sparv"               # Command for calling Sparv
 SPARV_RUN = "run --socket ~/sparv-pipeline/sparv.socket --json-log --log-to-file info"  # Sparv's 'run' command
@@ -59,6 +59,14 @@ SPARV_DEFAULT_STRIX_INSTALLS = ["sbx_strix:install_config", "sbx_strix:install_c
 SPARV_DEFAULT_STRIX_UNINSTALLS = ["sbx_strix:uninstall_config", "sbx_strix:uninstall_corpus", "sbx_strix:uninstall_xml"]  # Default Strix uninstall targets
 SPARV_NOHUP_FILE = "mink.out"                # File collecting Sparv output for a job
 SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"          # Temporary Sparv run script created for every job
+
+# Settings for metadata upload
+METADATA_HOST = ""  # Define this in instance/config.py!
+METADATA_USER = ""    # Define this in instance/config.py!
+METADATA_DIR = "mink-data/metadata"  # Dir where metadata resources are stored, relative to the user's home dir
+METADATA_ID_AVAILABLE_URL = "https://ws.spraakbanken.gu.se/ws/metadata/check-id-availability?id="
+METADATA_SOURCE_DIR = "source"  # Dir for storing resource files belonging to a metadata resource
+METADATA_ORG_PREFIXES = {}  # Mapping from user IDs to organisation prefixes
 
 # Local files relative to flask instance dir
 TMP_DIR = "tmp"                      # Temporary file storage

@@ -4322,6 +4322,320 @@ paths:
                 message: Failed to download source text
                 return_code: failed_downloading_source_text
       deprecated: false
+  /create-metadata:
+    post:
+      tags:
+      - Manage Metadata
+      summary: create metadata
+      operationId: createmetadata
+      parameters:
+      - name: public_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: '{{standard-metadata-resource-public}}'
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Resource 'sbx-testcorpus' created successfully
+                  resource_id:
+                    type: string
+                    example: sbx-testcorpus
+                  return_code:
+                    type: string
+                    example: created_resource
+              example:
+                status: success
+                message: Resource 'sbx-testcorpus' created successfully
+                resource_id: sbx-testcorpus
+                return_code: created_resource
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+                return_code: failed_authenticating
+      deprecated: false
+  /remove-metadata:
+    delete:
+      tags:
+      - Manage Metadata
+      summary: remove metadata
+      operationId: removemetadata
+      parameters:
+      - name: corpus_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: '{{standard-metadata-resource-internal}}'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Corpus 'sbx-testcorpus' successfully removed
+                  return_code:
+                    type: string
+                    example: removed_corpus
+              example:
+                status: success
+                message: Corpus 'sbx-testcorpus' successfully removed
+                return_code: removed_corpus
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+                return_code: failed_authenticating
+      deprecated: false
+  /upload-metadata-yaml:
+    put:
+      tags:
+      - Manage Metadata
+      summary: upload metadata yaml
+      operationId: uploadmetadatayaml
+      parameters:
+      - name: corpus_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: '{{standard-metadata-resource-internal}}'
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Metadata file successfully uploaded for 'mink-bizr4dbldx'
+                  return_code:
+                    type: string
+                    example: uploaded_yaml
+              example:
+                status: success
+                message: Metadata file successfully uploaded for 'mink-bizr4dbldx'
+                return_code: uploaded_yaml
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: No metadata file provided for upload
+                  return_code:
+                    type: string
+                    example: missing_metadata_upload
+              example:
+                status: error
+                message: No metadata file provided for upload
+                return_code: missing_metadata_upload
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+                return_code: failed_authenticating
+      deprecated: false
+  /download-metadata-yaml:
+    get:
+      tags:
+      - Manage Metadata
+      summary: download metadata yaml
+      operationId: downloadmetadatayaml
+      parameters:
+      - name: corpus_id
+        in: query
+        description: ''
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: '{{standard-metadata-resource-internal}}'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/yaml; charset=utf-8:
+              schema:
+                type: string
+                example: "name:\n  swe: 8 Sidor\n  eng: 8 Sidor\nshort_description:\n\
+                  \  swe: Nyhetsartiklar från 8 SIDOR.\n  eng: News articles from\
+                  \ 8 SIDOR.\ntype: corpus\ntrainingdata: false\nunlisted: false\n\
+                  successors: []\nlanguage_codes:\n- swe\nsize:\n  tokens: 4812579\n\
+                  \  sentences: 450335\nin_collections: []\ndownloads:\n- url: https://spraakbanken.gu.se/lb/resurser/meningsmangder/attasidor.xml.bz2\n\
+                  \  type: corpus\n  format: XML\n  info: this file contains a scrambled\
+                  \ version of the corpus\n  licence: CC BY 4.0\n  restriction: attribution\n\
+                  - url: https://svn.spraakdata.gu.se/sb-arkiv/pub/frekvens/stats_attasidor.csv\n\
+                  \  type: token frequencies\n  format: CSV\n  info: ''\n  licence:\
+                  \ CC BY 4.0\n  restriction: attribution\ninterface:\n- access: https://spraakbanken.gu.se/korp/#?corpus=attasidor\n\
+                  \  licence: CC BY 4.0\n  restriction: attribution\ncontact_info:\n\
+                  \  name: Markus Forsberg\n  email: sb-info@svenska.gu.se\n  affiliation:\n\
+                  \    organisation: Språkbanken\n    email: sb-info@svenska.gu.se\n\
+                  annotation:\n  swe: ''\n  eng: ''\nkeywords: []\ncaveats:\n  swe:\
+                  \ ''\n  eng: ''\nreferences: []\nintended_uses:\n  swe: ''\n  eng:\
+                  \ ''\ndescription:\n  swe: '<p>8 Sidor är en nyhetstidning på lättläst\
+                  \ svenska. Texterna i korpusen är\n\n    extraherade från <a href=\"\
+                  https://8sidor.se/\">8sidor.se</a>.</p>\n\n    <p>Tidningen utkommer\
+                  \ en gång i veckan, på onsdagar. Upplagan är omkring 9\n\n    500\
+                  \ exemplar. Läsarundersökningar visar att varje nummer har omkring\
+                  \ 100\n\n    000 läsare, jämnt fördelade över Sverige. De som läser\
+                  \ 8 Sidor är elever\n\n    i grundskolan, vuxenutbildning, personer\
+                  \ med\n\n    intellektuellt funktionshinder, invandrare och många\
+                  \ andra människor som\n\n    har svårt att läsa en vanlig dagstidning.\
+                  \ 8 Sidor var till 2015 en del av\n\n    Centrum för lättläst, därefter\
+                  \ Myndigheten för tillgängliga medier och\n\n    erhåller ekonomiskt\
+                  \ stöd från kulturdepartementet. (Denna beskrivning är\n\n    hämtad\
+                  \ från <a href=\"https://sv.wikipedia.org/wiki/8_Sidor\">Wikipedia</a>)</p>'\n"
+              example: "name:\n  swe: 8 Sidor\n  eng: 8 Sidor\nshort_description:\n\
+                \  swe: Nyhetsartiklar från 8 SIDOR.\n  eng: News articles from 8\
+                \ SIDOR.\ntype: corpus\ntrainingdata: false\nunlisted: false\nsuccessors:\
+                \ []\nlanguage_codes:\n- swe\nsize:\n  tokens: 4812579\n  sentences:\
+                \ 450335\nin_collections: []\ndownloads:\n- url: https://spraakbanken.gu.se/lb/resurser/meningsmangder/attasidor.xml.bz2\n\
+                \  type: corpus\n  format: XML\n  info: this file contains a scrambled\
+                \ version of the corpus\n  licence: CC BY 4.0\n  restriction: attribution\n\
+                - url: https://svn.spraakdata.gu.se/sb-arkiv/pub/frekvens/stats_attasidor.csv\n\
+                \  type: token frequencies\n  format: CSV\n  info: ''\n  licence:\
+                \ CC BY 4.0\n  restriction: attribution\ninterface:\n- access: https://spraakbanken.gu.se/korp/#?corpus=attasidor\n\
+                \  licence: CC BY 4.0\n  restriction: attribution\ncontact_info:\n\
+                \  name: Markus Forsberg\n  email: sb-info@svenska.gu.se\n  affiliation:\n\
+                \    organisation: Språkbanken\n    email: sb-info@svenska.gu.se\n\
+                annotation:\n  swe: ''\n  eng: ''\nkeywords: []\ncaveats:\n  swe:\
+                \ ''\n  eng: ''\nreferences: []\nintended_uses:\n  swe: ''\n  eng:\
+                \ ''\ndescription:\n  swe: '<p>8 Sidor är en nyhetstidning på lättläst\
+                \ svenska. Texterna i korpusen är\n\n    extraherade från <a href=\"\
+                https://8sidor.se/\">8sidor.se</a>.</p>\n\n    <p>Tidningen utkommer\
+                \ en gång i veckan, på onsdagar. Upplagan är omkring 9\n\n    500\
+                \ exemplar. Läsarundersökningar visar att varje nummer har omkring\
+                \ 100\n\n    000 läsare, jämnt fördelade över Sverige. De som läser\
+                \ 8 Sidor är elever\n\n    i grundskolan, vuxenutbildning, personer\
+                \ med\n\n    intellektuellt funktionshinder, invandrare och många\
+                \ andra människor som\n\n    har svårt att läsa en vanlig dagstidning.\
+                \ 8 Sidor var till 2015 en del av\n\n    Centrum för lättläst, därefter\
+                \ Myndigheten för tillgängliga medier och\n\n    erhåller ekonomiskt\
+                \ stöd från kulturdepartementet. (Denna beskrivning är\n\n    hämtad\
+                \ från <a href=\"https://sv.wikipedia.org/wiki/8_Sidor\">Wikipedia</a>)</p>'\n"
+        '401':
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to authenticate
+                  info:
+                    type: string
+                    example: Signature verification failed
+                  return_code:
+                    type: string
+                    example: failed_authenticating
+              example:
+                status: error
+                message: Failed to authenticate
+                info: Signature verification failed
+                return_code: failed_authenticating
+      deprecated: false
   /admin-mode-on:
     post:
       tags:

@@ -4896,6 +4896,624 @@
 			]
 		},
 		{
+			"name": "Manage Metadata",
+			"item": [
+				{
+					"name": "create metadata",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/create-metadata?public_id={{standard-metadata-resource-public}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"create-metadata"
+							],
+							"query": [
+								{
+									"key": "public_id",
+									"value": "{{standard-metadata-resource-public}}"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "create metadata 200",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/create-metadata?corpus_id=testcorpus",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"create-metadata"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "testcorpus"
+										}
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.0.1 Python/3.10.12"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 19 Dec 2023 13:22:52 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "150"
+								},
+								{
+									"key": "Vary",
+									"value": "Cookie"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "session=eyJhZG1pbl9tb2RlIjpmYWxzZX0.ZYGZLA.3xgbomKqd67tmV_XqBj1FvgvmlA; HttpOnly; Path=/"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Resource 'sbx-testcorpus' created successfully\",\n    \"resource_id\": \"sbx-testcorpus\",\n    \"return_code\": \"created_resource\"\n}"
+						},
+						{
+							"name": "create metadata 401",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/create-metadata?corpus_id=testcorpus",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"create-metadata"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "testcorpus"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "97"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 02 Jun 2022 12:08:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
+						}
+					]
+				},
+				{
+					"name": "remove metadata",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/remove-metadata?corpus_id={{standard-metadata-resource-internal}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"remove-metadata"
+							],
+							"query": [
+								{
+									"key": "corpus_id",
+									"value": "{{standard-metadata-resource-internal}}"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "remove metadata 200",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/remove-metadata?corpus_id=sbx-testcorpus",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-metadata"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "sbx-testcorpus"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.0.1 Python/3.10.12"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 19 Dec 2023 13:43:30 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "113"
+								},
+								{
+									"key": "Vary",
+									"value": "Cookie"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "session=eyJhZG1pbl9tb2RlIjpmYWxzZX0.ZYGeAg.Af02VlWQZ_6_B7-QvyidJlRPQ7w; HttpOnly; Path=/"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Corpus 'sbx-testcorpus' successfully removed\",\n    \"return_code\": \"removed_corpus\"\n}"
+						},
+						{
+							"name": "remove metadata 401",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/remove-metadata?corpus_id=testcorpus",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"remove-metadata"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "testcorpus"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "97"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 02 Jun 2022 12:08:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
+						}
+					]
+				},
+				{
+					"name": "upload metadata yaml",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "",
+									"type": "file",
+									"src": "attasidor.yaml"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/upload-metadata-yaml?corpus_id={{standard-metadata-resource-internal}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"upload-metadata-yaml"
+							],
+							"query": [
+								{
+									"key": "corpus_id",
+									"value": "{{standard-metadata-resource-internal}}"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "upload metadata yaml 200",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "",
+											"type": "file",
+											"src": "attasidor.yaml"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{host}}/upload-metadata-yaml?corpus_id={{standard-metadata-resource-internal}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"upload-metadata-yaml"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-metadata-resource-internal}}"
+										}
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.0.1 Python/3.10.12"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 21 Dec 2023 14:42:12 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "125"
+								},
+								{
+									"key": "Vary",
+									"value": "Cookie"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "session=eyJhZG1pbl9tb2RlIjpmYWxzZX0.ZYROxA.tDHjcUiAog3kUM0PpM9aaRhV940; HttpOnly; Path=/"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Metadata file successfully uploaded for 'mink-bizr4dbldx'\",\n    \"return_code\": \"uploaded_yaml\"\n}"
+						},
+						{
+							"name": "upload metadata yaml 400",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "",
+											"type": "file",
+											"src": "attasidor.yaml"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{host}}/upload-metadata-yaml?corpus_id={{standard-metadata-resource-internal}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"upload-metadata-yaml"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-metadata-resource-internal}}"
+										}
+									]
+								}
+							},
+							"status": "BAD REQUEST",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.0.1 Python/3.10.12"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 21 Dec 2023 14:39:00 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "112"
+								},
+								{
+									"key": "Vary",
+									"value": "Cookie"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "session=eyJhZG1pbl9tb2RlIjpmYWxzZX0.ZYROBA.p2ARHfJD_GYzaFNVj0Z3VqRLRNo; HttpOnly; Path=/"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"No metadata file provided for upload\",\n    \"return_code\": \"missing_metadata_upload\"\n}"
+						},
+						{
+							"name": "upload metadata yaml 401",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/create-metadata?corpus_id=testcorpus",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"create-metadata"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "testcorpus"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "97"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 02 Jun 2022 12:08:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
+						}
+					]
+				},
+				{
+					"name": "download metadata yaml",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/download-metadata-yaml?corpus_id={{standard-metadata-resource-internal}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"",
+								"download-metadata-yaml"
+							],
+							"query": [
+								{
+									"key": "corpus_id",
+									"value": "{{standard-metadata-resource-internal}}"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "download metadata yaml 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/download-metadata-yaml?corpus_id={{standard-metadata-resource-internal}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"",
+										"download-metadata-yaml"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "{{standard-metadata-resource-internal}}"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "yaml",
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.0.1 Python/3.10.12"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 21 Dec 2023 14:48:03 GMT"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 21 Dec 2023 14:48:03 GMT"
+								},
+								{
+									"key": "Content-Disposition",
+									"value": "inline; filename=mink-bizr4dbldx.yaml"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/yaml; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1954"
+								},
+								{
+									"key": "Last-Modified",
+									"value": "Thu, 21 Dec 2023 14:48:03 GMT"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache"
+								},
+								{
+									"key": "ETag",
+									"value": "\"1703170083.1128533-1954-424552215\""
+								},
+								{
+									"key": "Vary",
+									"value": "Cookie"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "session=eyJhZG1pbl9tb2RlIjpmYWxzZX0.ZYRQIw.QsYfNtKcatVPqRQp03gfGNJ9VRo; HttpOnly; Path=/"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "name:\n  swe: 8 Sidor\n  eng: 8 Sidor\nshort_description:\n  swe: Nyhetsartiklar från 8 SIDOR.\n  eng: News articles from 8 SIDOR.\ntype: corpus\ntrainingdata: false\nunlisted: false\nsuccessors: []\nlanguage_codes:\n- swe\nsize:\n  tokens: 4812579\n  sentences: 450335\nin_collections: []\ndownloads:\n- url: https://spraakbanken.gu.se/lb/resurser/meningsmangder/attasidor.xml.bz2\n  type: corpus\n  format: XML\n  info: this file contains a scrambled version of the corpus\n  licence: CC BY 4.0\n  restriction: attribution\n- url: https://svn.spraakdata.gu.se/sb-arkiv/pub/frekvens/stats_attasidor.csv\n  type: token frequencies\n  format: CSV\n  info: ''\n  licence: CC BY 4.0\n  restriction: attribution\ninterface:\n- access: https://spraakbanken.gu.se/korp/#?corpus=attasidor\n  licence: CC BY 4.0\n  restriction: attribution\ncontact_info:\n  name: Markus Forsberg\n  email: sb-info@svenska.gu.se\n  affiliation:\n    organisation: Språkbanken\n    email: sb-info@svenska.gu.se\nannotation:\n  swe: ''\n  eng: ''\nkeywords: []\ncaveats:\n  swe: ''\n  eng: ''\nreferences: []\nintended_uses:\n  swe: ''\n  eng: ''\ndescription:\n  swe: '<p>8 Sidor är en nyhetstidning på lättläst svenska. Texterna i korpusen är\n\n    extraherade från <a href=\"https://8sidor.se/\">8sidor.se</a>.</p>\n\n    <p>Tidningen utkommer en gång i veckan, på onsdagar. Upplagan är omkring 9\n\n    500 exemplar. Läsarundersökningar visar att varje nummer har omkring 100\n\n    000 läsare, jämnt fördelade över Sverige. De som läser 8 Sidor är elever\n\n    i grundskolan, vuxenutbildning, personer med\n\n    intellektuellt funktionshinder, invandrare och många andra människor som\n\n    har svårt att läsa en vanlig dagstidning. 8 Sidor var till 2015 en del av\n\n    Centrum för lättläst, därefter Myndigheten för tillgängliga medier och\n\n    erhåller ekonomiskt stöd från kulturdepartementet. (Denna beskrivning är\n\n    hämtad från <a href=\"https://sv.wikipedia.org/wiki/8_Sidor\">Wikipedia</a>)</p>'\n"
+						},
+						{
+							"name": "download metadata yaml 401",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/create-metadata?corpus_id=testcorpus",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"create-metadata"
+									],
+									"query": [
+										{
+											"key": "corpus_id",
+											"value": "testcorpus"
+										}
+									]
+								}
+							},
+							"status": "UNAUTHORIZED",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "97"
+								},
+								{
+									"key": "Server",
+									"value": "Werkzeug/2.0.2 Python/3.9.7"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 02 Jun 2022 12:08:55 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Failed to authenticate\",\n    \"info\": \"Signature verification failed\",\n    \"return_code\": \"failed_authenticating\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Admin Mode",
 			"item": [
 				{

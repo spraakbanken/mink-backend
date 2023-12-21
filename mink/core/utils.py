@@ -176,31 +176,39 @@ def standardize_config(config, corpus_id):
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 
 
+def standardize_metadata_yaml(yamlf):
+    """Get resource name from metadata yaml and remove comments etc."""
+    yaml_contents = yaml.load(yamlf, Loader=yaml.FullLoader)
+
+    # Get resource name
+    name = yaml_contents.get("name", {})
+
+    return yaml.dump(yaml_contents, sort_keys=False, allow_unicode=True), name
+
+
 ################################################################################
-# Get local paths
+# Get local paths (mostly used for download)
 ################################################################################
 
-def get_corpora_dir(mkdir: bool = False) -> Path:
+def get_resources_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
-    corpora_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / g.request_id
+    resources_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / g.request_id
     if mkdir:
-        corpora_dir.mkdir(parents=True, exist_ok=True)
-    return corpora_dir
+        resources_dir.mkdir(parents=True, exist_ok=True)
+    return resources_dir
 
-
-def get_corpus_dir(corpus_id: str, mkdir: bool = False) -> Path:
-    """Get dir for given corpus."""
-    corpora_dir = get_corpora_dir(mkdir=mkdir)
-    corpus_dir = corpora_dir / Path(corpus_id)
+def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
+    """Get dir for given resource."""
+    resources_dir = get_resources_dir(mkdir=mkdir)
+    resdir = resources_dir / Path(resource_id)
     if mkdir:
-        corpus_dir.mkdir(parents=True, exist_ok=True)
-    return corpus_dir
-
+        resdir.mkdir(parents=True, exist_ok=True)
+    return resdir
 
 def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
-    """Get export dir for given corpus."""
-    corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
-    export_dir = corpus_dir / Path(app.config.get("SPARV_EXPORT_DIR"))
+    """Get export dir for given resource."""
+    resdir = get_resource_dir(corpus_id, mkdir=mkdir)
+    export_dir = resdir / Path(app.config.get("SPARV_EXPORT_DIR"))
     if mkdir:
         export_dir.mkdir(parents=True, exist_ok=True)
     return export_dir
@@ -208,8 +216,8 @@ def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
 
 def get_work_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get sparv workdir for given corpus."""
-    corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
-    work_dir = corpus_dir / Path(app.config.get("SPARV_WORK_DIR"))
+    resdir = get_resource_dir(corpus_id, mkdir=mkdir)
+    work_dir = resdir / Path(app.config.get("SPARV_WORK_DIR"))
     if mkdir:
         work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
@@ -217,8 +225,8 @@ def get_work_dir(corpus_id: str, mkdir: bool = False) -> Path:
 
 def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given corpus."""
-    corpus_dir = get_corpus_dir(corpus_id, mkdir=mkdir)
-    source_dir = corpus_dir / Path(app.config.get("SPARV_SOURCE_DIR"))
+    resdir = get_resource_dir(corpus_id, mkdir=mkdir)
+    source_dir = resdir / Path(app.config.get("SPARV_SOURCE_DIR"))
     if mkdir:
         source_dir.mkdir(parents=True, exist_ok=True)
     return source_dir
@@ -226,5 +234,11 @@ def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
 
 def get_config_file(corpus_id: str) -> Path:
     """Get path to corpus config file."""
-    corpus_dir = get_corpus_dir(corpus_id)
-    return corpus_dir / Path(app.config.get("SPARV_CORPUS_CONFIG"))
+    resdir = get_resource_dir(corpus_id)
+    return resdir / Path(app.config.get("SPARV_CORPUS_CONFIG"))
+
+
+def get_metadata_yaml_file(resource_id: str) -> Path:
+    """Get path to local metadata yaml file."""
+    resdir = get_resource_dir(resource_id)
+    return resdir / (resource_id + ".yaml")

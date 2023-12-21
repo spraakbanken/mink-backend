@@ -112,5 +112,7 @@ def create_app(debug=False):
     app.register_blueprint(storage_routes.bp)
     from .sb_auth import login as login_routes
     app.register_blueprint(login_routes.bp)
+    from .metadata import metadata_routes
+    app.register_blueprint(metadata_routes.bp)
 
     return app

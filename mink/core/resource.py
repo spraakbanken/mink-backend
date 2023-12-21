@@ -10,6 +10,7 @@ class ResourceType(Enum):
     """Class for representing the different resource types."""
 
     corpus = "corpus"
+    metadata = "metadata"
 
     def serialize(self):
         """Convert class data into a string."""
@@ -21,11 +22,13 @@ class Resource():
 
     def __init__(self,
                  id: str,
+                 public_id: Optional[str] = "",
                  name: dict = {"swe": "", "eng": ""},
                  type: ResourceType = ResourceType.corpus,
                  source_files: Optional[list] = None
                 ):
         self.id = id
+        self.public_id = public_id or self.id
         self.name = name
         self.type = type
         self.source_files = source_files or []
@@ -37,6 +40,7 @@ class Resource():
         """Convert class data into dict."""
         return {
             "id": self.id,
+            "public_id": self.public_id,
             "name": self.name,
             "type": self.type,
             "source_files": self.source_files

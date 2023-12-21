@@ -195,5 +195,8 @@ in the table below.
 |`host` |URL to the backend |`http://localhost:9000` |
 |`standard-corpus` |ID of the corpus that is used in most of the example calls |`mink-dxh6e6wtff` |
 |`fake-corpus` |ID of a non existing corpus that is used to generate error responses |`mink-dxh6e6wtfg` |
+|`standard-metadata-resource-public` |Public ID of the metadata resource that is used in the metadata example calls |`sbx-testmetadata`|
+|`standard-metadata-resource-internal` |Internal (Mink) ID of the metadata resource that is used in the metadata example calls |`mink-bizr4dbldx`|
 |`api-key` |API key used for authentication in the internal routes |`2XZqJKYD3AjeBnw9D5RUaMDp` |
 |`jwt` |A valid bearer token (JWT) |`eyJ0eXA...`|
+ 

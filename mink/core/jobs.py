@@ -462,7 +462,7 @@ class Job():
         """Sync exports from Sparv server to the storage server."""
         self.set_status(Status.running, ProcessName.sync2storage)
         remote_corpus_dir = str(storage.get_corpus_dir(self.id))
-        local_corpus_dir = str(utils.get_corpus_dir(self.id, mkdir=True))
+        local_corpus_dir = str(utils.get_resource_dir(self.id, mkdir=True))
 
         # Get exports from Sparv
         remote_export_dir = sparv_utils.get_export_dir(self.id)

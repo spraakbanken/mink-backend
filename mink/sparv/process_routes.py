@@ -16,7 +16,7 @@ bp = Blueprint("sparv", __name__)
 
 @bp.route("/run-sparv", methods=["PUT"])
 @login.login()
-def run_sparv(corpus_id: str):
+def run_sparv(resource_id: str):
     """Run Sparv on given corpus."""
     # Parse requested exports
     sparv_exports = request.args.get("exports") or request.form.get("exports") or ""
@@ -26,47 +26,47 @@ def run_sparv(corpus_id: str):
     current_files = [i.strip() for i in current_files.split(",") if i]
 
     # Get list of available source files to be stored in the job info
-    source_dir = str(storage.get_source_dir(corpus_id))
+    source_dir = str(storage.get_source_dir(resource_id))
     try:
         source_files = storage.list_contents(source_dir)
     except Exception as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to list source files in '{resource_id}'", err=True, info=str(e),
                               return_code="failed_listing_sources"), 500
 
     if not source_files:
-        return utils.response(f"No source files found for '{corpus_id}'", err=True, return_code="no_sources_found"), 404
+        return utils.response(f"No source files found for '{resource_id}'", err=True, return_code="no_sources_found"), 404
 
     # Check compatibility between source files and config
     try:
-        config_file = str(storage.get_config_file(corpus_id))
+        config_file = str(storage.get_config_file(resource_id))
         config_contents = storage.get_file_contents(config_file)
         if source_files:
             compatible, resp = utils.config_compatible(config_contents, source_files[0])
             if not compatible:
                 return resp, 400
     except Exception as e:
-        return utils.response(f"Failed to get config file for '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to get config file for '{resource_id}'", err=True, info=str(e),
                               return_code="failed_getting_config"), 500
 
     # Get job, check for changes and remove exports if necessary
     try:
-        old_job = registry.get(corpus_id).job
-        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        old_job = registry.get(resource_id).job
+        _, _, deleted_sources, changed_config = storage.get_file_changes(resource_id, old_job)
         if deleted_sources or changed_config:
             try:
                 success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
-                return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
+                return utils.response(f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
                                       "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
                                       return_code="failed_removing_exports"), 500
     except exceptions.JobNotFound:
         pass
     except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to list source files in '{resource_id}'", err=True, info=str(e),
                               return_code="failed_listing_sources"), 500
 
-    info = registry.get(corpus_id)
+    info = registry.get(resource_id)
     job = info.job
     job.set_sparv_exports(sparv_exports)
     job.set_current_files(current_files)
@@ -76,7 +76,7 @@ def run_sparv(corpus_id: str):
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to queue job for '{resource_id}'", err=True, info=str(e),
                               return_code="failed_queuing"), 500
 
     # Check that all required files are present
@@ -89,7 +89,7 @@ def run_sparv(corpus_id: str):
         try:
             job.sync_to_sparv()
         except Exception as e:
-            return utils.response(f"Failed to start job for '{corpus_id}'", err=True, info=str(e),
+            return utils.response(f"Failed to start job for '{resource_id}'", err=True, info=str(e),
                                   return_code="failed_starting_job"), 500
 
     # Wait a few seconds to check whether anything terminated early
@@ -145,26 +145,27 @@ def advance_queue():
     return utils.response("Queue advancing completed", return_code="advanced_queue")
 
 
+# TODO: to be deprecated when frontend is ready!
 @bp.route("/check-status", methods=["GET"])
 @login.login(require_resource_id=False)
 def check_status(corpora: list):
     """Check the annotation status for all jobs belonging to a user or a given corpus."""
-    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
-    if corpus_id:
+    resource_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+    if resource_id:
         try:
             # Check if corpus exists
-            if corpus_id not in corpora:
-                return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
+            if resource_id not in corpora:
+                return utils.response(f"Corpus '{resource_id}' does not exist or you do not have access to it",
                                       err=True, return_code="corpus_not_found"), 404
             try:
-                info = registry.get(corpus_id)
+                info = registry.get(resource_id)
             except exceptions.JobNotFound:
-                return utils.response(f"There is no active job for '{corpus_id}'", job_status=JobStatuses().serialize(),
+                return utils.response(f"There is no active job for '{resource_id}'", job_status=JobStatuses().serialize(),
                                       return_code="no_active_job")
 
             return make_status_response_old(info, admin=session.get("admin_mode", False))
         except Exception as e:
-            return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e),
+            return utils.response(f"Failed to get job status for '{resource_id}'", err=True, info=str(e),
                                   return_code="failed_getting_job_status"), 500
 
     try:
@@ -189,21 +190,21 @@ def check_status(corpora: list):
 @login.login(require_resource_id=False)
 def resource_info(corpora: list):
     """Check the job status for all jobs belonging to a user or for a given resource."""
-    corpus_id = request.args.get("corpus_id") or request.form.get("corpus_id")
-    if corpus_id:
+    # TODO: change param name from corpus_id to resource_id!
+    resource_id = request.args.get("corpus_id") or request.form.get("corpus_id")
+    if resource_id:
         try:
             # Check if corpus exists
-            if corpus_id not in corpora:
-                return utils.response(f"Corpus '{corpus_id}' does not exist or you do not have access to it",
+            if resource_id not in corpora:
+                return utils.response(f"Corpus '{resource_id}' does not exist or you do not have access to it",
                                       err=True, return_code="corpus_not_found"), 404
-            print(corpus_id)
-            info = registry.get(corpus_id)
+            info = registry.get(resource_id)
             if not info:
-                return utils.response(f"There is no active job for '{corpus_id}'", job_status=JobStatuses().serialize(),
+                return utils.response(f"There is no active job for '{resource_id}'", job_status=JobStatuses().serialize(),
                                       return_code="no_active_job")
             return make_status_response(info, admin=session.get("admin_mode", False))
         except Exception as e:
-            return utils.response(f"Failed to get job status for '{corpus_id}'", err=True, info=str(e),
+            return utils.response(f"Failed to get job status for '{resource_id}'", err=True, info=str(e),
                                   return_code="failed_getting_job_status"), 500
 
     try:
@@ -224,9 +225,9 @@ def resource_info(corpora: list):
 
 @bp.route("/abort-job", methods=["POST"])
 @login.login()
-def abort_job(corpus_id: str):
+def abort_job(resource_id: str):
     """Try to abort a running job."""
-    job = registry.get(corpus_id).job
+    job = registry.get(resource_id).job
     # Syncing
     if job.status.is_syncing():
         return utils.response(f"Cannot abort job while syncing files", job_status=job.status.serialize(),
@@ -236,39 +237,39 @@ def abort_job(corpus_id: str):
         try:
             registry.pop_from_queue(job)
             job.set_status(Status.aborted)
-            return utils.response(f"Successfully aborted job for '{corpus_id}'", job_status=job.status.serialize(),
+            return utils.response(f"Successfully aborted job for '{resource_id}'", job_status=job.status.serialize(),
                                   return_code="aborted_job")
         except Exception as e:
-            return utils.response(f"Failed to unqueue job for '{corpus_id}'", err=True, info=str(e),
+            return utils.response(f"Failed to unqueue job for '{resource_id}'", err=True, info=str(e),
                                   return_code="failed_unqueuing_job"), 500
     # No running job
     if not job.status.is_running():
-        return utils.response(f"No running job found for '{corpus_id}'", return_code="no_running_job")
+        return utils.response(f"No running job found for '{resource_id}'", return_code="no_running_job")
     # Running job, try to abort
     try:
         job.abort_sparv()
     except exceptions.ProcessNotRunning:
-        return utils.response(f"No running job found for '{corpus_id}'")
+        return utils.response(f"No running job found for '{resource_id}'")
     except Exception as e:
-        return utils.response(f"Failed to abort job for '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to abort job for '{resource_id}'", err=True, info=str(e),
                               return_code="failed_aborting_job"), 500
-    return utils.response(f"Successfully aborted job for '{corpus_id}'", job_status=job.status.serialize(),
+    return utils.response(f"Successfully aborted job for '{resource_id}'", job_status=job.status.serialize(),
                           return_code="aborted_job")
 
 
 @bp.route("/clear-annotations", methods=["DELETE"])
 @login.login()
-def clear_annotations(corpus_id: str):
+def clear_annotations(resource_id: str):
     """Remove annotation files from Sparv server."""
     # Check if there is an active job
-    job = registry.get(corpus_id).job
+    job = registry.get(resource_id).job
     if job.status.is_running():
         return utils.response("Cannot clear annotations while a job is running", err=True,
                               return_code="failed_clearing_annotations_job_running"), 503
 
     try:
         sparv_output = job.clean()
-        return utils.response(f"Annotations for '{corpus_id}' successfully removed", sparv_output=sparv_output,
+        return utils.response(f"Annotations for '{resource_id}' successfully removed", sparv_output=sparv_output,
                               return_code="removed_annotations")
     except Exception as e:
         return utils.response("Failed to clear annotations", err=True, info=str(e),
@@ -277,7 +278,7 @@ def clear_annotations(corpus_id: str):
 
 @bp.route("/install-korp", methods=["PUT"])
 @login.login()
-def install_korp(corpus_id: str):
+def install_korp(resource_id: str):
     """Install a corpus in Korp with Sparv."""
     # Get info about whether the corpus should be scrambled in Korp. Default to not scrambling.
     scramble = request.args.get("scramble", "") or request.form.get("scramble", "")
@@ -285,31 +286,31 @@ def install_korp(corpus_id: str):
 
     # Get job, check for changes and remove exports if necessary
     try:
-        old_job = registry.get(corpus_id).job
-        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        old_job = registry.get(resource_id).job
+        _, _, deleted_sources, changed_config = storage.get_file_changes(resource_id, old_job)
         if deleted_sources or changed_config:
             try:
                 success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
-                return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
+                return utils.response(f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
                                       "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
                                       return_code="failed_removing_exports"), 500
     except exceptions.JobNotFound:
         pass
     except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to list source files in '{resource_id}'", err=True, info=str(e),
                               return_code="failed_listing_sources"), 500
 
     # Queue job
-    info = registry.get(corpus_id)
+    info = registry.get(resource_id)
     job = info.job
     job.reset_time()
     job.set_install_scrambled(scramble)
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to queue job for '{resource_id}'", err=True, info=str(e),
                               return_code="failed_queuing"), 500
 
     job.set_status(Status.waiting, ProcessName.korp)
@@ -321,34 +322,34 @@ def install_korp(corpus_id: str):
 
 @bp.route("/install-strix", methods=["PUT"])
 @login.login()
-def install_strix(corpus_id: str):
+def install_strix(resource_id: str):
     """Install a corpus in Strix with Sparv."""
     # Get job, check for changes and remove exports if necessary
     try:
-        old_job = registry.get(corpus_id).job
-        _, _, deleted_sources, changed_config = storage.get_file_changes(corpus_id, old_job)
+        old_job = registry.get(resource_id).job
+        _, _, deleted_sources, changed_config = storage.get_file_changes(resource_id, old_job)
         if deleted_sources or changed_config:
             try:
                 success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
-                return utils.response(f"Failed to remove export files from Sparv server for corpus '{corpus_id}'. "
+                return utils.response(f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
                                       "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
                                       return_code="failed_removing_exports"), 500
     except exceptions.JobNotFound:
         pass
     except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to list source files in '{resource_id}'", err=True, info=str(e),
                               return_code="failed_listing_sources"), 500
 
     # Queue job
-    info = registry.get(corpus_id)
+    info = registry.get(resource_id)
     job = info.job
     job.reset_time()
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{corpus_id}'", err=True, info=str(e),
+        return utils.response(f"Failed to queue job for '{resource_id}'", err=True, info=str(e),
                               return_code="failed_queuing"), 500
 
     job.set_status(Status.waiting, ProcessName.strix)
