@@ -127,7 +127,7 @@ paths:
     put:
       security:
         - ApiKeyAuth: []
-  /check-status:
+  /resource-info:
     get:
       parameters:
       - name: corpus_id

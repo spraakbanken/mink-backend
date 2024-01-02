@@ -8,6 +8,8 @@
 
 - The corpus registry and the job queue have been combined. Now, upon resource creation a job item is created immediately
   (instead of it being created first upon starting a Sparv job).
+- The `/check-status`-call has been replaced with `/resource-info` with a different response format.
+
 
 ### Fixed
 

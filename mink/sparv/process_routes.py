@@ -94,7 +94,7 @@ def run_sparv(resource_id: str):
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return make_status_response_old(info)
+    return make_status_response(info)
 
 
 @bp.route("/advance-queue", methods=["PUT"])
@@ -143,47 +143,6 @@ def advance_queue():
             app.logger.error(f"Failed to run Sparv on '{job.id}' {str(e)}")
 
     return utils.response("Queue advancing completed", return_code="advanced_queue")
-
-
-# TODO: to be deprecated when frontend is ready!
-@bp.route("/check-status", methods=["GET"])
-@login.login(require_resource_id=False)
-def check_status(corpora: list):
-    """Check the annotation status for all jobs belonging to a user or a given corpus."""
-    resource_id = request.args.get("corpus_id") or request.form.get("corpus_id")
-    if resource_id:
-        try:
-            # Check if corpus exists
-            if resource_id not in corpora:
-                return utils.response(f"Corpus '{resource_id}' does not exist or you do not have access to it",
-                                      err=True, return_code="corpus_not_found"), 404
-            try:
-                info = registry.get(resource_id)
-            except exceptions.JobNotFound:
-                return utils.response(f"There is no active job for '{resource_id}'", job_status=JobStatuses().serialize(),
-                                      return_code="no_active_job")
-
-            return make_status_response_old(info, admin=session.get("admin_mode", False))
-        except Exception as e:
-            return utils.response(f"Failed to get job status for '{resource_id}'", err=True, info=str(e),
-                                  return_code="failed_getting_job_status"), 500
-
-    try:
-        # Get all job statuses for this user's corpora
-        job_list = []
-        resources = registry.filter_resources(corpora)
-        for info in resources:
-            resp = make_status_response_old(info, admin=session.get("admin_mode", False))
-            if isinstance(resp, tuple):
-                resp = resp[0]
-            job_status = {"corpus_id": info.id}
-            job_status.update(resp.get_json())
-            job_status.pop("status")
-            job_list.append(job_status)
-        return utils.response("Listing jobs", jobs=job_list, return_code="listing_jobs")
-    except Exception as e:
-        return utils.response("Failed to get job statuses", err=True, info=str(e),
-                              return_code="failed_getting_job_statuses"), 500
 
 
 @bp.route("/resource-info", methods=["GET"])
@@ -317,7 +276,7 @@ def install_korp(resource_id: str):
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return make_status_response_old(info)
+    return make_status_response(info)
 
 
 @bp.route("/install-strix", methods=["PUT"])
@@ -356,79 +315,7 @@ def install_strix(resource_id: str):
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return make_status_response_old(info)
-
-
-# TODO: To be deprecated
-def make_status_response_old(info, admin=False):
-    """Check the annotation status for a given corpus and return response."""
-    status = info.job.status
-    job_attrs = {"job_status": status.serialize(),
-                 "sparv_exports": info.job.sparv_exports,
-                 "available_files": info.job.source_files,
-                 "installed_korp": info.job.installed_korp,
-                 "installed_strix": info.job.installed_strix,
-                 }
-    info_attrs = info.to_dict()
-    warnings = info_attrs["job"]["warnings"]
-    errors = info_attrs["job"]["errors"]
-    sparv_output = info_attrs["job"]["sparv_output"]
-
-    job_attrs["files"] = info.job.current_files or ""
-    if info.job.install_scrambled is not None:
-        job_attrs["install_scrambled"] = info.job.install_scrambled
-    if info.job.current_process is not None:
-        job_attrs["current_process"] = info.job.current_process
-    job_attrs["seconds_taken"] = info.job.seconds_taken or ""
-    job_attrs["last_run_started"] = info.job.started or ""
-    job_attrs["last_run_ended"] = info.job.done or ""
-    job_attrs["progress"] = info.job.progress or ""
-
-    if admin:
-        job_attrs["user"] = f"{info.owner.name} <{info.owner.email}>",
-
-    if status.is_none():
-        return utils.response(f"There is no active job for '{info.job.id}'", job_status=status.serialize(),
-                              return_code="no_active_job")
-
-    if status.is_syncing():
-        return utils.response("Files are being synced", **job_attrs,
-                              return_code="syncing_files")
-
-    if status.is_waiting():
-        return utils.response("Job has been queued", **job_attrs, priority=registry.get_priority(info.job),
-                              return_code="job_queued")
-
-    if status.is_aborted(info.job.current_process):
-        return utils.response("Job was aborted by the user", **job_attrs,
-                              return_code="job_aborted_by_user")
-
-    if status.is_running():
-        return utils.response("Job is running", warnings=warnings, errors=errors, sparv_output=sparv_output,
-                              **job_attrs, return_code="job_running")
-
-    # If done annotating, retrieve exports from Sparv
-    if status.is_done(ProcessName.sparv) and not admin:
-        try:
-            info.job.sync_results()
-        except Exception as e:
-            return utils.response("Sparv was run successfully but exports failed to upload to the storage server",
-                                  info=str(e), return_code="sparv_success_export_upload_fail")
-        return utils.response("Sparv was run successfully! Starting to sync results", warnings=warnings, errors=errors,
-                              sparv_output=sparv_output, **job_attrs, return_code="sparv_success_start_sync")
-
-    if status.is_done(info.job.current_process):
-        return utils.response("Job was completed successfully!", warnings=warnings, errors=errors,
-                              sparv_output=sparv_output, **job_attrs, return_code="job_completed")
-
-    if status.is_error(info.job.current_process):
-        app.logger.error(f"An error occurred during processing, warnings: {warnings}, errors: {errors}, "
-                         f"sparv_output: {sparv_output}, job_attrs: {job_attrs}")
-        return utils.response("An error occurred during processing", warnings=warnings, errors=errors,
-                              sparv_output=sparv_output, **job_attrs, return_code="processing_error")
-
-    return utils.response("Cannot handle this Job status yet", warnings=warnings, errors=errors,
-                          sparv_output=sparv_output, **job_attrs, return_code="cannot_handle_status"), 501
+    return make_status_response(info)
 
 
 def make_status_response(info, admin=False):
