@@ -1520,7 +1520,7 @@ paths:
                   message:
                     type: string
                     example: Listing resource infos
-                  jobs:
+                  resources:
                     type: array
                     example: &id008
                     - status: success
@@ -1708,7 +1708,7 @@ paths:
               example:
                 status: success
                 message: Listing resource infos
-                jobs: *id008
+                resources: *id008
                 return_code: listing_jobs
         '401':
           description: UNAUTHORIZED

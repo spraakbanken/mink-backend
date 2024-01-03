@@ -176,7 +176,7 @@ def resource_info(corpora: list):
                 resp = resp[0]
             job_status = resp.get_json()
             res_list.append(job_status)
-        return utils.response("Listing resource infos", jobs=res_list, return_code="listing_jobs")
+        return utils.response("Listing resource infos", resources=res_list, return_code="listing_jobs")
     except Exception as e:
         return utils.response("Failed to get job statuses", err=True, info=str(e),
                               return_code="failed_getting_job_statuses"), 500
