@@ -32,7 +32,7 @@ def create_metadata(user: dict, auth_token: str):
     org_prefixes = app.config.get("METADATA_ORG_PREFIXES")
     org_prefix = org_prefixes.get(user.id)
     if org_prefix is None:
-        return utils.response("No organization prefix was found for user", info=str(e),
+        return utils.response("No organization prefix was found for user", err=True,
                               return_code="failed_getting_org_prefix"), 500
     org_prefix = org_prefix.lower()
     if not public_id.startswith(org_prefix + "-"):
