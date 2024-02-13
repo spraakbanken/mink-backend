@@ -88,7 +88,7 @@ if __name__ == '__main__':
     scheduler.add_executor("threadpool", max_workers=1)
     scheduler.add_job(advance_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
     scheduler.add_job(ping_healthchecks, "interval", [config], minutes=config.get("PING_FREQUENCY", 60),
-                      next_run_time=datetime.now())
+                      next_run_time=datetime.now(), misfire_grace_time=10 * 60)
 
     try:
         scheduler.start()
