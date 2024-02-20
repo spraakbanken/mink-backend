@@ -164,8 +164,12 @@ def standardize_config(config, corpus_id):
     config_yaml.pop("install", None)
     config_yaml.pop("uninstall", None)
 
-    # Make corpus protected
-    config_yaml["korp"] = {"protected": True}
+    # Add Korp settings
+    config_yaml["korp"] = {
+        "protected": True,
+        "context": ["1 sentence", "5 sentence"],
+        "within": ["sentence", "5 sentence"]
+    }
     # Make Strix corpora appear in correct mode
     config_yaml["sbx_strix"] = {"modes": [{"name": "mink"}]}
     # Add '<text>:misc.id as _id' to annotations for Strix' sake
