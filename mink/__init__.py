@@ -17,9 +17,6 @@ from mink.memcached.cache import Cache
 from mink.sb_auth.login import read_jwt_key
 
 
-logger = logging.getLogger(__name__)
-
-
 def create_app(debug=False):
     """Instantiate app."""
     app = Flask(__name__)
@@ -68,7 +65,7 @@ def create_app(debug=False):
         )
 
     if tracking_matomo_url := app.config.get("TRACKING_MATOMO_URL"):
-        logger.debug("Enabling tracking to Matomo")
+        app.logger.debug("Enabling tracking to Matomo")
         extensions.matomo.activate(
             app,
             matomo_url=tracking_matomo_url,
@@ -76,7 +73,7 @@ def create_app(debug=False):
             access_token=app.config["TRACKING_MATOMO_ACCESS_TOKEN"],
         )
     else:
-        logger.warning(
+        app.logger.warning(
             "NOT tracking to Matomo, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE."
         )
     with app.app_context():
