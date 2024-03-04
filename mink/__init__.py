@@ -3,6 +3,7 @@
 __version__ = "1.1.0"
 
 import logging
+from os import access
 import shutil
 import sys
 import time
@@ -11,9 +12,12 @@ from pathlib import Path
 from flask import Flask, g, request
 from flask_cors import CORS
 
-from mink.core import registry, utils
+from mink.core import registry, utils, extensions
 from mink.memcached.cache import Cache
 from mink.sb_auth.login import read_jwt_key
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_app(debug=False):
@@ -63,6 +67,18 @@ def create_app(debug=False):
             filename=logfile, level=log_level, format=logfmt, datefmt=datefmt
         )
 
+    if tracking_matomo_url := app.config.get("TRACKING_MATOMO_URL"):
+        logger.debug("Enabling tracking to Matomo")
+        extensions.matomo.activate(
+            app,
+            matomo_url=tracking_matomo_url,
+            id_site=app.config["TRACKING_MATOMO_IDSITE"],
+            access_token=app.config["TRACKING_MATOMO_ACCESS_TOKEN"],
+        )
+    else:
+        logger.warning(
+            "NOT tracking to Matomo, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE."
+        )
     with app.app_context():
         # Connect to cache and init the resource registry
         g.cache = Cache()
