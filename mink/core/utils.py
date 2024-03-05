@@ -21,7 +21,7 @@ def response(msg, err=False, **kwargs):
     if err:
         args = "\n".join(f"{k}: {v}" for k, v in kwargs.items() if v != "")
         args = "\n" + args if args else ""
-        app.logger.error(f"{msg}{args}")
+        app.logger.error("%s%s", msg, args)
 
     res = {"status": "error" if err else "success", "message": msg}
     for key, value in kwargs.items():
@@ -197,6 +197,7 @@ def get_resources_dir(mkdir: bool = False) -> Path:
         resources_dir.mkdir(parents=True, exist_ok=True)
     return resources_dir
 
+
 def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get dir for given resource."""
     resources_dir = get_resources_dir(mkdir=mkdir)
@@ -204,6 +205,7 @@ def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
     if mkdir:
         resdir.mkdir(parents=True, exist_ok=True)
     return resdir
+
 
 def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get export dir for given resource."""

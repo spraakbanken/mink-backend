@@ -172,13 +172,15 @@ def create_resource(auth_token, resource_id, resource_type=None):
         r = requests.post(url, headers=headers, data=json.dumps(data))
         status = r.status_code
     except Exception as e:
-        app.logger.error(f"Could not create resource: {e}")
-        raise(e)
+        app.logger.error("Could not create resource: %s", e)
+        raise (e)
     if status == 400:
         raise exceptions.CorpusExists
     elif status != 201:
         message = r.content
-        app.logger.error(f"Could not create resource, sb-auth returned status {status}: {message}")
+        app.logger.error(
+            "Could not create resource, sb-auth returned status %s: %s", status, message
+        )
         raise Exception(message)
 
 

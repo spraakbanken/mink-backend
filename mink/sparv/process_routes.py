@@ -113,14 +113,18 @@ def advance_queue():
 
     # For running jobs, check if process is still running
     running_jobs, waiting_jobs = registry.get_running_waiting()
-    app.logger.debug(f"Running jobs: {len(running_jobs)}  Waiting jobs: {len(waiting_jobs)}")
+    app.logger.debug(
+        "Running jobs: %d  Waiting jobs: %d", len(running_jobs), len(waiting_jobs)
+    )
     for job in running_jobs:
         try:
             if not job.process_running():
                 job.abort_sparv()
                 registry.pop_from_queue(job)
         except Exception as e:
-            app.logger.error(f"Failed to check if process is running for '{job.id}' {str(e)}")
+            app.logger.error(
+                "Failed to check if process is running for '%s' %s", job.id, str(e)
+            )
 
     # Get running jobs again in case jobs were unqueued in the previous step
     running_jobs, waiting_jobs = registry.get_running_waiting()
@@ -131,16 +135,20 @@ def advance_queue():
             if job.status.is_waiting():
                 if job.current_process == ProcessName.sparv.name:
                     job.run_sparv()
-                    app.logger.info(f"Started annotation process for '{job.id}'")
+                    app.logger.info("Started annotation process for '%s'", job.id)
                 elif job.current_process == ProcessName.korp.name:
                     job.install_korp()
-                    app.logger.info(f"Started Korp installation process for '{job.id}'")
+                    app.logger.info(
+                        "Started Korp installation process for '%s'", job.id
+                    )
                 elif job.current_process == ProcessName.strix.name:
                     job.install_strix()
-                    app.logger.info(f"Started Strix installation process for '{job.id}'")
+                    app.logger.info(
+                        f"Started Strix installation process for '{job.id}'"
+                    )
             running_jobs.append(job)
         except Exception as e:
-            app.logger.error(f"Failed to run Sparv on '{job.id}' {str(e)}")
+            app.logger.error("Failed to run Sparv on '%s' %s", job.id, str(e))
 
     return utils.response("Queue advancing completed", return_code="advanced_queue")
 

@@ -19,6 +19,7 @@ bp = Blueprint("metadata_storage", __name__)
 # Corpus operations
 # ------------------------------------------------------------------------------
 
+
 @bp.route("/create-metadata", methods=["POST"])
 @login.login(require_resource_id=False, require_resource_exists=False)
 def create_metadata(user: dict, auth_token: str):
@@ -32,13 +33,19 @@ def create_metadata(user: dict, auth_token: str):
     org_prefixes = app.config.get("METADATA_ORG_PREFIXES")
     org_prefix = org_prefixes.get(user.id)
     if org_prefix is None:
-        return utils.response("No organization prefix was found for user", info=str(e),
-                              return_code="failed_getting_org_prefix"), 500
+        return utils.response(
+            "No organization prefix was found for user",
+            info=f"user.id={user.id}",
+            return_code="failed_getting_org_prefix",
+        ), 500
     org_prefix = org_prefix.lower()
-    if not public_id.startswith(org_prefix + "-"):
-        return utils.response("Failed to create resource: chosen public ID does not contain the correct "
-                              "organization prefix", err=True,
-                              return_code="failed_creating_resource"), 500
+    if not public_id.startswith(f"{org_prefix}-"):
+        return utils.response(
+            "Failed to create resource: chosen public ID does not contain the correct "
+            "organization prefix",
+            err=True,
+            return_code="failed_creating_resource",
+        ), 500
 
     # Check availability of ID in SBX metadata and the Mink backend resource registry
     check_id_url = app.config.get("METADATA_ID_AVAILABLE_URL") + public_id
@@ -93,17 +100,23 @@ def create_metadata(user: dict, auth_token: str):
             # Try to remove partially uploaded resource data
             storage.remove_dir(resource_dir, resource_id)
         except Exception as err:
-            app.logger.error(f"Failed to remove partially uploaded corpus data for '{resource_id}'. {err}")
+            app.logger.error(
+                "Failed to remove partially uploaded corpus data for '%s'. %s",
+                resource_id,
+                err,
+            )
         try:
             login.remove_resource(resource_id)
         except Exception as err:
-            app.logger.error(f"Failed to remove corpus '{resource_id}' from auth system. {err}")
+            app.logger.error(
+                "Failed to remove corpus '%s' from auth system. %s", resource_id, err
+            )
         try:
             info_obj.remove()
         except Exception as err:
-            app.logger.error(f"Failed to remove object '{resource_id}' from registry. {err}")
-        return utils.response("Failed to create resource dir", err=True, info=str(e),
-                              return_code="failed_creating_resource_dir"), 500
+            app.logger.error(
+                "Failed to remove object '%s' from registry. %s", resource_id, err
+            )
 
 
 @bp.route("/remove-metadata", methods=["DELETE"])
@@ -139,6 +152,7 @@ def remove_metadata(resource_id: str):
 # ------------------------------------------------------------------------------
 # Metadata (yaml) file operations
 # ------------------------------------------------------------------------------
+
 
 @bp.route("/upload-metadata-yaml", methods=["PUT"])
 @login.login()

@@ -265,7 +265,9 @@ class Job():
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            app.logger.error(f"Failed to uninstall corpus {self.id} from Korp: {stderr}")
+            app.logger.error(
+                "Failed to uninstall corpus %s from Korp: %s", self.id, stderr
+            )
             raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stderr}")
 
         self.installed_korp = False
@@ -314,8 +316,9 @@ class Job():
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            app.logger.error(f"Failed to uninstall corpus {self.id} from Strix: {stderr}")
-            raise exceptions.JobError(f"Failed to uninstall corpus from Strix: {stderr}")
+            app.logger.error(
+                "Failed to uninstall corpus %s from Strix: %s", self.id, stderr
+            )
 
         self.installed_strix = False
 
@@ -353,7 +356,8 @@ class Job():
             if p.returncode == 0:
                 return True
             # Process not running anymore
-            app.logger.debug(f"stderr: '{p.stderr.decode()}'")
+            # TODO defer decoding to printing, use some form of Message-lambda-combo
+            app.logger.debug("stderr: '%s'", p.stderr.decode())
             self.set_pid(None)
 
         _warnings, errors, misc = self.get_output()
@@ -362,9 +366,9 @@ class Job():
                 self.set_status(Status.done)
         else:
             if errors:
-                app.logger.debug(f"Error in Sparv: {errors}")
+                app.logger.debug("Error in Sparv: %s", errors)
             if misc:
-                app.logger.debug(f"Sparv output: {misc}")
+                app.logger.debug("Sparv output: %s", misc)
             app.logger.debug("Sparv process was not completed successfully.")
             self.set_status(Status.error)
         return False
@@ -509,7 +513,9 @@ class Job():
 
         p = utils.ssh_run(f"rm -rf {shlex.quote(self.remote_corpus_dir)}")
         if p.stderr:
-            app.logger.error(f"Failed to remove corpus dir '{self.remote_corpus_dir}'!")
+            app.logger.error(
+                "Failed to remove corpus dir '%s'!", self.remote_corpus_dir
+            )
 
     def clean(self):
         """Remove annotation and export files from Sparv server by running 'sparv clean --all'."""
@@ -536,8 +542,11 @@ class Job():
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
-        if not ("Nothing to remove" in sparv_output or "'export' directory removed" in sparv_output):
-            app.logger.error(f"Failed to remove Sparv export dir for corpus '{self.id}': {sparv_output}")
+            app.logger.error(
+                "Failed to remove Sparv export dir for corpus '%s': %s",
+                self.id,
+                sparv_output,
+            )
             return False, sparv_output
         return True, sparv_output
 

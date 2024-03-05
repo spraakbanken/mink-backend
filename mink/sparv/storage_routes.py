@@ -20,6 +20,7 @@ bp = Blueprint("sparv_storage", __name__)
 # Corpus operations
 # ------------------------------------------------------------------------------
 
+
 @bp.route("/create-corpus", methods=["POST"])
 @login.login(require_resource_exists=False, require_resource_id=False)
 def create_corpus(user: dict, auth_token: str):
@@ -61,17 +62,21 @@ def create_corpus(user: dict, auth_token: str):
             # Try to remove partially uploaded corpus data
             storage.remove_dir(corpus_dir, resource_id)
         except Exception as err:
-            app.logger.error(f"Failed to remove partially uploaded corpus data for '{resource_id}'. {err}")
+            app.logger.error(
+                "Failed to remove partially uploaded corpus data for '%s'. %s",
+                resource_id,
+                err,
+            )
         try:
             login.remove_resource(resource_id)
         except Exception as err:
-            app.logger.error(f"Failed to remove corpus '{resource_id}' from auth system. {err}")
+            app.logger.error(
+                "Failed to remove corpus '%s' from auth system. %s", resource_id, err
+            )
         try:
             info_obj.remove()
         except Exception as err:
-            app.logger.error(f"Failed to remove job '{resource_id}'. {err}")
-        return utils.response("Failed to create corpus dir", err=True, info=str(e),
-                              return_code="failed_creating_corpus_dir"), 500
+            app.logger.error("Failed to remove job '%s'. %s", resource_id, err)
 
 
 @bp.route("/list-corpora", methods=["GET"])
@@ -139,13 +144,13 @@ def remove_corpus(resource_id: str):
     try:
         info_obj.remove()
     except Exception as err:
-        app.logger.error(f"Failed to remove job '{resource_id}'. {err}")
-    return utils.response(f"Corpus '{resource_id}' successfully removed", return_code="removed_corpus")
+        app.logger.error("Failed to remove job '%s'. %s", resource_id, err)
 
 
 # ------------------------------------------------------------------------------
 # Source file operations
 # ------------------------------------------------------------------------------
+
 
 @bp.route("/upload-sources", methods=["PUT"])
 @login.login()
@@ -436,6 +441,7 @@ def download_config(resource_id: str):
 # ------------------------------------------------------------------------------
 # Export file operations
 # ------------------------------------------------------------------------------
+
 
 @bp.route("/list-exports", methods=["GET"])
 @login.login()

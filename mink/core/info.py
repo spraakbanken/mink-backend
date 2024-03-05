@@ -97,7 +97,7 @@ class Info:
                 all_resources.pop(all_resources.index(self.id))
                 g.cache.set_all_resources(all_resources)
         except Exception as e:
-            app.logger.error(f"Failed to delete job ID from cache client: {e}")
+            app.logger.error("Failed to delete job ID from cache client: %s", e)
 
         # Remove backup from file system
         registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
