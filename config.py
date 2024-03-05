@@ -9,25 +9,19 @@ LOG_LEVEL = "INFO"  # Log level for the application
 RESOURCE_PREFIX = "mink-"
 
 # File upload settings
-MAX_CONTENT_LENGTH = (
-    1024 * 1024 * 100
-)  # Max size (bytes) for one request (which may contain multiple files)
+MAX_CONTENT_LENGTH = 1024 * 1024 * 100  # Max size (bytes) for one request (which may contain multiple files)
 MAX_FILE_LENGTH = 1024 * 1024 * 10  # Max size (bytes) for one corpus source file
 MAX_CORPUS_LENGTH = 1024 * 1024 * 500  # Max size (bytes) for one corpus
 RECOMMENDED_MIN_FILE_LENGTH = (
     1024 * 1024 * 1
-)  # Recommended min size (bytes) for one corpus source file (when uploading may files)
-RECOMMENDED_MAX_FILE_LENGTH = (
-    1024 * 1024 * 5
-)  # Recommended max size (bytes) for one corpus source file
+)  # Recommended min size (bytes) for one corpus source file (when uploading many files)
+RECOMMENDED_MAX_FILE_LENGTH = 1024 * 1024 * 5  # Recommended max size (bytes) for one corpus source file
 
 # sb-auth settings
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
 SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/resource/"
 SBAUTH_API_KEY = ""
-SBAUTH_MINK_APP_RESOURCE = (
-    "mink-app"  # Name of the resource used to control admin grants
-)
+SBAUTH_MINK_APP_RESOURCE = "mink-app"  # Name of the resource used to control admin grants
 
 # Sparv specific strings and settings
 SPARV_SOURCE_DIR = "source"
@@ -48,14 +42,10 @@ SSH_KEY = "~/.ssh/id_rsa"
 SPARV_HOST = ""  # Define this in instance/config.py!
 SPARV_USER = ""  # Define this in instance/config.py!
 SPARV_WORKERS = 1  # Number of available Sparv workers
-SPARV_DEFAULT_CORPORA_DIR = (
-    "~/mink-data/corpus/default"  # Dir for running listings like 'sparv run -l'
-)
+SPARV_DEFAULT_CORPORA_DIR = "~/mink-data/corpus/default"  # Dir for running listings like 'sparv run -l'
 SPARV_CORPORA_DIR = "mink-data/corpus"  # Dir where the user corpora are stored and run, relative to the user's home dir
 SPARV_ENVIRON = "SPARV_DATADIR=~/sparv-pipeline/data/"  # Environment variables to set when running Sparv
-SPARV_COMMAND = (
-    "~/sparv-pipeline/venv/bin/python -u -m sparv"  # Command for calling Sparv
-)
+SPARV_COMMAND = "~/sparv-pipeline/venv/bin/python -u -m sparv"  # Command for calling Sparv
 SPARV_RUN = "run --socket ~/sparv-pipeline/sparv.socket --json-log --log-to-file info"  # Sparv's 'run' command
 SPARV_INSTALL = "install --json-log --log-to-file info"  # Sparv's 'install' command
 SPARV_UNINSTALL = "uninstall --log-to-file info"  # Sparv's 'uninstall' command
@@ -91,20 +81,14 @@ SPARV_DEFAULT_STRIX_UNINSTALLS = [
     "sbx_strix:uninstall_xml",
 ]  # Default Strix uninstall targets
 SPARV_NOHUP_FILE = "mink.out"  # File collecting Sparv output for a job
-SPARV_TMP_RUN_SCRIPT = (
-    "run_sparv.sh"  # Temporary Sparv run script created for every job
-)
+SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"  # Temporary Sparv run script created for every job
 
 # Settings for metadata upload
 METADATA_HOST = ""  # Define this in instance/config.py!
 METADATA_USER = ""  # Define this in instance/config.py!
 METADATA_DIR = "mink-data/metadata"  # Dir where metadata resources are stored, relative to the user's home dir
-METADATA_ID_AVAILABLE_URL = (
-    "https://ws.spraakbanken.gu.se/ws/metadata/check-id-availability?id="
-)
-METADATA_SOURCE_DIR = (
-    "source"  # Dir for storing resource files belonging to a metadata resource
-)
+METADATA_ID_AVAILABLE_URL = "https://ws.spraakbanken.gu.se/ws/metadata/check-id-availability?id="
+METADATA_SOURCE_DIR = "source"  # Dir for storing resource files belonging to a metadata resource
 METADATA_ORG_PREFIXES = {}  # Mapping from user IDs to organisation prefixes
 
 # Local files relative to flask instance dir
@@ -115,14 +99,10 @@ QUEUE_FILE = "queue"  # File to store the queue priorities
 
 # Settings for queue manager
 MINK_URL = "https://ws.spraakbanken.gu.se/ws/mink"  # URL for mink API
-CHECK_QUEUE_FREQUENCY = (
-    20  # How often the queue will be checked for new jobs (in seconds)
-)
+CHECK_QUEUE_FREQUENCY = 20  # How often the queue will be checked for new jobs (in seconds)
 MINK_SECRET_KEY = ""  # Define this in instance/config.py!
 HEALTHCHECKS_URL = ""  # Healthchecks URL, define this in instance/config.py!
-PING_FREQUENCY = (
-    60  # Frequency (in minutes) for how often healthchecks should be pinged
-)
+PING_FREQUENCY = 60  # Frequency (in minutes) for how often healthchecks should be pinged
 
 # Settings for tracking to Matomo (uncomment)
 # TRACKING_MATOMO_URL =
