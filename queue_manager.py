@@ -20,7 +20,7 @@ def advance_queue(config):
     try:
         data = parse.urlencode({"secret_key": config.get("MINK_SECRET_KEY")}).encode()
         req = request.Request(url, data=data, method="PUT")
-        with request.urlopen(req) as f:
+        with request.urlopen(req, timeout=60) as f:
             logging.debug(f.read().decode("UTF-8"))
     except error.HTTPError as e:
         logging.error(f"Error advancing queue! {e}")
@@ -32,7 +32,7 @@ def ping_healthchecks(config):
     if url:
         logging.debug("Sending ping to healthchecks")
         try:
-            with request.urlopen(url) as f:
+            with request.urlopen(url, timeout=60) as f:
                 logging.debug(f.read().decode("UTF-8"))
         except error.HTTPError as e:
             logging.error(f"Error pinging healthchecks! {e}")
