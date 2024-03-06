@@ -77,6 +77,12 @@ def create_corpus(user: dict, auth_token: str):
             info_obj.remove()
         except Exception as err:
             app.logger.error("Failed to remove job '%s'. %s", resource_id, err)
+        return utils.response(
+            "Failed to create corpus dir",
+            err=True,
+            info=str(e),
+            return_code="failed_creating_corpus_dir",
+        ), 500
 
 
 @bp.route("/list-corpora", methods=["GET"])
@@ -145,6 +151,9 @@ def remove_corpus(resource_id: str):
         info_obj.remove()
     except Exception as err:
         app.logger.error("Failed to remove job '%s'. %s", resource_id, err)
+    return utils.response(
+        f"Corpus '{resource_id}' successfully removed", return_code="removed_corpus"
+    )
 
 
 # ------------------------------------------------------------------------------

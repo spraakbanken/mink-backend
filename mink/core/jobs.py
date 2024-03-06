@@ -319,6 +319,9 @@ class Job():
             app.logger.error(
                 "Failed to uninstall corpus %s from Strix: %s", self.id, stderr
             )
+            raise exceptions.JobError(
+                f"Failed to uninstall corpus from Strix: {stderr}"
+            )
 
         self.installed_strix = False
 
@@ -542,6 +545,10 @@ class Job():
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
+        if not (
+            "Nothing to remove" in sparv_output
+            or "'export' directory removed" in sparv_output
+        ):
             app.logger.error(
                 "Failed to remove Sparv export dir for corpus '%s': %s",
                 self.id,

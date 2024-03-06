@@ -117,6 +117,12 @@ def create_metadata(user: dict, auth_token: str):
             app.logger.error(
                 "Failed to remove object '%s' from registry. %s", resource_id, err
             )
+        return utils.response(
+            "Failed to create resource dir",
+            err=True,
+            info=str(e),
+            return_code="failed_creating_resource_dir",
+        ), 500
 
 
 @bp.route("/remove-metadata", methods=["DELETE"])
