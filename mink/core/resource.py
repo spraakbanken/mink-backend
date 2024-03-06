@@ -17,19 +17,20 @@ class ResourceType(Enum):
         return self.name
 
 
-class Resource():
+class Resource:
     """A resource item holding information about some important metadata."""
 
-    def __init__(self,
-                 id: str,
-                 public_id: Optional[str] = "",
-                 name: dict = {"swe": "", "eng": ""},
-                 type: ResourceType = ResourceType.corpus,
-                 source_files: Optional[list] = None
-                ):
+    def __init__(
+        self,
+        id: str,
+        public_id: Optional[str] = "",
+        name: Optional[dict] = None,
+        type: ResourceType = ResourceType.corpus,
+        source_files: Optional[list] = None,
+    ):
         self.id = id
         self.public_id = public_id or self.id
-        self.name = name
+        self.name = name or {"swe": "", "eng": ""}
         self.type = type
         self.source_files = source_files or []
 
@@ -43,8 +44,8 @@ class Resource():
             "public_id": self.public_id,
             "name": self.name,
             "type": self.type,
-            "source_files": self.source_files
-            }
+            "source_files": self.source_files,
+        }
 
     def set_parent(self, parent):
         """Save reference to parent class."""
