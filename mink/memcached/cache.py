@@ -10,7 +10,7 @@ from pymemcache.client.base import Client
 from mink.core import registry
 
 
-class Cache():
+class Cache:
     """Cache class providing caching with Memcached (and app context as backoff)."""
 
     def __init__(self):
@@ -36,7 +36,7 @@ class Cache():
             # Check if connection is working
             self.client.get("test")
         except Exception as e:
-            app.logger.error(f"Failed to connect to memcached! {str(e)}")
+            app.logger.error("Failed to connect to memcached! %s", str(e))
             self.client = None
 
     def get_queue_initialized(self):

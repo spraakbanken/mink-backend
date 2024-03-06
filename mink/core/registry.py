@@ -40,20 +40,24 @@ def initialize():
                     infoobj = info.load_from_str(fobj.read())
                     infoobj.update()  # Update resource in file system and add to cache
                     all_resources.append(infoobj.id)
-                    # app.logger.debug(f"Job in cache: '{g.cache.get_job(job.id)}'")
+                    # app.logger.debug("Job in cache: '%s'",g.cache.get_job(job.id))
                 # Queue job unless it is done, aborted or erroneous
                 if infoobj.id not in queue:
                     if not (infoobj.job.status.is_done(infoobj.job.current_process) or infoobj.job.status.is_inactive()):
                         queue.append(infoobj.job.id)
         g.cache.set_job_queue(queue)
         g.cache.set_all_resources(all_resources)
-        app.logger.debug(f"Queue in cache: {g.cache.get_job_queue()}")
-        # app.logger.debug(f"All jobs in cache: {g.cache.get_all_resources()}")
-        app.logger.debug(f"Total resources in cache: {len(g.cache.get_all_resources())}")
+        app.logger.debug("Queue in cache: %s", g.cache.get_job_queue())
+        # app.logger.debug("All jobs in cache: %s",g.cache.get_all_resources())
+        app.logger.debug(
+            "Total resources in cache: %d", len(g.cache.get_all_resources())
+        )
+
 
 def get_all_resources() -> str:
     """Get a list of all existing resource IDs."""
     return g.cache.get_all_resources()
+
 
 def get(resource_id) -> info.Info:
     """Get an existing info instance from the cache."""
@@ -61,6 +65,7 @@ def get(resource_id) -> info.Info:
         return info.load_from_str(g.cache.get_job(resource_id))
     else:
         raise exceptions.JobNotFound(f"No resource found with ID '{resource_id}'!")
+
 
 def filter_resources(resource_ids: list = None) -> List[info.Info]:
     """Get info for all resources listed in 'resource_ids'."""
@@ -72,6 +77,7 @@ def filter_resources(resource_ids: list = None) -> List[info.Info]:
         infoobj = info.load_from_str(g.cache.get_job(res_id))
         filtered_resources.append(infoobj)
     return filtered_resources
+
 
 def add_to_queue(job):
     """Add a job item to the queue."""
@@ -88,6 +94,7 @@ def add_to_queue(job):
     save_priorities()
     return job
 
+
 def pop_from_queue(job):
     """Remove job item from queue (but keep in all jobs), e.g. when a job is aborted."""
     queue = g.cache.get_job_queue()
@@ -95,6 +102,7 @@ def pop_from_queue(job):
         queue.pop(queue.index(job.id))
         g.cache.set_job_queue(queue)
         save_priorities()
+
 
 def get_priority(job):
     """Get the queue priority of the job."""
@@ -105,6 +113,7 @@ def get_priority(job):
     except ValueError:
         return -1
 
+
 def save_priorities():
     """Save queue order so it can be loaded from disk upon app restart."""
     registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
@@ -113,6 +122,7 @@ def save_priorities():
     queue_file = registry_dir / Path(app.config.get("QUEUE_FILE"))
     with queue_file.open("w") as f:
         f.write(json.dumps(queue))
+
 
 def get_running_waiting():
     """Get the running and waiting jobs from the queue."""
@@ -131,6 +141,7 @@ def get_running_waiting():
 
     return running_jobs, waiting_jobs
 
+
 def unqueue_inactive():
     """Unqueue jobs that are done, aborted or erroneous."""
     queue = g.cache.get_job_queue()
@@ -142,7 +153,7 @@ def unqueue_inactive():
 
     if old_jobs:
         for res_id in old_jobs:
-            app.logger.info(f"Removing job {res_id}")
+            app.logger.info("Removing job %s", res_id)
             queue.pop(queue.index(res_id))
         g.cache.set_job_queue(queue)
         save_priorities()
