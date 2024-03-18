@@ -330,9 +330,6 @@ def make_status_response(info, admin=False):
     """Check the annotation status for a given corpus and return response."""
     info_attrs = info.to_dict()
 
-    if not admin:
-        info_attrs.pop("owner")
-
     status = info.job.status
 
     if status.is_none():
