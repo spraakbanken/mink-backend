@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "7e8233d0-e98e-429c-8d8c-f641dc3ba71b",
+		"_postman_id": "80e8b8ea-4556-4299-84d4-49deee2f18f2",
 		"name": "Mink API",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32053487"
 	},
 	"item": [
 		{
@@ -3357,7 +3358,7 @@
 								}
 							]
 						},
-						"description": "Adds an installation job to the queue to tries to install the corpus on Korp. The corpus may be sentence scrambled by setting the `scramble` parameter to `true` (the original order will be kept by default.\n\nThere can only be one active job (annotation or installation) for each corpus at a time. A job must finish or be aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -F \"corpus_id=some_corpus_name\" -F \"scrambled=true\" '{{host}}/install-corpus' -H 'Authorization: Bearer YOUR_JWT'\n```"
+						"description": "Adds an installation job to the queue to tries to install the corpus on Korp. The corpus may be sentence scrambled by setting the `scramble` parameter to `true` (the original order will be kept by default.\n\nThere can only be one active job (annotation or installation) for each corpus at a time. A job must finish or be aborted before a new one can be started.\n\n### Example\n\n``` .bash\ncurl -X PUT -F \"corpus_id=some_corpus_name\" -F \"scrambled=true\" '{{host}}/install-korp' -H 'Authorization: Bearer YOUR_JWT'\n\n ```"
 					},
 					"response": [
 						{
@@ -3566,7 +3567,7 @@
 								}
 							]
 						},
-						"description": "Adds an installation job to the queue to tries to install the corpus on Korp. The corpus may be sentence scrambled by setting the `scramble` parameter to `true` (the original order will be kept by default.\n\nThere can only be one active job (annotation or installation) for each corpus at a time. A job must finish or be aborted before a new one can be started.\n\n### Example\n\n```.bash\ncurl -X PUT -F \"corpus_id=some_corpus_name\" -F \"scrambled=true\" '{{host}}/install-corpus' -H 'Authorization: Bearer YOUR_JWT'\n```"
+						"description": "Adds an installation job to the queue to tries to install the corpus on Korp. The corpus may be sentence scrambled by setting the `scramble` parameter to `true` (the original order will be kept by default.\n\nThere can only be one active job (annotation or installation) for each corpus at a time. A job must finish or be aborted before a new one can be started.\n\n### Example\n\n``` .bash\ncurl -X PUT -F \"corpus_id=some_corpus_name\" -F \"scrambled=true\" '{{host}}/install-strix' -H 'Authorization: Bearer YOUR_JWT'\n\n ```"
 					},
 					"response": [
 						{
@@ -5234,7 +5235,6 @@
 								"{{host}}"
 							],
 							"path": [
-								"",
 								"download-metadata-yaml"
 							],
 							"query": [
@@ -5258,7 +5258,6 @@
 										"{{host}}"
 									],
 									"path": [
-										"",
 										"download-metadata-yaml"
 									],
 									"query": [
