@@ -107,4 +107,4 @@ PING_FREQUENCY = 60  # Frequency (in minutes) for how often healthchecks should 
 # Settings for tracking to Matomo (uncomment)
 # TRACKING_MATOMO_URL =
 # TRACKING_MATOMO_IDSITE =
-# TRACKING_MATOMO_ACCESS_TOKEN =
+# TRACKING_MATOMO_AUTH_TOKEN =

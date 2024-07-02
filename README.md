@@ -17,7 +17,7 @@ To enable tracking to Matomo, set the following config variables:
 
 * `TRACKING_MATOMO_URL` - url to matomo
 * `TRACKING_MATOMO_IDSITE` - id for this site (get from matomo admin)
-* `TRACKING_MATOMO_ACCESS_TOKEN` - access token to enable tracking IP numbers
+* `TRACKING_MATOMO_AUTH_TOKEN` - access token to enable tracking IP numbers
 
 ## How to run a test server
 
