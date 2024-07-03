@@ -66,7 +66,11 @@ def create_app(debug=False):
         if tracking_matomo_auth_token := app.config.get("TRACKING_MATOMO_AUTH_TOKEN"):
             matomo_options["token_auth"] = tracking_matomo_auth_token
         extensions.matomo.activate(
-            app, matomo_url=tracking_matomo_url, id_site=app.config["TRACKING_MATOMO_IDSITE"], **matomo_options
+            app,
+            matomo_url=tracking_matomo_url,
+            id_site=app.config["TRACKING_MATOMO_IDSITE"],
+            ignored_routes=["/advance-queue"],
+            **matomo_options,
         )
     else:
         app.logger.warning("NOT tracking to Matomo, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE.")
