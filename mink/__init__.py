@@ -70,6 +70,7 @@ def create_app(debug=False):
             matomo_url=tracking_matomo_url,
             id_site=app.config["TRACKING_MATOMO_IDSITE"],
             ignored_routes=["/advance-queue"],
+            base_url=app.config.get("MINK_URL"),
             **matomo_options,
         )
     else:

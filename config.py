@@ -4,6 +4,7 @@ Can be overridden with config.py in instance folder.
 """
 
 LOG_LEVEL = "INFO"  # Log level for the application
+MINK_URL = "https://ws.spraakbanken.gu.se/ws/mink"  # URL for mink API
 
 # Prefix used when creating new resources
 RESOURCE_PREFIX = "mink-"
@@ -98,7 +99,6 @@ REGISTRY_DIR = "registry"  # Directory for storing job files
 QUEUE_FILE = "queue"  # File to store the queue priorities
 
 # Settings for queue manager
-MINK_URL = "https://ws.spraakbanken.gu.se/ws/mink"  # URL for mink API
 CHECK_QUEUE_FREQUENCY = 20  # How often the queue will be checked for new jobs (in seconds)
 MINK_SECRET_KEY = ""  # Define this in instance/config.py!
 HEALTHCHECKS_URL = ""  # Healthchecks URL, define this in instance/config.py!
