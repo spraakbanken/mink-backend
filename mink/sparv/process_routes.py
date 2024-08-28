@@ -331,7 +331,12 @@ def make_status_response(info, admin=False):
     info_attrs = info.to_dict()
 
     if not admin:
-        info_attrs.pop("owner")
+        # Only keep essential information, as this can be shown to other resource users than the owner
+        info_attrs["owner"] = {
+            "id": info_attrs["owner"]["id"],
+            "name": info_attrs["owner"]["name"],
+            "email": info_attrs["owner"]["email"],
+        }
 
     status = info.job.status
 
