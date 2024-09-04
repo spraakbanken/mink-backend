@@ -2215,7 +2215,7 @@ paths:
 
         ```.bash
 
-        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-corpus''
+        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-korp''
         -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
@@ -2405,7 +2405,7 @@ paths:
 
         ```.bash
 
-        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-corpus''
+        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-korp''
         -H ''Authorization: Bearer YOUR_JWT''
 
         ```'
