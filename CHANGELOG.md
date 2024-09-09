@@ -5,7 +5,7 @@
 ### Added
 
 - Added new resource type: metadata YAML files. There are now calls for creating, uploading and downloading these.
-- It is now possible to upload of source files with uppercase file extensions.
+- It is now possible to upload source files with uppercase file extensions.
 
 ### Changed
 
