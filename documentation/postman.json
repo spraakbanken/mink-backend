@@ -1328,10 +1328,6 @@
 									"value": "Cookie"
 								},
 								{
-									"key": "Via",
-									"value": "1.1 ws.spraakbanken.gu.se"
-								},
-								{
 									"key": "Keep-Alive",
 									"value": "timeout=1, max=500"
 								},
@@ -2081,10 +2077,6 @@
 									"value": "83"
 								},
 								{
-									"key": "Via",
-									"value": "1.1 ws.spraakbanken.gu.se"
-								},
-								{
 									"key": "Keep-Alive",
 									"value": "timeout=1, max=500"
 								},
@@ -2507,10 +2499,6 @@
 								{
 									"key": "Set-Cookie",
 									"value": "session=eyJhZG1pbl9tb2RlIjpmYWxzZX0.ZXgcPw.6FWkSUcpdaBB4OGsNvjPHRz4Q-M; HttpOnly; Path=/"
-								},
-								{
-									"key": "Via",
-									"value": "1.1 ws.spraakbanken.gu.se"
 								},
 								{
 									"key": "Keep-Alive",
@@ -4546,10 +4534,6 @@
 									"value": "Cookie"
 								},
 								{
-									"key": "Via",
-									"value": "1.1 ws.spraakbanken.gu.se"
-								},
-								{
 									"key": "Connection",
 									"value": "close"
 								}
@@ -5540,10 +5524,6 @@
 								{
 									"key": "Set-Cookie",
 									"value": "session=eyJhZG1pbl9tb2RlIjpmYWxzZX0.Y1ZUhA.tLLartk6WcWRZKx73yVEInurjP8; HttpOnly; Path=/"
-								},
-								{
-									"key": "Via",
-									"value": "1.1 ws.spraakbanken.gu.se"
 								},
 								{
 									"key": "Keep-Alive",

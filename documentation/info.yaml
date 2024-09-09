@@ -50,7 +50,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: https://ws.spraakbanken.gu.se/ws/mink
+  - url: https://spraakbanken2.it.gu.se/ws/mink
     description: Test server
 
 securitySchemes:
