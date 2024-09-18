@@ -11,20 +11,25 @@ info:
     \ file</a>\n4. <a href=\"#operation/runSparv\">Run Sparv</a>\n5. <a href=\"#operation/resourceinfo\"\
     >Check the status</a>\n6. <a href=\"#operation/downloadexports\">Download export\
     \ files</a>\n7. <a href=\"#operation/installinKorp\">Install the corpus in Korp</a>\
-    \ / <a href=\"#operation/installinStrix\">Strix</a>\n\n# Parameters\nParameters\
-    \ such as `corpus_id` can usually be provided as a query parameter or as form\
-    \ data.\nThe following two examples will thus result in the same response:\n\n\
-    `curl -X GET '{{host}}/list-sources?corpus_id=some_corpus_name' -H 'Authorization:\
-    \ Bearer YOUR_JWT`\n\n`curl -X GET -F \"corpus_id=some_corpus_name\" '{{host}}/list-sources'\
-    \ -H 'Authorization: Bearer YOUR_JWT`\n\n# Responses\n- Most responses will be\
-    \ in json format.\n- Json responses contain a `status` field which will have the\
-    \ value `success` if the response code is 200 and\n  `error` otherwise. Thus this\
-    \ `status` merely reports whether the call was processed correctly.\n- All json\
-    \ responses also contain a `return_code` field with a unique code that can be\
-    \ used for mapping to\n  human-friendly error messages.\n- Most responses contain\
-    \ a `message` field with information about what was done during the call or where\
-    \ things went\n  wrong.\n- Each call may have an arbitrary amount of additional\
-    \ fields containing more information or data."
+    \ / <a href=\"#operation/installinStrix\">Strix</a>\n\n# Authentication\nNote\
+    \ that you must authenticate each HTTP request with a JSON Web Token (JWT, read\
+    \ more at https://jwt.io/):\n\n1. In the browser, log in at https://spraakbanken.gu.se/mink\n\
+    2. Open https://sp.spraakbanken.gu.se/auth/jwt to download the token in plain\
+    \ text\n3. Use the token in the request header as: `Authorization: Bearer <token>`\n\
+    4. The token is valid for a few hours. When it expires, repeat these steps.\n\n\
+    # Parameters\nParameters such as `corpus_id` can usually be provided as a query\
+    \ parameter or as form data.\nThe following two examples will thus result in the\
+    \ same response:\n\n`curl -X GET '{{host}}/list-sources?corpus_id=some_corpus_name'\
+    \ -H 'Authorization: Bearer YOUR_JWT`\n\n`curl -X GET -F \"corpus_id=some_corpus_name\"\
+    \ '{{host}}/list-sources' -H 'Authorization: Bearer YOUR_JWT`\n\n# Responses\n\
+    - Most responses will be in json format.\n- Json responses contain a `status`\
+    \ field which will have the value `success` if the response code is 200 and\n\
+    \  `error` otherwise. Thus this `status` merely reports whether the call was processed\
+    \ correctly.\n- All json responses also contain a `return_code` field with a unique\
+    \ code that can be used for mapping to\n  human-friendly error messages.\n- Most\
+    \ responses contain a `message` field with information about what was done during\
+    \ the call or where things went\n  wrong.\n- Each call may have an arbitrary amount\
+    \ of additional fields containing more information or data."
   x-logo:
     url: https://raw.githubusercontent.com/spraakbanken/mink-backend/main/mink/static/mink.svg
   contact:
@@ -2201,24 +2206,14 @@ paths:
       tags:
       - Process Corpus
       summary: install in Korp
-      description: 'Adds an installation job to the queue to tries to install the
-        corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`
-        parameter to `true` (the original order will be kept by default.
-
-
-        There can only be one active job (annotation or installation) for each corpus
-        at a time. A job must finish or be aborted before a new one can be started.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-korp''
-        -H ''Authorization: Bearer YOUR_JWT''
-
-        ```'
+      description: "Adds an installation job to the queue to tries to install the\
+        \ corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`\
+        \ parameter to `true` (the original order will be kept by default.\n\nThere\
+        \ can only be one active job (annotation or installation) for each corpus\
+        \ at a time. A job must finish or be aborted before a new one can be started.\n\
+        \n### Example\n\n``` .bash\ncurl -X PUT -F \"corpus_id=some_corpus_name\"\
+        \ -F \"scrambled=true\" '{{host}}/install-korp' -H 'Authorization: Bearer\
+        \ YOUR_JWT'\n\n ```"
       operationId: installinKorp
       parameters:
       - name: corpus_id
@@ -2391,24 +2386,14 @@ paths:
       tags:
       - Process Corpus
       summary: install in Strix
-      description: 'Adds an installation job to the queue to tries to install the
-        corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`
-        parameter to `true` (the original order will be kept by default.
-
-
-        There can only be one active job (annotation or installation) for each corpus
-        at a time. A job must finish or be aborted before a new one can be started.
-
-
-        ### Example
-
-
-        ```.bash
-
-        curl -X PUT -F "corpus_id=some_corpus_name" -F "scrambled=true" ''{{host}}/install-korp''
-        -H ''Authorization: Bearer YOUR_JWT''
-
-        ```'
+      description: "Adds an installation job to the queue to tries to install the\
+        \ corpus on Korp. The corpus may be sentence scrambled by setting the `scramble`\
+        \ parameter to `true` (the original order will be kept by default.\n\nThere\
+        \ can only be one active job (annotation or installation) for each corpus\
+        \ at a time. A job must finish or be aborted before a new one can be started.\n\
+        \n### Example\n\n``` .bash\ncurl -X PUT -F \"corpus_id=some_corpus_name\"\
+        \ -F \"scrambled=true\" '{{host}}/install-strix' -H 'Authorization: Bearer\
+        \ YOUR_JWT'\n\n ```"
       operationId: installinStrix
       parameters:
       - name: corpus_id

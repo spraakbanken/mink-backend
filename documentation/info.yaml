@@ -27,7 +27,7 @@ info:
 
     1. In the browser, log in at https://spraakbanken.gu.se/mink
     2. Open https://sp.spraakbanken.gu.se/auth/jwt to download the token in plain text
-    3. Use the token in the request header as: Authorization: Bearer <token>
+    3. Use the token in the request header as: `Authorization: Bearer <token>`
     4. The token is valid for a few hours. When it expires, repeat these steps.
 
     # Parameters
