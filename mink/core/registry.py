@@ -5,7 +5,7 @@ The registry and job queue live in the cache and also on the local file system (
 
 import json
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from flask import current_app as app
 from flask import g
@@ -42,16 +42,15 @@ def initialize():
                     all_resources.append(infoobj.id)
                     # app.logger.debug("Job in cache: '%s'",g.cache.get_job(job.id))
                 # Queue job unless it is done, aborted or erroneous
-                if infoobj.id not in queue:
-                    if not (infoobj.job.status.is_done(infoobj.job.current_process) or infoobj.job.status.is_inactive()):
-                        queue.append(infoobj.job.id)
+                if infoobj.id not in queue and (
+                    not (infoobj.job.status.is_done(infoobj.job.current_process) or infoobj.job.status.is_inactive())
+                ):
+                    queue.append(infoobj.job.id)
         g.cache.set_job_queue(queue)
         g.cache.set_all_resources(all_resources)
         app.logger.debug("Queue in cache: %s", g.cache.get_job_queue())
         # app.logger.debug("All jobs in cache: %s",g.cache.get_all_resources())
-        app.logger.debug(
-            "Total resources in cache: %d", len(g.cache.get_all_resources())
-        )
+        app.logger.debug("Total resources in cache: %d", len(g.cache.get_all_resources()))
 
 
 def get_all_resources() -> str:
@@ -63,11 +62,10 @@ def get(resource_id) -> info.Info:
     """Get an existing info instance from the cache."""
     if g.cache.get_job(resource_id) is not None:
         return info.load_from_str(g.cache.get_job(resource_id))
-    else:
-        raise exceptions.JobNotFound(f"No resource found with ID '{resource_id}'!")
+    raise exceptions.JobNotFoundError(f"No resource found with ID '{resource_id}'!")
 
 
-def filter_resources(resource_ids: list = None) -> List[info.Info]:
+def filter_resources(resource_ids: Optional[list] = None) -> List[info.Info]:
     """Get info for all resources listed in 'resource_ids'."""
     filtered_resources = []
     all_resources = g.cache.get_all_resources()

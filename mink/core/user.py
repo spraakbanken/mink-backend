@@ -7,11 +7,12 @@ class User():
     """A user item holding information about some user data and settings."""
 
     def __init__(self,
-                 id: str,
+                 id: str,  # noqa: A002
                  name: str,
                  email: str,
                  ui_language: Optional[str] = None
                 ):
+        """Init user by setting class variables."""
         self.id = id
         self.name = name
         self.email = email

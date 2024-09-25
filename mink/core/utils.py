@@ -8,9 +8,8 @@ import zipfile
 from pathlib import Path
 
 import yaml
-from flask import Response
+from flask import Response, g, request
 from flask import current_app as app
-from flask import g, request
 
 from mink.sparv import storage
 
@@ -19,36 +18,41 @@ def response(msg, err=False, **kwargs):
     """Create json error response."""
     # Log error
     if err:
-        args = "\n".join(f"{k}: {v}" for k, v in kwargs.items() if v != "")
+        args = "\n".join(f"{k}: {v}" for k, v in kwargs.items() if v != "")  # noqa: PLC1901
         args = "\n" + args if args else ""
         app.logger.error("%s%s", msg, args)
 
     res = {"status": "error" if err else "success", "message": msg}
-    for key, value in kwargs.items():
-        if value != "":
-            res[key] = value
+    res.update({k: v for k, v in kwargs.items() if v != ""})  # noqa: PLC1901
+
     return Response(json.dumps(res, ensure_ascii=False), mimetype="application/json")
 
 
 def gatekeeper(function):
     """Make sure that only the protected user can access the decorated endpoint."""
+
     @functools.wraps(function)  # Copy original function's information, needed by Flask
     def decorator(*args, **kwargs):
         secret_key = request.args.get("secret_key") or request.form.get("secret_key")
         if secret_key != app.config.get("MINK_SECRET_KEY"):
-            return response("Failed to confirm secret key for protected route", err=True,
-                            return_code="failed_confirming_secret_key"), 401
+            return response(
+                "Failed to confirm secret key for protected route", err=True, return_code="failed_confirming_secret_key"
+            ), 401
         return function(*args, **kwargs)
+
     return decorator
 
 
-def ssh_run(command, input=None):
+def ssh_run(command, ssh_input=None):
     """Execute 'command' on server and return process."""
     user = app.config.get("SPARV_USER")
     host = app.config.get("SPARV_HOST")
-    p = subprocess.run(["ssh", "-i", app.config.get("SSH_KEY"), f"{user}@{host}", command],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, input=input)
-    return p
+    return subprocess.run(
+        ["ssh", "-i", app.config.get("SSH_KEY"), f"{user}@{host}", command],
+        capture_output=True,
+        input=ssh_input,
+        check=False,
+    )
 
 
 def uncompress_gzip(inpath, outpath=None):
@@ -57,7 +61,7 @@ def uncompress_gzip(inpath, outpath=None):
         data = z.read()
         if outpath is None:
             outpath = inpath
-        with open(outpath, "wb") as f:
+        with Path(outpath).open("wb") as f:
             f.write(data)
 
 
@@ -81,10 +85,7 @@ def create_zip(inpath, outpath, zip_rootdir=None):
 def check_file_ext(filename, valid_extensions=None) -> bool:
     """Check if file extension is valid."""
     filename = Path(filename)
-    if valid_extensions:
-        if not any(i.lower() == filename.suffix.lower() for i in valid_extensions):
-            return False
-    return True
+    return not (valid_extensions and not any(i.lower() == filename.suffix.lower() for i in valid_extensions))
 
 
 def check_file_compatible(filename, source_dir):
@@ -109,11 +110,12 @@ def check_size_ok(source_dir, incoming_size):
 
 def validate_xml(file_contents):
     """Check if inputfile is valid XML."""
-    import xml.etree.ElementTree as etree
+    from xml.etree import ElementTree  # noqa: PLC0415
+
     try:
-        etree.fromstring(file_contents)
+        ElementTree.fromstring(file_contents)
         return True
-    except etree.ParseError:
+    except ElementTree.ParseError:
         return False
 
 
@@ -131,9 +133,13 @@ def config_compatible(config, source_file):
     expected_importer = importer_dict.get(file_ext)
     if current_importer == expected_importer:
         return True, None
-    return False, response("The importer in your config file is not compatible with your source files",
-                            err=True, current_importer=current_importer, expected_importer=expected_importer,
-                            return_code="incompatible_config_importer")
+    return False, response(
+        "The importer in your config file is not compatible with your source files",
+        err=True,
+        current_importer=current_importer,
+        expected_importer=expected_importer,
+        return_code="incompatible_config_importer",
+    )
 
 
 def standardize_config(config, corpus_id):
@@ -150,7 +156,7 @@ def standardize_config(config, corpus_id):
     name = config_yaml.get("metadata", {}).get("name", {})
 
     # Remove the compression setting in order to use the standard one given by the default config
-    if config_yaml.get("sparv", {}).get("compression") != None:
+    if config_yaml.get("sparv", {}).get("compression") is not None:
         config_yaml["sparv"].pop("compression")
         # Remove entire Sparv section if empty
         if not config_yaml.get("sparv", {}):
@@ -168,12 +174,12 @@ def standardize_config(config, corpus_id):
     config_yaml["korp"] = {
         "protected": True,
         "context": ["1 sentence", "5 sentence"],
-        "within": ["sentence", "5 sentence"]
+        "within": ["sentence", "5 sentence"],
     }
     # Make Strix corpora appear in correct mode
     config_yaml["sbx_strix"] = {"modes": [{"name": "mink"}]}
     # Add '<text>:misc.id as _id' to annotations for Strix' sake
-    if "export" in config_yaml and "annotations" in config_yaml["export"]:
+    if "export" in config_yaml and "annotations" in config_yaml["export"]:  # noqa: SIM102
         if "<text>:misc.id as _id" not in config_yaml["export"]["annotations"]:
             config_yaml["export"]["annotations"].append("<text>:misc.id as _id")
 
@@ -193,6 +199,7 @@ def standardize_metadata_yaml(yamlf):
 ################################################################################
 # Get local paths (mostly used for download)
 ################################################################################
+
 
 def get_resources_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""

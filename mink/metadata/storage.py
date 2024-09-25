@@ -1,16 +1,12 @@
-"""Functions related to storage on storage server."""
+"""Functions related to meta data storage on storage server."""
 
-import mimetypes
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Optional, Union
 
-from dateutil.parser import parse
 from flask import current_app as app
 
 from mink.core import utils
-
 
 # def list_contents(directory: Union[Path, str], exclude_dirs: bool = True,
 #                   blacklist: Optional[list] = None):
@@ -59,12 +55,10 @@ def download_file(remote_file_path: str, local_file: Path, resource_id: str, ign
     if ignore_missing:
         cmd.append("--ignore-missing-args")
     cmd += [f"{user}@{host}:{remote_file_path}", f"{local_file}"]
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.run(cmd, capture_output=True, check=False)
     if p.stderr:
         raise Exception(f"Failed to download '{remote_file_path}': {p.stderr.decode()}")
-    if ignore_missing and not local_file.is_file():
-        return False
-    return True
+    return not (ignore_missing and not local_file.is_file())
 
 
 # def get_file_contents(filepath):
@@ -114,12 +108,13 @@ def _get_login():
 
 def _is_valid_path(path, resource_id: str):
     """Check that path points to a certain resource dir (or a descendant)."""
-    return get_resource_dir(resource_id).resolve() in list(Path(path).resolve().parents) + [Path(path).resolve()]
+    return get_resource_dir(resource_id).resolve() in {*list(Path(path).resolve().parents), Path(path).resolve()}
 
 
 ################################################################################
 # Get paths on storage server
 ################################################################################
+
 
 def get_resources_dir() -> Path:
     """Get dir for metadata resources."""

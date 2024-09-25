@@ -23,7 +23,7 @@ def advance_queue(config):
         with request.urlopen(req, timeout=60) as f:
             logging.debug(f.read().decode("UTF-8"))
     except error.HTTPError as e:
-        logging.error(f"Error advancing queue! {e}")
+        logging.error("Error advancing queue! %s", e)
 
 
 def ping_healthchecks(config):
@@ -35,26 +35,26 @@ def ping_healthchecks(config):
             with request.urlopen(url, timeout=60) as f:
                 logging.debug(f.read().decode("UTF-8"))
         except error.HTTPError as e:
-            logging.error(f"Error pinging healthchecks! {e}")
+            logging.error("Error pinging healthchecks! %s", e)
     else:
         logging.debug("No health check URL found")
 
 
 def import_config():
     """Import default and instance config."""
-    import config
+    import config  # noqa: PLC0415
     my_config = {item: getattr(config, item) for item in dir(config) if item.isupper()}
 
     instance_config_path = Path("instance") / "config.py"
     if instance_config_path.is_file():
-        from instance import config as instance_config
-        Instance_Config = {item: getattr(instance_config, item) for item in dir(instance_config) if item.isupper()}
-        my_config.update(Instance_Config)
+        from instance import config as instance_config  # noqa: PLC0415
+        instanceconfig = {item: getattr(instance_config, item) for item in dir(instance_config) if item.isupper()}
+        my_config.update(instanceconfig)
 
     return my_config
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Load config
     config = import_config()
 

@@ -3,7 +3,6 @@
 __version__ = "1.1.0"
 
 import logging
-from os import access
 import shutil
 import sys
 import time
@@ -12,9 +11,14 @@ from pathlib import Path
 from flask import Flask, g, request
 from flask_cors import CORS
 
-from mink.core import registry, utils, extensions
+from mink.core import extensions, registry, utils
 from mink.memcached.cache import Cache
 from mink.sb_auth.login import read_jwt_key
+
+from .core import routes as general_routes
+from .metadata import metadata_routes
+from .sb_auth import login as login_routes
+from .sparv import process_routes, storage_routes
 
 
 def create_app(debug=False):
@@ -53,16 +57,15 @@ def create_app(debug=False):
         logdir.mkdir(exist_ok=True)
         # Create log file if it does not exist
         if not logfile.is_file():
-            with open(logfile, "w") as f:
-                now = time.strftime("%Y-%m-%d %H:%M:%S")
-                f.write(f"{now} CREATED DEBUG FILE\n\n")
+            now = time.strftime("%Y-%m-%d %H:%M:%S")
+            logfile.write_text(f"{now} CREATED DEBUG FILE\n\n")
 
         log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper())
         logging.basicConfig(filename=logfile, level=log_level, format=logfmt, datefmt=datefmt)
 
     if tracking_matomo_url := app.config.get("TRACKING_MATOMO_URL"):
         app.logger.debug("Enabling tracking to Matomo")
-        matomo_options = dict()
+        matomo_options = {}
         if tracking_matomo_auth_token := app.config.get("TRACKING_MATOMO_AUTH_TOKEN"):
             matomo_options["token_auth"] = tracking_matomo_auth_token
         extensions.matomo.activate(
@@ -96,10 +99,10 @@ def create_app(debug=False):
             log_msg = [f"Request: {request.method} {request.url}"]
             if request.values:
                 args = ", ".join(f"{k}: {v}" for k, v in request.values.items())
-                log_msg.append(f"{' '*29}Args: {args}")
+                log_msg.append(f"{' ' * 29}Args: {args}")
             if request.files:
                 files = ", ".join(str(i) for i in request.files.to_dict(flat=False).values())
-                log_msg.append(f"{' '*29}Files: {files}")
+                log_msg.append(f"{' ' * 29}Files: {files}")
             app.logger.debug("\n".join(log_msg))
 
     @app.after_request
@@ -111,7 +114,7 @@ def create_app(debug=False):
         return response
 
     @app.errorhandler(413)
-    def request_entity_too_large(error):
+    def request_entity_too_large(_error):
         """Handle large requests."""
         max_size = app.config.get("MAX_CONTENT_LENGTH", 0)
         h_max_size = str(round(app.config.get("MAX_CONTENT_LENGTH", 0) / 1024 / 1024, 3))
@@ -123,20 +126,10 @@ def create_app(debug=False):
         ), 413
 
     # Register routes from blueprints
-    from .core import routes as general_routes
-
     app.register_blueprint(general_routes.bp)
-    from .sparv import process_routes
-
     app.register_blueprint(process_routes.bp)
-    from .sparv import storage_routes
-
     app.register_blueprint(storage_routes.bp)
-    from .sb_auth import login as login_routes
-
     app.register_blueprint(login_routes.bp)
-    from .metadata import metadata_routes
-
     app.register_blueprint(metadata_routes.bp)
 
     return app

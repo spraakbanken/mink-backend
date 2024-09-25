@@ -2,9 +2,8 @@
 
 import requests
 import shortuuid
-from flask import Blueprint
+from flask import Blueprint, request, send_file
 from flask import current_app as app
-from flask import request, send_file
 
 from mink.core import exceptions, registry, utils
 from mink.core.info import Info
@@ -26,8 +25,9 @@ def create_metadata(user: dict, auth_token: str):
     """Create a new metadata resource."""
     public_id = request.args.get("public_id") or request.form.get("public_id") or ""
     if not public_id:
-        return utils.response("Failed to create resource: no public ID provided", err=True,
-                              return_code="failed_creating_resource"), 500
+        return utils.response(
+            "Failed to create resource: no public ID provided", err=True, return_code="failed_creating_resource"
+        ), 500
 
     # TODO: better solution for getting user's organization prefix!
     org_prefixes = app.config.get("METADATA_ORG_PREFIXES")
@@ -41,8 +41,7 @@ def create_metadata(user: dict, auth_token: str):
     org_prefix = org_prefix.lower()
     if not public_id.startswith(f"{org_prefix}-"):
         return utils.response(
-            "Failed to create resource: chosen public ID does not contain the correct "
-            "organization prefix",
+            "Failed to create resource: chosen public ID does not contain the correct organization prefix",
             err=True,
             return_code="failed_creating_resource",
         ), 500
@@ -52,11 +51,16 @@ def create_metadata(user: dict, auth_token: str):
     try:
         id_available = requests.get(check_id_url).json().get("available", False)
     except Exception as e:
-        return utils.response("Failed to create resource: failed to check ID availability", err=True, info=str(e),
-                              return_code="failed_creating_resource"), 500
+        return utils.response(
+            "Failed to create resource: failed to check ID availability",
+            err=True,
+            info=str(e),
+            return_code="failed_creating_resource",
+        ), 500
     if not id_available or public_id in registry.get_all_resources():
-        return utils.response("Failed to create resource: ID not available", err=True,
-                              return_code="failed_creating_resource"), 500
+        return utils.response(
+            "Failed to create resource: ID not available", err=True, return_code="failed_creating_resource"
+        ), 500
 
     # Create internal resource ID
     resource_id = None
@@ -64,9 +68,8 @@ def create_metadata(user: dict, auth_token: str):
     tries = 1
     while resource_id is None:
         # Give up after 3 tries
-        if tries > 3:
-            return utils.response("Failed to create resource", err=True,
-                                  return_code="failed_creating_resource"), 500
+        if tries > 3:  # noqa: PLR2004
+            return utils.response("Failed to create resource", err=True, return_code="failed_creating_resource"), 500
         tries += 1
         resource_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
         if resource_id in registry.get_all_resources():
@@ -74,27 +77,30 @@ def create_metadata(user: dict, auth_token: str):
         else:
             try:
                 login.create_resource(auth_token, resource_id, resource_type="metadata")
-            except exceptions.CorpusExists:
+            except exceptions.CorpusExistsError:
                 # Resource ID is in use in authentication system, try to create another one
                 resource_id = None
             except Exception as e:
-                return utils.response("Failed to create resource", err=True, info=str(e),
-                                    return_code="failed_creating_resource"), 500
+                return utils.response(
+                    "Failed to create resource", err=True, info=str(e), return_code="failed_creating_resource"
+                ), 500
 
     try:
         res = Resource(resource_id, type=ResourceType.metadata, public_id=public_id)
         info_obj = Info(resource_id, resource=res, owner=user)
         info_obj.create()
     except Exception as e:
-        return utils.response("Failed to create resource", err=True, info=str(e),
-                            return_code="failed_creating_resource"), 500
+        return utils.response(
+            "Failed to create resource", err=True, info=str(e), return_code="failed_creating_resource"
+        ), 500
 
     # Create metadata resource dir with sources subdir
     try:
         resource_dir = str(storage.get_resource_dir(resource_id, mkdir=True))
         storage.get_source_dir(resource_id, mkdir=True)
-        return utils.response(f"Resource '{resource_id}' created successfully", resource_id=resource_id,
-                              return_code="created_resource"), 201
+        return utils.response(
+            f"Resource '{resource_id}' created successfully", resource_id=resource_id, return_code="created_resource"
+        ), 201
     except Exception as e:
         try:
             # Try to remove partially uploaded resource data
@@ -108,15 +114,11 @@ def create_metadata(user: dict, auth_token: str):
         try:
             login.remove_resource(resource_id)
         except Exception as err:
-            app.logger.error(
-                "Failed to remove corpus '%s' from auth system. %s", resource_id, err
-            )
+            app.logger.error("Failed to remove corpus '%s' from auth system. %s", resource_id, err)
         try:
             info_obj.remove()
         except Exception as err:
-            app.logger.error(
-                "Failed to remove object '%s' from registry. %s", resource_id, err
-            )
+            app.logger.error("Failed to remove object '%s' from registry. %s", resource_id, err)
         return utils.response(
             "Failed to create resource dir",
             err=True,
@@ -137,21 +139,29 @@ def remove_metadata(resource_id: str):
         resdir = str(storage.get_resource_dir(resource_id))
         storage.remove_dir(resdir, resource_id)
     except Exception as e:
-        return utils.response(f"Failed to remove resource '{resource_id}' from storage", err=True, info=str(e),
-                              return_code="failed_removing_storage"), 500
+        return utils.response(
+            f"Failed to remove resource '{resource_id}' from storage",
+            err=True,
+            info=str(e),
+            return_code="failed_removing_storage",
+        ), 500
 
     try:
         # Remove from auth system
         login.remove_resource(resource_id)
     except Exception as e:
-        return utils.response(f"Failed to remove corpus '{resource_id}' from authentication system", err=True,
-                              info=str(e), return_code="failed_removing_auth"), 500
+        return utils.response(
+            f"Failed to remove corpus '{resource_id}' from authentication system",
+            err=True,
+            info=str(e),
+            return_code="failed_removing_auth",
+        ), 500
 
     try:
         # Remove from Mink registry
         info_obj.remove()
     except Exception as err:
-        app.logger.error(f"Failed to remove job '{resource_id}'. {err}")
+        app.logger.error("Failed to remove job '%s'. %s", resource_id, err)
     return utils.response(f"Corpus '{resource_id}' successfully removed", return_code="removed_corpus")
 
 
@@ -164,6 +174,7 @@ def remove_metadata(resource_id: str):
 @login.login()
 def upload_metadata_yaml(resource_id: str):
     """Upload a metadata yaml as file or plain text."""
+
     def set_resource_name(resource_name):
         res = registry.get(resource_id).resource
         res.set_resource_name = resource_name
@@ -172,14 +183,17 @@ def upload_metadata_yaml(resource_id: str):
     metadata_txt = request.args.get("yaml") or request.form.get("yaml") or ""
 
     if attached_files and metadata_txt:
-        return utils.response("Found both a file and metadata in plain text but can only process one of these",
-                              err=True, return_code="too_many_params_upload_metadata"), 400
+        return utils.response(
+            "Found both a file and metadata in plain text but can only process one of these",
+            err=True,
+            return_code="too_many_params_upload_metadata",
+        ), 400
 
     # Process uploaded metadata file
     if attached_files:
         # Check if metadata file is YAML
         yaml_file = attached_files[0]
-        if yaml_file.mimetype not in ("application/x-yaml", "text/yaml"):
+        if yaml_file.mimetype not in {"application/x-yaml", "text/yaml"}:
             return utils.response("Metadata file needs to be YAML", err=True, return_code="wrong_metadata_format"), 400
 
         yaml_contents = yaml_file.read()
@@ -188,11 +202,16 @@ def upload_metadata_yaml(resource_id: str):
             new_yaml, resource_name = utils.standardize_metadata_yaml(yaml_contents)
             set_resource_name(resource_name)
             storage.write_file_contents(str(storage.get_yaml_file(resource_id)), new_yaml.encode("UTF-8"), resource_id)
-            return utils.response(f"Metadata file successfully uploaded for '{resource_id}'",
-                                  return_code="uploaded_yaml"), 201
+            return utils.response(
+                f"Metadata file successfully uploaded for '{resource_id}'", return_code="uploaded_yaml"
+            ), 201
         except Exception as e:
-            return utils.response(f"Failed to upload metadata file for '{resource_id}'", err=True, info=str(e),
-                                  return_code="failed_uploading_metadata"), 500
+            return utils.response(
+                f"Failed to upload metadata file for '{resource_id}'",
+                err=True,
+                info=str(e),
+                return_code="failed_uploading_metadata",
+            ), 500
 
     # Process metadata in plain text
     elif metadata_txt:
@@ -200,14 +219,21 @@ def upload_metadata_yaml(resource_id: str):
             new_yaml, resource_name = utils.standardize_metadata_yaml(metadata_txt)
             set_resource_name(resource_name)
             storage.write_file_contents(str(storage.get_yaml_file(resource_id)), new_yaml.encode("UTF-8"), resource_id)
-            return utils.response(f"Metadata file successfully uploaded for '{resource_id}'",
-                                  return_code="uploaded_metadata"), 201
+            return utils.response(
+                f"Metadata file successfully uploaded for '{resource_id}'", return_code="uploaded_metadata"
+            ), 201
         except Exception as e:
-            return utils.response(f"Failed to upload metadata file for '{resource_id}'", err=True, info=str(e),
-                                  return_code="failed_uploading_metadata"), 500
+            return utils.response(
+                f"Failed to upload metadata file for '{resource_id}'",
+                err=True,
+                info=str(e),
+                return_code="failed_uploading_metadata",
+            ), 500
 
     else:
-        return utils.response("No metadata file provided for upload", err=True, return_code="missing_metadata_upload"), 400
+        return utils.response(
+            "No metadata file provided for upload", err=True, return_code="missing_metadata_upload"
+        ), 400
 
 
 @bp.route("/download-metadata-yaml", methods=["GET"])
@@ -223,12 +249,16 @@ def download_metadata_yaml(resource_id: str):
         # Get file from storage
         if storage.download_file(storage_yaml_file, local_yaml_file, resource_id, ignore_missing=True):
             return send_file(local_yaml_file, mimetype="text/yaml")
-        else:
-            return utils.response(f"No metadata file found for corpus '{resource_id}'", err=True,
-                                  return_code="metadata_not_found"), 404
+        return utils.response(
+            f"No metadata file found for corpus '{resource_id}'", err=True, return_code="metadata_not_found"
+        ), 404
     except Exception as e:
-        return utils.response(f"Failed to download metadata file for corpus '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_downloading_metadata"), 500
+        return utils.response(
+            f"Failed to download metadata file for corpus '{resource_id}'",
+            err=True,
+            info=str(e),
+            return_code="failed_downloading_metadata",
+        ), 500
 
 
 # # ------------------------------------------------------------------------------

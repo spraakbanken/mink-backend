@@ -22,12 +22,13 @@ class Resource:
 
     def __init__(
         self,
-        id: str,
+        id: str,  # noqa: A002
         public_id: Optional[str] = "",
         name: Optional[dict] = None,
-        type: ResourceType = ResourceType.corpus,
+        type: ResourceType = ResourceType.corpus,  # noqa: A002
         source_files: Optional[list] = None,
     ):
+        """Init resource by setting class variables."""
         self.id = id
         self.public_id = public_id or self.id
         self.name = name or {"swe": "", "eng": ""}
@@ -57,6 +58,7 @@ class Resource:
         self.parent.update()
 
     def set_source_files(self):
+        """Set source files and save."""
         source_dir = str(storage.get_source_dir(self.id))
         self.source_files = storage.list_contents(source_dir)
         self.parent.update()

@@ -20,6 +20,7 @@ class Status(Enum):
 
 
 class ProcessName(Enum):
+    """Enum class for process names."""
     sync2sparv = "sync2sparv"
     sync2storage = "sync2storage"
     sparv = "sparv"
@@ -49,12 +50,12 @@ class JobStatuses(dict):
     def is_active(self, process_name=None):
         """Check if status is active."""
         if process_name:
-            return self.get(process_name) in [Status.waiting, Status.running]
-        return any(status in [Status.waiting, Status.running] for status in self.values())
+            return self.get(process_name) in {Status.waiting, Status.running}
+        return any(status in {Status.waiting, Status.running} for status in self.values())
 
     def is_inactive(self):
         """Check if status is inactive."""
-        return all(status in [Status.none, Status.done, Status.error, Status.aborted]
+        return all(status in {Status.none, Status.done, Status.error, Status.aborted}
                    for status in self.values())
 
     def is_syncing(self):
@@ -102,6 +103,6 @@ class JobStatuses(dict):
         """Check if process is expected to have process output."""
         if process_name is None:
             return False
-        if process_name not in [ProcessName.sync2sparv, ProcessName.sync2storage]:
-            return self.get(process_name) in [Status.running, Status.done, Status.error]
+        if process_name not in {ProcessName.sync2sparv, ProcessName.sync2storage}:
+            return self.get(process_name) in {Status.running, Status.done, Status.error}
         return False

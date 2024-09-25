@@ -16,25 +16,27 @@ from mink.sparv import storage
 from mink.sparv import utils as sparv_utils
 
 
-class Job():
+class Job:
     """A job item holding information about a Sparv job."""
 
-    def __init__(self,
-                 id,
-                 status=None,
-                 current_process=None,
-                 pid=None,
-                 started=None,
-                 done=None,
-                 sparv_exports=None,
-                 current_files=None,
-                 source_files=None,
-                 install_scrambled=None,
-                 installed_korp=False,
-                 installed_strix=False,
-                 latest_seconds_taken=0,
-                 **_obsolete  # needed to catch invalid arguments from outdated job items (avoids crashes)
-                ):
+    def __init__(
+        self,
+        id,  # noqa: A002
+        status=None,
+        current_process=None,
+        pid=None,
+        started=None,
+        done=None,
+        sparv_exports=None,
+        current_files=None,
+        source_files=None,
+        install_scrambled=None,
+        installed_korp=False,
+        installed_strix=False,
+        latest_seconds_taken=0,
+        **_obsolete,  # needed to catch invalid arguments from outdated job items (avoids crashes)  # noqa: ANN003
+    ):
+        """Init job by setting class variables."""
         self.id = id
         self.status = JobStatuses(status)
         self.current_process = current_process
@@ -63,7 +65,7 @@ class Job():
     def serialize(self):
         """Convert class data into dict."""
         warnings, errors, misc_output = self.get_output()
-        priority = registry.get_priority(self) if not registry.get_priority(self) == -1 else ""
+        priority = registry.get_priority(self) if registry.get_priority(self) != -1 else ""
         return {
             "status": self.status,
             "current_process": self.current_process,
@@ -76,15 +78,14 @@ class Job():
             "installed_korp": self.installed_korp,
             "installed_strix": self.installed_strix,
             "latest_seconds_taken": self.latest_seconds_taken,
-
             "priority": priority,
             "warnings": warnings,
             "errors": errors,
             "sparv_output": misc_output,
             "last_run_started": self.started or "",
             "last_run_ended": self.done or "",
-            "progress": self.progress or ""
-            }
+            "progress": self.progress or "",
+        }
 
     def set_parent(self, parent):
         """Save reference to parent class."""
@@ -92,10 +93,7 @@ class Job():
 
     def set_status(self, status: Status, process: Optional[ProcessName] = None):
         """Change the status of a job."""
-        if process is None:
-            process = self.current_process
-        else:
-            process = process.name
+        process = self.current_process if process is None else process.name
         if self.status[process] != status:
             self.status[process] = status
             if self.status.is_active():
@@ -140,7 +138,7 @@ class Job():
         """Check if required corpus contents are present."""
         remote_corpus_dir = str(storage.get_corpus_dir(self.id))
         corpus_contents = storage.list_contents(remote_corpus_dir, exclude_dirs=False)
-        if not app.config.get("SPARV_CORPUS_CONFIG") in [i.get("name") for i in corpus_contents]:
+        if app.config.get("SPARV_CORPUS_CONFIG") not in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.id}'!")
         if not len([i for i in corpus_contents if i.get("path").startswith(app.config.get("SPARV_SOURCE_DIR"))]):
@@ -156,8 +154,10 @@ class Job():
         local_user_dir = utils.get_corpora_dir(mkdir=True)
 
         # Create user and corpus dir on Sparv server
-        p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
-                          f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)}")
+        p = utils.ssh_run(
+            f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
+            f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)}"
+        )
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
@@ -168,12 +168,19 @@ class Job():
             storage.download_dir(remote_corpus_dir, local_user_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to download corpus '{self.id}' from the storage server! {e}")
+            raise Exception(f"Failed to download corpus '{self.id}' from the storage server! {e}") from e
 
         # Sync corpus config to Sparv server
-        p = subprocess.run(["rsync", "-av", utils.get_config_file(self.id),
-                            f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.run(
+            [
+                "rsync",
+                "-av",
+                utils.get_config_file(self.id),
+                f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/",
+            ],
+            capture_output=True,
+            check=False,
+        )
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to copy corpus config file to Sparv server! {p.stderr.decode()}")
@@ -181,9 +188,17 @@ class Job():
         # Sync corpus files to Sparv server
         # TODO: do this async!
         local_source_dir = utils.get_source_dir(self.id)
-        p = subprocess.run(["rsync", "-av", "--delete", local_source_dir,
-                            f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.run(
+            [
+                "rsync",
+                "-av",
+                "--delete",
+                local_source_dir,
+                f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/",
+            ],
+            capture_output=True,
+            check=False,
+        )
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to copy corpus files to Sparv server! {p.stderr.decode()}")
@@ -193,14 +208,18 @@ class Job():
     def run_sparv(self):
         """Start a Sparv annotation process."""
         sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
+        sparv_command = (
+            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
+        )
         if self.current_files:
             sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.current_files)}"
         script_content = f"{sparv_env} nohup time -p {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
-                          f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
-                          f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
+        p = utils.ssh_run(
+            f"cd {shlex.quote(self.remote_corpus_dir)} && "
+            f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
+            f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}"
+        )
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -225,13 +244,19 @@ class Job():
             sparv_installs.extend(["cwb:install_corpus"])
 
         sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+        sparv_command = (
+            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+        )
 
-        script_content = f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
+        script_content = (
+            f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
+        )
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
-                          f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
-                          f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
+        p = utils.ssh_run(
+            f"cd {shlex.quote(self.remote_corpus_dir)} && "
+            f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
+            f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}"
+        )
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -252,22 +277,22 @@ class Job():
         """Uninstall corpus from Korp."""
         try:
             self.abort_sparv()
-        except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
+        except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
             pass
         except Exception as e:
             raise e
 
         sparv_uninstalls = app.config.get("SPARV_DEFAULT_KORP_UNINSTALLS")
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
+        sparv_command = (
+            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
+        )
         sparv_env = app.config.get("SPARV_ENVIRON")
 
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            app.logger.error(
-                "Failed to uninstall corpus %s from Korp: %s", self.id, stderr
-            )
+            app.logger.error("Failed to uninstall corpus %s from Korp: %s", self.id, stderr)
             raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stderr}")
 
         self.installed_korp = False
@@ -276,13 +301,19 @@ class Job():
         """Install a corpus in Strix."""
         sparv_installs = app.config.get("SPARV_DEFAULT_STRIX_INSTALLS")
         sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+        sparv_command = (
+            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+        )
 
-        script_content = f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
+        script_content = (
+            f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
+        )
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
-                          f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
-                          f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}")
+        p = utils.ssh_run(
+            f"cd {shlex.quote(self.remote_corpus_dir)} && "
+            f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
+            f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}"
+        )
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -303,25 +334,23 @@ class Job():
         """Uninstall corpus from Strix."""
         try:
             self.abort_sparv()
-        except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
+        except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
             pass
         except Exception as e:
             raise e
 
         sparv_uninstalls = app.config.get("SPARV_DEFAULT_STRIX_UNINSTALLS")
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
+        sparv_command = (
+            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
+        )
         sparv_env = app.config.get("SPARV_ENVIRON")
 
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            app.logger.error(
-                "Failed to uninstall corpus %s from Strix: %s", self.id, stderr
-            )
-            raise exceptions.JobError(
-                f"Failed to uninstall corpus from Strix: {stderr}"
-            )
+            app.logger.error("Failed to uninstall corpus %s from Strix: %s", self.id, stderr)
+            raise exceptions.JobError(f"Failed to uninstall corpus from Strix: {stderr}")
 
         self.installed_strix = False
 
@@ -332,7 +361,7 @@ class Job():
             self.set_status(Status.aborted)
             return
         if not self.status.is_running():
-            raise exceptions.ProcessNotRunning("Failed to abort job because Sparv was not running!")
+            raise exceptions.ProcessNotRunningError("Failed to abort job because Sparv was not running!")
         if not self.pid:
             self.set_status(Status.aborted)
             return
@@ -345,7 +374,7 @@ class Job():
         else:
             stderr = p.stderr.decode()
             # Ignore 'no such process' error
-            if stderr.endswith("Processen finns inte\n") or stderr.endswith("No such process\n"):
+            if stderr.endswith(("Processen finns inte\n", "No such process\n")):
                 self.set_pid(None)
                 self.set_status(Status.aborted)
             else:
@@ -364,7 +393,7 @@ class Job():
             self.set_pid(None)
 
         _warnings, errors, misc = self.get_output()
-        if (self.progress_output == 100):
+        if self.progress_output == 100:  # noqa: PLR2004
             if self.status.is_running(self.current_process):
                 self.set_status(Status.done)
         else:
@@ -408,12 +437,13 @@ class Job():
                         errors.append("ERROR " + msg)
                     else:
                         misc.append(msg)
-                except json.JSONDecodeError:
+                except json.JSONDecodeError:  # noqa: PERF203
                     # Catch "real" time output
                     if re.match(r"real \d.+", line):
                         real_seconds = float(line[5:].strip())
-                        self.sparv_done = (dateutil.parser.isoparse(self.started) +
-                                        datetime.timedelta(seconds=real_seconds)).isoformat()
+                        self.sparv_done = (
+                            dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=real_seconds)
+                        ).isoformat()
                     # Ignore "user" and "sys" time output
                     elif re.match(r"user|sys \d.+", line):
                         pass
@@ -429,11 +459,16 @@ class Job():
     @property
     def seconds_taken(self):
         """Calculate the time it took to process the corpus until it finished, aborted or until now.
+
         When a Sparv job is finished it reads the time Sparv took and compensates for extra time the backend
         may take.
         """
-        if self.started == None or self.status.is_waiting(self.current_process) or \
-            self.status.is_none(self.current_process) or self.status.is_aborted(self.current_process):
+        if (
+            self.started is None
+            or self.status.is_waiting(self.current_process)
+            or self.status.is_none(self.current_process)
+            or self.status.is_aborted(self.current_process)
+        ):
             seconds_taken = 0
         elif self.status.is_running(self.current_process):
             now = datetime.datetime.now(datetime.timezone.utc)
@@ -445,8 +480,13 @@ class Job():
             self.done = (dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=seconds_taken)).isoformat()
         else:
             # TODO: This should never happen!
-            app.logger.error(f"Something went wrong while calculating time taken. Job status: {self.status}; "
-                             f"Current process: {self.current_process}; Job started: {self.started}")
+            app.logger.error(
+                "Something went wrong while calculating time taken. Job status: %s; "
+                "Current process: %s; Job started: %s",
+                self.status,
+                self.current_process,
+                self.started,
+            )
             seconds_taken = 0
 
         self.set_latest_seconds_taken(seconds_taken)
@@ -456,14 +496,12 @@ class Job():
     def progress(self):
         """Get the Sparv progesss but don't report 100% before the job status has been changed to done."""
         if self.status.has_process_output(self.current_process):
-            if self.progress_output == 100 and not self.status.is_done(self.current_process):
+            if self.progress_output == 100 and not self.status.is_done(self.current_process):  # noqa: PLR2004
                 return "99%"
-            else:
-                return f"{self.progress_output}%"
-        elif self.status.is_active(self.current_process):
+            return f"{self.progress_output}%"
+        if self.status.is_active(self.current_process):
             return "0%"
-        else:
-            return None
+        return None
 
     def sync_results(self):
         """Sync exports from Sparv server to the storage server."""
@@ -473,17 +511,31 @@ class Job():
 
         # Get exports from Sparv
         remote_export_dir = sparv_utils.get_export_dir(self.id)
-        p = subprocess.run(["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}",
-                            local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.run(
+            ["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}", local_corpus_dir],
+            capture_output=True,
+            check=False,
+        )
         if p.stderr:
             self.set_status(Status.error)
             return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 500
 
         # Get plain text sources from Sparv
         remote_work_dir = sparv_utils.get_work_dir(self.id)
-        p = subprocess.run(["rsync", "-av", "--include=@text", "--include=*/", "--exclude=*", "--prune-empty-dirs",
-                            f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
-                            local_corpus_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.run(
+            [
+                "rsync",
+                "-av",
+                "--include=@text",
+                "--include=*/",
+                "--exclude=*",
+                "--prune-empty-dirs",
+                f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
+                local_corpus_dir,
+            ],
+            capture_output=True,
+            check=False,
+        )
 
         # Transfer exports to the storage server
         local_export_dir = utils.get_export_dir(self.id)
@@ -491,7 +543,7 @@ class Job():
             storage.upload_dir(remote_corpus_dir, local_export_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to upload exports to the storage server! {e}")
+            raise Exception(f"Failed to upload exports to the storage server! {e}") from e
 
         # Transfer plain text sources to the storage server
         local_work_dir = utils.get_work_dir(self.id)
@@ -501,39 +553,39 @@ class Job():
         except Exception as e:
             self.set_status(Status.error)
             app.logger.warning(e)
-            raise Exception(f"Failed to upload plain text sources to the storage server! {e}")
+            raise Exception(f"Failed to upload plain text sources to the storage server! {e}") from e
 
         self.set_status(Status.done)
+        return None
 
     def remove_from_sparv(self):
         """Remove corpus dir from the Sparv server and abort running job if necessary."""
         try:
             self.abort_sparv()
-        except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
+        except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
             pass
         except Exception as e:
             raise e
 
         p = utils.ssh_run(f"rm -rf {shlex.quote(self.remote_corpus_dir)}")
         if p.stderr:
-            app.logger.error(
-                "Failed to remove corpus dir '%s'!", self.remote_corpus_dir
-            )
+            app.logger.error("Failed to remove corpus dir '%s'!", self.remote_corpus_dir)
 
     def clean(self):
         """Remove annotation and export files from Sparv server by running 'sparv clean --all'."""
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = app.config.get("SPARV_COMMAND") + " clean --all"
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && "
-                          f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)} && "
-                          f"{sparv_env} {sparv_command}")
+        p = utils.ssh_run(
+            f"cd {shlex.quote(self.remote_corpus_dir)} && "
+            f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)} && "
+            f"{sparv_env} {sparv_command}"
+        )
 
         if p.stderr:
             raise Exception(p.stderr.decode())
 
         sparv_output = p.stdout.decode() if p.stdout else ""
-        sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
-        return sparv_output
+        return ", ".join([line for line in sparv_output.split("\n") if line])
 
     def clean_export(self):
         """Remove export files from Sparv server by running 'sparv clean --export'."""
@@ -545,10 +597,7 @@ class Job():
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
-        if not (
-            "Nothing to remove" in sparv_output
-            or "'export' directory removed" in sparv_output
-        ):
+        if not ("Nothing to remove" in sparv_output or "'export' directory removed" in sparv_output):
             app.logger.error(
                 "Failed to remove Sparv export dir for corpus '%s': %s",
                 self.id,
@@ -558,10 +607,11 @@ class Job():
         return True, sparv_output
 
 
-class DefaultJob():
+class DefaultJob:
     """A default job item for running generic Sparv commands like `sparv run -l`."""
 
     def __init__(self, language="swe"):
+        """Init default job by setting class variables."""
         self.lang = language
 
         self.sparv_user = app.config.get("SPARV_USER")
@@ -572,9 +622,11 @@ class DefaultJob():
     def list_languages(self):
         """List the languages available in Sparv."""
         # Create and corpus dir with config file on Sparv server
-        p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
-                          f"echo 'metadata:\n  language: {self.lang}' > "
-                          f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}")
+        p = utils.ssh_run(
+            f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
+            f"echo 'metadata:\n  language: {self.lang}' > "
+            f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}"
+        )
         if p.stderr:
             raise Exception(f"Failed to list languages! {p.stderr.decode()}")
 
@@ -600,9 +652,11 @@ class DefaultJob():
     def list_exports(self):
         """List the available exports for the current language."""
         # Create and corpus dir with config file on Sparv server
-        p = utils.ssh_run(f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
-                          f"echo 'metadata:\n  language: {self.lang}' > "
-                          f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}")
+        p = utils.ssh_run(
+            f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
+            f"echo 'metadata:\n  language: {self.lang}' > "
+            f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}"
+        )
         if p.stderr:
             raise Exception(f"Failed to list exports! {p.stderr.decode()}")
 
@@ -622,7 +676,6 @@ class DefaultJob():
                 exports[-1]["description"] += " " + line.strip()
             else:
                 matchobj = re.match(r"(\S+)\s+(.+)$", line.strip())
-                if matchobj:
-                    if matchobj.group(1) not in ["Other", "Note:", "what", "'export.default'"]:
-                        exports.append({"export": matchobj.group(1), "description": matchobj.group(2)})
+                if matchobj and matchobj.group(1) not in {"Other", "Note:", "what", "'export.default'"}:
+                    exports.append({"export": matchobj.group(1), "description": matchobj.group(2)})
         return exports

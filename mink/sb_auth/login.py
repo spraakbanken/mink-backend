@@ -13,9 +13,8 @@ from typing import List
 import jwt
 import requests
 import shortuuid
-from flask import Blueprint
+from flask import Blueprint, g, request, session
 from flask import current_app as app
-from flask import g, request, session
 
 from mink.core import exceptions, registry, utils
 from mink.core.user import User
@@ -33,6 +32,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
             Defaults to True.
         require_admin (bool, optional): This route requires the user to be a mink admin. Defaults to False.
     """
+
     def decorator(function):
         @functools.wraps(function)  # Copy original function's information, needed by Flask
         def wrapper():
@@ -130,16 +130,19 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
             # Catch everything else and return a traceback
             except Exception as e:
                 traceback_str = f"{e}: {''.join(traceback.format_tb(e.__traceback__))}"
-                return utils.response("Something went wrong", err=True, info=traceback_str,
-                                      return_code="something_went_wrong"), 500
+                return utils.response(
+                    "Something went wrong", err=True, info=traceback_str, return_code="something_went_wrong"
+                ), 500
 
         return wrapper
+
     return decorator
 
 
 @bp.route("/admin-mode-on", methods=["POST"])
 @login(require_resource_exists=False, require_resource_id=False, require_admin=True)
 def admin_mode_on():
+    """Turn on admin mode."""
     session["admin_mode"] = True
     return utils.response("Admin mode turned on", return_code="admin_on")
 
@@ -147,6 +150,7 @@ def admin_mode_on():
 @bp.route("/admin-mode-off", methods=["POST"])
 @login(require_resource_exists=False, require_resource_id=False)
 def admin_mode_off():
+    """Turn off admin mode."""
     session["admin_mode"] = False
     return utils.response("Admin mode turned off", return_code="admin_off")
 
@@ -154,14 +158,18 @@ def admin_mode_off():
 @bp.route("/admin-mode-status", methods=["GET"])
 @login(require_resource_exists=False, require_resource_id=False)
 def admin_mode_status():
+    """Return status of admin mode."""
     admin_status = session.get("admin_mode", False)
-    return utils.response("Returning status of admin mode", admin_mode_status=admin_status,
-                          return_code="returning_admin_status")
+    return utils.response(
+        "Returning status of admin mode", admin_mode_status=admin_status, return_code="returning_admin_status"
+    )
 
 
 def read_jwt_key():
     """Read and return the public key for validating JWTs."""
-    app.config["JWT_KEY"] = open(Path(app.instance_path) / app.config.get("SBAUTH_PUBKEY_FILE")).read()
+    app.config["JWT_KEY"] = (
+        (Path(app.instance_path) / app.config.get("SBAUTH_PUBKEY_FILE")).open(encoding="utf-8").read()
+    )
 
 
 class Authentication(ABC):
@@ -249,13 +257,11 @@ def create_resource(auth_token, resource_id, resource_type=None):
     except Exception as e:
         app.logger.error("Could not create resource: %s", e)
         raise (e)
-    if status == 400:
-        raise exceptions.CorpusExists
-    elif status != 201:
+    if status == 400:  # noqa: PLR2004
+        raise exceptions.CorpusExistsError
+    if status != 201:  # noqa: PLR2004
         message = r.content
-        app.logger.error(
-            "Could not create resource, sb-auth returned status %s: %s", status, message
-        )
+        app.logger.error("Could not create resource, sb-auth returned status %s: %s", status, message)
         raise Exception(message)
 
 
@@ -270,11 +276,10 @@ def remove_resource(resource_id) -> bool:
         status = r.status_code
     except Exception as e:
         raise e
-    if status == 204:
+    if status == 204:  # noqa: PLR2004
         return True
-    elif status == 400:
+    if status == 400:  # noqa: PLR2004
         # Corpus does not exist
         return False
-    else:
-        message = r.content
-        raise Exception(message)
+    message = r.content
+    raise Exception(message)

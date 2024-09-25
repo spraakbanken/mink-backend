@@ -54,7 +54,7 @@ class Info:
         # Save to cache
         all_resources = g.cache.get_all_resources()
         if self.id in all_resources:
-            raise exceptions.CorpusExists("Resource ID already exists!")
+            raise exceptions.CorpusExistsError("Resource ID already exists!")
         all_resources.append(self.id)
         g.cache.set_all_resources(all_resources)
         self.update()
@@ -79,7 +79,7 @@ class Info:
             if abort_job:
                 try:
                     self.job.abort_sparv()
-                except (exceptions.ProcessNotRunning, exceptions.ProcessNotFound):
+                except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
                     pass
                 except Exception as e:
                     raise e

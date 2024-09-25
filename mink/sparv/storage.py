@@ -15,16 +15,17 @@ from mink.sparv import utils as sparv_utils
 local = True
 
 
-def list_contents(directory: Union[Path, str], exclude_dirs: bool = True,
-                  blacklist: Optional[list] = None):
-    """
-    List files in directory on Sparv server recursively.
+def list_contents(directory: Union[Path, str], exclude_dirs: bool = True, blacklist: Optional[list] = None):
+    """List files in directory on Sparv server recursively.
+
     If a blacklist is specified, exclude paths that match anything on the blacklist.
     """
     objlist = []
     directory_quoted = shlex.quote(str(directory))
-    p = utils.ssh_run(f"test -d {directory_quoted} && cd {directory_quoted} && "
-                      f"find . -exec ls -lgGd --time-style=full-iso {{}} \\;")
+    p = utils.ssh_run(
+        f"test -d {directory_quoted} && cd {directory_quoted} && "
+        f"find . -exec ls -lgGd --time-style=full-iso {{}} \\;"
+    )
     if p.stderr:
         raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
 
@@ -43,12 +44,11 @@ def list_contents(directory: Union[Path, str], exclude_dirs: bool = True,
             if exclude_dirs:
                 continue
             mimetype = "directory"
-        if blacklist:
-            if any(Path(f.parts[0]).match(item) for item in blacklist):
-                continue
-        objlist.append({
-            "name": f.name, "type": mimetype, "last_modified": mod_time, "size": int(size), "path": obj_path[2:]
-        })
+        if blacklist and any(Path(f.parts[0]).match(item) for item in blacklist):
+            continue
+        objlist.append(
+            {"name": f.name, "type": mimetype, "last_modified": mod_time, "size": int(size), "path": obj_path[2:]}
+        )
     return objlist
 
 
@@ -62,12 +62,10 @@ def download_file(remote_file_path: str, local_file: Path, resource_id: str, ign
     if ignore_missing:
         cmd.append("--ignore-missing-args")
     cmd += [f"{user}@{host}:{remote_file_path}", f"{local_file}"]
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.run(cmd, capture_output=True, check=False)
     if p.stderr:
         raise Exception(f"Failed to download '{remote_file_path}': {p.stderr.decode()}")
-    if ignore_missing and not local_file.is_file():
-        return False
-    return True
+    return not (ignore_missing and not local_file.is_file())
 
 
 def get_file_contents(filepath):
@@ -87,7 +85,7 @@ def get_size(remote_path):
     try:
         return int(p.stdout.decode().split()[0])
     except Exception as e:
-        raise Exception(f"Failed to retrieve size for path '{remote_path}': {e}")
+        raise Exception(f"Failed to retrieve size for path '{remote_path}': {e}") from e
 
 
 def write_file_contents(filepath: str, file_contents: bytes, resource_id: str):
@@ -115,10 +113,9 @@ def download_dir(remote_dir, local_dir, resource_id, zipped=False, zippath=None,
 
     user, host = _get_login()
     command = ["rsync", "--recursive"]
-    for e in excludes:
-        command.append(f"--exclude={e}")
+    command.extend(f"--exclude={e}" for e in excludes)
     command.extend([f"{user}@{host}:{remote_dir}/", f"{local_dir}"])
-    p = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.run(command, capture_output=True, check=False)
     if p.stderr:
         raise Exception(f"Failed to download '{remote_dir}': {p.stderr.decode()}")
 
@@ -144,15 +141,13 @@ def upload_dir(remote_dir, local_dir, resource_id, delete=False):
     if not local_dir.is_dir():
         raise Exception(f"'{local_dir}' is not a directory")
 
-    if delete:
-        args = ["--recursive", "--delete", f"{local_dir}/"]
-    else:
-        args = ["--recursive", f"{local_dir}/"]
+    args = ["--recursive", "--delete", f"{local_dir}/"] if delete else ["--recursive", f"{local_dir}/"]
 
     _make_dir(remote_dir)
     user, host = _get_login()
-    p = subprocess.run(["rsync"] + args + [f"{user}@{host}:{remote_dir}"],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.run(
+        ["rsync", *args, f"{user}@{host}:{remote_dir}"], capture_output=True, check=False
+    )
     if p.stderr:
         raise Exception(f"Failed to upload to '{remote_dir}': {p.stderr.decode()}")
 
@@ -180,7 +175,7 @@ def remove_file(path, resource_id: str):
 def get_file_changes(resource_id: str, job):
     """Get changes for source files and config file."""
     if not job.started:
-        raise exceptions.JobNotFound
+        raise exceptions.JobNotFoundError
     started = isoparse(job.started)
 
     # Get current source files
@@ -188,15 +183,12 @@ def get_file_changes(resource_id: str, job):
     try:
         source_files = list_contents(source_dir)
     except Exception as e:
-        raise exceptions.CouldNotListSources(str(e))
+        raise exceptions.CouldNotListSourcesError(str(e)) from e
     source_file_paths = [f["path"] for f in source_files]
     available_file_paths = [f["path"] for f in job.source_files]
 
     # Check for new source files
-    added_sources = []
-    for sf in source_files:
-        if sf["path"] not in available_file_paths:
-            added_sources.append(sf)
+    added_sources = [sf for sf in source_files if sf["path"] not in available_file_paths]
 
     # Compare all source files modification time to the time stamp of the last job started
     changed_sources = []
@@ -208,10 +200,7 @@ def get_file_changes(resource_id: str, job):
             changed_sources.append(sf)
 
     # Check for deleted source files
-    deleted_sources = []
-    for fileobj in job.source_files:
-        if fileobj["path"] not in source_file_paths:
-            deleted_sources.append(fileobj)
+    deleted_sources = [fileobj for fileobj in job.source_files if fileobj["path"] not in source_file_paths]
 
     # Compare the config file modification time to the time stamp of the last job started
     changed_config = {}
@@ -236,12 +225,13 @@ def _get_login():
 
 def _is_valid_path(path, resource_id: str):
     """Check that path points to a certain corpus dir (or a descendant)."""
-    return get_corpus_dir(resource_id).resolve() in list(Path(path).resolve().parents) + [Path(path).resolve()]
+    return get_corpus_dir(resource_id).resolve() in {*list(Path(path).resolve().parents), Path(path).resolve()}
 
 
 ################################################################################
 # Get paths on Sparv server
 ################################################################################
+
 
 def get_corpus_dir(resource_id, mkdir=False):
     """Get dir for given corpus."""

@@ -2,9 +2,8 @@
 
 import time
 
-from flask import Blueprint
+from flask import Blueprint, request, session
 from flask import current_app as app
-from flask import request, session
 
 from mink.core import exceptions, jobs, registry, utils
 from mink.core.status import JobStatuses, ProcessName, Status
@@ -30,11 +29,17 @@ def run_sparv(resource_id: str):
     try:
         source_files = storage.list_contents(source_dir)
     except Exception as e:
-        return utils.response(f"Failed to list source files in '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_listing_sources"), 500
+        return utils.response(
+            f"Failed to list source files in '{resource_id}'",
+            err=True,
+            info=str(e),
+            return_code="failed_listing_sources",
+        ), 500
 
     if not source_files:
-        return utils.response(f"No source files found for '{resource_id}'", err=True, return_code="no_sources_found"), 404
+        return utils.response(
+            f"No source files found for '{resource_id}'", err=True, return_code="no_sources_found"
+        ), 404
 
     # Check compatibility between source files and config
     try:
@@ -45,8 +50,9 @@ def run_sparv(resource_id: str):
             if not compatible:
                 return resp, 400
     except Exception as e:
-        return utils.response(f"Failed to get config file for '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_getting_config"), 500
+        return utils.response(
+            f"Failed to get config file for '{resource_id}'", err=True, info=str(e), return_code="failed_getting_config"
+        ), 500
 
     # Get job, check for changes and remove exports if necessary
     try:
@@ -57,14 +63,23 @@ def run_sparv(resource_id: str):
                 success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
-                return utils.response(f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
-                                      return_code="failed_removing_exports"), 500
-    except exceptions.JobNotFound:
+                return utils.response(
+                    f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
+                    "Cannot run Sparv safely",
+                    err=True,
+                    info=str(e),
+                    sparv_message=sparv_output,
+                    return_code="failed_removing_exports",
+                ), 500
+    except exceptions.JobNotFoundError:
         pass
-    except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_listing_sources"), 500
+    except exceptions.CouldNotListSourcesError as e:
+        return utils.response(
+            f"Failed to list source files in '{resource_id}'",
+            err=True,
+            info=str(e),
+            return_code="failed_listing_sources",
+        ), 500
 
     info = registry.get(resource_id)
     job = info.job
@@ -76,8 +91,9 @@ def run_sparv(resource_id: str):
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_queuing"), 500
+        return utils.response(
+            f"Failed to queue job for '{resource_id}'", err=True, info=str(e), return_code="failed_queuing"
+        ), 500
 
     # Check that all required files are present
     job.check_requirements()
@@ -89,8 +105,9 @@ def run_sparv(resource_id: str):
         try:
             job.sync_to_sparv()
         except Exception as e:
-            return utils.response(f"Failed to start job for '{resource_id}'", err=True, info=str(e),
-                                  return_code="failed_starting_job"), 500
+            return utils.response(
+                f"Failed to start job for '{resource_id}'", err=True, info=str(e), return_code="failed_starting_job"
+            ), 500
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
@@ -113,18 +130,14 @@ def advance_queue():
 
     # For running jobs, check if process is still running
     running_jobs, waiting_jobs = registry.get_running_waiting()
-    app.logger.debug(
-        "Running jobs: %d  Waiting jobs: %d", len(running_jobs), len(waiting_jobs)
-    )
+    app.logger.debug("Running jobs: %d  Waiting jobs: %d", len(running_jobs), len(waiting_jobs))
     for job in running_jobs:
         try:
             if not job.process_running():
                 job.abort_sparv()
                 registry.pop_from_queue(job)
         except Exception as e:
-            app.logger.error(
-                "Failed to check if process is running for '%s' %s", job.id, str(e)
-            )
+            app.logger.error("Failed to check if process is running for '%s' %s", job.id, str(e))
 
     # Get running jobs again in case jobs were unqueued in the previous step
     running_jobs, waiting_jobs = registry.get_running_waiting()
@@ -138,14 +151,10 @@ def advance_queue():
                     app.logger.info("Started annotation process for '%s'", job.id)
                 elif job.current_process == ProcessName.korp.name:
                     job.install_korp()
-                    app.logger.info(
-                        "Started Korp installation process for '%s'", job.id
-                    )
+                    app.logger.info("Started Korp installation process for '%s'", job.id)
                 elif job.current_process == ProcessName.strix.name:
                     job.install_strix()
-                    app.logger.info(
-                        f"Started Strix installation process for '{job.id}'"
-                    )
+                    app.logger.info("Started Strix installation process for '%s'", job.id)
             running_jobs.append(job)
         except Exception as e:
             app.logger.error("Failed to run Sparv on '%s' %s", job.id, str(e))
@@ -163,16 +172,26 @@ def resource_info(corpora: list):
         try:
             # Check if corpus exists
             if resource_id not in corpora:
-                return utils.response(f"Corpus '{resource_id}' does not exist or you do not have access to it",
-                                      err=True, return_code="corpus_not_found"), 404
+                return utils.response(
+                    f"Corpus '{resource_id}' does not exist or you do not have access to it",
+                    err=True,
+                    return_code="corpus_not_found",
+                ), 404
             info = registry.get(resource_id)
             if not info:
-                return utils.response(f"There is no active job for '{resource_id}'", job_status=JobStatuses().serialize(),
-                                      return_code="no_active_job")
+                return utils.response(
+                    f"There is no active job for '{resource_id}'",
+                    job_status=JobStatuses().serialize(),
+                    return_code="no_active_job",
+                )
             return make_status_response(info, admin=session.get("admin_mode", False))
         except Exception as e:
-            return utils.response(f"Failed to get job status for '{resource_id}'", err=True, info=str(e),
-                                  return_code="failed_getting_job_status"), 500
+            return utils.response(
+                f"Failed to get job status for '{resource_id}'",
+                err=True,
+                info=str(e),
+                return_code="failed_getting_job_status",
+            ), 500
 
     try:
         # Get all job statuses for this user's corpora
@@ -186,8 +205,9 @@ def resource_info(corpora: list):
             res_list.append(job_status)
         return utils.response("Listing resource infos", resources=res_list, return_code="listing_jobs")
     except Exception as e:
-        return utils.response("Failed to get job statuses", err=True, info=str(e),
-                              return_code="failed_getting_job_statuses"), 500
+        return utils.response(
+            "Failed to get job statuses", err=True, info=str(e), return_code="failed_getting_job_statuses"
+        ), 500
 
 
 @bp.route("/abort-job", methods=["POST"])
@@ -197,31 +217,40 @@ def abort_job(resource_id: str):
     job = registry.get(resource_id).job
     # Syncing
     if job.status.is_syncing():
-        return utils.response(f"Cannot abort job while syncing files", job_status=job.status.serialize(),
-                              return_code="failed_aborting_job_syncing"), 503
+        return utils.response(
+            "Cannot abort job while syncing files",
+            job_status=job.status.serialize(),
+            return_code="failed_aborting_job_syncing",
+        ), 503
     # Waiting
     if job.status.is_waiting():
         try:
             registry.pop_from_queue(job)
             job.set_status(Status.aborted)
-            return utils.response(f"Successfully aborted job for '{resource_id}'", job_status=job.status.serialize(),
-                                  return_code="aborted_job")
+            return utils.response(
+                f"Successfully aborted job for '{resource_id}'",
+                job_status=job.status.serialize(),
+                return_code="aborted_job",
+            )
         except Exception as e:
-            return utils.response(f"Failed to unqueue job for '{resource_id}'", err=True, info=str(e),
-                                  return_code="failed_unqueuing_job"), 500
+            return utils.response(
+                f"Failed to unqueue job for '{resource_id}'", err=True, info=str(e), return_code="failed_unqueuing_job"
+            ), 500
     # No running job
     if not job.status.is_running():
         return utils.response(f"No running job found for '{resource_id}'", return_code="no_running_job")
     # Running job, try to abort
     try:
         job.abort_sparv()
-    except exceptions.ProcessNotRunning:
+    except exceptions.ProcessNotRunningError:
         return utils.response(f"No running job found for '{resource_id}'")
     except Exception as e:
-        return utils.response(f"Failed to abort job for '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_aborting_job"), 500
-    return utils.response(f"Successfully aborted job for '{resource_id}'", job_status=job.status.serialize(),
-                          return_code="aborted_job")
+        return utils.response(
+            f"Failed to abort job for '{resource_id}'", err=True, info=str(e), return_code="failed_aborting_job"
+        ), 500
+    return utils.response(
+        f"Successfully aborted job for '{resource_id}'", job_status=job.status.serialize(), return_code="aborted_job"
+    )
 
 
 @bp.route("/clear-annotations", methods=["DELETE"])
@@ -231,16 +260,23 @@ def clear_annotations(resource_id: str):
     # Check if there is an active job
     job = registry.get(resource_id).job
     if job.status.is_running():
-        return utils.response("Cannot clear annotations while a job is running", err=True,
-                              return_code="failed_clearing_annotations_job_running"), 503
+        return utils.response(
+            "Cannot clear annotations while a job is running",
+            err=True,
+            return_code="failed_clearing_annotations_job_running",
+        ), 503
 
     try:
         sparv_output = job.clean()
-        return utils.response(f"Annotations for '{resource_id}' successfully removed", sparv_output=sparv_output,
-                              return_code="removed_annotations")
+        return utils.response(
+            f"Annotations for '{resource_id}' successfully removed",
+            sparv_output=sparv_output,
+            return_code="removed_annotations",
+        )
     except Exception as e:
-        return utils.response("Failed to clear annotations", err=True, info=str(e),
-                              return_code="failed_clearing_annotations"), 500
+        return utils.response(
+            "Failed to clear annotations", err=True, info=str(e), return_code="failed_clearing_annotations"
+        ), 500
 
 
 @bp.route("/install-korp", methods=["PUT"])
@@ -260,14 +296,23 @@ def install_korp(resource_id: str):
                 success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
-                return utils.response(f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
-                                      return_code="failed_removing_exports"), 500
-    except exceptions.JobNotFound:
+                return utils.response(
+                    f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
+                    "Cannot run Sparv safely",
+                    err=True,
+                    info=str(e),
+                    sparv_message=sparv_output,
+                    return_code="failed_removing_exports",
+                ), 500
+    except exceptions.JobNotFoundError:
         pass
-    except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_listing_sources"), 500
+    except exceptions.CouldNotListSourcesError as e:
+        return utils.response(
+            f"Failed to list source files in '{resource_id}'",
+            err=True,
+            info=str(e),
+            return_code="failed_listing_sources",
+        ), 500
 
     # Queue job
     info = registry.get(resource_id)
@@ -277,8 +322,9 @@ def install_korp(resource_id: str):
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_queuing"), 500
+        return utils.response(
+            f"Failed to queue job for '{resource_id}'", err=True, info=str(e), return_code="failed_queuing"
+        ), 500
 
     job.set_status(Status.waiting, ProcessName.korp)
 
@@ -300,14 +346,23 @@ def install_strix(resource_id: str):
                 success, sparv_output = old_job.clean_export()
                 assert success
             except Exception as e:
-                return utils.response(f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                                      "Cannot run Sparv safely", err=True, info=str(e), sparv_message=sparv_output,
-                                      return_code="failed_removing_exports"), 500
-    except exceptions.JobNotFound:
+                return utils.response(
+                    f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
+                    "Cannot run Sparv safely",
+                    err=True,
+                    info=str(e),
+                    sparv_message=sparv_output,
+                    return_code="failed_removing_exports",
+                ), 500
+    except exceptions.JobNotFoundError:
         pass
-    except exceptions.CouldNotListSources as e:
-        return utils.response(f"Failed to list source files in '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_listing_sources"), 500
+    except exceptions.CouldNotListSourcesError as e:
+        return utils.response(
+            f"Failed to list source files in '{resource_id}'",
+            err=True,
+            info=str(e),
+            return_code="failed_listing_sources",
+        ), 500
 
     # Queue job
     info = registry.get(resource_id)
@@ -316,8 +371,9 @@ def install_strix(resource_id: str):
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        return utils.response(f"Failed to queue job for '{resource_id}'", err=True, info=str(e),
-                              return_code="failed_queuing"), 500
+        return utils.response(
+            f"Failed to queue job for '{resource_id}'", err=True, info=str(e), return_code="failed_queuing"
+        ), 500
 
     job.set_status(Status.waiting, ProcessName.strix)
 
@@ -360,18 +416,26 @@ def make_status_response(info, admin=False):
         try:
             info.job.sync_results()
         except Exception as e:
-            return utils.response("Sparv was run successfully but exports failed to upload to the storage server",
-                                  info=str(e), return_code="sparv_success_export_upload_fail")
-        return utils.response("Sparv was run successfully! Starting to sync results", **info_attrs,
-                              return_code="sparv_success_start_sync")
+            return utils.response(
+                "Sparv was run successfully but exports failed to upload to the storage server",
+                info=str(e),
+                return_code="sparv_success_export_upload_fail",
+            )
+        return utils.response(
+            "Sparv was run successfully! Starting to sync results", **info_attrs, return_code="sparv_success_start_sync"
+        )
 
     if status.is_done(info.job.current_process):
         return utils.response("Job was completed successfully!", **info_attrs, return_code="job_completed")
 
     if status.is_error(info.job.current_process):
-        app.logger.error(f"An error occurred during processing, warnings: {info_attrs['job']['warnings']}, errors: "
-                         f"{info_attrs['job']['errors']}, sparv_output: {info_attrs['job']['sparv_output']}, "
-                         f"job_attrs: {info_attrs}")
+        app.logger.error(
+            "An error occurred during processing, warnings: %s, errors: %s, sparv_output: %s, job_attrs: %s",
+            info_attrs["job"]["warnings"],
+            info_attrs["job"]["errors"],
+            info_attrs["job"]["sparv_output"],
+            info_attrs,
+        )
         return utils.response("An error occurred during processing", **info_attrs, return_code="processing_error")
 
     return utils.response("Cannot handle this Job status yet", **info_attrs, return_code="cannot_handle_status"), 501
@@ -384,10 +448,10 @@ def sparv_languages():
         job = jobs.DefaultJob()
         languages = job.list_languages()
     except Exception as e:
-        return utils.response("Failed listing languages", err=True, info=str(e),
-                              return_code="failed_listing_languages"), 500
-    return utils.response("Listing languages available in Sparv", languages=languages,
-                          return_code="listing_languages")
+        return utils.response(
+            "Failed listing languages", err=True, info=str(e), return_code="failed_listing_languages"
+        ), 500
+    return utils.response("Listing languages available in Sparv", languages=languages, return_code="listing_languages")
 
 
 @bp.route("/sparv-exports", methods=["GET"])
@@ -398,7 +462,9 @@ def sparv_exports():
         job = jobs.DefaultJob(language=language)
         exports = job.list_exports()
     except Exception as e:
-        return utils.response("Failed listing exports", err=True, info=str(e),
-                              return_code="failed_listing_sparv_exports"), 500
-    return utils.response("Listing exports available in Sparv", language=language, exports=exports,
-                          return_code="listing_sparv_exports")
+        return utils.response(
+            "Failed listing exports", err=True, info=str(e), return_code="failed_listing_sparv_exports"
+        ), 500
+    return utils.response(
+        "Listing exports available in Sparv", language=language, exports=exports, return_code="listing_sparv_exports"
+    )
