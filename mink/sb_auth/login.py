@@ -51,20 +51,19 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
 
             try:
                 auth = JwtAuthentication(auth_token)
-                mink_admin = auth.is_admin()
-                resources = auth.get_resource_ids()
-                user = auth.get_user()
-                user_id = user.id
             except Exception as e:
                 return utils.response("Failed to authenticate", err=True, info=str(e),
                                       return_code="failed_authenticating"), 401
 
-            if require_admin and not mink_admin:
+            resources = auth.get_resource_ids()
+            user = auth.get_user()
+
+            if require_admin and not auth.is_admin():
                     return utils.response("Mink admin status could not be confirmed", err=True,
                                           return_code="not_admin"), 401
 
             # Give access to all resources if admin mode is on and user is mink admin
-            if session.get("admin_mode") and mink_admin:
+            if session.get("admin_mode") and auth.is_admin():
                 resources = registry.get_all_resources()
             else:
                 # Turn off admin mode if user is not admin
@@ -75,7 +74,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
                 g.request_id = shortuuid.uuid()
 
                 if not require_resource_id:
-                    return function(**{k: v for k, v in {"user_id": user_id, "user": user,
+                    return function(**{k: v for k, v in {"user_id": user.id, "user": user,
                                                          "corpora": resources, "auth_token": auth_token
                                                         }.items() if k in params})
 
@@ -87,7 +86,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
 
                 # Check if resource exists
                 if not require_resource_exists:
-                    return function(**{k: v for k, v in {"user_id": user_id, "user": user,
+                    return function(**{k: v for k, v in {"user_id": user.id, "user": user,
                                                          "corpora": resources, "resource_id": resource_id,
                                                          "auth_token": auth_token
                                                         }.items() if k in params})
@@ -96,7 +95,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
                 if resource_id not in resources:
                     return utils.response(f"Corpus '{resource_id}' does not exist or you do not have access to it",
                                           err=True, return_code="corpus_not_found"), 404
-                return function(**{k: v for k, v in {"user_id": user_id, "user": user,
+                return function(**{k: v for k, v in {"user_id": user.id, "user": user,
                                                      "corpora": resources, "resource_id": resource_id,
                                                      "auth_token": auth_token}.items() if k in params})
 
