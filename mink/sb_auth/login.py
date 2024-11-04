@@ -1,5 +1,6 @@
 """Login functions."""
 
+from abc import ABC, abstractmethod
 import functools
 import inspect
 import json
@@ -7,6 +8,7 @@ import re
 import time
 import traceback
 from pathlib import Path
+from typing import List
 
 import jwt
 import requests
@@ -48,8 +50,11 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
                                       return_code="missing_auth_token"), 401
 
             try:
-                user_id, resources, mink_admin, username, email = _get_resources(auth_token, include_read)
-                user = User(id=user_id, name=username, email=email)
+                auth = JwtAuthentication(auth_token)
+                mink_admin = auth.is_admin()
+                resources = auth.get_resource_ids()
+                user = auth.get_user()
+                user_id = user.id
             except Exception as e:
                 return utils.response("Failed to authenticate", err=True, info=str(e),
                                       return_code="failed_authenticating"), 401
@@ -132,33 +137,57 @@ def read_jwt_key():
     app.config["JWT_KEY"] = open(Path(app.instance_path) / app.config.get("SBAUTH_PUBKEY_FILE")).read()
 
 
-def _get_resources(auth_token, include_read=False):
-    """Check validity of auth_token and get Mink resources that user has write access for."""
-    resources = []
-    mink_admin = False
-    user_token = jwt.decode(auth_token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
-    if user_token["exp"] < time.time():
-        return utils.response("The provided JWT has expired", err=True, return_code="jwt_expired"), 401
+class Authentication(ABC):
+    """Interface for an authentication method"""
+    @abstractmethod
+    def get_user(self) -> User:
+        pass
 
-    min_level = "WRITE"
-    if include_read:
-        min_level = "READ"
-    if "scope" in user_token:
-        # Check if user is mink admin
+    @abstractmethod
+    def get_resource_ids(self, include_read=False) -> List[str]:
+        pass
+
+    @abstractmethod
+    def is_admin(self) -> bool:
+        pass
+
+
+class JwtAuthentication(Authentication):
+    """Handles JWT authentication"""
+    def __init__(self, token: str):
+        self.payload = jwt.decode(token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
+        if self.payload["exp"] < time.time():
+            return utils.response("The provided JWT has expired", err=True, return_code="jwt_expired"), 401
+
+    def get_user(self) -> User:
+        user_id = re.sub(r"[^\w\-_\.]", "", (self.payload["idp"] + "-" + self.payload["sub"]))
+        name = self.payload.get("name", "")
+        email = self.payload.get("email", "")
+        return User(id=user_id, name=name, email=email)
+
+    def get_resource_ids(self, include_read=False) -> List[str]:
+        resources = []
+        min_level = "READ" if include_read else "WRITE"
+        if "scope" in self.payload:
+            # Get list of corpora
+            for corpus, level in self.payload["scope"].get("corpora", {}).items():
+                if level >= self.payload["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
+                    resources.append(corpus)
+            # Get list of metadata resources
+            for metadata, level in self.payload["scope"].get("metadata", {}).items():
+                if level >= self.payload["levels"][min_level] and metadata.startswith(app.config.get("RESOURCE_PREFIX")):
+                    resources.append(metadata)
+        return resources
+
+    def is_admin(self) -> bool:
         mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
-        mink_admin = user_token["scope"].get("other", {}).get(mink_app_name, 0) >= user_token["levels"]["ADMIN"]
-        # Get list of corpora
-        for corpus, level in user_token["scope"].get("corpora", {}).items():
-            if level >= user_token["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
-                resources.append(corpus)
-        # Get list of metadata resources
-        for metadata, level in user_token["scope"].get("metadata", {}).items():
-            if level >= user_token["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
-                resources.append(metadata)
-    user = re.sub(r"[^\w\-_\.]", "", (user_token["idp"] + "-" + user_token["sub"]))
-    username = user_token.get("name", "")
-    email = user_token.get("email", "")
-    return user, resources, mink_admin, username, email
+        return self.payload["scope"].get("other", {}).get(mink_app_name, 0) >= self.payload["levels"]["ADMIN"]
+
+
+class ApikeyAuthentication(Authentication):
+    """Handles authentication using an API key"""
+    # TODO
+    pass
 
 
 def create_resource(auth_token, resource_id, resource_type=None):
