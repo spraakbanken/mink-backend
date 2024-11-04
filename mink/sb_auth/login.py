@@ -40,20 +40,33 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
             params = inspect.signature(function).parameters.keys()
 
             auth_header = request.headers.get("Authorization")
-            if not auth_header:
+            apikey = request.headers.get("X-Api-Key")
+
+            # Look for JWT
+            if auth_header:
+                try:
+                    auth_token = auth_header.split(" ")[1]
+                except Exception:
+                    return utils.response("No authorization token provided", err=True,
+                                        return_code="missing_auth_token"), 401
+
+                try:
+                    auth = JwtAuthentication(auth_token)
+                except Exception as e:
+                    return utils.response("Failed to authenticate", err=True, info=str(e),
+                                        return_code="failed_authenticating"), 401
+            
+            # Look for API key
+            elif apikey:
+                try:
+                    auth = ApikeyAuthentication(apikey)
+                except Exception as e:
+                    return utils.response("API key not valid", err=True, info=str(e), return_code="failed_authenticating"), 401
+
+            # No authentication provided
+            else:
                 return utils.response("No login credentials provided", err=True,
                                       return_code="missing_login_credentials"), 401
-            try:
-                auth_token = auth_header.split(" ")[1]
-            except Exception:
-                return utils.response("No authorization token provided", err=True,
-                                      return_code="missing_auth_token"), 401
-
-            try:
-                auth = JwtAuthentication(auth_token)
-            except Exception as e:
-                return utils.response("Failed to authenticate", err=True, info=str(e),
-                                      return_code="failed_authenticating"), 401
 
             resources = auth.get_resource_ids()
             user = auth.get_user()
