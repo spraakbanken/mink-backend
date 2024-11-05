@@ -60,8 +60,15 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
             elif apikey:
                 try:
                     auth = ApikeyAuthentication(apikey)
+                except exceptions.ApikeyNotFound:
+                    return utils.response("API key not recognized", err=True, return_code="apikey_not_found"), 401
+                except exceptions.ApikeyExpired:
+                    return utils.response("API key expired", err=True, return_code="apikey_expired"), 401
+                except exceptions.ApikeyCheckFailed:
+                    return utils.response("API key check failed", err=True, return_code="apikey_check_failed"), 500
                 except Exception as e:
-                    return utils.response("API key not valid", err=True, info=str(e), return_code="failed_authenticating"), 401
+                    app.logger.error("API key authentication failed: %s", str(e))
+                    return utils.response("API key authentication failed", err=True, info=str(e), return_code="apikey_error"), 500
 
             # No authentication provided
             else:
@@ -169,6 +176,7 @@ class JwtAuthentication(Authentication):
     def __init__(self, token: str):
         self.payload = jwt.decode(token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
         if self.payload["exp"] < time.time():
+            # TODO Should raise exception, caller should return response
             return utils.response("The provided JWT has expired", err=True, return_code="jwt_expired"), 401
 
     def get_user(self) -> User:
@@ -198,14 +206,55 @@ class JwtAuthentication(Authentication):
 
 class ApikeyAuthentication(Authentication):
     """Handles authentication using an API key"""
-    # TODO
-    pass
+    def __init__(self, apikey: str):
+        # Check the given API key against SB-Auth
+        # API documented at https://github.com/spraakbanken/sb-auth#api
+        url = app.config.get("SBAUTH_URL") + 'apikey-check'
+        headers = {
+            "Authorization": f"apikey {app.config.get("SBAUTH_API_KEY")}",
+            "Content-Type": "application/json",
+        }
+        data = {"apikey": apikey}
+
+        r = requests.post(url, headers=headers, data=json.dumps(data))
+
+        if r.status_code == 404:
+            raise exceptions.ApikeyNotFound()
+        if r.status_code == 410:
+            raise exceptions.ApikeyExpired()
+        if r.status_code != 200:
+            app.logger.error("API key check had unexpected status %s and content: %s", r.status_code, r.content)
+            raise exceptions.ApikeyCheckFailed()
+
+        data = json.loads(r.content)
+        self.user = data["user"]
+        self.scope = data["scope"]
+        self.levels = data["levels"]
+        self.token = data["token"]
+
+    def get_user(self) -> User:
+        user_id = re.sub(r"[^\w\-_\.]", "", (self.user["idp"] + "-" + self.user["sub"]))
+        name = self.user.get("name", "")
+        email = self.user.get("email", "")
+        return User(id=user_id, name=name, email=email)
+
+    def get_resource_ids(self, include_read=False) -> List[str]:
+        min_level = "READ" if include_read else "WRITE"
+        def is_relevant(resource_id, level):
+            return level >= self.levels[min_level] and resource_id.startswith(app.config.get("RESOURCE_PREFIX"))
+        grants = self.scope.get("corpora", {}).items() + self.scope.get("metadata", {}).items()
+        return [resource_id for resource_id, level in grants if is_relevant(resource_id, level)]
+    
+    def is_admin(self) -> bool:
+        mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
+        return self.scope.get("other", {}).get(mink_app_name, 0) >= self.levels["ADMIN"]
 
 
 def create_resource(auth_token, resource_id, resource_type=None):
     """Create a new resource in sb-auth."""
+    # API documented at https://github.com/spraakbanken/sb-auth#api
     # TODO: specify resource_type when sbauth is ready
-    url = app.config.get("SBAUTH_URL") + resource_id
+    url = app.config.get("SBAUTH_URL") + f"resource/{resource_id}"
     api_key = app.config.get("SBAUTH_API_KEY")
     headers = {"Authorization": f"apikey {api_key}", "Content-Type": "application/json"}
     data = {"jwt": auth_token}
@@ -227,7 +276,8 @@ def create_resource(auth_token, resource_id, resource_type=None):
 
 def remove_resource(resource_id) -> bool:
     """Remove a resource from sb-auth."""
-    url = app.config.get("SBAUTH_URL") + resource_id
+    # API documented at https://github.com/spraakbanken/sb-auth#api
+    url = app.config.get("SBAUTH_URL") + f"resources/{resource_id}"
     api_key = app.config.get("SBAUTH_API_KEY")
     headers = {"Authorization": f"apikey {api_key}"}
     try:

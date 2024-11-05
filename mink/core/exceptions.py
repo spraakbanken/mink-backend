@@ -25,6 +25,16 @@ class JobNotFound(JobError):
     pass
 
 
+class ApikeyCheckFailed(Exception):
+    pass
+
+class ApikeyExpired(Exception):
+    pass
+
+class ApikeyNotFound(Exception):
+    pass
+
+
 class CorpusExists(Exception):
     """Exception used for when a corpus ID already exists."""
 

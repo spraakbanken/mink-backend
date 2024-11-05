@@ -20,7 +20,7 @@ RECOMMENDED_MAX_FILE_LENGTH = 1024 * 1024 * 5  # Recommended max size (bytes) fo
 
 # sb-auth settings
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
-SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/resource/"
+SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/"
 SBAUTH_API_KEY = ""
 SBAUTH_MINK_APP_RESOURCE = "mink-app"  # Name of the resource used to control admin grants
 
