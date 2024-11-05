@@ -52,6 +52,8 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
 
                 try:
                     auth = JwtAuthentication(auth_token)
+                except exceptions.JwtExpired:
+                    return utils.response("The provided JWT has expired", err=True, return_code="jwt_expired"), 401
                 except Exception as e:
                     return utils.response("Failed to authenticate", err=True, info=str(e),
                                         return_code="failed_authenticating"), 401
@@ -176,8 +178,7 @@ class JwtAuthentication(Authentication):
     def __init__(self, token: str):
         self.payload = jwt.decode(token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
         if self.payload["exp"] < time.time():
-            # TODO Should raise exception, caller should return response
-            return utils.response("The provided JWT has expired", err=True, return_code="jwt_expired"), 401
+            raise exceptions.JwtExpired()
 
     def get_user(self) -> User:
         user_id = re.sub(r"[^\w\-_\.]", "", (self.payload["idp"] + "-" + self.payload["sub"]))

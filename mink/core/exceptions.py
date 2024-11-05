@@ -24,6 +24,8 @@ class JobNotFound(JobError):
 
     pass
 
+class JwtExpired(Exception):
+    pass
 
 class ApikeyCheckFailed(Exception):
     pass
