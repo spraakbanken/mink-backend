@@ -203,7 +203,12 @@ class JwtAuthentication(Authentication):
 class ApikeyAuthentication(Authentication):
     """Handles authentication using an API key"""
     def __init__(self, apikey: str):
-        data = self.check_apikey(apikey)
+        # Make a cached HTTP request
+        data = g.cache.get_apikey_data(apikey)
+        if not data:
+            data = self.check_apikey(apikey)
+            g.cache.set_apikey_data(apikey, data)
+
         self.set_user(**data["user"])
         self.set_resources(data["scope"], data["levels"])
 

@@ -1,5 +1,6 @@
 """Caching with Memcached using app context as backoff solution."""
 
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import current_app as app
@@ -24,6 +25,7 @@ class Cache:
         g.job_queue = []  # List of IDs of all active jobs
         g.all_resources = []  # All resource IDs
         g.resource_dict = {}  # All resource info objects
+        g.apikey_data = {} # User/resource data associated with recently submitted API keys
 
         self.client = None
         self.connect()
@@ -110,3 +112,37 @@ class Cache:
             self.client.delete(job)
         else:
             del g.resource_dict[job]
+
+    def get_apikey_data(self, apikey):
+        """Get cached API key data, if recent enough."""
+        if self.client is not None:
+            item = self.client.get(f"apikey_data_{apikey}")
+        else:
+            item = g.apikey_data.get(apikey)
+
+        if not item:
+            return None
+
+        timestamp, data = item
+
+        # Delete if expired
+        if timestamp + timedelta(seconds=60) < datetime.now():
+            self.remove_apikey_data(apikey)
+            return None
+
+        return data
+
+    def set_apikey_data(self, apikey, data):
+        """Store API key data in cache."""
+        item = (datetime.now(), data)
+        if self.client is not None:
+            self.client.set(f"apikey_data_{apikey}", item)
+        else:
+            g.apikey_data[apikey] = item
+
+    def remove_apikey_data(self, apikey):
+        """Remove API key data from cache."""
+        if self.client is not None:
+            self.client.delete(f"apikey_data_{apikey}")
+        else:
+            del g.apikey_data[apikey]
