@@ -42,6 +42,8 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
             auth_header = request.headers.get("Authorization")
             apikey = request.headers.get("X-Api-Key")
 
+            auth_token = None
+
             # Look for JWT
             if auth_header:
                 try:
@@ -62,6 +64,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
             elif apikey:
                 try:
                     auth = ApikeyAuthentication(apikey)
+                    auth_token = None
                 except exceptions.ApikeyNotFound:
                     return utils.response("API key not recognized", err=True, return_code="apikey_not_found"), 401
                 except exceptions.ApikeyExpired:
@@ -90,6 +93,9 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
             else:
                 # Turn off admin mode if user is not admin
                 session["admin_mode"] = False
+
+            if "auth_token" in params and auth_token is None:
+                return utils.response("This route requires authentication by JWT", err=True, return_code="route_requires_jwt"), 400
 
             try:
                 # Store random ID in app context, used for temporary storage
@@ -243,7 +249,7 @@ class ApikeyAuthentication(Authentication):
         min_level = "READ" if include_read else "WRITE"
         def is_relevant(resource_id, level):
             return level >= self.levels[min_level] and resource_id.startswith(app.config.get("RESOURCE_PREFIX"))
-        grants = self.scope.get("corpora", {}).items() + self.scope.get("metadata", {}).items()
+        grants = {**self.scope.get("corpora", {}), **self.scope.get("metadata", {})}.items()
         return [resource_id for resource_id, level in grants if is_relevant(resource_id, level)]
     
     def is_admin(self) -> bool:
