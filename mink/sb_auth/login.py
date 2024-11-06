@@ -1,6 +1,6 @@
 """Login functions."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
 import functools
 import inspect
 import json
@@ -165,18 +165,28 @@ def read_jwt_key():
 
 
 class Authentication(ABC):
-    """Interface for an authentication method"""
-    @abstractmethod
+    """Abstract class for an authentication method"""
+    def set_user(self, idp: str, sub: str, name: str, email: str):
+        user_id = re.sub(r"[^\w\-_\.]", "", (f"{idp}-{sub}"))
+        self.user = User(id=user_id, name=name, email=email)
+
+    def set_resources(self, scope: dict, levels: dict):
+        self.scope = scope
+        self.levels = levels
+
     def get_user(self) -> User:
-        pass
+        return self.user
 
-    @abstractmethod
     def get_resource_ids(self, include_read=False) -> List[str]:
-        pass
+        min_level = "READ" if include_read else "WRITE"
+        def is_relevant(resource_id, level):
+            return level >= self.levels[min_level] and resource_id.startswith(app.config.get("RESOURCE_PREFIX"))
+        grants = {**self.scope.get("corpora", {}), **self.scope.get("metadata", {})}.items()
+        return [resource_id for resource_id, level in grants if is_relevant(resource_id, level)]
 
-    @abstractmethod
     def is_admin(self) -> bool:
-        pass
+        mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
+        return self.scope.get("other", {}).get(mink_app_name, 0) >= self.levels["ADMIN"]
 
 
 class JwtAuthentication(Authentication):
@@ -186,35 +196,19 @@ class JwtAuthentication(Authentication):
         if self.payload["exp"] < time.time():
             raise exceptions.JwtExpired()
 
-    def get_user(self) -> User:
-        user_id = re.sub(r"[^\w\-_\.]", "", (self.payload["idp"] + "-" + self.payload["sub"]))
-        name = self.payload.get("name", "")
-        email = self.payload.get("email", "")
-        return User(id=user_id, name=name, email=email)
-
-    def get_resource_ids(self, include_read=False) -> List[str]:
-        resources = []
-        min_level = "READ" if include_read else "WRITE"
-        if "scope" in self.payload:
-            # Get list of corpora
-            for corpus, level in self.payload["scope"].get("corpora", {}).items():
-                if level >= self.payload["levels"][min_level] and corpus.startswith(app.config.get("RESOURCE_PREFIX")):
-                    resources.append(corpus)
-            # Get list of metadata resources
-            for metadata, level in self.payload["scope"].get("metadata", {}).items():
-                if level >= self.payload["levels"][min_level] and metadata.startswith(app.config.get("RESOURCE_PREFIX")):
-                    resources.append(metadata)
-        return resources
-
-    def is_admin(self) -> bool:
-        mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
-        return self.payload["scope"].get("other", {}).get(mink_app_name, 0) >= self.payload["levels"]["ADMIN"]
+        self.set_user(self.payload["idp"], self.payload["sub"], self.payload.get("name", ""), self.payload.get("email", ""))
+        self.set_resources(self.payload.get("scope", {}), self.payload.get("levels", {}))
 
 
 class ApikeyAuthentication(Authentication):
     """Handles authentication using an API key"""
     def __init__(self, apikey: str):
-        # Check the given API key against SB-Auth
+        data = self.check_apikey(apikey)
+        self.set_user(**data["user"])
+        self.set_resources(data["scope"], data["levels"])
+
+    def check_apikey(self, apikey: str):
+        """Check the given API key against SB-Auth"""
         # API documented at https://github.com/spraakbanken/sb-auth#api
         url = app.config.get("SBAUTH_URL") + 'apikey-check'
         headers = {
@@ -233,28 +227,7 @@ class ApikeyAuthentication(Authentication):
             app.logger.error("API key check had unexpected status %s and content: %s", r.status_code, r.content)
             raise exceptions.ApikeyCheckFailed()
 
-        data = json.loads(r.content)
-        self.user = data["user"]
-        self.scope = data["scope"]
-        self.levels = data["levels"]
-        self.token = data["token"]
-
-    def get_user(self) -> User:
-        user_id = re.sub(r"[^\w\-_\.]", "", (self.user["idp"] + "-" + self.user["sub"]))
-        name = self.user.get("name", "")
-        email = self.user.get("email", "")
-        return User(id=user_id, name=name, email=email)
-
-    def get_resource_ids(self, include_read=False) -> List[str]:
-        min_level = "READ" if include_read else "WRITE"
-        def is_relevant(resource_id, level):
-            return level >= self.levels[min_level] and resource_id.startswith(app.config.get("RESOURCE_PREFIX"))
-        grants = {**self.scope.get("corpora", {}), **self.scope.get("metadata", {})}.items()
-        return [resource_id for resource_id, level in grants if is_relevant(resource_id, level)]
-    
-    def is_admin(self) -> bool:
-        mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
-        return self.scope.get("other", {}).get(mink_app_name, 0) >= self.levels["ADMIN"]
+        return json.loads(r.content)
 
 
 def create_resource(auth_token, resource_id, resource_type=None):
