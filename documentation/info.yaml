@@ -22,12 +22,19 @@ info:
     7. <a href="#operation/installinKorp">Install the corpus in Korp</a> / <a href="#operation/installinStrix">Strix</a>
 
     # Authentication
-    Note that you must authenticate each HTTP request with a JSON Web Token (JWT, read more at https://jwt.io/):
+    Note that most HTTP requests need to be authenticated with A) a JSON Web Token (JWT, read more at https://jwt.io/)
+    or B) an SB-Auth user API key:
 
+    ## JWT
     1. In the browser, log in at https://spraakbanken.gu.se/mink
     2. Open https://sp.spraakbanken.gu.se/auth/jwt to download the token in plain text
     3. Use the token in the request header as: `Authorization: Bearer <token>`
     4. The token is valid for a few hours. When it expires, repeat these steps.
+
+    ## API key
+    1. Ask Språkbanken for an API key
+    2. Use the API key token in the request header as: `X-Api-Key: <token>`
+    3. The token is valid for an extended time, currently 90 days. When it expires, repeat these steps
 
     # Parameters
     Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.

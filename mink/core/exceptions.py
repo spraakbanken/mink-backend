@@ -24,6 +24,18 @@ class JobNotFound(JobError):
 
     pass
 
+class JwtExpired(Exception):
+    pass
+
+class ApikeyCheckFailed(Exception):
+    pass
+
+class ApikeyExpired(Exception):
+    pass
+
+class ApikeyNotFound(Exception):
+    pass
+
 
 class CorpusExists(Exception):
     """Exception used for when a corpus ID already exists."""
