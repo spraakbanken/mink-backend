@@ -126,7 +126,8 @@ class Cache:
         timestamp, data = item
 
         # Delete if expired
-        if timestamp + timedelta(seconds=60) < datetime.now():
+        lifetime = app.config.get("SBAUTH_CACHE_LIFETIME")
+        if timestamp + timedelta(seconds=lifetime) < datetime.now():
             self.remove_apikey_data(apikey)
             return None
 
