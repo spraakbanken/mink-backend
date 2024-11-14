@@ -25,7 +25,6 @@ class Cache:
         g.job_queue = []  # List of IDs of all active jobs
         g.all_resources = []  # All resource IDs
         g.resource_dict = {}  # All resource info objects
-        g.apikey_data = {} # User/resource data associated with recently submitted API keys
 
         self.client = None
         self.connect()
@@ -115,10 +114,11 @@ class Cache:
 
     def get_apikey_data(self, apikey):
         """Get cached API key data, if recent enough."""
-        if self.client is not None:
-            item = self.client.get(f"apikey_data_{apikey}")
-        else:
-            item = g.apikey_data.get(apikey)
+        # Caching to g is pointless because this will only be called once per request
+        if self.client is None:
+            return None
+
+        item = self.client.get(f"apikey_data_{apikey}")
 
         if not item:
             return None
@@ -137,12 +137,8 @@ class Cache:
         item = (datetime.now(), data)
         if self.client is not None:
             self.client.set(f"apikey_data_{apikey}", item)
-        else:
-            g.apikey_data[apikey] = item
 
     def remove_apikey_data(self, apikey):
         """Remove API key data from cache."""
         if self.client is not None:
             self.client.delete(f"apikey_data_{apikey}")
-        else:
-            del g.apikey_data[apikey]
