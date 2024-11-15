@@ -1,6 +1,5 @@
 """Login functions."""
 
-from abc import ABC
 import functools
 import inspect
 import json
@@ -8,7 +7,6 @@ import re
 import time
 import traceback
 from pathlib import Path
-from typing import List
 
 import jwt
 import requests
@@ -49,43 +47,49 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
                 try:
                     auth_token = auth_header.split(" ")[1]
                 except Exception:
-                    return utils.response("No authorization token provided", err=True,
-                                        return_code="missing_auth_token"), 401
+                    return utils.response(
+                        "No authorization token provided", err=True, return_code="missing_auth_token"
+                    ), 401
 
                 try:
                     auth = JwtAuthentication(auth_token)
-                except exceptions.JwtExpired:
+                except exceptions.JwtExpiredError:
                     return utils.response("The provided JWT has expired", err=True, return_code="jwt_expired"), 401
                 except Exception as e:
-                    return utils.response("Failed to authenticate", err=True, info=str(e),
-                                        return_code="failed_authenticating"), 401
-            
+                    return utils.response(
+                        "Failed to authenticate", err=True, info=str(e), return_code="failed_authenticating"
+                    ), 401
+
             # Look for API key
             elif apikey:
                 try:
                     auth = ApikeyAuthentication(apikey)
                     auth_token = None
-                except exceptions.ApikeyNotFound:
+                except exceptions.ApikeyNotFoundError:
                     return utils.response("API key not recognized", err=True, return_code="apikey_not_found"), 401
-                except exceptions.ApikeyExpired:
+                except exceptions.ApikeyExpiredError:
                     return utils.response("API key expired", err=True, return_code="apikey_expired"), 401
-                except exceptions.ApikeyCheckFailed:
+                except exceptions.ApikeyCheckFailedError:
                     return utils.response("API key check failed", err=True, return_code="apikey_check_failed"), 500
                 except Exception as e:
                     app.logger.error("API key authentication failed: %s", str(e))
-                    return utils.response("API key authentication failed", err=True, info=str(e), return_code="apikey_error"), 500
+                    return utils.response(
+                        "API key authentication failed", err=True, info=str(e), return_code="apikey_error"
+                    ), 500
 
             # No authentication provided
             else:
-                return utils.response("No login credentials provided", err=True,
-                                      return_code="missing_login_credentials"), 401
+                return utils.response(
+                    "No login credentials provided", err=True, return_code="missing_login_credentials"
+                ), 401
 
-            resources = auth.get_resource_ids()
+            resources = auth.get_resource_ids(include_read)
             user = auth.get_user()
 
             if require_admin and not auth.is_admin():
-                    return utils.response("Mink admin status could not be confirmed", err=True,
-                                          return_code="not_admin"), 401
+                return utils.response(
+                    "Mink admin status could not be confirmed", err=True, return_code="not_admin"
+                ), 401
 
             # Give access to all resources if admin mode is on and user is mink admin
             if session.get("admin_mode") and auth.is_admin():
@@ -95,16 +99,27 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
                 session["admin_mode"] = False
 
             if "auth_token" in params and auth_token is None:
-                return utils.response("This route requires authentication by JWT", err=True, return_code="route_requires_jwt"), 400
+                return utils.response(
+                    "This route requires authentication by JWT", err=True, return_code="route_requires_jwt"
+                ), 400
 
             try:
                 # Store random ID in app context, used for temporary storage
                 g.request_id = shortuuid.uuid()
 
                 if not require_resource_id:
-                    return function(**{k: v for k, v in {"user_id": user.id, "user": user,
-                                                         "corpora": resources, "auth_token": auth_token
-                                                        }.items() if k in params})
+                    return function(
+                        **{
+                            k: v
+                            for k, v in {
+                                "user_id": user.id,
+                                "user": user,
+                                "corpora": resources,
+                                "auth_token": auth_token,
+                            }.items()
+                            if k in params
+                        }
+                    )
 
                 # Check if resource ID was provided
                 # TODO: change param name from corpus_id to resource_id!
@@ -114,18 +129,40 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
 
                 # Check if resource exists
                 if not require_resource_exists:
-                    return function(**{k: v for k, v in {"user_id": user.id, "user": user,
-                                                         "corpora": resources, "resource_id": resource_id,
-                                                         "auth_token": auth_token
-                                                        }.items() if k in params})
+                    return function(
+                        **{
+                            k: v
+                            for k, v in {
+                                "user_id": user.id,
+                                "user": user,
+                                "corpora": resources,
+                                "resource_id": resource_id,
+                                "auth_token": auth_token,
+                            }.items()
+                            if k in params
+                        }
+                    )
 
                 # Check if user is admin for resource
                 if resource_id not in resources:
-                    return utils.response(f"Corpus '{resource_id}' does not exist or you do not have access to it",
-                                          err=True, return_code="corpus_not_found"), 404
-                return function(**{k: v for k, v in {"user_id": user.id, "user": user,
-                                                     "corpora": resources, "resource_id": resource_id,
-                                                     "auth_token": auth_token}.items() if k in params})
+                    return utils.response(
+                        f"Corpus '{resource_id}' does not exist or you do not have access to it",
+                        err=True,
+                        return_code="corpus_not_found",
+                    ), 404
+                return function(
+                    **{
+                        k: v
+                        for k, v in {
+                            "user_id": user.id,
+                            "user": user,
+                            "corpora": resources,
+                            "resource_id": resource_id,
+                            "auth_token": auth_token,
+                        }.items()
+                        if k in params
+                    }
+                )
 
             # Catch everything else and return a traceback
             except Exception as e:
@@ -172,45 +209,59 @@ def read_jwt_key():
     )
 
 
-class Authentication(ABC):
-    """Abstract class for an authentication method"""
+class Authentication:
+    """Abstract class for an authentication method."""
+
     def set_user(self, idp: str, sub: str, name: str, email: str):
+        """Set user attributes."""
         user_id = re.sub(r"[^\w\-_\.]", "", (f"{idp}-{sub}"))
         self.user = User(id=user_id, name=name, email=email)
 
     def set_resources(self, scope: dict, levels: dict):
+        """Set scope and levels of resource grants."""
         self.scope = scope
         self.levels = levels
 
     def get_user(self) -> User:
+        """Return user."""
         return self.user
 
-    def get_resource_ids(self, include_read=False) -> List[str]:
+    def get_resource_ids(self, include_read=False) -> list[str]:
+        """Get a list of all resource IDs the user has access to."""
         min_level = "READ" if include_read else "WRITE"
+
         def is_relevant(resource_id, level):
             return level >= self.levels[min_level] and resource_id.startswith(app.config.get("RESOURCE_PREFIX"))
+
         grants = {**self.scope.get("corpora", {}), **self.scope.get("metadata", {})}.items()
         return [resource_id for resource_id, level in grants if is_relevant(resource_id, level)]
 
     def is_admin(self) -> bool:
+        """Check whether user has admin rights."""
         mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
         return self.scope.get("other", {}).get(mink_app_name, 0) >= self.levels["ADMIN"]
 
 
 class JwtAuthentication(Authentication):
-    """Handles JWT authentication"""
+    """Handles JWT authentication."""
+
     def __init__(self, token: str):
+        """Do authentication with JWT."""
         self.payload = jwt.decode(token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
         if self.payload["exp"] < time.time():
-            raise exceptions.JwtExpired()
+            raise exceptions.JwtExpiredError
 
-        self.set_user(self.payload["idp"], self.payload["sub"], self.payload.get("name", ""), self.payload.get("email", ""))
+        self.set_user(
+            self.payload["idp"], self.payload["sub"], self.payload.get("name", ""), self.payload.get("email", "")
+        )
         self.set_resources(self.payload.get("scope", {}), self.payload.get("levels", {}))
 
 
 class ApikeyAuthentication(Authentication):
-    """Handles authentication using an API key"""
+    """Handles authentication using an API key."""
+
     def __init__(self, apikey: str):
+        """Do authentication with API key."""
         # Make a cached HTTP request
         data = g.cache.get_apikey_data(apikey)
         if not data:
@@ -220,10 +271,11 @@ class ApikeyAuthentication(Authentication):
         self.set_user(**data["user"])
         self.set_resources(data["scope"], data["levels"])
 
-    def check_apikey(self, apikey: str):
-        """Check the given API key against SB-Auth"""
+    @staticmethod
+    def check_apikey(apikey: str):
+        """Check the given API key against SB-Auth."""
         # API documented at https://github.com/spraakbanken/sb-auth#api
-        url = app.config.get("SBAUTH_URL") + 'apikey-check'
+        url = app.config.get("SBAUTH_URL") + "apikey-check"
         headers = {
             "Authorization": f"apikey {app.config.get("SBAUTH_API_KEY")}",
             "Content-Type": "application/json",
@@ -232,18 +284,18 @@ class ApikeyAuthentication(Authentication):
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
-        if r.status_code == 404:
-            raise exceptions.ApikeyNotFound()
-        if r.status_code == 410:
-            raise exceptions.ApikeyExpired()
-        if r.status_code != 200:
+        if r.status_code == 404:  # noqa: PLR2004
+            raise exceptions.ApikeyNotFoundError
+        if r.status_code == 410:  # noqa: PLR2004
+            raise exceptions.ApikeyExpiredError
+        if r.status_code != 200:  # noqa: PLR2004
             app.logger.error("API key check had unexpected status %s and content: %s", r.status_code, r.content)
-            raise exceptions.ApikeyCheckFailed()
+            raise exceptions.ApikeyCheckFailedError
 
         return json.loads(r.content)
 
 
-def create_resource(auth_token, resource_id, resource_type=None):
+def create_resource(auth_token, resource_id, _resource_type=None):
     """Create a new resource in sb-auth."""
     # API documented at https://github.com/spraakbanken/sb-auth#api
     # TODO: specify resource_type when sbauth is ready

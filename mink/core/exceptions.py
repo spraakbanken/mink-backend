@@ -17,17 +17,20 @@ class JobNotFoundError(JobError):
     """Exception used for when a job could not be found."""
 
 
-class JwtExpired(Exception):
-    pass
+class JwtExpiredError(Exception):
+    """Exception used for when a JWT has expired."""
 
-class ApikeyCheckFailed(Exception):
-    pass
 
-class ApikeyExpired(Exception):
-    pass
+class ApikeyCheckFailedError(Exception):
+    """Exception used for when an API key fails to validate."""
 
-class ApikeyNotFound(Exception):
-    pass
+
+class ApikeyExpiredError(Exception):
+    """Exception used for when an API key has expired."""
+
+
+class ApikeyNotFoundError(Exception):
+    """Exception used for when an API key was not found."""
 
 
 class CorpusExistsError(Exception):
