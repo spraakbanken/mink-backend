@@ -5,7 +5,7 @@ The registry and job queue live in the cache and also on the local file system (
 
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from flask import current_app as app
 from flask import g
@@ -65,7 +65,7 @@ def get(resource_id) -> info.Info:
     raise exceptions.JobNotFoundError(f"No resource found with ID '{resource_id}'!")
 
 
-def filter_resources(resource_ids: Optional[list] = None) -> List[info.Info]:
+def filter_resources(resource_ids: Optional[list] = None) -> list[info.Info]:
     """Get info for all resources listed in 'resource_ids'."""
     filtered_resources = []
     all_resources = g.cache.get_all_resources()

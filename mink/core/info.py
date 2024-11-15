@@ -17,12 +17,8 @@ class Info:
     """An info item holding all information about a resource, organized into subclasses."""
 
     def __init__(
-            self,
-            id: str,
-            resource: Optional[Resource] = None,
-            owner: Optional[User] = None,
-            job: Optional[Job] = None
-        ):
+        self, id: str, resource: Optional[Resource] = None, owner: Optional[User] = None, job: Optional[Job] = None
+    ):
         """Create an info instance."""
         self.id = id
         self.resource = resource or Resource(id=self.id)
@@ -39,11 +35,7 @@ class Info:
 
     def serialize(self):
         """Convert class data into dict."""
-        return {
-            "resource": self.resource,
-            "owner": self.owner,
-            "job": self.job
-        }
+        return {"resource": self.resource, "owner": self.owner, "job": self.job}
 
     def to_dict(self):
         """Recursively transform class data into dict (also transforming the data of its children)."""
@@ -110,8 +102,9 @@ def load_from_str(jsonstr):
     """Load an Info instance from a json string."""
     json_info = json.loads(jsonstr)
     resource_id = json_info["resource"]["id"]
-    return Info(resource_id,
-                resource=Resource(**json_info.get("resource")),
-                owner=User(**json_info.get("owner")),
-                job=Job(resource_id, **json_info.get("job"))
-                )
+    return Info(
+        resource_id,
+        resource=Resource(**json_info.get("resource")),
+        owner=User(**json_info.get("owner")),
+        job=Job(resource_id, **json_info.get("job")),
+    )

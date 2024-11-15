@@ -34,7 +34,7 @@ class Job:
         installed_korp=False,
         installed_strix=False,
         latest_seconds_taken=0,
-        **_obsolete,  # needed to catch invalid arguments from outdated job items (avoids crashes)  # noqa: ANN003
+        **_obsolete,  # needed to catch invalid arguments from outdated job items (avoids crashes)
     ):
         """Init job by setting class variables."""
         self.id = id

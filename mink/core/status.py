@@ -21,6 +21,7 @@ class Status(Enum):
 
 class ProcessName(Enum):
     """Enum class for process names."""
+
     sync2sparv = "sync2sparv"
     sync2storage = "sync2storage"
     sparv = "sparv"
@@ -55,13 +56,13 @@ class JobStatuses(dict):
 
     def is_inactive(self):
         """Check if status is inactive."""
-        return all(status in {Status.none, Status.done, Status.error, Status.aborted}
-                   for status in self.values())
+        return all(status in {Status.none, Status.done, Status.error, Status.aborted} for status in self.values())
 
     def is_syncing(self):
         """Check if status is syncing."""
-        return self.get(ProcessName.sync2sparv) == Status.running or self.get(
-            ProcessName.sync2storage) == Status.running
+        return (
+            self.get(ProcessName.sync2sparv) == Status.running or self.get(ProcessName.sync2storage) == Status.running
+        )
 
     def is_none(self, process_name=None):
         """Check if status is none."""

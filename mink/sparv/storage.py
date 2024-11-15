@@ -145,9 +145,7 @@ def upload_dir(remote_dir, local_dir, resource_id, delete=False):
 
     _make_dir(remote_dir)
     user, host = _get_login()
-    p = subprocess.run(
-        ["rsync", *args, f"{user}@{host}:{remote_dir}"], capture_output=True, check=False
-    )
+    p = subprocess.run(["rsync", *args, f"{user}@{host}:{remote_dir}"], capture_output=True, check=False)
     if p.stderr:
         raise Exception(f"Failed to upload to '{remote_dir}': {p.stderr.decode()}")
 

@@ -3,15 +3,16 @@
 from typing import Optional
 
 
-class User():
+class User:
     """A user item holding information about some user data and settings."""
 
-    def __init__(self,
-                 id: str,  # noqa: A002
-                 name: str,
-                 email: str,
-                 ui_language: Optional[str] = None
-                ):
+    def __init__(
+        self,
+        id: str,  # noqa: A002
+        name: str,
+        email: str,
+        ui_language: Optional[str] = None,
+    ):
         """Init user by setting class variables."""
         self.id = id
         self.name = name
@@ -23,12 +24,7 @@ class User():
 
     def serialize(self):
         """Convert class data into dict."""
-        return {
-            "id": self.id,
-            "name": self.name,
-            "email": self.email,
-            "ui_language": self.ui_language
-            }
+        return {"id": self.id, "name": self.name, "email": self.email, "ui_language": self.ui_language}
 
     def set_parent(self, parent):
         """Save reference to parent class."""
