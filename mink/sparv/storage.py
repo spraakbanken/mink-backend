@@ -93,7 +93,7 @@ def write_file_contents(filepath: str, file_contents: bytes, resource_id: str):
     if not _is_valid_path(filepath, resource_id):
         raise Exception(f"You don't have permission to edit '{filepath}'")
 
-    p = utils.ssh_run(f"cat - > {shlex.quote(str(filepath))}", input=file_contents)
+    p = utils.ssh_run(f"cat - > {shlex.quote(str(filepath))}", ssh_input=file_contents)
     if p.stderr:
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
