@@ -134,7 +134,10 @@ def advance_queue():
     for job in running_jobs:
         try:
             if not job.process_running():
-                job.abort_sparv()
+                try:
+                    job.abort_sparv()
+                except exceptions.ProcessNotRunningError:
+                    pass
                 registry.pop_from_queue(job)
         except Exception as e:
             app.logger.error("Failed to check if process is running for '%s' %s", job.id, str(e))
