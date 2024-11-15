@@ -277,7 +277,7 @@ class ApikeyAuthentication(Authentication):
         # API documented at https://github.com/spraakbanken/sb-auth#api
         url = app.config.get("SBAUTH_URL") + "apikey-check"
         headers = {
-            "Authorization": f"apikey {app.config.get("SBAUTH_API_KEY")}",
+            "Authorization": f"apikey {app.config.get('SBAUTH_API_KEY')}",
             "Content-Type": "application/json",
         }
         data = {"apikey": apikey}
