@@ -76,8 +76,12 @@ def create_app(debug=False):
             base_url=app.config.get("MINK_URL"),
             **matomo_options,
         )
+        # Suppress some chatty logs
+        logging.getLogger("flask_matomo2").setLevel(logging.WARNING)
+        logging.getLogger("httpx").setLevel(logging.WARNING)
     else:
         app.logger.warning("NOT tracking to Matomo, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE.")
+
     with app.app_context():
         # Connect to cache and init the resource registry
         g.cache = Cache()
