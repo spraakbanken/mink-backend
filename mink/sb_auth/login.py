@@ -295,7 +295,7 @@ class ApikeyAuthentication(Authentication):
         return json.loads(r.content)
 
 
-def create_resource(auth_token, resource_id, _resource_type=None):
+def create_resource(auth_token, resource_id, resource_type=None):
     """Create a new resource in sb-auth."""
     # API documented at https://github.com/spraakbanken/sb-auth#api
     # TODO: specify resource_type when sbauth is ready
