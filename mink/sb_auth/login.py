@@ -320,7 +320,7 @@ def create_resource(auth_token, resource_id, resource_type=None):
 def remove_resource(resource_id) -> bool:
     """Remove a resource from sb-auth."""
     # API documented at https://github.com/spraakbanken/sb-auth#api
-    url = app.config.get("SBAUTH_URL") + f"resources/{resource_id}"
+    url = app.config.get("SBAUTH_URL") + f"resource/{resource_id}"
     api_key = app.config.get("SBAUTH_API_KEY")
     headers = {"Authorization": f"apikey {api_key}"}
     try:
