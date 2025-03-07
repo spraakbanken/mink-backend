@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path
 
-from flask import Flask, g, request
+from flask import Flask, Response, g, request
 from flask_cors import CORS
 
 from mink.core import extensions, registry, utils
@@ -21,8 +21,15 @@ from .sb_auth import login as login_routes
 from .sparv import process_routes, storage_routes
 
 
-def create_app(debug=False):
-    """Instantiate app."""
+def create_app(debug: bool = False) -> Flask:
+    """Instantiate app.
+
+    Args:
+        debug: Enable or disable debug mode.
+
+    Returns:
+        The Flask application instance.
+    """
     app = Flask(__name__)
 
     # Enable CORS
@@ -91,12 +98,12 @@ def create_app(debug=False):
         read_jwt_key()
 
     @app.before_request
-    def init_cache():
+    def init_cache() -> None:
         """Init the cache before each request."""
         g.cache = Cache()
 
     @app.before_request
-    def debug_info():
+    def debug_info() -> None:
         """Print some debugging info about the incoming request."""
         # Don't log options and advance-queue requests (too much spam)
         if request.method != "OPTIONS" and not request.url.endswith("/advance-queue"):
@@ -110,16 +117,30 @@ def create_app(debug=False):
             app.logger.debug("\n".join(log_msg))
 
     @app.after_request
-    def cleanup(response):
-        """Cleanup temporary files after request."""
+    def cleanup(response: Response) -> Response:
+        """Cleanup temporary files after request.
+
+        Args:
+            response: The response object.
+
+        Returns:
+            The response object.
+        """
         if "request_id" in g:
             local_user_dir = Path(app.instance_path) / app.config.get("TMP_DIR") / g.request_id
             shutil.rmtree(str(local_user_dir), ignore_errors=True)
         return response
 
     @app.errorhandler(413)
-    def request_entity_too_large(_error):
-        """Handle large requests."""
+    def request_entity_too_large(_error: Exception) -> tuple:
+        """Handle large requests.
+
+        Args:
+            _error: The error object.
+
+        Returns:
+            A tuple containing the response and the status code.
+        """
         max_size = app.config.get("MAX_CONTENT_LENGTH", 0)
         h_max_size = str(round(app.config.get("MAX_CONTENT_LENGTH", 0) / 1024 / 1024, 3))
         return utils.response(

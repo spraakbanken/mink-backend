@@ -45,8 +45,21 @@ from mink.core import utils
 #     return objlist
 
 
-def download_file(remote_file_path: str, local_file: Path, resource_id: str, ignore_missing: bool = False):
-    """Download a file from the storage server."""
+def download_file(remote_file_path: str, local_file: Path, resource_id: str, ignore_missing: bool = False) -> bool:
+    """Download a file from the storage server.
+
+    Args:
+        remote_file_path: The path to the remote file.
+        local_file: The local file path to save the downloaded file.
+        resource_id: The resource ID.
+        ignore_missing: Whether to ignore missing files.
+
+    Returns:
+        True if the file was downloaded successfully, False otherwise.
+
+    Raises:
+        Exception: If the download fails or the path is invalid.
+    """
     if not _is_valid_path(remote_file_path, resource_id):
         raise Exception(f"You don't have permission to download '{remote_file_path}'")
 
@@ -70,8 +83,17 @@ def download_file(remote_file_path: str, local_file: Path, resource_id: str, ign
 #     return p.stdout.decode()
 
 
-def write_file_contents(filepath: str, file_contents: bytes, resource_id: str):
-    """Write contents to a new file on the storage server."""
+def write_file_contents(filepath: str, file_contents: bytes, resource_id: str) -> None:
+    """Write contents to a new file on the storage server.
+
+    Args:
+        filepath: The path to the file.
+        file_contents: The contents to write to the file.
+        resource_id: The resource ID.
+
+    Raises:
+        Exception: If writing the contents fails or the path is invalid.
+    """
     if not _is_valid_path(filepath, resource_id):
         raise Exception(f"You don't have permission to edit '{filepath}'")
 
@@ -80,8 +102,16 @@ def write_file_contents(filepath: str, file_contents: bytes, resource_id: str):
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
 
-def remove_dir(path, resource_id: str):
-    """Remove directory on 'path' from storage server."""
+def remove_dir(path: str, resource_id: str) -> None:
+    """Remove directory on 'path' from storage server.
+
+    Args:
+        path: The path to the directory.
+        resource_id: The resource ID.
+
+    Raises:
+        Exception: If removing the directory fails or the path is invalid.
+    """
     if not _is_valid_path(path, resource_id):
         raise Exception(f"You don't have permission to remove '{path}'")
 
@@ -100,28 +130,40 @@ def remove_dir(path, resource_id: str):
 #         raise Exception(f"Failed to remove file '{path}' on storage server: {p.stderr.decode()}")
 
 
-def _get_login():
+def _get_login() -> tuple[str, str]:
+    """Get the login credentials for the storage server.
+
+    Returns:
+        A tuple containing the username and host.
+    """
     user = app.config.get("METADATA_USER")
     host = app.config.get("METADATA_HOST")
     return user, host
 
 
-def _is_valid_path(path, resource_id: str):
-    """Check that path points to a certain resource dir (or a descendant)."""
+def _is_valid_path(path: str, resource_id: str) -> bool:
+    """Check that path points to a certain resource dir (or a descendant).
+
+    Args:
+        path: The path to check.
+        resource_id: The resource ID.
+
+    Returns:
+        True if the path is valid, False otherwise.
+    """
     return get_resource_dir(resource_id).resolve() in {*list(Path(path).resolve().parents), Path(path).resolve()}
 
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Get paths on storage server
-################################################################################
-
+# ------------------------------------------------------------------------------
 
 def get_resources_dir() -> Path:
     """Get dir for metadata resources."""
     return Path(app.config.get("METADATA_DIR"))
 
 
-def get_resource_dir(resource_id: str, mkdir=False) -> Path:
+def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get dir for given resource."""
     resources_dir = get_resources_dir()
     resdir = resources_dir / resource_id[len(app.config.get("RESOURCE_PREFIX"))] / resource_id
@@ -139,13 +181,13 @@ def get_source_dir(resource_id: str, mkdir: bool = False) -> Path:
     return source_dir
 
 
-def get_yaml_file(resource_id):
+def get_yaml_file(resource_id: str) -> Path:
     """Get path to metadata yaml file."""
     resdir = get_resource_dir(resource_id)
     return resdir / (resource_id + ".yaml")
 
 
-def _make_dir(dirpath):
+def _make_dir(dirpath: Path) -> None:
     """Create directory on storage server."""
     p = utils.ssh_run(f"mkdir -p {shlex.quote(str(dirpath))}")
     if p.stderr:

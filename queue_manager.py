@@ -13,8 +13,12 @@ from urllib import error, parse, request
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 
-def advance_queue(config):
-    """Check the queue and run jobs if possible."""
+def advance_queue(config: dict) -> None:
+    """Check the queue and run jobs if possible.
+
+    Args:
+        config: Configuration dictionary.
+    """
     logging.debug("Calling '/advance-queue'...")
     url = f"{config.get('MINK_URL')}/advance-queue"
     try:
@@ -26,8 +30,12 @@ def advance_queue(config):
         logging.error("Error advancing queue! %s", e)
 
 
-def ping_healthchecks(config):
-    """Ping helthchecks (https://healthchecks.io/) to tell it that the queue manager is running."""
+def ping_healthchecks(config: dict) -> None:
+    """Ping healthchecks (https://healthchecks.io/) to tell it that the queue manager is running.
+
+    Args:
+        config: Configuration dictionary.
+    """
     url = config.get("HEALTHCHECKS_URL")
     if url:
         logging.debug("Sending ping to healthchecks")
@@ -40,8 +48,15 @@ def ping_healthchecks(config):
         logging.debug("No health check URL found")
 
 
-def import_config():
-    """Import default and instance config."""
+def import_config() -> dict:
+    """Import default and instance config.
+
+    Returns:
+        A dictionary containing the configuration.
+
+    Raises:
+        ImportError: If the config module cannot be imported.
+    """
     import config  # noqa: PLC0415
     my_config = {item: getattr(config, item) for item in dir(config) if item.isupper()}
 

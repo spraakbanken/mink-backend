@@ -1,5 +1,10 @@
 # Changelog
 
+All notable API changes will be documented in this file. The format is based on [Keep a
+Changelog](https://keepachangelog.com/en/1.0.0/).
+
+## [unreleased]
+
 ## [1.1.0] - 2024-01-05
 
 ### Added
@@ -13,9 +18,12 @@
   (instead of it being created first upon starting a Sparv job).
 - The `/check-status`-call has been replaced with `/resource-info` with a different response format.
 
-
 ## [1.0.0] - 2023-09-19
 
 This is the first release of the Mink backend! This application contains functionality for uploading and downloading
 corpus-related files, processing corpora with [Sparv](https://spraakbanken.gu.se/sparv/) and installing them in
 [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
+
+[unreleased]: https://github.com/spraakbanken/mink-backend/compare/v1.1.0...dev
+[1.1.0]: https://github.com/spraakbanken/mink-backend/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v1.0.0

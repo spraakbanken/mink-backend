@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import shortuuid
-from flask import Blueprint, request, send_file
+from flask import Blueprint, Response, request, send_file
 from flask import current_app as app
 
 from mink.core import exceptions, registry, utils
@@ -22,8 +22,16 @@ bp = Blueprint("sparv_storage", __name__)
 
 @bp.route("/create-corpus", methods=["POST"])
 @login.login(require_resource_exists=False, require_resource_id=False)
-def create_corpus(user: dict, auth_token: str):
-    """Create a new corpus."""
+def create_corpus(user: dict, auth_token: str) -> tuple[Response, int]:
+    """Create a new corpus.
+
+    Args:
+        user: The user dictionary.
+        auth_token: The authentication token.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     # Create corpus ID
     resource_id = None
     prefix = app.config.get("RESOURCE_PREFIX")
@@ -61,20 +69,16 @@ def create_corpus(user: dict, auth_token: str):
         try:
             # Try to remove partially uploaded corpus data
             storage.remove_dir(corpus_dir, resource_id)
-        except Exception as err:
-            app.logger.error(
-                "Failed to remove partially uploaded corpus data for '%s'. %s",
-                resource_id,
-                err,
-            )
+        except Exception:
+            app.logger.exception("Failed to remove partially uploaded corpus data for '%s'.", resource_id)
         try:
             login.remove_resource(resource_id)
-        except Exception as err:
-            app.logger.error("Failed to remove corpus '%s' from auth system. %s", resource_id, err)
+        except Exception:
+            app.logger.exception("Failed to remove corpus '%s' from auth system.", resource_id)
         try:
             info_obj.remove()
-        except Exception as err:
-            app.logger.error("Failed to remove job '%s'. %s", resource_id, err)
+        except Exception:
+            app.logger.exception("Failed to remove job '%s'.", resource_id)
         return utils.response(
             "Failed to create corpus dir",
             err=True,
@@ -85,15 +89,29 @@ def create_corpus(user: dict, auth_token: str):
 
 @bp.route("/list-corpora", methods=["GET"])
 @login.login(require_resource_id=False, require_resource_exists=False)
-def list_corpora(corpora: list):
-    """List all available corpora."""
+def list_corpora(corpora: list) -> tuple[Response, int]:
+    """List all available corpora.
+
+    Args:
+        corpora: List of corpora.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     return utils.response("Listing available corpora", corpora=corpora, return_code="listing_corpora")
 
 
 @bp.route("/list-korp-corpora", methods=["GET"])
 @login.login(include_read=True, require_resource_id=False, require_resource_exists=False)
-def list_korp_corpora(corpora: list):
-    """List all the user's corpora that are installed in Korp."""
+def list_korp_corpora(corpora: list) -> tuple[Response, int]:
+    """List all the user's corpora that are installed in Korp.
+
+    Args:
+        corpora: List of corpora.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     installed_corpora = []
     try:
         # Get resource infos beloning to corpora that the user may edit
@@ -110,8 +128,15 @@ def list_korp_corpora(corpora: list):
 
 @bp.route("/remove-corpus", methods=["DELETE"])
 @login.login()
-def remove_corpus(resource_id: str):
-    """Remove corpus."""
+def remove_corpus(resource_id: str) -> tuple[Response, int]:
+    """Remove corpus.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     # Get job
     info_obj = registry.get(resource_id)
     if info_obj.job.installed_korp:
@@ -163,8 +188,8 @@ def remove_corpus(resource_id: str):
     # Remove from Mink registry
     try:
         info_obj.remove()
-    except Exception as err:
-        app.logger.error("Failed to remove job '%s'. %s", resource_id, err)
+    except Exception:
+        app.logger.exception("Failed to remove job '%s'.", resource_id)
     return utils.response(f"Corpus '{resource_id}' successfully removed", return_code="removed_corpus")
 
 
@@ -175,10 +200,16 @@ def remove_corpus(resource_id: str):
 
 @bp.route("/upload-sources", methods=["PUT"])
 @login.login()
-def upload_sources(resource_id: str):
+def upload_sources(resource_id: str) -> tuple[Response, int]:
     """Upload corpus source files.
 
     Attached files will be added to the corpus or replace existing ones.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
     """
     # Check if corpus files were provided
     files = list(request.files.listvalues())
@@ -287,8 +318,15 @@ def upload_sources(resource_id: str):
 
 @bp.route("/list-sources", methods=["GET"])
 @login.login()
-def list_sources(resource_id: str):
-    """List the available corpus source files."""
+def list_sources(resource_id: str) -> tuple[Response, int]:
+    """List the available corpus source files.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     source_dir = str(storage.get_source_dir(resource_id))
     try:
         objlist = storage.list_contents(source_dir)
@@ -306,8 +344,15 @@ def list_sources(resource_id: str):
 
 @bp.route("/remove-sources", methods=["DELETE"])
 @login.login()
-def remove_sources(resource_id: str):
-    """Remove file paths listed in 'remove' (comma separated) from the corpus."""
+def remove_sources(resource_id: str) -> tuple[Response, int]:
+    """Remove file paths listed in 'remove' (comma separated) from the corpus.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     remove_files = request.args.get("remove") or request.form.get("remove") or ""
     remove_files = [i.strip() for i in remove_files.split(",") if i]
     if not remove_files:
@@ -347,13 +392,19 @@ def remove_sources(resource_id: str):
 
 @bp.route("/download-sources", methods=["GET"])
 @login.login()
-def download_sources(resource_id: str):
+def download_sources(resource_id: str) -> tuple[Response, int]:
     """Download the corpus source files as a zip file.
 
     The parameter 'file' may be used to download a specific source file. This
     parameter must either be a file name or a path on the storage server. The `zip`
     parameter may be set to `false` in combination with the `file` param to avoid
     zipping the file to be downloaded.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
 
@@ -429,10 +480,17 @@ def download_sources(resource_id: str):
 
 @bp.route("/upload-config", methods=["PUT"])
 @login.login()
-def upload_config(resource_id: str):
-    """Upload a corpus config as file or plain text."""
+def upload_config(resource_id: str) -> tuple[Response, int]:
+    """Upload a corpus config as file or plain text.
 
-    def set_corpus_name(corpus_name):
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
+
+    def set_corpus_name(corpus_name: str) -> None:
         res = registry.get(resource_id).resource
         res.set_resource_name = corpus_name
 
@@ -510,8 +568,15 @@ def upload_config(resource_id: str):
 
 @bp.route("/download-config", methods=["GET"])
 @login.login()
-def download_config(resource_id: str):
-    """Download the corpus config file."""
+def download_config(resource_id: str) -> tuple[Response, int]:
+    """Download the corpus config file.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     storage_config_file = str(storage.get_config_file(resource_id))
     # Create directory for the current resource locally (on Mink backend server)
     utils.get_source_dir(resource_id, mkdir=True)
@@ -540,8 +605,15 @@ def download_config(resource_id: str):
 
 @bp.route("/list-exports", methods=["GET"])
 @login.login()
-def list_exports(resource_id: str):
-    """List exports available for download for a given corpus."""
+def list_exports(resource_id: str) -> tuple[Response, int]:
+    """List exports available for download for a given corpus.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     path = str(storage.get_export_dir(resource_id))
     try:
         objlist = storage.list_contents(path, blacklist=app.config.get("SPARV_EXPORT_BLACKLIST"))
@@ -559,12 +631,18 @@ def list_exports(resource_id: str):
 
 @bp.route("/download-exports", methods=["GET"])
 @login.login()
-def download_export(resource_id: str):
+def download_export(resource_id: str) -> tuple[Response, int]:
     """Download export files for a corpus as a zip file.
 
     The parameters 'file' and 'dir' may be used to download a specific export file or a directory of export files. These
     parameters must be supplied as  paths relative to the export directory. The `zip` parameter may be set to `false` in
     combination with the `file` param to avoid zipping the file to be downloaded.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
     download_folder = request.args.get("dir") or request.form.get("dir") or ""
@@ -680,8 +758,15 @@ def download_export(resource_id: str):
 
 @bp.route("/remove-exports", methods=["DELETE"])
 @login.login()
-def remove_exports(resource_id: str):
-    """Remove export files."""
+def remove_exports(resource_id: str) -> tuple[Response, int]:
+    """Remove export files.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     if not storage.local:
         try:
             # Remove export dir from storage server and create a new empty one
@@ -722,10 +807,16 @@ def remove_exports(resource_id: str):
 
 @bp.route("/download-source-text", methods=["GET"])
 @login.login()
-def download_source_text(resource_id: str):
+def download_source_text(resource_id: str) -> tuple[Response, int]:
     """Get one of the source files in plain text.
 
     The source file name (including its file extension) must be specified in the 'file' parameter.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
 
@@ -778,8 +869,15 @@ def download_source_text(resource_id: str):
 
 @bp.route("/check-changes", methods=["GET"])
 @login.login()
-def check_changes(resource_id: str):
-    """Check if config or source files have changed since the last job was started."""
+def check_changes(resource_id: str) -> tuple[Response, int]:
+    """Check if config or source files have changed since the last job was started.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     try:
         job = registry.get(resource_id).job
     except Exception as e:

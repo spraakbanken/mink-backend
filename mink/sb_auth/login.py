@@ -7,11 +7,12 @@ import re
 import time
 import traceback
 from pathlib import Path
+from typing import Callable, Optional
 
 import jwt
 import requests
 import shortuuid
-from flask import Blueprint, g, request, session
+from flask import Blueprint, Response, g, request, session
 from flask import current_app as app
 
 from mink.core import exceptions, registry, utils
@@ -20,20 +21,27 @@ from mink.core.user import User
 bp = Blueprint("sb_auth_login", __name__)
 
 
-def login(include_read=False, require_resource_id=True, require_resource_exists=True, require_admin=False):
+def login(
+    include_read: bool = False,
+    require_resource_id: bool = True,
+    require_resource_exists: bool = True,
+    require_admin: bool = False,
+) -> Callable:
     """Attempt to login on sb-auth.
 
     Args:
-        include_read (bool, optional): Include resources that the user has read access to. Defaults to False.
-        require_resource_id (bool, optional): This route requires the user to supply a resource ID. Defaults to True.
-        require_resource_exists (bool, optional): This route requires that the supplied resource ID occurs in the JWT.
-            Defaults to True.
-        require_admin (bool, optional): This route requires the user to be a mink admin. Defaults to False.
+        include_read: Include resources that the user has read access to.
+        require_resource_id: This route requires the user to supply a resource ID.
+        require_resource_exists: This route requires that the supplied resource ID occurs in the JWT.
+        require_admin: This route requires the user to be a mink admin.
+
+    Returns:
+        A decorator function.
     """
 
-    def decorator(function):
+    def decorator(function: Callable) -> Callable:
         @functools.wraps(function)  # Copy original function's information, needed by Flask
-        def wrapper():
+        def wrapper() -> tuple[Response, int]:
             # Get the function's params
             params = inspect.signature(function).parameters.keys()
 
@@ -72,7 +80,7 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
                 except exceptions.ApikeyCheckFailedError:
                     return utils.response("API key check failed", err=True, return_code="apikey_check_failed"), 500
                 except Exception as e:
-                    app.logger.error("API key authentication failed: %s", str(e))
+                    app.logger.exception("API key authentication failed")
                     return utils.response(
                         "API key authentication failed", err=True, info=str(e), return_code="apikey_error"
                     ), 500
@@ -178,31 +186,43 @@ def login(include_read=False, require_resource_id=True, require_resource_exists=
 
 @bp.route("/admin-mode-on", methods=["POST"])
 @login(require_resource_exists=False, require_resource_id=False, require_admin=True)
-def admin_mode_on():
-    """Turn on admin mode."""
+def admin_mode_on() -> Response:
+    """Turn on admin mode.
+
+    Returns:
+        A response indicating the status of the operation.
+    """
     session["admin_mode"] = True
     return utils.response("Admin mode turned on", return_code="admin_on")
 
 
 @bp.route("/admin-mode-off", methods=["POST"])
 @login(require_resource_exists=False, require_resource_id=False)
-def admin_mode_off():
-    """Turn off admin mode."""
+def admin_mode_off() -> Response:
+    """Turn off admin mode.
+
+    Returns:
+        A response indicating the status of the operation.
+    """
     session["admin_mode"] = False
     return utils.response("Admin mode turned off", return_code="admin_off")
 
 
 @bp.route("/admin-mode-status", methods=["GET"])
 @login(require_resource_exists=False, require_resource_id=False)
-def admin_mode_status():
-    """Return status of admin mode."""
+def admin_mode_status() -> Response:
+    """Return status of admin mode.
+
+    Returns:
+        A response indicating the status of the operation.
+    """
     admin_status = session.get("admin_mode", False)
     return utils.response(
         "Returning status of admin mode", admin_mode_status=admin_status, return_code="returning_admin_status"
     )
 
 
-def read_jwt_key():
+def read_jwt_key() -> None:
     """Read and return the public key for validating JWTs."""
     app.config["JWT_KEY"] = (
         (Path(app.instance_path) / app.config.get("SBAUTH_PUBKEY_FILE")).open(encoding="utf-8").read()
@@ -212,32 +232,59 @@ def read_jwt_key():
 class Authentication:
     """Abstract class for an authentication method."""
 
-    def set_user(self, idp: str, sub: str, name: str, email: str):
-        """Set user attributes."""
+    def set_user(self, idp: str, sub: str, name: str, email: str) -> None:
+        """Set user attributes.
+
+        Args:
+            idp: Identity provider.
+            sub: Subject.
+            name: User's name.
+            email: User's email.
+        """
         user_id = re.sub(r"[^\w\-_\.]", "", (f"{idp}-{sub}"))
         self.user = User(id=user_id, name=name, email=email)
 
-    def set_resources(self, scope: dict, levels: dict):
-        """Set scope and levels of resource grants."""
+    def set_resources(self, scope: dict, levels: dict) -> None:
+        """Set scope and levels of resource grants.
+
+        Args:
+            scope: Scope of the resources.
+            levels: Levels of access.
+        """
         self.scope = scope
         self.levels = levels
 
     def get_user(self) -> User:
-        """Return user."""
+        """Return user.
+
+        Returns:
+            The user object.
+        """
         return self.user
 
-    def get_resource_ids(self, include_read=False) -> list[str]:
-        """Get a list of all resource IDs the user has access to."""
+    def get_resource_ids(self, include_read: bool = False) -> list[str]:
+        """Get a list of all resource IDs the user has access to.
+
+        Args:
+            include_read: Include resources that the user has read access to.
+
+        Returns:
+            A list of resource IDs.
+        """
         min_level = "READ" if include_read else "WRITE"
 
-        def is_relevant(resource_id, level):
+        def is_relevant(resource_id: str, level: int) -> bool:
             return level >= self.levels[min_level] and resource_id.startswith(app.config.get("RESOURCE_PREFIX"))
 
         grants = {**self.scope.get("corpora", {}), **self.scope.get("metadata", {})}.items()
         return [resource_id for resource_id, level in grants if is_relevant(resource_id, level)]
 
     def is_admin(self) -> bool:
-        """Check whether user has admin rights."""
+        """Check whether user has admin rights.
+
+        Returns:
+            True if the user has admin rights, False otherwise.
+        """
         mink_app_name = app.config.get("SBAUTH_MINK_APP_RESOURCE", "")
         return self.scope.get("other", {}).get(mink_app_name, 0) >= self.levels["ADMIN"]
 
@@ -245,8 +292,15 @@ class Authentication:
 class JwtAuthentication(Authentication):
     """Handles JWT authentication."""
 
-    def __init__(self, token: str):
-        """Do authentication with JWT."""
+    def __init__(self, token: str) -> None:
+        """Do authentication with JWT.
+
+        Args:
+            token: The JWT token.
+
+        Raises:
+            JwtExpiredError: If the JWT has expired.
+        """
         self.payload = jwt.decode(token, key=app.config.get("JWT_KEY"), algorithms=["RS256"])
         if self.payload["exp"] < time.time():
             raise exceptions.JwtExpiredError
@@ -260,8 +314,17 @@ class JwtAuthentication(Authentication):
 class ApikeyAuthentication(Authentication):
     """Handles authentication using an API key."""
 
-    def __init__(self, apikey: str):
-        """Do authentication with API key."""
+    def __init__(self, apikey: str) -> None:
+        """Do authentication with API key.
+
+        Args:
+            apikey: The API key.
+
+        Raises:
+            ApikeyNotFoundError: If the API key is not recognized.
+            ApikeyExpiredError: If the API key has expired.
+            ApikeyCheckFailedError: If the API key check failed.
+        """
         # Make a cached HTTP request
         data = g.cache.get_apikey_data(apikey)
         if not data:
@@ -272,8 +335,20 @@ class ApikeyAuthentication(Authentication):
         self.set_resources(data["scope"], data["levels"])
 
     @staticmethod
-    def check_apikey(apikey: str):
-        """Check the given API key against SB-Auth."""
+    def check_apikey(apikey: str) -> dict:
+        """Check the given API key against SB-Auth.
+
+        Args:
+            apikey: The API key.
+
+        Returns:
+            A dictionary containing the user and scope information.
+
+        Raises:
+            ApikeyNotFoundError: If the API key is not recognized.
+            ApikeyExpiredError: If the API key has expired.
+            ApikeyCheckFailedError: If the API key check failed.
+        """
         # API documented at https://github.com/spraakbanken/sb-auth#api
         url = app.config.get("SBAUTH_URL") + "apikey-check"
         headers = {
@@ -295,8 +370,18 @@ class ApikeyAuthentication(Authentication):
         return json.loads(r.content)
 
 
-def create_resource(auth_token, resource_id, resource_type=None):
-    """Create a new resource in sb-auth."""
+def create_resource(auth_token: str, resource_id: str, resource_type: Optional[str] = None) -> None:
+    """Create a new resource in sb-auth.
+
+    Args:
+        auth_token: The authentication token.
+        resource_id: The resource ID.
+        resource_type: The resource type.
+
+    Raises:
+        CorpusExistsError: If the corpus already exists.
+        Exception: If creating the resource fails.
+    """
     # API documented at https://github.com/spraakbanken/sb-auth#api
     # TODO: specify resource_type when sbauth is ready
     url = app.config.get("SBAUTH_URL") + f"resource/{resource_id}"
@@ -307,8 +392,8 @@ def create_resource(auth_token, resource_id, resource_type=None):
         r = requests.post(url, headers=headers, data=json.dumps(data))
         status = r.status_code
     except Exception as e:
-        app.logger.error("Could not create resource: %s", e)
-        raise (e)
+        app.logger.exception("Could not create resource")
+        raise e
     if status == 400:  # noqa: PLR2004
         raise exceptions.CorpusExistsError
     if status != 201:  # noqa: PLR2004
@@ -317,8 +402,18 @@ def create_resource(auth_token, resource_id, resource_type=None):
         raise Exception(message)
 
 
-def remove_resource(resource_id) -> bool:
-    """Remove a resource from sb-auth."""
+def remove_resource(resource_id: str) -> bool:
+    """Remove a resource from sb-auth.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        True if the resource was removed successfully, False otherwise.
+
+    Raises:
+        Exception: If removing the resource fails.
+    """
     # API documented at https://github.com/spraakbanken/sb-auth#api
     url = app.config.get("SBAUTH_URL") + f"resource/{resource_id}"
     api_key = app.config.get("SBAUTH_API_KEY")

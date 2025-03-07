@@ -4,7 +4,7 @@ import mimetypes
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from dateutil.parser import isoparse, parse
 from flask import current_app as app
@@ -12,13 +12,25 @@ from flask import current_app as app
 from mink.core import exceptions, utils
 from mink.sparv import utils as sparv_utils
 
+if TYPE_CHECKING:
+    from mink.core.jobs import Job
+
 local = True
 
 
-def list_contents(directory: Union[Path, str], exclude_dirs: bool = True, blacklist: Optional[list] = None):
+def list_contents(directory: Union[Path, str], exclude_dirs: bool = True, blacklist: Optional[list] = None) -> list:
     """List files in directory on Sparv server recursively.
 
-    If a blacklist is specified, exclude paths that match anything on the blacklist.
+    Args:
+        directory: The directory to list contents of.
+        exclude_dirs: Whether to exclude directories from the list.
+        blacklist: List of paths to exclude.
+
+    Returns:
+        A list of dictionaries containing file information.
+
+    Raises:
+        Exception: If listing contents fails.
     """
     objlist = []
     directory_quoted = shlex.quote(str(directory))
@@ -52,8 +64,21 @@ def list_contents(directory: Union[Path, str], exclude_dirs: bool = True, blackl
     return objlist
 
 
-def download_file(remote_file_path: str, local_file: Path, resource_id: str, ignore_missing: bool = False):
-    """Download a file from the Sparv server."""
+def download_file(remote_file_path: str, local_file: Path, resource_id: str, ignore_missing: bool = False) -> bool:
+    """Download a file from the Sparv server.
+
+    Args:
+        remote_file_path: The path to the remote file.
+        local_file: The local file path to save the downloaded file.
+        resource_id: The resource ID.
+        ignore_missing: Whether to ignore missing files.
+
+    Returns:
+        True if the file was downloaded successfully, False otherwise.
+
+    Raises:
+        Exception: If the download fails or the path is invalid.
+    """
     if not _is_valid_path(remote_file_path, resource_id):
         raise Exception(f"You don't have permission to download '{remote_file_path}'")
 
@@ -68,8 +93,18 @@ def download_file(remote_file_path: str, local_file: Path, resource_id: str, ign
     return not (ignore_missing and not local_file.is_file())
 
 
-def get_file_contents(filepath):
-    """Get contents of file at 'filepath'."""
+def get_file_contents(filepath: str) -> str:
+    """Get contents of file at 'filepath'.
+
+    Args:
+        filepath: The path to the file.
+
+    Returns:
+        The contents of the file as a string.
+
+    Raises:
+        Exception: If retrieving the contents fails.
+    """
     p = utils.ssh_run(f"cat {shlex.quote(str(filepath))}")
     if p.stderr:
         raise Exception(f"Failed to retrieve contents for '{filepath}': {p.stderr.decode()}")
@@ -77,8 +112,18 @@ def get_file_contents(filepath):
     return p.stdout.decode()
 
 
-def get_size(remote_path):
-    """Get the size of a file or directory."""
+def get_size(remote_path: str) -> int:
+    """Get the size of a file or directory.
+
+    Args:
+        remote_path: The path to the remote file or directory.
+
+    Returns:
+        The size of the file or directory in bytes.
+
+    Raises:
+        Exception: If retrieving the size fails.
+    """
     p = utils.ssh_run(f"du -s {shlex.quote(str(remote_path))}")
     if p.stderr:
         raise Exception(f"Failed to retrieve size for path '{remote_path}': {p.stderr.decode()}")
@@ -88,8 +133,17 @@ def get_size(remote_path):
         raise Exception(f"Failed to retrieve size for path '{remote_path}': {e}") from e
 
 
-def write_file_contents(filepath: str, file_contents: bytes, resource_id: str):
-    """Write contents to a new file on the Sparv server."""
+def write_file_contents(filepath: str, file_contents: bytes, resource_id: str) -> None:
+    """Write contents to a new file on the Sparv server.
+
+    Args:
+        filepath: The path to the file.
+        file_contents: The contents to write to the file.
+        resource_id: The resource ID.
+
+    Raises:
+        Exception: If writing the contents fails or the path is invalid.
+    """
     if not _is_valid_path(filepath, resource_id):
         raise Exception(f"You don't have permission to edit '{filepath}'")
 
@@ -98,8 +152,30 @@ def write_file_contents(filepath: str, file_contents: bytes, resource_id: str):
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
 
-def download_dir(remote_dir, local_dir, resource_id, zipped=False, zippath=None, excludes=None):
-    """Download remote_dir on Sparv server to local_dir by rsyncing."""
+def download_dir(
+    remote_dir: str,
+    local_dir: Path,
+    resource_id: str,
+    zipped: bool = False,
+    zippath: Optional[Path] = None,
+    excludes: Optional[list] = None,
+) -> Union[Path, None]:
+    """Download remote_dir on Sparv server to local_dir by rsyncing.
+
+    Args:
+        remote_dir: The remote directory to download.
+        local_dir: The local directory to save the downloaded contents.
+        resource_id: The resource ID.
+        zipped: Whether to zip the downloaded contents.
+        zippath: The path to save the zipped file.
+        excludes: List of paths to exclude.
+
+    Returns:
+        The path to the local directory or the zipped file.
+
+    Raises:
+        Exception: If the download fails or the path is invalid.
+    """
     if not excludes:
         excludes = []
     if not _is_valid_path(remote_dir, resource_id):
@@ -126,7 +202,7 @@ def download_dir(remote_dir, local_dir, resource_id, zipped=False, zippath=None,
     return zippath
 
 
-def upload_dir(remote_dir, local_dir, resource_id, delete=False):
+def upload_dir(remote_dir: str, local_dir: Path, resource_id: str, delete: bool = False) -> None:
     """Upload local dir to remote_dir on Sparv server by rsyncing.
 
     Args:
@@ -134,6 +210,9 @@ def upload_dir(remote_dir, local_dir, resource_id, delete=False):
         local_dir: Local directory to upload.
         delete: If set to True delete files that do not exist in local_dir.
         resource_id: Resource ID.
+
+    Raises:
+        Exception: If the upload fails or the path is invalid.
     """
     if not _is_valid_path(remote_dir, resource_id):
         raise Exception(f"You don't have permission to edit '{remote_dir}'")
@@ -150,8 +229,16 @@ def upload_dir(remote_dir, local_dir, resource_id, delete=False):
         raise Exception(f"Failed to upload to '{remote_dir}': {p.stderr.decode()}")
 
 
-def remove_dir(path, resource_id: str):
-    """Remove directory on 'path' from Sparv server."""
+def remove_dir(path: str, resource_id: str) -> None:
+    """Remove directory on 'path' from Sparv server.
+
+    Args:
+        path: The path to the directory.
+        resource_id: The resource ID.
+
+    Raises:
+        Exception: If removing the directory fails or the path is invalid.
+    """
     if not _is_valid_path(path, resource_id):
         raise Exception(f"You don't have permission to remove '{path}'")
 
@@ -160,8 +247,16 @@ def remove_dir(path, resource_id: str):
         raise Exception(f"Failed to remove corpus dir on Sparv server: {p.stderr.decode()}")
 
 
-def remove_file(path, resource_id: str):
-    """Remove file on 'path' from Sparv server."""
+def remove_file(path: str, resource_id: str) -> None:
+    """Remove file on 'path' from Sparv server.
+
+    Args:
+        path: The path to the file.
+        resource_id: The resource ID.
+
+    Raises:
+        Exception: If removing the file fails or the path is invalid.
+    """
     if not _is_valid_path(path, resource_id):
         raise Exception(f"You don't have permission to remove '{path}'")
 
@@ -170,8 +265,20 @@ def remove_file(path, resource_id: str):
         raise Exception(f"Failed to remove file '{path}' on Sparv server: {p.stderr.decode()}")
 
 
-def get_file_changes(resource_id: str, job):
-    """Get changes for source files and config file."""
+def get_file_changes(resource_id: str, job: "Job") -> tuple:
+    """Get changes for source files and config file.
+
+    Args:
+        resource_id: The resource ID.
+        job: The job object.
+
+    Returns:
+        A tuple containing lists of added, changed, and deleted source files, and the changed config file.
+
+    Raises:
+        JobNotFoundError: If the job has not started.
+        CouldNotListSourcesError: If listing source files fails.
+    """
     if not job.started:
         raise exceptions.JobNotFoundError
     started = isoparse(job.started)
@@ -215,23 +322,38 @@ def get_file_changes(resource_id: str, job):
     return added_sources, changed_sources, deleted_sources, changed_config
 
 
-def _get_login():
+def _get_login() -> tuple:
+    """Get the login credentials for the Sparv server.
+
+    Returns:
+        A tuple containing the username and host.
+
+    Raises:
+        KeyError: If the login credentials are not found in the config.
+    """
     user = app.config.get("SPARV_USER")
     host = app.config.get("SPARV_HOST")
     return user, host
 
 
-def _is_valid_path(path, resource_id: str):
-    """Check that path points to a certain corpus dir (or a descendant)."""
+def _is_valid_path(path: str, resource_id: str) -> bool:
+    """Check that path points to a certain corpus dir (or a descendant).
+
+    Args:
+        path: The path to check.
+        resource_id: The resource ID.
+
+    Returns:
+        True if the path is valid, False otherwise.
+    """
     return get_corpus_dir(resource_id).resolve() in {*list(Path(path).resolve().parents), Path(path).resolve()}
 
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Get paths on Sparv server
-################################################################################
+# ------------------------------------------------------------------------------
 
-
-def get_corpus_dir(resource_id, mkdir=False):
+def get_corpus_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get dir for given corpus."""
     corpus_dir = sparv_utils.get_corpus_dir(resource_id)
     if mkdir:
@@ -239,7 +361,7 @@ def get_corpus_dir(resource_id, mkdir=False):
     return corpus_dir
 
 
-def get_export_dir(resource_id, mkdir=False):
+def get_export_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get export dir for given corpus."""
     export_dir = sparv_utils.get_export_dir(resource_id)
     if mkdir:
@@ -247,7 +369,7 @@ def get_export_dir(resource_id, mkdir=False):
     return export_dir
 
 
-def get_work_dir(resource_id, mkdir=False):
+def get_work_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get sparv workdir for given corpus."""
     work_dir = sparv_utils.get_work_dir(resource_id)
     if mkdir:
@@ -263,12 +385,12 @@ def get_source_dir(resource_id: str, mkdir: bool = False) -> Path:
     return source_dir
 
 
-def get_config_file(resource_id):
+def get_config_file(resource_id: str) -> Path:
     """Get path to corpus config file."""
     return sparv_utils.get_config_file(resource_id)
 
 
-def _make_dir(dirpath):
+def _make_dir(dirpath: Path) -> None:
     """Create directory on Sparv server."""
     p = utils.ssh_run(f"mkdir -p {shlex.quote(str(dirpath))}")
     if p.stderr:

@@ -17,9 +17,20 @@ class Info:
     """An info item holding all information about a resource, organized into subclasses."""
 
     def __init__(
-        self, id: str, resource: Optional[Resource] = None, owner: Optional[User] = None, job: Optional[Job] = None
-    ):
-        """Create an info instance."""
+        self,
+        id: str,  # noqa: A002
+        resource: Optional[Resource] = None,
+        owner: Optional[User] = None,
+        job: Optional[Job] = None,
+    ) -> None:
+        """Create an info instance.
+
+        Args:
+            id: The ID of the resource.
+            resource: The resource associated with the info.
+            owner: The owner of the resource.
+            job: The job associated with the resource.
+        """
         self.id = id
         self.resource = resource or Resource(id=self.id)
         self.owner = owner or User()
@@ -30,19 +41,36 @@ class Info:
         self.owner.set_parent(self)
         self.job.set_parent(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Convert the info instance to a string.
+
+        Returns:
+            A string representation of the info instance.
+        """
         return str(self.serialize())
 
-    def serialize(self):
-        """Convert class data into dict."""
+    def serialize(self) -> dict:
+        """Convert class data into dict.
+
+        Returns:
+            A dictionary representation of the info instance.
+        """
         return {"resource": self.resource, "owner": self.owner, "job": self.job}
 
-    def to_dict(self):
-        """Recursively transform class data into dict (also transforming the data of its children)."""
+    def to_dict(self) -> dict:
+        """Recursively transform class data into dict (also transforming the data of its children).
+
+        Returns:
+            A dictionary representation of the info instance and its children.
+        """
         return json.loads(json.dumps(self, default=lambda x: x.serialize()))
 
-    def create(self):
-        """Create new info object in cache and filesystem."""
+    def create(self) -> None:
+        """Create new info object in cache and filesystem.
+
+        Raises:
+            CorpusExistsError: If the resource ID already exists.
+        """
         # Save to cache
         all_resources = g.cache.get_all_resources()
         if self.id in all_resources:
@@ -51,7 +79,7 @@ class Info:
         g.cache.set_all_resources(all_resources)
         self.update()
 
-    def update(self):
+    def update(self) -> None:
         """Write an info item to the cache and filesystem."""
         dump = json.dumps(self, default=lambda x: x.serialize())
 
@@ -65,8 +93,15 @@ class Info:
         with backup_file.open("w") as f:
             f.write(dump)
 
-    def remove(self, abort_job=False):
-        """Remove an info item from the cache and file system."""
+    def remove(self, abort_job: bool = False) -> None:
+        """Remove an info item from the cache and file system.
+
+        Args:
+            abort_job: Whether to abort the job if it is running.
+
+        Raises:
+            JobError: If the job cannot be removed due to a running Sparv process.
+        """
         if self.job.status.is_running():
             if abort_job:
                 try:
@@ -98,8 +133,15 @@ class Info:
         filename.unlink(missing_ok=True)
 
 
-def load_from_str(jsonstr):
-    """Load an Info instance from a json string."""
+def load_from_str(jsonstr: str) -> Info:
+    """Load an Info instance from a json string.
+
+    Args:
+        jsonstr: The JSON string to load the info from.
+
+    Returns:
+        An Info instance loaded from the JSON string.
+    """
     json_info = json.loads(jsonstr)
     resource_id = json_info["resource"]["id"]
     return Info(

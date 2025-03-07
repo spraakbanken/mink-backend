@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional
 
 from flask import current_app as app
 from flask import g
@@ -14,7 +15,7 @@ from mink.core import registry
 class Cache:
     """Cache class providing caching with Memcached (and app context as backoff)."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Init variables in app context (as backup for regular cache) and try to reconnect to cache if necessary.
 
         This is done before each request (app context g cannot be stored in between requests).
@@ -28,69 +29,105 @@ class Cache:
         self.client = None
         self.connect()
 
-    def connect(self):
+    def connect(self) -> None:
         """Connect to the memcached socket and set client."""
         socket_path = Path(app.instance_path) / app.config.get("MEMCACHED_SOCKET")
         try:
             self.client = Client(f"unix:{socket_path}", serde=serde.pickle_serde)
             # Check if connection is working
             self.client.get("test")
-        except Exception as e:
-            app.logger.error("Failed to connect to memcached! %s", str(e))
+        except Exception:
+            app.logger.exception("Failed to connect to memcached.")
             self.client = None
 
-    def get_queue_initialized(self):
-        """Get bool value for 'queue_initialized' from memcached (or app context)."""
+    def get_queue_initialized(self) -> bool:
+        """Get bool value for 'queue_initialized' from memcached (or app context).
+
+        Returns:
+            True if the queue is initialized, False otherwise.
+        """
         if self.client is not None:
             return self.client.get("queue_initialized")
         return g.queue_initialized
 
-    def set_queue_initialized(self, is_initialized):
-        """Set 'queue_initialized' to bool 'is_initialized' in memcached (or app context)."""
+    def set_queue_initialized(self, is_initialized: bool) -> None:
+        """Set 'queue_initialized' to bool 'is_initialized' in memcached (or app context).
+
+        Args:
+            is_initialized: Whether the queue is initialized.
+        """
         if self.client is not None:
             self.client.set("queue_initialized", bool(is_initialized))
         else:
             g.queue_initialized = bool(is_initialized)
 
-    def get_job_queue(self):
-        """Get entire job queue from memcached (or app context)."""
+    def get_job_queue(self) -> list:
+        """Get entire job queue from memcached (or app context).
+
+        Returns:
+            The job queue as a list.
+        """
         registry.initialize()
 
         if self.client is not None:
             return self.client.get("job_queue")
         return g.job_queue
 
-    def set_job_queue(self, value):
-        """Set job queue in memcached (or app context)."""
+    def set_job_queue(self, value: list) -> None:
+        """Set job queue in memcached (or app context).
+
+        Args:
+            value: The job queue as a list.
+        """
         if self.client is not None:
             self.client.set("job_queue", value)
         else:
             g.job_queue = value
 
-    def get_all_resources(self):
-        """Get list of all jobs from memcached (or app context)."""
+    def get_all_resources(self) -> list:
+        """Get list of all jobs from memcached (or app context).
+
+        Returns:
+            A list of all resource IDs.
+        """
         registry.initialize()
         if self.client is not None:
             return self.client.get("all_resources")
         return g.all_resources
 
-    def set_all_resources(self, value):
-        """Set list of all jobs in memcached (or app context)."""
+    def set_all_resources(self, value: list) -> None:
+        """Set list of all jobs in memcached (or app context).
+
+        Args:
+            value: A list of all resource IDs.
+        """
         if self.client is not None:
             self.client.set("all_resources", list(set(value)))
         else:
             g.all_resources = list(set(value))
 
-    def get_job(self, job):
-        """Get 'job' from memcached (or from resource_dict in app context) and return it."""
+    def get_job(self, job: str) -> dict:
+        """Get 'job' from memcached (or from resource_dict in app context) and return it.
+
+        Args:
+            job: The job ID.
+
+        Returns:
+            The job as a dictionary.
+        """
         registry.initialize()
 
         if self.client is not None:
             return self.client.get(job)
         return g.resource_dict.get(job)
 
-    def set_job(self, job, value):
-        """Set 'job' to 'value' in memcached (or in resource_dict in app context)."""
+    def set_job(self, job: str, value: dict) -> None:
+        """Set 'job' to 'value' in memcached (or in resource_dict in app context).
+
+        Args:
+            job: The job ID.
+            value: The job as a dictionary.
+        """
         registry.initialize()
 
         if self.client is not None:
@@ -98,8 +135,12 @@ class Cache:
         else:
             g.resource_dict[job] = value
 
-    def remove_job(self, job):
-        """Remove 'job' from memcached (or resource_dict in app context)."""
+    def remove_job(self, job: str) -> None:
+        """Remove 'job' from memcached (or resource_dict in app context).
+
+        Args:
+            job: The job ID.
+        """
         registry.initialize()
 
         if self.client is not None:
@@ -107,8 +148,15 @@ class Cache:
         else:
             del g.resource_dict[job]
 
-    def get_apikey_data(self, apikey):
-        """Get cached API key data, if recent enough."""
+    def get_apikey_data(self, apikey: str) -> Optional[dict]:
+        """Get cached API key data, if recent enough.
+
+        Args:
+            apikey: The API key.
+
+        Returns:
+            The API key data as a dictionary, or None if not found or expired.
+        """
         # Caching to g is pointless because this will only be called once per request
         if self.client is None:
             return None
@@ -128,13 +176,22 @@ class Cache:
 
         return data
 
-    def set_apikey_data(self, apikey, data):
-        """Store API key data in cache."""
+    def set_apikey_data(self, apikey: str, data: dict) -> None:
+        """Store API key data in cache.
+
+        Args:
+            apikey: The API key.
+            data: The API key data as a dictionary.
+        """
         item = (datetime.now(), data)
         if self.client is not None:
             self.client.set(f"apikey_data_{apikey}", item)
 
-    def remove_apikey_data(self, apikey):
-        """Remove API key data from cache."""
+    def remove_apikey_data(self, apikey: str) -> None:
+        """Remove API key data from cache.
+
+        Args:
+            apikey: The API key.
+        """
         if self.client is not None:
             self.client.delete(f"apikey_data_{apikey}")

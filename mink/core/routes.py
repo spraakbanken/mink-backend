@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import yaml
-from flask import Blueprint, jsonify, redirect, render_template, send_from_directory, url_for
+from flask import Blueprint, Response, jsonify, redirect, render_template, send_from_directory, url_for
 from flask import current_app as app
 
 from mink.core import utils
@@ -12,13 +12,13 @@ bp = Blueprint("general", __name__)
 
 
 @bp.route("/")
-def hello():
+def hello() -> Response:
     """Redirect to /api_doc."""
     return redirect(app.config.get("MINK_URL") + url_for("general.api_doc"))
 
 
 @bp.route("/api-spec")
-def api_spec():
+def api_spec() -> Response:
     """Return open API specification in json."""
     host = app.config.get("MINK_URL")
     spec_file = Path(app.static_folder) / "oas.yaml"
@@ -29,7 +29,7 @@ def api_spec():
 
 
 @bp.route("/api-doc")
-def api_doc():
+def api_doc() -> str:
     """Render HTML API documentation."""
     return render_template(
         "apidoc.html",
@@ -41,7 +41,7 @@ def api_doc():
 
 
 @bp.route("/developers-guide")
-def developers_guide():
+def developers_guide() -> str:
     """Render docsify HTML with the developer's guide."""
     return render_template(
         "docsify.html", favicon=app.config.get("MINK_URL") + url_for("static", filename="favicon.ico")
@@ -49,8 +49,15 @@ def developers_guide():
 
 
 @bp.route("/developers-guide/<path:path>")
-def developers_guide_files(path):
-    """Serve sub pages to the developer's guide needed by docsify."""
+def developers_guide_files(path: str) -> Response:
+    """Serve sub pages to the developer's guide needed by docsify.
+
+    Args:
+        path: The path to the sub page.
+
+    Returns:
+        The requested sub page.
+    """
     return send_from_directory("templates", path)
 
 
@@ -62,8 +69,12 @@ def developers_guide_files(path):
 
 
 @bp.route("/info")
-def info():
-    """Show info about data processing."""
+def info() -> Response:
+    """Show info about data processing.
+
+    Returns:
+        A JSON response with information about data processing.
+    """
     from mink.core.status import Status  # noqa: PLC0415
 
     status_codes = {"info": "job status codes", "data": []}

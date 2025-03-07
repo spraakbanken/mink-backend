@@ -2,7 +2,7 @@
 
 import requests
 import shortuuid
-from flask import Blueprint, request, send_file
+from flask import Blueprint, Response, request, send_file
 from flask import current_app as app
 
 from mink.core import exceptions, registry, utils
@@ -21,8 +21,16 @@ bp = Blueprint("metadata_storage", __name__)
 
 @bp.route("/create-metadata", methods=["POST"])
 @login.login(require_resource_id=False, require_resource_exists=False)
-def create_metadata(user: dict, auth_token: str):
-    """Create a new metadata resource."""
+def create_metadata(user: dict, auth_token: str) -> tuple[Response, int]:
+    """Create a new metadata resource.
+
+    Args:
+        user: The user dictionary.
+        auth_token: The authentication token.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     public_id = request.args.get("public_id") or request.form.get("public_id") or ""
     if not public_id:
         return utils.response(
@@ -105,32 +113,31 @@ def create_metadata(user: dict, auth_token: str):
         try:
             # Try to remove partially uploaded resource data
             storage.remove_dir(resource_dir, resource_id)
-        except Exception as err:
-            app.logger.error(
-                "Failed to remove partially uploaded corpus data for '%s'. %s",
-                resource_id,
-                err,
-            )
+        except Exception:
+            app.logger.exception("Failed to remove partially uploaded corpus data for '%s'.", resource_id)
         try:
             login.remove_resource(resource_id)
-        except Exception as err:
-            app.logger.error("Failed to remove corpus '%s' from auth system. %s", resource_id, err)
+        except Exception:
+            app.logger.exception("Failed to remove corpus '%s' from auth system.", resource_id)
         try:
             info_obj.remove()
-        except Exception as err:
-            app.logger.error("Failed to remove object '%s' from registry. %s", resource_id, err)
+        except Exception:
+            app.logger.exception("Failed to remove object '%s' from registry.", resource_id)
         return utils.response(
-            "Failed to create resource dir",
-            err=True,
-            info=str(e),
-            return_code="failed_creating_resource_dir",
-        ), 500
+            "Failed to create resource dir", err=True, info=str(e), return_code="failed_creating_resource_dir"), 500
 
 
 @bp.route("/remove-metadata", methods=["DELETE"])
 @login.login()
-def remove_metadata(resource_id: str):
-    """Remove metadata resource."""
+def remove_metadata(resource_id: str) -> tuple[Response, int]:
+    """Remove metadata resource.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     # Get info object
     info_obj = registry.get(resource_id)
 
@@ -160,8 +167,8 @@ def remove_metadata(resource_id: str):
     try:
         # Remove from Mink registry
         info_obj.remove()
-    except Exception as err:
-        app.logger.error("Failed to remove job '%s'. %s", resource_id, err)
+    except Exception:
+        app.logger.exception("Failed to remove job '%s'.", resource_id)
     return utils.response(f"Corpus '{resource_id}' successfully removed", return_code="removed_corpus")
 
 
@@ -172,10 +179,17 @@ def remove_metadata(resource_id: str):
 
 @bp.route("/upload-metadata-yaml", methods=["PUT"])
 @login.login()
-def upload_metadata_yaml(resource_id: str):
-    """Upload a metadata yaml as file or plain text."""
+def upload_metadata_yaml(resource_id: str) -> tuple[Response, int]:
+    """Upload a metadata yaml as file or plain text.
 
-    def set_resource_name(resource_name):
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
+
+    def set_resource_name(resource_name: str) -> None:
         res = registry.get(resource_id).resource
         res.set_resource_name = resource_name
 
@@ -238,8 +252,15 @@ def upload_metadata_yaml(resource_id: str):
 
 @bp.route("/download-metadata-yaml", methods=["GET"])
 @login.login()
-def download_metadata_yaml(resource_id: str):
-    """Download the metadata yaml file."""
+def download_metadata_yaml(resource_id: str) -> tuple[Response, int]:
+    """Download the metadata yaml file.
+
+    Args:
+        resource_id: The resource ID.
+
+    Returns:
+        A tuple containing the response and the status code.
+    """
     storage_yaml_file = str(storage.get_yaml_file(resource_id))
     # Create directory for the current resource locally (on Mink backend server)
     utils.get_resource_dir(resource_id, mkdir=True)

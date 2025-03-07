@@ -6,6 +6,7 @@ import json
 import subprocess
 import zipfile
 from pathlib import Path
+from typing import Any, Callable, Optional
 
 import yaml
 from flask import Response, g, request
@@ -14,8 +15,17 @@ from flask import current_app as app
 from mink.sparv import storage
 
 
-def response(msg, err=False, **kwargs):
-    """Create json error response."""
+def response(msg: str, err: bool = False, **kwargs: dict[str, Any]) -> Response:
+    """Create json error response.
+
+    Args:
+        msg: The error message.
+        err: Whether the response is an error.
+        **kwargs: Additional key-value pairs to include in the response.
+
+    Returns:
+        A Flask Response object.
+    """
     # Log error
     if err:
         args = "\n".join(f"{k}: {v}" for k, v in kwargs.items() if v != "")  # noqa: PLC1901
@@ -28,11 +38,18 @@ def response(msg, err=False, **kwargs):
     return Response(json.dumps(res, ensure_ascii=False), mimetype="application/json")
 
 
-def gatekeeper(function):
-    """Make sure that only the protected user can access the decorated endpoint."""
+def gatekeeper(function: Callable) -> Callable:
+    """Make sure that only the protected user can access the decorated endpoint.
+
+    Args:
+        function: The function to decorate.
+
+    Returns:
+        The decorated function.
+    """
 
     @functools.wraps(function)  # Copy original function's information, needed by Flask
-    def decorator(*args, **kwargs):
+    def decorator(*args: tuple, **kwargs: dict) -> tuple[Response, Optional[int]] | Callable:
         secret_key = request.args.get("secret_key") or request.form.get("secret_key")
         if secret_key != app.config.get("MINK_SECRET_KEY"):
             return response(
@@ -43,8 +60,16 @@ def gatekeeper(function):
     return decorator
 
 
-def ssh_run(command, ssh_input=None):
-    """Execute 'command' on server and return process."""
+def ssh_run(command: str, ssh_input: Optional[bytes] = None) -> subprocess.CompletedProcess:
+    """Execute 'command' on server and return process.
+
+    Args:
+        command: The command to execute.
+        ssh_input: The input to pass to the command.
+
+    Returns:
+        The completed process.
+    """
     user = app.config.get("SPARV_USER")
     host = app.config.get("SPARV_HOST")
     return subprocess.run(
@@ -55,8 +80,13 @@ def ssh_run(command, ssh_input=None):
     )
 
 
-def uncompress_gzip(inpath, outpath=None):
-    """Uncompress file with with gzip and safe to outpath (or inpath if no outpath is given."""
+def uncompress_gzip(inpath: Path, outpath: Optional[Path] = None) -> None:
+    """Uncompress file with gzip and save to outpath (or inpath if no outpath is given).
+
+    Args:
+        inpath: The path to the input file.
+        outpath: The path to the output file.
+    """
     with gzip.open(inpath, "rb") as z:
         data = z.read()
         if outpath is None:
@@ -65,10 +95,13 @@ def uncompress_gzip(inpath, outpath=None):
             f.write(data)
 
 
-def create_zip(inpath, outpath, zip_rootdir=None):
+def create_zip(inpath: Path, outpath: Path, zip_rootdir: Optional[str] = None) -> None:
     """Zip files in inpath into an archive at outpath.
 
-    zip_rootdir: name that the root folder inside the zip file should be renamed to.
+    Args:
+        inpath: The path to the input files.
+        outpath: The path to the output zip file.
+        zip_rootdir: Name that the root folder inside the zip file should be renamed to.
     """
     zipf = zipfile.ZipFile(outpath, "w")
     if Path(inpath).is_file():
@@ -82,14 +115,30 @@ def create_zip(inpath, outpath, zip_rootdir=None):
     zipf.close()
 
 
-def check_file_ext(filename, valid_extensions=None) -> bool:
-    """Check if file extension is valid."""
+def check_file_ext(filename: str, valid_extensions: Optional[list[str]] = None) -> bool:
+    """Check if file extension is valid.
+
+    Args:
+        filename: The filename to check.
+        valid_extensions: List of valid extensions.
+
+    Returns:
+        True if the file extension is valid, False otherwise.
+    """
     filename = Path(filename)
     return not (valid_extensions and not any(i.lower() == filename.suffix.lower() for i in valid_extensions))
 
 
-def check_file_compatible(filename, source_dir):
-    """Check if the file extension of filename is identical to the first file in source_dir."""
+def check_file_compatible(filename: str, source_dir: Path) -> tuple[bool, str, Optional[str]]:
+    """Check if the file extension of filename is identical to the first file in source_dir.
+
+    Args:
+        filename: The filename to check.
+        source_dir: The source directory.
+
+    Returns:
+        A tuple containing a boolean indicating compatibility, the current extension, and the existing extension.
+    """
     existing_files = storage.list_contents(str(source_dir))
     current_ext = Path(filename).suffix
     if not existing_files:
@@ -98,8 +147,16 @@ def check_file_compatible(filename, source_dir):
     return current_ext == existing_ext, current_ext, existing_ext
 
 
-def check_size_ok(source_dir, incoming_size):
-    """Check if the size of the incoming files exceeds the max corpus size."""
+def check_size_ok(source_dir: Path, incoming_size: int) -> bool:
+    """Check if the size of the incoming files exceeds the max corpus size.
+
+    Args:
+        source_dir: The source directory.
+        incoming_size: The size of the incoming files.
+
+    Returns:
+        True if the size is within the limit, False otherwise.
+    """
     if app.config.get("MAX_CORPUS_LENGTH") is not None:
         current_size = storage.get_size(str(source_dir))
         total_size = current_size + incoming_size
@@ -108,8 +165,15 @@ def check_size_ok(source_dir, incoming_size):
     return True
 
 
-def validate_xml(file_contents):
-    """Check if inputfile is valid XML."""
+def validate_xml(file_contents: bytes) -> bool:
+    """Check if input file is valid XML.
+
+    Args:
+        file_contents: The contents of the file.
+
+    Returns:
+        True if the file is valid XML, False otherwise.
+    """
     from xml.etree import ElementTree  # noqa: PLC0415
 
     try:
@@ -119,8 +183,16 @@ def validate_xml(file_contents):
         return False
 
 
-def config_compatible(config, source_file):
-    """Check if the importer module in the corpus config is compatible with the source files."""
+def config_compatible(config: str, source_file: dict) -> tuple[bool, Optional[Response]]:
+    """Check if the importer module in the corpus config is compatible with the source files.
+
+    Args:
+        config: The corpus config.
+        source_file: The source file.
+
+    Returns:
+        A tuple containing a boolean indicating compatibility and an optional response.
+    """
     file_ext = Path(source_file.get("name")).suffix
     config_yaml = yaml.load(config, Loader=yaml.FullLoader)
     current_importer = config_yaml.get("import", {}).get("importer", "").split(":")[0] or None
@@ -142,8 +214,16 @@ def config_compatible(config, source_file):
     )
 
 
-def standardize_config(config, corpus_id):
-    """Set the correct corpus ID and remove the compression setting in the corpus config."""
+def standardize_config(config: str, corpus_id: str) -> tuple[str, str]:
+    """Set the correct corpus ID and remove the compression setting in the corpus config.
+
+    Args:
+        config: The corpus config.
+        corpus_id: The corpus ID.
+
+    Returns:
+        A tuple containing the standardized config and the corpus name.
+    """
     config_yaml = yaml.load(config, Loader=yaml.FullLoader)
 
     # Set correct corpus ID
@@ -186,9 +266,16 @@ def standardize_config(config, corpus_id):
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 
 
-def standardize_metadata_yaml(yamlf):
-    """Get resource name from metadata yaml and remove comments etc."""
-    yaml_contents = yaml.load(yamlf, Loader=yaml.FullLoader)
+def standardize_metadata_yaml(metadata_yaml: str) -> tuple[str, str]:
+    """Get resource name from metadata yaml and remove comments etc.
+
+    Args:
+        metadata_yaml: The metadata yaml.
+
+    Returns:
+        A tuple containing the standardized yaml and the resource name.
+    """
+    yaml_contents = yaml.load(metadata_yaml, Loader=yaml.FullLoader)
 
     # Get resource name
     name = yaml_contents.get("name", {})
@@ -196,10 +283,9 @@ def standardize_metadata_yaml(yamlf):
     return yaml.dump(yaml_contents, sort_keys=False, allow_unicode=True), name
 
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Get local paths (mostly used for download)
-################################################################################
-
+# ------------------------------------------------------------------------------
 
 def get_resources_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""

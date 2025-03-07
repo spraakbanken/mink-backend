@@ -10,8 +10,12 @@ INFO_YAML = "info.yaml"
 OUTPUT_FILE = "../mink/static/oas.yaml"
 
 
-def update(oas_path: Path):
-    """Add info from INFO_YAML to input_oas and output OUTPUT_FILE."""
+def update(oas_path: Path) -> None:
+    """Add info from INFO_YAML to input_oas and output OUTPUT_FILE.
+
+    Args:
+        oas_path: The path to the input OpenAPI specification file.
+    """
     with Path(INFO_YAML).open(encoding="utf-8") as f:
         info_yaml = yaml.load(f, Loader=yaml.FullLoader)
 
@@ -45,8 +49,16 @@ def update(oas_path: Path):
     print(f"Done converting! Saved OpenAPI specs in {OUTPUT_FILE}")  # noqa: T201
 
 
-def replace_vars(oas_obj, info_obj):
-    """Search and replace '{{}}' variables with their actual values."""
+def replace_vars(oas_obj: dict, info_obj: dict) -> dict:
+    """Search and replace '{{}}' variables with their actual values.
+
+    Args:
+        oas_obj: The OpenAPI specification object.
+        info_obj: The info object containing variables to replace.
+
+    Returns:
+        The OpenAPI specification object with variables replaced.
+    """
     # Convert to string
     oas_string = json.dumps(oas_obj)
     # Do string replacements
@@ -56,8 +68,16 @@ def replace_vars(oas_obj, info_obj):
     return json.loads(oas_string)
 
 
-def remove_key(obj, bad_key):
-    """Remove bad_key from obj."""
+def remove_key(obj: dict, bad_key: str) -> dict:
+    """Remove bad_key from obj.
+
+    Args:
+        obj: The object from which to remove the key.
+        bad_key: The key to remove.
+
+    Returns:
+        The object with the key removed.
+    """
     if isinstance(obj, dict):
         obj = {key: remove_key(value, bad_key) for key, value in obj.items() if key != bad_key}
     elif isinstance(obj, list):

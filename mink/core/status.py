@@ -1,5 +1,6 @@
 """Classes defining job statuses."""
 
+from collections import UserDict
 from enum import Enum
 from typing import Optional
 
@@ -14,8 +15,12 @@ class Status(Enum):
     error = "An error occurred in the process"
     aborted = "Process was aborted by the user"
 
-    def serialize(self):
-        """Convert class data into a string."""
+    def serialize(self) -> str:
+        """Convert class data into a string.
+
+        Returns:
+            The serialized status as a string.
+        """
         return self.name
 
 
@@ -29,79 +34,156 @@ class ProcessName(Enum):
     strix = "strix"
 
 
-class JobStatuses(dict):
+class JobStatuses(UserDict):
     """Class for representing the statuses of the different job processes."""
 
-    def __init__(self, status: Optional[dict] = None):
-        """Init the status for the different processes, default to none."""
+    def __init__(self, status: Optional[dict] = None) -> None:
+        """Init the status for the different processes, default to none.
+
+        Args:
+            status: A dictionary containing the status of each process.
+        """
         # Override the old status format
         if not isinstance(status, dict):
             status = {}
 
         mapping = [(pn.name, getattr(Status, status.get(pn.name, ""), Status.none)) for pn in ProcessName]
-        dict.__init__(self, mapping)
+        super().__init__(mapping)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a string representation of the serialized object.
+
+        Returns:
+            str: The serialized object as a string.
+        """
         return str(self.serialize())
 
-    def serialize(self):
-        """Convert class data into dict."""
+    def serialize(self) -> dict:
+        """Convert class data into dict.
+
+        Returns:
+            The serialized statuses as a dictionary.
+        """
         return {k: v.name for k, v in self.items()}
 
-    def is_active(self, process_name=None):
-        """Check if status is active."""
+    def is_active(self, process_name: Optional[str] = None) -> bool:
+        """Check if status is active.
+
+        Args:
+            process_name: The name of the process.
+
+        Returns:
+            True if the status is active, False otherwise.
+        """
         if process_name:
             return self.get(process_name) in {Status.waiting, Status.running}
         return any(status in {Status.waiting, Status.running} for status in self.values())
 
-    def is_inactive(self):
-        """Check if status is inactive."""
+    def is_inactive(self) -> bool:
+        """Check if status is inactive.
+
+        Returns:
+            True if the status is inactive, False otherwise.
+        """
         return all(status in {Status.none, Status.done, Status.error, Status.aborted} for status in self.values())
 
-    def is_syncing(self):
-        """Check if status is syncing."""
+    def is_syncing(self) -> bool:
+        """Check if status is syncing.
+
+        Returns:
+            True if the status is syncing, False otherwise.
+        """
         return (
             self.get(ProcessName.sync2sparv) == Status.running or self.get(ProcessName.sync2storage) == Status.running
         )
 
-    def is_none(self, process_name=None):
-        """Check if status is none."""
+    def is_none(self, process_name: Optional[str] = None) -> bool:
+        """Check if status is none.
+
+        Args:
+            process_name: The name of the process.
+
+        Returns:
+            True if the status is none, False otherwise.
+        """
         if process_name:
             return self.get(process_name) == Status.none
         return all(status == Status.none for status in self.values())
 
-    def is_waiting(self, process_name=None):
-        """Check if status is waiting."""
+    def is_waiting(self, process_name: Optional[str] = None) -> bool:
+        """Check if status is waiting.
+
+        Args:
+            process_name: The name of the process.
+
+        Returns:
+            True if the status is waiting, False otherwise.
+        """
         if process_name:
             return self.get(process_name) == Status.waiting
         return any(status == Status.waiting for status in self.values())
 
-    def is_running(self, process_name=None):
-        """Check if status is running."""
+    def is_running(self, process_name: Optional[str] = None) -> bool:
+        """Check if status is running.
+
+        Args:
+            process_name: The name of the process.
+
+        Returns:
+            True if the status is running, False otherwise.
+        """
         if process_name:
             return self.get(process_name) == Status.running
         return any(status == Status.running for status in self.values())
 
-    def is_done(self, process_name):
-        """Check if status is done processing."""
+    def is_done(self, process_name: Optional[str]) -> bool:
+        """Check if status is done processing.
+
+        Args:
+            process_name: The name of the process.
+
+        Returns:
+            True if the status is done, False otherwise.
+        """
         if process_name is None:
             return False
         return self.get(process_name) == Status.done
 
-    def is_error(self, process_name):
-        """Check if status is error."""
+    def is_error(self, process_name: Optional[str]) -> bool:
+        """Check if status is error.
+
+        Args:
+            process_name: The name of the process.
+
+        Returns:
+            True if the status is error, False otherwise.
+        """
         if process_name is None:
             return False
         return self.get(process_name) == Status.error
 
-    def is_aborted(self, process_name):
-        """Check if status is error."""
+    def is_aborted(self, process_name: Optional[str]) -> bool:
+        """Check if status is aborted.
+
+        Args:
+            process_name: The name of the process.
+
+        Returns:
+            True if the status is aborted, False otherwise.
+        """
         if process_name is None:
             return False
         return self.get(process_name) == Status.aborted
 
-    def has_process_output(self, process_name):
-        """Check if process is expected to have process output."""
+    def has_process_output(self, process_name: Optional[str]) -> bool:
+        """Check if process is expected to have process output.
+
+        Args:
+            process_name: The name of the process.
+
+        Returns:
+            True if the process is expected to have output, False otherwise.
+        """
         if process_name is None:
             return False
         if process_name not in {ProcessName.sync2sparv, ProcessName.sync2storage}:

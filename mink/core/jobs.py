@@ -5,9 +5,10 @@ import json
 import re
 import shlex
 import subprocess
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import dateutil
+from flask import Response
 from flask import current_app as app
 
 from mink.core import exceptions, registry, utils
@@ -15,28 +16,48 @@ from mink.core.status import JobStatuses, ProcessName, Status
 from mink.sparv import storage
 from mink.sparv import utils as sparv_utils
 
+if TYPE_CHECKING:
+    from mink.core.info import Info
+
 
 class Job:
     """A job item holding information about a Sparv job."""
 
     def __init__(
         self,
-        id,  # noqa: A002
-        status=None,
-        current_process=None,
-        pid=None,
-        started=None,
-        done=None,
-        sparv_exports=None,
-        current_files=None,
-        source_files=None,
-        install_scrambled=None,
-        installed_korp=False,
-        installed_strix=False,
-        latest_seconds_taken=0,
-        **_obsolete,  # needed to catch invalid arguments from outdated job items (avoids crashes)
-    ):
-        """Init job by setting class variables."""
+        id: str,  # noqa: A002
+        status: Optional[str] = None,
+        current_process: Optional[str] = None,
+        pid: Optional[int] = None,
+        started: Optional[str] = None,
+        done: Optional[str] = None,
+        sparv_exports: Optional[list] = None,
+        current_files: Optional[list] = None,
+        source_files: Optional[list] = None,
+        install_scrambled: Optional[bool] = None,
+        installed_korp: bool = False,
+        installed_strix: bool = False,
+        latest_seconds_taken: int = 0,
+        **_obsolete,  # needed to catch invalid arguments from outdated job items (avoids crashes)  # noqa: ANN003
+    ) -> None:
+        """Initialize job by setting class variables.
+
+        Args:
+            id: Job ID.
+            status: Job status.
+            current_process: Current process name.
+            pid: Process ID.
+            started: Start time.
+            done: End time.
+            sparv_exports: List of Sparv exports.
+            current_files: List of current files.
+            source_files: List of source files.
+            install_scrambled: Whether to install scrambled.
+            installed_korp: Whether Korp is installed.
+            installed_strix: Whether Strix is installed.
+            latest_seconds_taken: Latest seconds taken.
+            **_obsolete: Catch invalid arguments from outdated job items.
+        """
         self.id = id
         self.status = JobStatuses(status)
         self.current_process = current_process
@@ -59,11 +80,16 @@ class Job:
         self.runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
         self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.id))
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a string representation of the serialized object."""
         return str(self.serialize())
 
-    def serialize(self):
-        """Convert class data into dict."""
+    def serialize(self) -> dict:
+        """Convert class data into dict.
+
+        Returns:
+            Dictionary representation of the job.
+        """
         warnings, errors, misc_output = self.get_output()
         priority = registry.get_priority(self) if registry.get_priority(self) != -1 else ""
         return {
@@ -87,12 +113,21 @@ class Job:
             "progress": self.progress or "",
         }
 
-    def set_parent(self, parent):
-        """Save reference to parent class."""
+    def set_parent(self, parent: "Info") -> None:
+        """Save reference to parent class.
+
+        Args:
+            parent: Parent class instance.
+        """
         self.parent = parent
 
-    def set_status(self, status: Status, process: Optional[ProcessName] = None):
-        """Change the status of a job."""
+    def set_status(self, status: Status, process: Optional[ProcessName] = None) -> None:
+        """Change the status of a job.
+
+        Args:
+            status: New status.
+            process: Process name.
+        """
         process = self.current_process if process is None else process.name
         if self.status[process] != status:
             self.status[process] = status
@@ -100,33 +135,53 @@ class Job:
                 self.current_process = process
             self.parent.update()
 
-    def set_pid(self, pid):
-        """Set pid of job and save."""
+    def set_pid(self, pid: int) -> None:
+        """Set pid of job and save.
+
+        Args:
+            pid: Process ID.
+        """
         self.pid = pid
         self.parent.update()
 
-    def set_install_scrambled(self, scramble):
-        """Set status of 'install_scrambled' and save."""
+    def set_install_scrambled(self, scramble: bool) -> None:
+        """Set status of 'install_scrambled' and save.
+
+        Args:
+            scramble: Scramble status.
+        """
         self.install_scrambled = scramble
         self.parent.update()
 
-    def set_sparv_exports(self, sparv_exports):
-        """Set the Sparv exports to be created during the next run."""
+    def set_sparv_exports(self, sparv_exports: list) -> None:
+        """Set the Sparv exports to be created during the next run.
+
+        Args:
+            sparv_exports: List of Sparv exports.
+        """
         self.sparv_exports = sparv_exports
         self.parent.update()
 
-    def set_current_files(self, current_files):
-        """Set the input files to be processed during the next run."""
+    def set_current_files(self, current_files: list) -> None:
+        """Set the input files to be processed during the next run.
+
+        Args:
+            current_files: List of current files.
+        """
         self.current_files = current_files
         self.parent.update()
 
-    def set_latest_seconds_taken(self, seconds_taken):
-        """Set 'latest_seconds_taken' and save."""
+    def set_latest_seconds_taken(self, seconds_taken: int) -> None:
+        """Set 'latest_seconds_taken' and save.
+
+        Args:
+            seconds_taken: Seconds taken.
+        """
         if self.latest_seconds_taken != seconds_taken:
             self.latest_seconds_taken = seconds_taken
             self.parent.update()
 
-    def reset_time(self):
+    def reset_time(self) -> None:
         """Reset the processing time for a job (e.g. when starting a new one)."""
         self.latest_seconds_taken = 0
         # self.started = None
@@ -134,19 +189,27 @@ class Job:
         self.sparv_done = None
         self.parent.update()
 
-    def check_requirements(self):
-        """Check if required corpus contents are present."""
+    def check_requirements(self) -> None:
+        """Check if required corpus contents are present.
+
+        Raises:
+            Exception: If no config file or input files are provided.
+        """
         remote_corpus_dir = str(storage.get_corpus_dir(self.id))
         corpus_contents = storage.list_contents(remote_corpus_dir, exclude_dirs=False)
         if app.config.get("SPARV_CORPUS_CONFIG") not in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.id}'!")
-        if not len([i for i in corpus_contents if i.get("path").startswith(app.config.get("SPARV_SOURCE_DIR"))]):
+        if not [i for i in corpus_contents if i.get("path").startswith(app.config.get("SPARV_SOURCE_DIR"))]:
             self.set_status(Status.error)
             raise Exception(f"No input files provided for '{self.id}'!")
 
-    def sync_to_sparv(self):
-        """Sync corpus files from storage server to the Sparv server."""
+    def sync_to_sparv(self) -> None:
+        """Sync corpus files from storage server to the Sparv server.
+
+        Raises:
+            Exception: If syncing fails.
+        """
         self.set_status(Status.running, ProcessName.sync2sparv)
 
         # Get relevant directories
@@ -205,8 +268,12 @@ class Job:
 
         self.set_status(Status.done)
 
-    def run_sparv(self):
-        """Start a Sparv annotation process."""
+    def run_sparv(self) -> None:
+        """Start a Sparv annotation process.
+
+        Raises:
+            exceptions.JobError: If running Sparv fails.
+        """
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = (
             f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
@@ -235,8 +302,12 @@ class Job:
             pass
         self.set_status(Status.running, ProcessName.sparv)
 
-    def install_korp(self):
-        """Install a corpus in Korp."""
+    def install_korp(self) -> None:
+        """Install a corpus in Korp.
+
+        Raises:
+            exceptions.JobError: If installing corpus in Korp fails.
+        """
         sparv_installs = app.config.get("SPARV_DEFAULT_KORP_INSTALLS")
         if self.install_scrambled:
             sparv_installs.append("cwb:install_corpus_scrambled")
@@ -273,8 +344,12 @@ class Job:
             pass
         self.set_status(Status.running, ProcessName.korp)
 
-    def uninstall_korp(self):
-        """Uninstall corpus from Korp."""
+    def uninstall_korp(self) -> None:
+        """Uninstall corpus from Korp.
+
+        Raises:
+            exceptions.JobError: If uninstalling corpus from Korp fails.
+        """
         try:
             self.abort_sparv()
         except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
@@ -297,8 +372,12 @@ class Job:
 
         self.installed_korp = False
 
-    def install_strix(self):
-        """Install a corpus in Strix."""
+    def install_strix(self) -> None:
+        """Install a corpus in Strix.
+
+        Raises:
+            exceptions.JobError: If installing corpus in Strix fails.
+        """
         sparv_installs = app.config.get("SPARV_DEFAULT_STRIX_INSTALLS")
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = (
@@ -330,8 +409,12 @@ class Job:
             pass
         self.set_status(Status.running, ProcessName.strix)
 
-    def uninstall_strix(self):
-        """Uninstall corpus from Strix."""
+    def uninstall_strix(self) -> None:
+        """Uninstall corpus from Strix.
+
+        Raises:
+            exceptions.JobError: If uninstalling corpus from Strix fails.
+        """
         try:
             self.abort_sparv()
         except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
@@ -354,8 +437,13 @@ class Job:
 
         self.installed_strix = False
 
-    def abort_sparv(self):
-        """Abort running Sparv process."""
+    def abort_sparv(self) -> None:
+        """Abort running Sparv process.
+
+        Raises:
+            exceptions.ProcessNotRunningError: If Sparv is not running.
+            exceptions.JobError: If aborting job fails.
+        """
         if self.status.is_waiting(self.current_process):
             registry.pop_queue(self)
             self.set_status(Status.aborted)
@@ -380,8 +468,12 @@ class Job:
             else:
                 raise exceptions.JobError(f"Failed to abort job! Error: '{stderr}'")
 
-    def process_running(self):
-        """Check if process with this job's pid is still running on Sparv server."""
+    def process_running(self) -> bool:
+        """Check if process with this job's pid is still running on Sparv server.
+
+        Returns:
+            True if process is running, False otherwise.
+        """
         if self.pid:
             p = utils.ssh_run(f"kill -0 {self.pid}")
             # Process is running, do nothing
@@ -405,8 +497,12 @@ class Job:
             self.set_status(Status.error)
         return False
 
-    def get_output(self):
-        """Check latest Sparv output of this job by reading the nohup file."""
+    def get_output(self) -> tuple[str, str, str]:
+        """Check latest Sparv output of this job by reading the nohup file.
+
+        Returns:
+            Tuple of warnings, errors, and miscellaneous output.
+        """
         if not self.status.has_process_output(self.current_process):
             return "", "", ""
 
@@ -457,7 +553,7 @@ class Job:
         return warnings, errors, misc
 
     @property
-    def seconds_taken(self):
+    def seconds_taken(self) -> int:
         """Calculate the time it took to process the corpus until it finished, aborted or until now.
 
         When a Sparv job is finished it reads the time Sparv took and compensates for extra time the backend
@@ -493,8 +589,12 @@ class Job:
         return seconds_taken
 
     @property
-    def progress(self):
-        """Get the Sparv progesss but don't report 100% before the job status has been changed to done."""
+    def progress(self) -> Optional[str]:
+        """Get the Sparv progress but don't report 100% before the job status has been changed to done.
+
+        Returns:
+            Progress percentage as a string.
+        """
         if self.status.has_process_output(self.current_process):
             if self.progress_output == 100 and not self.status.is_done(self.current_process):  # noqa: PLR2004
                 return "99%"
@@ -503,8 +603,12 @@ class Job:
             return "0%"
         return None
 
-    def sync_results(self):
-        """Sync exports from Sparv server to the storage server."""
+    def sync_results(self) -> Optional[tuple[Response, int]]:
+        """Sync exports from Sparv server to the storage server.
+
+        Returns:
+            None if successful, otherwise a tuple with error message and status code.
+        """
         self.set_status(Status.running, ProcessName.sync2storage)
         remote_corpus_dir = str(storage.get_corpus_dir(self.id))
         local_corpus_dir = str(utils.get_resource_dir(self.id, mkdir=True))
@@ -558,7 +662,7 @@ class Job:
         self.set_status(Status.done)
         return None
 
-    def remove_from_sparv(self):
+    def remove_from_sparv(self) -> None:
         """Remove corpus dir from the Sparv server and abort running job if necessary."""
         try:
             self.abort_sparv()
@@ -571,8 +675,12 @@ class Job:
         if p.stderr:
             app.logger.error("Failed to remove corpus dir '%s'!", self.remote_corpus_dir)
 
-    def clean(self):
-        """Remove annotation and export files from Sparv server by running 'sparv clean --all'."""
+    def clean(self) -> str:
+        """Remove annotation and export files from Sparv server by running 'sparv clean --all'.
+
+        Returns:
+            Sparv output.
+        """
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = app.config.get("SPARV_COMMAND") + " clean --all"
         p = utils.ssh_run(
@@ -587,8 +695,12 @@ class Job:
         sparv_output = p.stdout.decode() if p.stdout else ""
         return ", ".join([line for line in sparv_output.split("\n") if line])
 
-    def clean_export(self):
-        """Remove export files from Sparv server by running 'sparv clean --export'."""
+    def clean_export(self) -> tuple[bool, str]:
+        """Remove export files from Sparv server by running 'sparv clean --export'.
+
+        Returns:
+            Tuple indicating success and Sparv output.
+        """
         sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = app.config.get("SPARV_COMMAND") + " clean --export"
         p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
@@ -610,8 +722,12 @@ class Job:
 class DefaultJob:
     """A default job item for running generic Sparv commands like `sparv run -l`."""
 
-    def __init__(self, language="swe"):
-        """Init default job by setting class variables."""
+    def __init__(self, language: str = "swe") -> None:
+        """Init default job by setting class variables.
+
+        Args:
+            language: Language code.
+        """
         self.lang = language
 
         self.sparv_user = app.config.get("SPARV_USER")
@@ -619,7 +735,7 @@ class DefaultJob:
         self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.lang, default_dir=True))
         self.config_file = app.config.get("SPARV_CORPUS_CONFIG")
 
-    def list_languages(self):
+    def list_languages(self) -> list:
         """List the languages available in Sparv."""
         # Create and corpus dir with config file on Sparv server
         p = utils.ssh_run(
@@ -649,7 +765,7 @@ class DefaultJob:
                 languages.append({"name": matchobj.group(1), "code": matchobj.group(2)})
         return languages
 
-    def list_exports(self):
+    def list_exports(self) -> list:
         """List the available exports for the current language."""
         # Create and corpus dir with config file on Sparv server
         p = utils.ssh_run(

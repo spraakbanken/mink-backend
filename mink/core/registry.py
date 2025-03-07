@@ -10,11 +10,11 @@ from typing import Optional
 from flask import current_app as app
 from flask import g
 
-from mink.core import exceptions, info
+from mink.core import exceptions, info, jobs
 
 
-def initialize():
-    """Init the registry and job queue from the filesystem if it has not been initialized already."""
+def initialize() -> None:
+    """Initialize the registry and job queue from the filesystem if it has not been initialized already."""
     if not g.cache.get_queue_initialized():
         app.logger.info("Initializing queue")
         all_resources = []  # Storage for all resource IDs
@@ -53,20 +53,37 @@ def initialize():
         app.logger.debug("Total resources in cache: %d", len(g.cache.get_all_resources()))
 
 
-def get_all_resources() -> str:
+def get_all_resources() -> list[str]:
     """Get a list of all existing resource IDs."""
     return g.cache.get_all_resources()
 
 
-def get(resource_id) -> info.Info:
-    """Get an existing info instance from the cache."""
+def get(resource_id: str) -> info.Info:
+    """Get an existing info instance from the cache.
+
+    Args:
+        resource_id: The ID of the resource to retrieve.
+
+    Returns:
+        An Info instance corresponding to the resource ID.
+
+    Raises:
+        JobNotFoundError: If no resource is found with the given ID.
+    """
     if g.cache.get_job(resource_id) is not None:
         return info.load_from_str(g.cache.get_job(resource_id))
     raise exceptions.JobNotFoundError(f"No resource found with ID '{resource_id}'!")
 
 
-def filter_resources(resource_ids: Optional[list] = None) -> list[info.Info]:
-    """Get info for all resources listed in 'resource_ids'."""
+def filter_resources(resource_ids: Optional[list[str]] = None) -> list[info.Info]:
+    """Get info for all resources listed in 'resource_ids'.
+
+    Args:
+        resource_ids: A list of resource IDs to filter by.
+
+    Returns:
+        A list of Info instances for the filtered resources.
+    """
     filtered_resources = []
     all_resources = g.cache.get_all_resources()
     for res_id in all_resources:
@@ -77,8 +94,18 @@ def filter_resources(resource_ids: Optional[list] = None) -> list[info.Info]:
     return filtered_resources
 
 
-def add_to_queue(job):
-    """Add a job item to the queue."""
+def add_to_queue(job: jobs.Job) -> info.Job:
+    """Add a job item to the queue.
+
+    Args:
+        job: The job to add to the queue.
+
+    Returns:
+        The job that was added to the queue.
+
+    Raises:
+        Exception: If there is an unfinished job for the resource.
+    """
     queue = g.cache.get_job_queue()
     # Avoid starting multiple jobs for the same resource simultaneously
     if job.id in queue and job.status.is_active():
@@ -93,8 +120,12 @@ def add_to_queue(job):
     return job
 
 
-def pop_from_queue(job):
-    """Remove job item from queue (but keep in all jobs), e.g. when a job is aborted."""
+def pop_from_queue(job: jobs.Job) -> None:
+    """Remove job item from queue (but keep in all jobs), e.g. when a job is aborted.
+
+    Args:
+        job: The job to remove from the queue.
+    """
     queue = g.cache.get_job_queue()
     if job.id in queue:
         queue.pop(queue.index(job.id))
@@ -102,8 +133,15 @@ def pop_from_queue(job):
         save_priorities()
 
 
-def get_priority(job):
-    """Get the queue priority of the job."""
+def get_priority(job: jobs.Job) -> int:
+    """Get the queue priority of the job.
+
+    Args:
+        job: The job to get the priority for.
+
+    Returns:
+        The priority of the job in the queue.
+    """
     _, waiting_jobs = get_running_waiting()
     waiting_jobs = [j.id for j in waiting_jobs]
     try:
@@ -112,7 +150,7 @@ def get_priority(job):
         return -1
 
 
-def save_priorities():
+def save_priorities() -> None:
     """Save queue order so it can be loaded from disk upon app restart."""
     registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
     registry_dir.mkdir(exist_ok=True)
@@ -122,8 +160,12 @@ def save_priorities():
         f.write(json.dumps(queue))
 
 
-def get_running_waiting():
-    """Get the running and waiting jobs from the queue."""
+def get_running_waiting() -> tuple[list[jobs.Job], list[jobs.Job]]:
+    """Get the running and waiting jobs from the queue.
+
+    Returns:
+        A tuple containing two lists: running jobs and waiting jobs.
+    """
     running_jobs = []
     waiting_jobs = []
 
@@ -140,7 +182,7 @@ def get_running_waiting():
     return running_jobs, waiting_jobs
 
 
-def unqueue_inactive():
+def unqueue_inactive() -> None:
     """Unqueue jobs that are done, aborted or erroneous."""
     queue = g.cache.get_job_queue()
     old_jobs = []
