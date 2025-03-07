@@ -3,7 +3,7 @@ name = "mink-backend"
 dynamic = ["version"]
 description = ""
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license.text = "MIT License"
 authors = [
     { name = "Språkbanken", email = "sb-info@svenska.gu.se" }

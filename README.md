@@ -8,7 +8,7 @@ This is a flask application serving as a backend to the [Mink frontend](https://
 
 ## Prerequisites
 
-* [Python 3.8](http://python.org/) or newer
+* [Python 3.9](http://python.org/) or newer
 * [memcached](http://memcached.org/)
 
 ## How to enable tracking to Matomo
