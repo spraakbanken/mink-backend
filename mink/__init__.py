@@ -11,21 +11,24 @@ from pathlib import Path
 from flask import Flask, Response, g, request
 from flask_cors import CORS
 
-from mink.core import extensions, registry, utils
+# Configure logger (some modules may log before the app is created)
+logfmt = "%(asctime)-15s - %(name)s - %(levelname)s - %(message)s"
+datefmt = "%Y-%m-%d %H:%M:%S"
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=logfmt, datefmt=datefmt)
+
+# ruff: noqa: E402 (module-import-not-at-top-of-file)
+from mink.core import extensions, registry, routes, utils
 from mink.memcached.cache import Cache
-from mink.sb_auth.login import read_jwt_key
-
-from .core import routes as general_routes
-from .metadata import metadata_routes
-from .sb_auth import login as login_routes
-from .sparv import process_routes, storage_routes
+from mink.metadata import metadata_routes
+from mink.sb_auth import login
+from mink.sparv import process_routes, storage_routes
 
 
-def create_app(debug: bool = False) -> Flask:
+def create_app(log_to_file: bool = True) -> Flask:
     """Instantiate app.
 
     Args:
-        debug: Enable or disable debug mode.
+        log_to_file: Whether to log to a logfile. If set to False, logs will be written to stdout.
 
     Returns:
         The Flask application instance.
@@ -35,7 +38,7 @@ def create_app(debug: bool = False) -> Flask:
     # Enable CORS
     CORS(app, supports_credentials=True)
 
-    # Set default config
+    # Load default config and override with instance config
     app.config.from_object("config")
 
     # Prevent Flask from sorting json
@@ -52,23 +55,20 @@ def create_app(debug: bool = False) -> Flask:
             raise ValueError(f"{var!r} is not set.")
 
     # Configure logger
-    logfmt = "%(asctime)-15s - %(levelname)s: %(message)s"
-    datefmt = "%Y-%m-%d %H:%M:%S"
-
-    if debug:
-        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=logfmt, datefmt=datefmt)
-    else:
+    logger = logging.getLogger(__name__)
+    logger.setLevel(app.config.get("LOG_LEVEL", "INFO").upper())
+    if log_to_file:
         today = time.strftime("%Y-%m-%d")
         logdir = Path("instance") / "logs"
         logfile = logdir / f"mink-{today}.log"
         logdir.mkdir(exist_ok=True)
-        # Create log file if it does not exist
-        if not logfile.is_file():
-            now = time.strftime("%Y-%m-%d %H:%M:%S")
-            logfile.write_text(f"{now} CREATED DEBUG FILE\n\n")
+        logfile.touch(exist_ok=True)
 
-        log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper())
-        logging.basicConfig(filename=logfile, level=log_level, format=logfmt, datefmt=datefmt)
+        file_handler = logging.FileHandler(logfile)
+        file_handler.setFormatter(logging.Formatter(fmt=logfmt, datefmt=datefmt))
+        logger.addHandler(file_handler)
+
+    logger.info("Starting Mink %s", __version__)
 
     if tracking_matomo_url := app.config.get("TRACKING_MATOMO_URL"):
         app.logger.debug("Enabling tracking to Matomo")
@@ -95,7 +95,7 @@ def create_app(debug: bool = False) -> Flask:
         registry.initialize()
 
         # Save JWT key in memory
-        read_jwt_key()
+        login.read_jwt_key()
 
     @app.before_request
     def init_cache() -> None:
@@ -151,10 +151,10 @@ def create_app(debug: bool = False) -> Flask:
         ), 413
 
     # Register routes from blueprints
-    app.register_blueprint(general_routes.bp)
+    app.register_blueprint(routes.bp)
     app.register_blueprint(process_routes.bp)
     app.register_blueprint(storage_routes.bp)
-    app.register_blueprint(login_routes.bp)
+    app.register_blueprint(login.bp)
     app.register_blueprint(metadata_routes.bp)
 
     return app

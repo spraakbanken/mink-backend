@@ -5,6 +5,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [unreleased]
 
+### Added
+
+- The `run.py` script is now a command line tool and the host, the port and logging can be configured with flags.
+
 ## [1.1.0] - 2024-01-05
 
 ### Added

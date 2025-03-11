@@ -36,6 +36,7 @@ class Cache:
             self.client = Client(f"unix:{socket_path}", serde=serde.pickle_serde)
             # Check if connection is working
             self.client.get("test")
+            app.logger.debug("Connected to memcached on socket %s.", socket_path)
         except Exception:
             app.logger.exception("Failed to connect to memcached.")
             self.client = None
