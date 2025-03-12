@@ -1,6 +1,7 @@
 """Routes related to storage on Sparv server."""
 
 from pathlib import Path
+from xml.etree import ElementTree
 
 import shortuuid
 from flask import Blueprint, Response, request, send_file
@@ -282,14 +283,17 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
                 ), 403
 
             # Validate XML files
-            if current_ext == ".xml" and not utils.validate_xml(file_contents):
-                return utils.response(
-                    f"Failed to upload some source files to '{resource_id}' due to invalid XML",
-                    err=True,
-                    file=f.filename,
-                    info="invalid XML",
-                    return_code="failed_uploading_sources_invalid_xml",
-                ), 400
+            if current_ext == ".xml":
+                try:
+                    ElementTree.fromstring(file_contents)
+                except ElementTree.ParseError as e:
+                    return utils.response(
+                        f"Failed to upload some source files to '{resource_id}' due to invalid XML",
+                        err=True,
+                        file=f.filename,
+                        info=f"invalid XML: {e}",
+                        return_code="failed_uploading_sources_invalid_xml",
+                    ), 400
             storage.write_file_contents(str(source_dir / name), file_contents, resource_id)
 
         res = registry.get(resource_id).resource

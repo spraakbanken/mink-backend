@@ -165,24 +165,6 @@ def check_size_ok(source_dir: Path, incoming_size: int) -> bool:
     return True
 
 
-def validate_xml(file_contents: bytes) -> bool:
-    """Check if input file is valid XML.
-
-    Args:
-        file_contents: The contents of the file.
-
-    Returns:
-        True if the file is valid XML, False otherwise.
-    """
-    from xml.etree import ElementTree  # noqa: PLC0415
-
-    try:
-        ElementTree.fromstring(file_contents)
-        return True
-    except ElementTree.ParseError:
-        return False
-
-
 def config_compatible(config: str, source_file: dict) -> tuple[bool, Optional[Response]]:
     """Check if the importer module in the corpus config is compatible with the source files.
 

@@ -8,6 +8,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - The `run.py` script is now a command line tool and the host, the port and logging can be configured with flags.
+- `/upload-sources` now contains the exception message in the response in case invalid XML is uploaded.
 
 ## [1.1.0] - 2024-01-05
 
