@@ -496,7 +496,7 @@ def upload_config(resource_id: str) -> tuple[Response, int]:
 
     def set_corpus_name(corpus_name: str) -> None:
         res = registry.get(resource_id).resource
-        res.set_resource_name = corpus_name
+        res.set_resource_name(corpus_name)
 
     attached_files = list(request.files.values())
     config_txt = request.args.get("config") or request.form.get("config") or ""

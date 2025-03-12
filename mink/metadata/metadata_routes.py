@@ -191,7 +191,7 @@ def upload_metadata_yaml(resource_id: str) -> tuple[Response, int]:
 
     def set_resource_name(resource_name: str) -> None:
         res = registry.get(resource_id).resource
-        res.set_resource_name = resource_name
+        res.set_resource_name(resource_name)
 
     attached_files = list(request.files.values())
     metadata_txt = request.args.get("yaml") or request.form.get("yaml") or ""
