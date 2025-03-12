@@ -65,3 +65,6 @@ preview = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.hatch]
+version.path = "mink/__init__.py"

@@ -6,6 +6,7 @@ import yaml
 from flask import Blueprint, Response, jsonify, redirect, render_template, send_from_directory, url_for
 from flask import current_app as app
 
+from mink import __version__
 from mink.core import utils
 
 bp = Blueprint("general", __name__)
@@ -25,6 +26,8 @@ def api_spec() -> Response:
     strspec = spec_file.read_text(encoding="UTF-8")
     # Replace {{host}} in examples with real URL
     strspec = strspec.replace("{{host}}", host)
+    # Replace {{version}} with current app version
+    strspec = strspec.replace("{{version}}", __version__)
     return jsonify(yaml.safe_load(strspec))
 
 

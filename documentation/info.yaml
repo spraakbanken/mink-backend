@@ -3,7 +3,7 @@ variables:
   fake-corpus: mink-dxh6e6wtfg
 
 info:
-  version: 1.1.0
+  version: "{{version}}"
   description: |-
     # Introduction
     Web API serving as a backend to Mink.
