@@ -6,6 +6,7 @@ import logging
 import shutil
 import sys
 import time
+import traceback
 from pathlib import Path
 
 from flask import Flask, Response, g, request
@@ -118,29 +119,27 @@ def create_app(log_to_file: bool = True) -> Flask:
 
     @app.after_request
     def cleanup(response: Response) -> Response:
-        """Cleanup temporary files after request.
-
-        Args:
-            response: The response object.
-
-        Returns:
-            The response object.
-        """
+        """Cleanup temporary files after request."""
         if "request_id" in g:
             local_user_dir = Path(app.instance_path) / app.config.get("TMP_DIR") / g.request_id
             shutil.rmtree(str(local_user_dir), ignore_errors=True)
         return response
 
+    @app.errorhandler(400)
+    def handle_400_error(error: Exception) -> tuple[Response, int]:
+        """Handle 400 errors (bad request)."""
+        logger.warning("Bad Request: %s", error)
+        return utils.response("Bad request", err=True, return_code="bad_request"), 400
+
+    @app.errorhandler(404)
+    def handle_404_error(error: Exception) -> tuple[Response, int]:
+        """Handle 404 errors (not found)."""
+        logger.warning("Not Found: %s", error)
+        return utils.response("Page not found", err=True, return_code="page_not_found"), 404
+
     @app.errorhandler(413)
-    def request_entity_too_large(_error: Exception) -> tuple:
-        """Handle large requests.
-
-        Args:
-            _error: The error object.
-
-        Returns:
-            A tuple containing the response and the status code.
-        """
+    def handle_413_error(_error: Exception) -> tuple[Response, int]:
+        """Handle 413 errors (request_entity_too_large)."""
         max_size = app.config.get("MAX_CONTENT_LENGTH", 0)
         h_max_size = str(round(app.config.get("MAX_CONTENT_LENGTH", 0) / 1024 / 1024, 3))
         return utils.response(
@@ -149,6 +148,13 @@ def create_app(log_to_file: bool = True) -> Flask:
             err=True,
             return_code="data_too_large",
         ), 413
+
+    @app.errorhandler(Exception)
+    def handle_exception(exception: Exception) -> tuple[Response, int]:
+        """Handle all unhandled exceptions and return a traceback."""
+        tb = traceback.format_exc()
+        logger.error("%s: %s", exception, tb)
+        return utils.response("Something went wrong", err=True, info=tb, return_code="something_went_wrong"), 500
 
     # Register routes from blueprints
     app.register_blueprint(routes.bp)

@@ -5,7 +5,6 @@ import inspect
 import json
 import re
 import time
-import traceback
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -111,53 +110,31 @@ def login(
                     "This route requires authentication by JWT", err=True, return_code="route_requires_jwt"
                 ), 400
 
-            try:
-                # Store random ID in app context, used for temporary storage
-                g.request_id = shortuuid.uuid()
+            # Store random ID in app context, used for temporary storage
+            g.request_id = shortuuid.uuid()
 
-                if not require_resource_id:
-                    return function(
-                        **{
-                            k: v
-                            for k, v in {
-                                "user_id": user.id,
-                                "user": user,
-                                "corpora": resources,
-                                "auth_token": auth_token,
-                            }.items()
-                            if k in params
-                        }
-                    )
+            if not require_resource_id:
+                return function(
+                    **{
+                        k: v
+                        for k, v in {
+                            "user_id": user.id,
+                            "user": user,
+                            "corpora": resources,
+                            "auth_token": auth_token,
+                        }.items()
+                        if k in params
+                    }
+                )
 
-                # Check if resource ID was provided
-                # TODO: change param name from corpus_id to resource_id!
-                resource_id = request.args.get("corpus_id") or request.form.get("resource_id")
-                if not resource_id:
-                    return utils.response("No resource ID provided", err=True, return_code="missing_corpus_id"), 400
+            # Check if resource ID was provided
+            # TODO: change param name from corpus_id to resource_id!
+            resource_id = request.args.get("corpus_id") or request.form.get("resource_id")
+            if not resource_id:
+                return utils.response("No resource ID provided", err=True, return_code="missing_corpus_id"), 400
 
-                # Check if resource exists
-                if not require_resource_exists:
-                    return function(
-                        **{
-                            k: v
-                            for k, v in {
-                                "user_id": user.id,
-                                "user": user,
-                                "corpora": resources,
-                                "resource_id": resource_id,
-                                "auth_token": auth_token,
-                            }.items()
-                            if k in params
-                        }
-                    )
-
-                # Check if user is admin for resource
-                if resource_id not in resources:
-                    return utils.response(
-                        f"Corpus '{resource_id}' does not exist or you do not have access to it",
-                        err=True,
-                        return_code="corpus_not_found",
-                    ), 404
+            # Check if resource exists
+            if not require_resource_exists:
                 return function(
                     **{
                         k: v
@@ -172,12 +149,26 @@ def login(
                     }
                 )
 
-            # Catch everything else and return a traceback
-            except Exception as e:
-                traceback_str = f"{e}: {''.join(traceback.format_tb(e.__traceback__))}"
+            # Check if user is admin for resource
+            if resource_id not in resources:
                 return utils.response(
-                    "Something went wrong", err=True, info=traceback_str, return_code="something_went_wrong"
-                ), 500
+                    f"Corpus '{resource_id}' does not exist or you do not have access to it",
+                    err=True,
+                    return_code="corpus_not_found",
+                ), 404
+            return function(
+                **{
+                    k: v
+                    for k, v in {
+                        "user_id": user.id,
+                        "user": user,
+                        "corpora": resources,
+                        "resource_id": resource_id,
+                        "auth_token": auth_token,
+                    }.items()
+                    if k in params
+                }
+            )
 
         return wrapper
 

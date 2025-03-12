@@ -37,6 +37,9 @@ class Cache:
             # Check if connection is working
             self.client.get("test")
             app.logger.debug("Connected to memcached on socket %s.", socket_path)
+        except FileNotFoundError:
+            app.logger.error("Memcached socket not found: %s", socket_path)
+            self.client = None
         except Exception:
             app.logger.exception("Failed to connect to memcached.")
             self.client = None
