@@ -105,6 +105,7 @@ paths:
               examples:
                 '1':
                   summary: create corpus 201
+                  description: ''
                   value:
                     status: success
                     message: Corpus 'mink-dxh6e6wtff' created successfully
@@ -131,8 +132,9 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: create corpus 401
+                  description: ''
                   value:
                     status: error
                     message: Failed to authenticate
@@ -156,8 +158,9 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: create corpus 500
+                  description: ''
                   value:
                     status: error
                     message: Failed to create corpus
@@ -213,7 +216,7 @@ paths:
                     corpora:
                     - mink-dxh6e6wtff
                     return_code: listing_corpora
-                '2':
+                '3':
                   summary: test
                   value:
                     status: success
@@ -245,7 +248,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: list corpora 401
                   value:
                     status: error
@@ -324,7 +327,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: list Korp corpora 401
                   value:
                     status: error
@@ -405,7 +408,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: remove corpus 401
                   value:
                     status: error
@@ -430,7 +433,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: remove corpus 404
                   value:
                     status: error
@@ -455,7 +458,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: remove corpus 500
                   value:
                     status: error
@@ -551,7 +554,7 @@ paths:
                 - existing_file_extension
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: upload sources 400
                   value:
                     status: error
@@ -583,7 +586,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: upload sources 401
                   value:
                     status: error
@@ -608,7 +611,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: upload sources 404
                   value:
                     status: error
@@ -636,7 +639,7 @@ paths:
                 - max_content_length
                 - return_code
               examples:
-                '1':
+                '5':
                   summary: upload sources 413
                   value:
                     status: error
@@ -661,7 +664,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '6':
                   summary: upload sources 500
                   value:
                     status: error
@@ -773,7 +776,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: list sources 401
                   value:
                     status: error
@@ -798,7 +801,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: list sources 404
                   value:
                     status: error
@@ -823,7 +826,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: list sources 500
                   value:
                     status: error
@@ -942,7 +945,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: download sources 401
                   value:
                     status: error
@@ -967,13 +970,13 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: download sources 500 source-not-found
                   value:
                     status: error
                     message: The source file you are trying to download does not exist
                     return_code: source_not_found
-        x-404:download sources 404 no access:
+        x-404-2:
           description: ''
           content:
             application/json:
@@ -991,7 +994,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: download sources 404 no access
                   value:
                     status: error
@@ -1080,7 +1083,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: remove sources 400
                   value:
                     status: error
@@ -1107,7 +1110,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: remove sources 401
                   value:
                     status: error
@@ -1132,7 +1135,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: remove sources 404
                   value:
                     status: error
@@ -1167,7 +1170,7 @@ paths:
                 - succeeded
                 - return_code
               examples:
-                '1':
+                '5':
                   summary: remove sources 500
                   value:
                     status: error
@@ -1281,7 +1284,7 @@ paths:
                 - expected_importer
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: upload config 400
                   value:
                     status: error
@@ -1311,7 +1314,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: upload config 401
                   value:
                     status: error
@@ -1336,7 +1339,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: upload config 404
                   value:
                     status: error
@@ -1409,7 +1412,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: download config 401
                   value:
                     status: error
@@ -1434,13 +1437,13 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: download config 404 no config
                   value:
                     status: error
                     message: No config file found for corpus 'mink-dxh6e6wtff'
                     return_code: config_not_found
-        x-404:download config 404 no access:
+        x-404-2:
           description: ''
           content:
             application/json:
@@ -1458,7 +1461,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: download config 404 no access
                   value:
                     status: error
@@ -1751,7 +1754,7 @@ paths:
                 - expected_importer
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: run Sparv 400
                   value:
                     status: error
@@ -1781,7 +1784,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: run Sparv 401
                   value:
                     status: error
@@ -1806,13 +1809,13 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: run Sparv 404 no source files
                   value:
                     status: error
                     message: No source files found for 'mink-dxh6e6wtff'
                     return_code: no_sources_found
-        x-404:run Sparv 404 no access:
+        x-404-2:
           description: ''
           content:
             application/json:
@@ -1830,7 +1833,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '5':
                   summary: run Sparv 404 no access
                   value:
                     status: error
@@ -2246,7 +2249,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: resource info 401
                   value:
                     status: error
@@ -2271,7 +2274,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: resource info 404
                   value:
                     status: error
@@ -2373,7 +2376,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: abort job 401
                   value:
                     status: error
@@ -2398,7 +2401,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: abort job 404
                   value:
                     status: error
@@ -2423,7 +2426,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '5':
                   summary: abort job 500
                   value:
                     status: error
@@ -2447,13 +2450,13 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '6':
                   summary: abort job 503
                   value:
                     status: error
                     message: Cannot abort job while syncing files
                     return_code: failed_aborting_job_syncing
-        x-200:abort job 200 no job:
+        x-200-2:
           description: ''
           content:
             application/json:
@@ -2471,7 +2474,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: abort job 200 no job
                   value:
                     status: success
@@ -2557,7 +2560,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: clear annotations 401
                   value:
                     status: error
@@ -2582,7 +2585,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: clear annotations 404
                   value:
                     status: error
@@ -2607,7 +2610,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: clear annotations 500
                   value:
                     status: error
@@ -2802,7 +2805,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: check changes 401
                   value:
                     status: error
@@ -2827,7 +2830,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: check changes 404
                   value:
                     status: error
@@ -2852,7 +2855,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: check changes 500
                   value:
                     status: success
@@ -3116,7 +3119,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: install korp 401
                   value:
                     status: error
@@ -3141,7 +3144,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: install korp 404
                   value:
                     status: error
@@ -3166,7 +3169,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: install korp 500
                   value:
                     status: error
@@ -3424,7 +3427,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: install strix 401
                   value:
                     status: error
@@ -3449,7 +3452,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: install strix 404
                   value:
                     status: error
@@ -3474,7 +3477,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: install strix 500
                   value:
                     status: error
@@ -3602,7 +3605,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: list exports 401
                   value:
                     status: error
@@ -3627,7 +3630,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: list exports 404
                   value:
                     status: error
@@ -3652,7 +3655,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: list exports 500
                   value:
                     status: error
@@ -4256,7 +4259,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: download exports 401
                   value:
                     status: error
@@ -4281,7 +4284,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: download exports 404
                   value:
                     status: error
@@ -4306,7 +4309,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: download exports 500
                   value:
                     status: error
@@ -4388,7 +4391,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: remove exports 401
                   value:
                     status: error
@@ -4413,7 +4416,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: remove exports 404
                   value:
                     status: error
@@ -4438,7 +4441,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: remove exports 500
                   value:
                     status: error
@@ -4510,7 +4513,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: download source text 400
                   value:
                     status: error
@@ -4537,7 +4540,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: download source text 401
                   value:
                     status: error
@@ -4562,7 +4565,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '4':
                   summary: download source text 404 no texts
                   value:
                     status: error
@@ -4587,13 +4590,13 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '6':
                   summary: download source text 500
                   value:
                     status: error
                     message: Failed to download source text
                     return_code: failed_downloading_source_text
-        x-404:download source text 404 no access:
+        x-404-2:
           description: ''
           content:
             application/json:
@@ -4611,7 +4614,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '5':
                   summary: download source text 404 no access
                   value:
                     status: error
@@ -4699,7 +4702,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: create metadata 401
                   value:
                     status: error
@@ -4779,7 +4782,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: remove metadata 401
                   value:
                     status: error
@@ -4870,7 +4873,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: upload metadata yaml 400
                   value:
                     status: error
@@ -4897,7 +4900,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '3':
                   summary: upload metadata yaml 401
                   value:
                     status: error
@@ -4993,7 +4996,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: download metadata yaml 401
                   value:
                     status: error
@@ -5069,7 +5072,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: admin mode on 401
                   value:
                     status: error
@@ -5141,7 +5144,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: admin mode off 401
                   value:
                     status: error
@@ -5217,7 +5220,7 @@ paths:
                 - info
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: admin mode status 401
                   value:
                     status: error
@@ -5565,9 +5568,14 @@ paths:
                           type: string
                         description:
                           type: string
+                        export_files:
+                          type: array
+                          items:
+                            type: string
                       required:
                       - export
                       - description
+                      - export_files
                   return_code:
                     type: string
                 required:
@@ -5579,63 +5587,98 @@ paths:
               examples:
                 '1':
                   summary: Sparv exports 200
+                  description: ''
                   value:
                     status: success
                     message: Listing exports available in Sparv
                     language: swe
                     exports:
-                    - export: xml_export:pretty
-                      description: XML export with one token element per line
                     - export: conll_export:conllu
                       description: CoNLL-U (SBX version) export
+                      export_files:
+                      - conll_export/{file}.conllu
                     - export: csv_export:csv
                       description: CSV export
-                    - export: cwb:encode
-                      description: CWB encode
-                    - export: cwb:encode_scrambled
-                      description: CWB encode, scrambled
-                    - export: cwb:info
-                      description: CWB .info file
-                    - export: cwb:info_scrambled
-                      description: CWB .info file for scrambled corpus
-                    - export: cwb:vrt
-                      description: VRT export
-                    - export: cwb:vrt_scrambled
-                      description: Scrambled VRT export
-                    - export: korp:config
-                      description: Create Korp config file for the corpus.
-                    - export: korp:lemgram_sql
-                      description: Lemgram index SQL file for use in Korp
-                    - export: korp:timespan_sql
-                      description: Timespan SQL data for use in Korp
-                    - export: korp:wordpicture_sql
-                      description: Word Picture SQL for use in Korp
-                    - export: sbx_strix:config
-                      description: Create Strix config file for the corpus.
+                      export_files:
+                      - csv_export/{file}.csv
+                    - export: sbx_metadata:analysis_metadata_export
+                      description: YAML export of Sparv analysis metadata
+                      export_files:
+                      - sbx_metadata/.dummy
+                    - export: sbx_metadata:yaml_export
+                      description: YAML export of corpus metadata
+                      export_files:
+                      - sbx_metadata/standard-swe.yaml
                     - export: stats_export:freq_list
                       description: Corpus word frequency list
+                      export_files:
+                      - stats_export.frequency_list/stats_standard-swe.csv
                     - export: stats_export:sbx_freq_list
                       description: Corpus word frequency list
+                      export_files:
+                      - stats_export.frequency_list_sbx/stats_standard-swe.csv
+                    - export: stats_export:sbx_freq_list_compressed
+                      description: Corpus word frequency list (compressed)
+                      export_files:
+                      - stats_export.frequency_list_sbx/stats_standard-swe.csv.zip
                     - export: stats_export:sbx_freq_list_date
-                      description: Corpus word frequency list
+                      description: Corpus word frequency list with dates
+                      export_files:
+                      - stats_export.frequency_list_sbx_date/stats_standard-swe.csv
+                    - export: stats_export:sbx_freq_list_date_compressed
+                      description: Corpus word frequency list with dates (compressed)
+                      export_files:
+                      - stats_export.frequency_list_sbx_date/stats_standard-swe.csv.zip
                     - export: stats_export:sbx_freq_list_simple
                       description: Corpus word frequency list (without Swedish annotations)
+                      export_files:
+                      - stats_export.frequency_list_sbx/stats_standard-swe.csv
+                    - export: stats_export:sbx_freq_list_simple_compressed
+                      description: Corpus word frequency list (without Swedish annotations,
+                        compressed)
+                      export_files:
+                      - stats_export.frequency_list_sbx/stats_standard-swe.csv.zip
                     - export: stats_export:sbx_freq_list_simple_swe
                       description: Corpus word frequency list (without Swedish annotations)
+                      export_files:
+                      - stats_export.frequency_list_sbx/stats_standard-swe.csv
+                    - export: stats_export:sbx_freq_list_simple_swe_compressed
+                      description: Corpus word frequency list (without Swedish annotations,
+                        compressed)
+                      export_files:
+                      - stats_export.frequency_list_sbx/stats_standard-swe.csv.zip
                     - export: version_info:yaml_export
                       description: YAML file containing annotation version info
+                      export_files:
+                      - version_info/info_standard-swe.yaml
                     - export: xml_export:combined
                       description: Combined XML export (all results in one file)
+                      export_files:
+                      - xml_export.combined/standard-swe.xml
                     - export: xml_export:combined_scrambled
                       description: Combined scrambled XML export
+                      export_files:
+                      - xml_export.combined_scrambled/standard-swe_scrambled.xml
                     - export: xml_export:compressed
                       description: Compressed combined XML export
+                      export_files:
+                      - xml_export.combined/standard-swe.xml.bz2
                     - export: xml_export:compressed_scrambled
                       description: Compressed combined scrambled XML export
+                      export_files:
+                      - xml_export.combined_scrambled/standard-swe_scrambled.xml.bz2
                     - export: xml_export:preserved_format
                       description: XML export preserving whitespaces from source file
+                      export_files:
+                      - xml_export.preserved_format/{file}_export.xml
+                    - export: xml_export:pretty
+                      description: XML export with one token element per line
+                      export_files:
+                      - xml_export.pretty/{file}_export.xml
                     - export: xml_export:scrambled
                       description: Scrambled XML export
+                      export_files:
+                      - xml_export.scrambled/{file}_export.xml
                     return_code: listing_sparv_exports
       security: []
   /advance-queue:
@@ -5674,7 +5717,7 @@ paths:
                 - message
                 - return_code
               examples:
-                '1':
+                '2':
                   summary: advance queue 200
                   value:
                     status: success
@@ -5719,3 +5762,5 @@ components:
 servers:
 - url: https://ws.spraakbanken.gu.se/ws/mink
   description: Production server
+security:
+- bearer: []

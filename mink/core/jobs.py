@@ -767,7 +767,7 @@ class DefaultJob:
 
     def list_exports(self) -> list:
         """List the available exports for the current language."""
-        # Create and corpus dir with config file on Sparv server
+        # Create corpus dir with config file on Sparv server
         p = utils.ssh_run(
             f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
             f"echo 'metadata:\n  language: {self.lang}' > "
@@ -776,22 +776,30 @@ class DefaultJob:
         if p.stderr:
             raise Exception(f"Failed to list exports! {p.stderr.decode()}")
 
-        sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} run -l"
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
-
+        # Run Sparv to get available exports
+        p = utils.ssh_run(f"{app.config.get('SPARV_ENVIRON')} {app.config.get('SPARV_COMMAND')} --dir "
+                          f"{shlex.quote(self.remote_corpus_dir)} modules --exporters --json")
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
             raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
 
-        exports = []
+        # Parse stdout as json and extract relevant data
         stdout = p.stdout.decode() if p.stdout else ""
-        lines = [line for line in stdout.split("\n") if line.strip()][1:-1]
-        for line in lines:
-            if line.startswith("    "):
-                exports[-1]["description"] += " " + line.strip()
-            else:
-                matchobj = re.match(r"(\S+)\s+(.+)$", line.strip())
-                if matchobj and matchobj.group(1) not in {"Other", "Note:", "what", "'export.default'"}:
-                    exports.append({"export": matchobj.group(1), "description": matchobj.group(2)})
+        try:
+            json_data = json.loads(stdout.strip())
+        except json.JSONDecodeError as e:
+            raise exceptions.JobError(f"Failed to parse Sparv output as JSON! {e}") from e
+        exports = []
+        for exporter, exporter_data in json_data["exporters"].items():
+            # Skip exporers blacklisted exporters
+            if any(re.match(pattern, exporter) for pattern in app.config.get("SPARV_EXPORT_BLACKLIST")):
+                continue
+            for function, function_data in exporter_data["functions"].items():
+                functions_info = {}
+                functions_info["export"] = f"{exporter}:{function}"
+                functions_info["description"] = function_data["description"]
+                export_files = [i.removeprefix("export/") for i in function_data.get("exports", [])]
+                functions_info["export_files"] = export_files
+                exports.append(functions_info)
+
         return exports

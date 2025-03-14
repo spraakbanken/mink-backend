@@ -10,6 +10,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - The `run.py` script is now a command line tool and the host, the port and logging can be configured with flags.
 - `/upload-sources` now contains the exception message in the response in case invalid XML is uploaded.
 
+### Changed
+
+- The `/sparv-exports` route now also lists the names of the exported files. Exports matching any pattern listed in
+  the `SPARV_EXPORT_BLACKLIST` config variable will no longer be listed.
+
 ## [1.1.0] - 2024-01-05
 
 ### Added
