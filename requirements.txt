@@ -30,7 +30,7 @@ flask==3.1.0
     #   flask-matomo2
 flask-cors==5.0.1
     # via -r requirements.in
-flask-matomo2==0.5.0
+flask-matomo2==0.6.0
     # via -r requirements.in
 gevent==24.11.1
     # via gunicorn

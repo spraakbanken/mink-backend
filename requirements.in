@@ -8,4 +8,4 @@ python-dateutil
 pyyaml
 requests
 shortuuid
-flask-matomo2>=0.4.0
+flask-matomo2>=0.6.0

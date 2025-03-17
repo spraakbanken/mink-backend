@@ -82,7 +82,9 @@ def create_app(log_to_file: bool = True, log_level: Optional[str] = None) -> Fla
             matomo_url=tracking_matomo_url,
             id_site=app.config["TRACKING_MATOMO_IDSITE"],
             ignored_routes=["/advance-queue"],
+            ignored_methods=["OPTIONS"],
             base_url=app.config.get("MINK_URL"),
+            http_timeout=app.config.get("TRACKING_MATOMO_HTTP_TIMEOUT", 5),
             **matomo_options,
         )
         # Suppress some chatty logs

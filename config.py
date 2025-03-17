@@ -109,3 +109,4 @@ PING_FREQUENCY = 60  # Frequency (in minutes) for how often healthchecks should 
 # TRACKING_MATOMO_URL =
 # TRACKING_MATOMO_IDSITE =
 # TRACKING_MATOMO_AUTH_TOKEN =
+# TRACKING_MATOMO_HTTP_TIMEOUT =
