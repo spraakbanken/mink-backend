@@ -17,7 +17,7 @@ RECOMMENDED_MAX_FILE_LENGTH = 1024 * 1024 * 5 # Recommended max size (bytes) for
 
 # sb-auth settings
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
-SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/resource/"
+SBAUTH_URL = ""
 SBAUTH_API_KEY = ""
 SBAUTH_MINK_APP_RESOURCE = "mink-app" # Name of the resource used to control admin grants
 
@@ -64,7 +64,7 @@ SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"          # Temporary Sparv run script crea
 METADATA_HOST = ""  # Define this in instance/config.py!
 METADATA_USER = ""    # Define this in instance/config.py!
 METADATA_DIR = "mink-data/metadata"  # Dir where metadata resources are stored, relative to the user's home dir
-METADATA_ID_AVAILABLE_URL = "https://ws.spraakbanken.gu.se/ws/metadata/check-id-availability?id="
+METADATA_ID_AVAILABLE_URL = ""
 METADATA_SOURCE_DIR = "source"  # Dir for storing resource files belonging to a metadata resource
 METADATA_ORG_PREFIXES = {}  # Mapping from user IDs to organisation prefixes
 
@@ -75,7 +75,7 @@ REGISTRY_DIR = "registry"            # Directory for storing job files
 QUEUE_FILE = "queue"                 # File to store the queue priorities
 
 # Settings for queue manager
-MINK_URL = "https://ws.spraakbanken.gu.se/ws/mink"  # URL for mink API
+MINK_URL = ""  # URL for mink API
 CHECK_QUEUE_FREQUENCY = 20  # How often the queue will be checked for new jobs (in seconds)
 MINK_SECRET_KEY = ""  # Define this in instance/config.py!
 HEALTHCHECKS_URL = ""   # Healthchecks URL, define this in instance/config.py!
