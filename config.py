@@ -4,7 +4,7 @@ Can be overridden with config.py in instance folder.
 """
 
 LOG_LEVEL = "INFO"  # Log level for the application
-MINK_URL = "https://ws.spraakbanken.gu.se/ws/mink"  # URL for mink API
+MINK_URL = ""  # URL for mink API
 
 # Prefix used when creating new resources
 RESOURCE_PREFIX = "mink-"
@@ -20,7 +20,7 @@ RECOMMENDED_MAX_FILE_LENGTH = 1024 * 1024 * 5  # Recommended max size (bytes) fo
 
 # sb-auth settings
 SBAUTH_PUBKEY_FILE = "pubkey.pem"
-SBAUTH_URL = "https://spraakbanken.gu.se/auth/resources/"
+SBAUTH_URL = ""
 SBAUTH_API_KEY = ""
 SBAUTH_MINK_APP_RESOURCE = "mink-app"  # Name of the resource used to control admin grants
 SBAUTH_CACHE_LIFETIME = 10 * 60  # How long to cache fetched permissions (in seconds)
@@ -31,13 +31,13 @@ SPARV_EXPORT_DIR = "export"
 SPARV_WORK_DIR = "sparv-workdir"
 SPARV_CORPUS_CONFIG = "config.yaml"
 SPARV_PLAIN_TEXT_FILE = "@text"
-SPARV_IMPORTER_MODULES = {  # File extensions for corpus input and the modules that handle them
+SPARV_IMPORTER_MODULES = {
     ".xml": "xml_import",
     ".txt": "text_import",
     ".docx": "docx_import",
     ".odt": "odt_import",
     ".pdf": "pdf_import",
-}
+}  # File extensions for corpus input and the modules that handle them
 
 # Settings for the server where Sparv is run
 SSH_KEY = "~/.ssh/id_rsa"
@@ -55,12 +55,12 @@ SPARV_DEFAULT_EXPORTS = [
     "xml_export:pretty",
     "csv_export:csv",
     "stats_export:freq_list",
-]  # Default export format to create if nothing is specified
-SPARV_EXPORT_BLACKLIST = [  # Glob patterns for exports that will be excluded from listings and downloads
+]  # Default export formats to create if nothing is specified
+SPARV_EXPORT_BLACKLIST = [
     "cwb.*",
     "korp.*",
     "sbx_strix.*",
-]
+]  # Glob patterns for exports that will be excluded from listings and downloads
 SPARV_DEFAULT_KORP_INSTALLS = [
     "korp:install_timespan",
     "korp:install_config",
@@ -89,7 +89,7 @@ SPARV_TMP_RUN_SCRIPT = "run_sparv.sh"  # Temporary Sparv run script created for 
 METADATA_HOST = ""  # Define this in instance/config.py!
 METADATA_USER = ""  # Define this in instance/config.py!
 METADATA_DIR = "mink-data/metadata"  # Dir where metadata resources are stored, relative to the user's home dir
-METADATA_ID_AVAILABLE_URL = "https://ws.spraakbanken.gu.se/ws/metadata/check-id-availability?id="
+METADATA_ID_AVAILABLE_URL = ""
 METADATA_SOURCE_DIR = "source"  # Dir for storing resource files belonging to a metadata resource
 METADATA_ORG_PREFIXES = {}  # Mapping from user IDs to organisation prefixes
 
