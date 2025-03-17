@@ -8,6 +8,7 @@ import sys
 import time
 import traceback
 from pathlib import Path
+from typing import Optional
 
 from flask import Flask, Response, g, request
 from flask_cors import CORS
@@ -25,11 +26,12 @@ from mink.sb_auth import login
 from mink.sparv import process_routes, storage_routes
 
 
-def create_app(log_to_file: bool = True) -> Flask:
+def create_app(log_to_file: bool = True, log_level: Optional[str] = None) -> Flask:
     """Instantiate app.
 
     Args:
         log_to_file: Whether to log to a logfile. If set to False, logs will be written to stdout.
+        log_level: The log level to set. If provided, it overrides the log level from the configuration.
 
     Returns:
         The Flask application instance.
@@ -39,13 +41,11 @@ def create_app(log_to_file: bool = True) -> Flask:
     # Enable CORS
     CORS(app, supports_credentials=True)
 
-    # Load default config and override with instance config
+    # Load default config
     app.config.from_object("config")
-
     # Prevent Flask from sorting json
     app.config["JSON_SORT_KEYS"] = False
-
-    # Overwrite with instance config
+    # Override default config with instance config
     instance_config_path = Path(app.instance_path) / "config.py"
     if instance_config_path.is_file():
         app.config.from_pyfile(str(instance_config_path))
@@ -57,7 +57,8 @@ def create_app(log_to_file: bool = True) -> Flask:
 
     # Configure logger
     logger = logging.getLogger(__name__)
-    logger.setLevel(app.config.get("LOG_LEVEL", "INFO").upper())
+    config_log_level = app.config.get("LOG_LEVEL", "INFO").upper()
+    logger.setLevel(log_level.upper() if log_level else config_log_level)
     if log_to_file:
         today = time.strftime("%Y-%m-%d")
         logdir = Path("instance") / "logs"
@@ -104,18 +105,17 @@ def create_app(log_to_file: bool = True) -> Flask:
         g.cache = Cache()
 
     @app.before_request
-    def debug_info() -> None:
-        """Print some debugging info about the incoming request."""
+    def request_info() -> None:
+        """Print some info about the incoming request."""
         # Don't log options and advance-queue requests (too much spam)
         if request.method != "OPTIONS" and not request.url.endswith("/advance-queue"):
-            log_msg = [f"Request: {request.method} {request.url}"]
+            app.logger.info("Request: %s %s", request.method, request.url)
             if request.values:
                 args = ", ".join(f"{k}: {v}" for k, v in request.values.items())
-                log_msg.append(f"{' ' * 29}Args: {args}")
+                app.logger.debug("%sArgs: %s", " " * 29, args)
             if request.files:
                 files = ", ".join(str(i) for i in request.files.to_dict(flat=False).values())
-                log_msg.append(f"{' ' * 29}Files: {files}")
-            app.logger.debug("\n".join(log_msg))
+                app.logger.debug("%Files: %s", " " * 29, files)
 
     @app.after_request
     def cleanup(response: Response) -> Response:

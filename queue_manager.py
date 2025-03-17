@@ -74,7 +74,7 @@ if __name__ == "__main__":
     config = import_config()
 
     # Configure logger
-    logfmt = "%(asctime)-15s - %(levelname)s: %(message)s"
+    logfmt = "%(asctime)-15s - %(name)s - %(levelname)s - %(message)s"
     datefmt = "%Y-%m-%d %H:%M:%S"
 
     if sys.stdin.isatty():

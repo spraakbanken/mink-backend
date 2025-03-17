@@ -40,7 +40,7 @@ def initialize() -> None:
                     infoobj = info.load_from_str(fobj.read())
                     infoobj.update()  # Update resource in file system and add to cache
                     all_resources.append(infoobj.id)
-                    # app.logger.debug("Job in cache: '%s'",g.cache.get_job(job.id))
+                    # app.logger.debug("Job in cache: '%s'", g.cache.get_job(infoobj.id))
                 # Queue job unless it is done, aborted or erroneous
                 if infoobj.id not in queue and (
                     not (infoobj.job.status.is_done(infoobj.job.current_process) or infoobj.job.status.is_inactive())
@@ -48,9 +48,9 @@ def initialize() -> None:
                     queue.append(infoobj.job.id)
         g.cache.set_job_queue(queue)
         g.cache.set_all_resources(all_resources)
-        app.logger.debug("Queue in cache: %s", g.cache.get_job_queue())
-        # app.logger.debug("All jobs in cache: %s",g.cache.get_all_resources())
-        app.logger.debug("Total resources in cache: %d", len(g.cache.get_all_resources()))
+        app.logger.info("Queue in cache: %s", g.cache.get_job_queue())
+        # app.logger.debug("All jobs in cache: %s", g.cache.get_all_resources())
+        app.logger.info("Total resources in cache: %d", len(g.cache.get_all_resources()))
 
 
 def get_all_resources() -> list[str]:

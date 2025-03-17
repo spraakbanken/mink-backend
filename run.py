@@ -11,7 +11,14 @@ if __name__ == "__main__":
         "--host", "-H", type=str, default="localhost", help="Host to run the application on (default: localhost)"
     )
     parser.add_argument("--log-to-file", "-f", action="store_true", help="Log to logfile instead of stdout")
+    parser.add_argument(
+        "--loglevel",
+        "-l",
+        type=str,
+        default="DEBUG",
+        help="Logging level (default: DEBUG, will override LOG_LEVEL in config)",
+    )
     args = parser.parse_args()
 
-    app = create_app(log_to_file=args.log_to_file)
+    app = create_app(log_to_file=args.log_to_file, log_level=args.loglevel)
     app.run(debug=True, host=args.host, port=args.port)
