@@ -12,6 +12,12 @@ from urllib import error, parse, request
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+# Configure logger
+logfmt = "%(asctime)-15s - %(name)s - %(levelname)s - %(message)s"
+datefmt = "%Y-%m-%d %H:%M:%S"
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=logfmt, datefmt=datefmt)
+logger = logging.getLogger("mink_queue_manager")
+
 
 def advance_queue(config: dict) -> None:
     """Check the queue and run jobs if possible.
@@ -19,15 +25,15 @@ def advance_queue(config: dict) -> None:
     Args:
         config: Configuration dictionary.
     """
-    logging.debug("Calling '/advance-queue'...")
+    logger.info("Calling '/advance-queue'")
     url = f"{config.get('MINK_URL')}/advance-queue"
     try:
         data = parse.urlencode({"secret_key": config.get("MINK_SECRET_KEY")}).encode()
         req = request.Request(url, data=data, method="PUT")
         with request.urlopen(req, timeout=60) as f:
-            logging.debug(f.read().decode("UTF-8"))
+            logger.debug(f.read().decode("UTF-8"))
     except error.HTTPError as e:
-        logging.error("Error advancing queue! %s", e)
+        logger.error("Error advancing queue! %s", e)
 
 
 def ping_healthchecks(config: dict) -> None:
@@ -38,14 +44,14 @@ def ping_healthchecks(config: dict) -> None:
     """
     url = config.get("HEALTHCHECKS_URL")
     if url:
-        logging.debug("Sending ping to healthchecks")
+        logger.info("Sending ping to healthchecks")
         try:
             with request.urlopen(url, timeout=60) as f:
-                logging.debug(f.read().decode("UTF-8"))
+                logger.debug(f.read().decode("UTF-8"))
         except error.HTTPError as e:
-            logging.error("Error pinging healthchecks! %s", e)
+            logger.error("Error pinging healthchecks! %s", e)
     else:
-        logging.debug("No health check URL found")
+        logger.debug("No health check URL found")
 
 
 def import_config() -> dict:
@@ -73,27 +79,20 @@ if __name__ == "__main__":
     # Load config
     config = import_config()
 
-    # Configure logger
-    logfmt = "%(asctime)-15s - %(name)s - %(levelname)s - %(message)s"
-    datefmt = "%Y-%m-%d %H:%M:%S"
-
-    if sys.stdin.isatty():
-        # Script is run interactively: log to console on debug level
-        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=logfmt, datefmt=datefmt)
-    else:
-        # Log to file
+    # If script is run interactively, log to console on debug level, otherwise log to file on info level
+    if not sys.stdin.isatty():
         today = time.strftime("%Y-%m-%d")
         logdir = Path("instance") / "logs"
         logfile = logdir / f"queue-{today}.log"
+        # Create log dir and log file if they do not exist
         logdir.mkdir(exist_ok=True)
-        # Create log file if it does not exist
-        if not logfile.is_file():
-            with logfile.open("w") as f:
-                now = time.strftime("%Y-%m-%d %H:%M:%S")
-                f.write(f"{now} CREATED DEBUG FILE\n\n")
+        logfile.touch(exist_ok=True)
+        file_handler = logging.FileHandler(logfile)
+        file_handler.setFormatter(logging.Formatter(fmt=logfmt, datefmt=datefmt))
+        logger.addHandler(file_handler)
+        logger.setLevel(config.get("LOG_LEVEL", "INFO").upper())
 
-        logging.basicConfig(filename=logfile, level=getattr(logging, config.get("LOG_LEVEL", "INFO").upper()),
-                            format=logfmt, datefmt=datefmt)
+    logger.info("Starting Mink queue manager")
 
     # Make apscheduler less chatty
     logging.getLogger("apscheduler").setLevel(logging.WARNING)
