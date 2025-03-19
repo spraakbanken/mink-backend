@@ -76,9 +76,10 @@ class Job:
 
         self.sparv_user = app.config.get("SPARV_USER")
         self.sparv_server = app.config.get("SPARV_HOST")
-        self.nohupfile = app.config.get("SPARV_NOHUP_FILE")
-        self.runscript = app.config.get("SPARV_TMP_RUN_SCRIPT")
-        self.remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.id))
+        self.remote_corpus_dir = sparv_utils.get_corpus_dir(self.id)
+        self.remote_corpus_dir_esc = shlex.quote(str(self.remote_corpus_dir))
+        self.nohupfile = shlex.quote(str(self.remote_corpus_dir / app.config.get("SPARV_NOHUP_FILE")))
+        self.runscript = shlex.quote(str(self.remote_corpus_dir / app.config.get("SPARV_TMP_RUN_SCRIPT")))
 
     def __str__(self) -> str:
         """Return a string representation of the serialized object."""
@@ -217,10 +218,7 @@ class Job:
         local_user_dir = utils.get_corpora_dir(mkdir=True)
 
         # Create user and corpus dir on Sparv server
-        p = utils.ssh_run(
-            f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
-            f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)}"
-        )
+        p = utils.ssh_run(f"mkdir -p {self.remote_corpus_dir_esc} && rm -f {self.nohupfile} {self.runscript}")
         if p.stderr:
             self.set_status(Status.error)
             raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
@@ -274,18 +272,19 @@ class Job:
         Raises:
             exceptions.JobError: If running Sparv fails.
         """
-        sparv_env = app.config.get("SPARV_ENVIRON")
         sparv_command = (
-            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_RUN')} {' '.join(self.sparv_exports)}"
+            f"{app.config.get('SPARV_COMMAND')} --dir {self.remote_corpus_dir_esc} {app.config.get('SPARV_RUN')} "
+            f"{' '.join(self.sparv_exports)}"
         )
         if self.current_files:
             sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.current_files)}"
-        script_content = f"{sparv_env} nohup time -p {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
+
+        script_content = (f"{app.config.get('SPARV_ENVIRON')} nohup time -p {sparv_command} >{self.nohupfile} "
+                          "2>&1 &\necho $!")
+
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
         p = utils.ssh_run(
-            f"cd {shlex.quote(self.remote_corpus_dir)} && "
-            f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
-            f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}"
+            f"echo {shlex.quote(script_content)} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
         )
 
         if p.returncode != 0:
@@ -314,20 +313,16 @@ class Job:
         else:
             sparv_installs.extend(["cwb:install_corpus"])
 
-        sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = (
-            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+        sparv_command = shlex.quote(
+            f"{app.config.get('SPARV_COMMAND')} --dir {self.remote_corpus_dir_esc} "
+            f"{app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
         )
-
-        script_content = (
-            f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
+        script_content = shlex.quote(
+            f"{app.config.get('SPARV_ENVIRON')} nohup time -p sh -c {sparv_command} >{self.nohupfile} "
+            "2>&1 &\necho $!"
         )
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-        p = utils.ssh_run(
-            f"cd {shlex.quote(self.remote_corpus_dir)} && "
-            f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
-            f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}"
-        )
+        p = utils.ssh_run(f"echo {script_content} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -357,13 +352,10 @@ class Job:
         except Exception as e:
             raise e
 
-        sparv_uninstalls = app.config.get("SPARV_DEFAULT_KORP_UNINSTALLS")
-        sparv_command = (
-            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
+        p = utils.ssh_run(
+            f"{app.config.get('SPARV_ENVIRON')} {app.config.get('SPARV_COMMAND')} --dir {self.remote_corpus_dir_esc} "
+            f"{app.config.get('SPARV_UNINSTALL')} {' '.join(app.config.get('SPARV_DEFAULT_KORP_UNINSTALLS'))}"
         )
-        sparv_env = app.config.get("SPARV_ENVIRON")
-
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -379,19 +371,17 @@ class Job:
             exceptions.JobError: If installing corpus in Strix fails.
         """
         sparv_installs = app.config.get("SPARV_DEFAULT_STRIX_INSTALLS")
-        sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = (
-            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
+        sparv_command = shlex.quote(
+            f"{app.config.get('SPARV_COMMAND')} --dir {self.remote_corpus_dir_esc} "
+            f"{app.config.get('SPARV_INSTALL')} {' '.join(sparv_installs)}"
         )
-
-        script_content = (
-            f"{sparv_env} nohup time -p sh -c {shlex.quote(sparv_command)} >{self.nohupfile} 2>&1 &\necho $!"
+        script_content = shlex.quote(
+            f"{app.config.get('SPARV_ENVIRON')} nohup time -p sh -c {sparv_command} >{self.nohupfile} "
+            "2>&1 &\necho $!"
         )
         self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
         p = utils.ssh_run(
-            f"cd {shlex.quote(self.remote_corpus_dir)} && "
-            f"echo {shlex.quote(script_content)} > {shlex.quote(self.runscript)} && "
-            f"chmod +x {shlex.quote(self.runscript)} && ./{shlex.quote(self.runscript)}"
+            f"echo {script_content} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
         )
 
         if p.returncode != 0:
@@ -422,13 +412,10 @@ class Job:
         except Exception as e:
             raise e
 
-        sparv_uninstalls = app.config.get("SPARV_DEFAULT_STRIX_UNINSTALLS")
-        sparv_command = (
-            f"{app.config.get('SPARV_COMMAND')} {app.config.get('SPARV_UNINSTALL')} {' '.join(sparv_uninstalls)}"
+        p = utils.ssh_run(
+            f"{app.config.get('SPARV_ENVIRON')} {app.config.get('SPARV_COMMAND')} --dir {self.remote_corpus_dir_esc} "
+            f"{app.config.get('SPARV_UNINSTALL')} {' '.join(app.config.get('SPARV_DEFAULT_STRIX_UNINSTALLS'))}"
         )
-        sparv_env = app.config.get("SPARV_ENVIRON")
-
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -480,7 +467,6 @@ class Job:
             if p.returncode == 0:
                 return True
             # Process not running anymore
-            # TODO defer decoding to printing, use some form of Message-lambda-combo
             app.logger.debug("stderr: '%s'", p.stderr.decode())
             self.set_pid(None)
 
@@ -506,10 +492,7 @@ class Job:
         if not self.status.has_process_output(self.current_process):
             return "", "", ""
 
-        nohupfile = app.config.get("SPARV_NOHUP_FILE")
-        remote_corpus_dir = str(sparv_utils.get_corpus_dir(self.id))
-
-        p = utils.ssh_run(f"cd {shlex.quote(remote_corpus_dir)} && cat {shlex.quote(nohupfile)}")
+        p = utils.ssh_run(f"cat {self.nohupfile}")
 
         stdout = p.stdout.decode().strip() if p.stdout else ""
         warnings = errors = misc = ""
@@ -671,7 +654,7 @@ class Job:
         except Exception as e:
             raise e
 
-        p = utils.ssh_run(f"rm -rf {shlex.quote(self.remote_corpus_dir)}")
+        p = utils.ssh_run(f"rm -rf {self.remote_corpus_dir_esc}")
         if p.stderr:
             app.logger.error("Failed to remove corpus dir '%s'!", self.remote_corpus_dir)
 
@@ -681,12 +664,9 @@ class Job:
         Returns:
             Sparv output.
         """
-        sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = app.config.get("SPARV_COMMAND") + " clean --all"
         p = utils.ssh_run(
-            f"cd {shlex.quote(self.remote_corpus_dir)} && "
-            f"rm -f {shlex.quote(self.nohupfile)} {shlex.quote(self.runscript)} && "
-            f"{sparv_env} {sparv_command}"
+            f"rm -f {self.nohupfile} {self.runscript} && {app.config.get('SPARV_ENVIRON')} "
+            f"{app.config.get('SPARV_COMMAND')} --dir {self.remote_corpus_dir_esc} clean --all"
         )
 
         if p.stderr:
@@ -701,9 +681,8 @@ class Job:
         Returns:
             Tuple indicating success and Sparv output.
         """
-        sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = app.config.get("SPARV_COMMAND") + " clean --export"
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
+        p = utils.ssh_run(f"{app.config.get('SPARV_ENVIRON')} {app.config.get('SPARV_COMMAND')} "
+                          f"--dir {self.remote_corpus_dir_esc} clean --export")
         if p.stderr:
             raise Exception(p.stderr.decode())
 
@@ -739,16 +718,15 @@ class DefaultJob:
         """List the languages available in Sparv."""
         # Create and corpus dir with config file on Sparv server
         p = utils.ssh_run(
-            f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
+            f"mkdir -p {self.remote_corpus_dir_esc} && "
             f"echo 'metadata:\n  language: {self.lang}' > "
             f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}"
         )
         if p.stderr:
             raise Exception(f"Failed to list languages! {p.stderr.decode()}")
 
-        sparv_env = app.config.get("SPARV_ENVIRON")
-        sparv_command = f"{app.config.get('SPARV_COMMAND')} languages"
-        p = utils.ssh_run(f"cd {shlex.quote(self.remote_corpus_dir)} && {sparv_env} {sparv_command}")
+        p = utils.ssh_run(f"{app.config.get('SPARV_ENVIRON')} {app.config.get('SPARV_COMMAND')} "
+                          f"--dir {self.remote_corpus_dir_esc} languages")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
@@ -769,7 +747,7 @@ class DefaultJob:
         """List the available exports for the current language."""
         # Create corpus dir with config file on Sparv server
         p = utils.ssh_run(
-            f"mkdir -p {shlex.quote(self.remote_corpus_dir)} && "
+            f"mkdir -p {self.remote_corpus_dir_esc} && "
             f"echo 'metadata:\n  language: {self.lang}' > "
             f"{shlex.quote(self.remote_corpus_dir + '/' + self.config_file)}"
         )
@@ -778,7 +756,7 @@ class DefaultJob:
 
         # Run Sparv to get available exports
         p = utils.ssh_run(f"{app.config.get('SPARV_ENVIRON')} {app.config.get('SPARV_COMMAND')} --dir "
-                          f"{shlex.quote(self.remote_corpus_dir)} modules --exporters --json")
+                          f"{self.remote_corpus_dir_esc} modules --exporters --json")
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
             raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
