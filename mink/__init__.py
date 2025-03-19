@@ -117,7 +117,7 @@ def create_app(log_to_file: bool = True, log_level: Optional[str] = None) -> Fla
                 app.logger.debug("%sArgs: %s", " " * 29, args)
             if request.files:
                 files = ", ".join(str(i) for i in request.files.to_dict(flat=False).values())
-                app.logger.debug("%Files: %s", " " * 29, files)
+                app.logger.debug("%sFiles: %s", " " * 29, files)
 
     @app.after_request
     def cleanup(response: Response) -> Response:
