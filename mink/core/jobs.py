@@ -307,6 +307,12 @@ class Job:
         Raises:
             exceptions.JobError: If installing corpus in Korp fails.
         """
+        # Remove install markers
+        sparv_work_dir = shlex.quote(str(sparv_utils.get_work_dir(self.id)))
+        p = utils.ssh_run(f"rm -rf {sparv_work_dir}/korp.install_*_marker")
+        if p.returncode != 0:
+            app.logger.error("Failed to remove Korp install markers for corpus %s: %s", self.id, p.stderr.decode())
+
         sparv_installs = app.config.get("SPARV_DEFAULT_KORP_INSTALLS")
         if self.install_scrambled:
             sparv_installs.append("cwb:install_corpus_scrambled")
@@ -370,6 +376,12 @@ class Job:
         Raises:
             exceptions.JobError: If installing corpus in Strix fails.
         """
+        # Remove install markers
+        sparv_work_dir = shlex.quote(str(sparv_utils.get_work_dir(self.id)))
+        p = utils.ssh_run(f"rm -rf {sparv_work_dir}/sbx_strix.install_*_marker")
+        if p.returncode != 0:
+            app.logger.error("Failed to remove Strix install markers for corpus %s: %s", self.id, p.stderr.decode())
+
         sparv_installs = app.config.get("SPARV_DEFAULT_STRIX_INSTALLS")
         sparv_command = shlex.quote(
             f"{app.config.get('SPARV_COMMAND')} --dir {self.remote_corpus_dir_esc} "

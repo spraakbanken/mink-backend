@@ -15,6 +15,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - The `/sparv-exports` route now also lists the names of the exported files. Exports matching any pattern listed in
   the `SPARV_EXPORT_BLACKLIST` config variable will no longer be listed.
 
+### Fixed
+
+- Fixed bug: config changes were ignored when re-installing a corpus to Korp or Strix.
+
 ## [1.1.0] - 2024-01-05
 
 ### Added
