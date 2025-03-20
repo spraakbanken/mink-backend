@@ -113,7 +113,7 @@ def get_file_contents(filepath: Path) -> str:
 
 
 def get_size(remote_path: Path) -> int:
-    """Get the size of a file or directory.
+    """Get the size (in bytes) of a file or directory.
 
     Args:
         remote_path: The path to the remote file or directory.
@@ -124,7 +124,7 @@ def get_size(remote_path: Path) -> int:
     Raises:
         Exception: If retrieving the size fails.
     """
-    p = utils.ssh_run(f"du -s {shlex.quote(str(remote_path))}")
+    p = utils.ssh_run(f"du -b -s {shlex.quote(str(remote_path))}")
     if p.stderr:
         raise Exception(f"Failed to retrieve size for path '{remote_path}': {p.stderr.decode()}")
     try:
