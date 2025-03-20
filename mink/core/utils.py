@@ -2,6 +2,7 @@
 
 import functools
 import gzip
+import hashlib
 import json
 import subprocess
 import zipfile
@@ -162,6 +163,25 @@ def size_ok(source_dir: Path, incoming_size: int) -> bool:
         if total_size > app.config.get("MAX_CORPUS_LENGTH"):
             return False
     return True
+
+
+def identical_file_exists(incoming_file_contents: bytes, existing_file: Path) -> bool:
+    """Check if the incoming file is identical to the existing file.
+
+    Args:
+        incoming_file_contents: The incoming file contents.
+        existing_file: Path to the existing file.
+
+    Returns:
+        True if the files are identical (in size and md5 hash), False otherwise.
+    """
+    if len(incoming_file_contents) == storage.get_size(existing_file):
+        remote_file_contents = storage.get_file_contents(existing_file).encode("utf-8")
+        remote_file_hash = hashlib.md5(remote_file_contents).hexdigest()
+        incoming_file_hash = hashlib.md5(incoming_file_contents).hexdigest()
+        if incoming_file_hash == remote_file_hash:
+            return True
+    return False
 
 
 def config_compatible(config: str, source_file: dict) -> tuple[bool, Optional[Response]]:

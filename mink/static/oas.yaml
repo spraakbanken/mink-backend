@@ -511,6 +511,10 @@ paths:
                     type: string
                   message:
                     type: string
+                  warnings:
+                    type: array
+                    items:
+                      type: string
                   return_code:
                     type: string
                 required:
@@ -523,6 +527,16 @@ paths:
                   value:
                     status: success
                     message: Source files successfully added to 'mink-dxh6e6wtff'
+                    warnings:
+                    - File 'rävar.xml' already existed with the same name, size and
+                      content. File was not uploaded again.
+                    - File 'ugglor.XML' did not have a lower case file extension.
+                      Its name was changed to 'ugglor.xml' during upload and it replaced
+                      an existing file with the same name.
+                    - File 'ugglor2.XML' did not have a lower case file extension.
+                      Its name was changed to 'ugglor2.xml' during upload.
+                    - File called 'igelkottar.xml' already existed. The file was replaced
+                      during upload.
                     return_code: uploaded_sources
         '400':
           description: ''

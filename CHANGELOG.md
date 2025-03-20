@@ -14,10 +14,12 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - The `/sparv-exports` route now also lists the names of the exported files. Exports matching any pattern listed in
   the `SPARV_EXPORT_BLACKLIST` config variable will no longer be listed.
+- When uploading a file with a name that already exists, it will only be replaced if its contents have changed.
 
 ### Fixed
 
 - Fixed bug: config changes were ignored when re-installing a corpus to Korp or Strix.
+- Fixed bug: `sparv.storage.get_size()` did not return size in bytes.
 
 ## [1.1.0] - 2024-01-05
 

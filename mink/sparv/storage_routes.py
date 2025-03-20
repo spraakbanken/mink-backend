@@ -203,7 +203,8 @@ def remove_corpus(resource_id: str) -> tuple[Response, int]:
 def upload_sources(resource_id: str) -> tuple[Response, int]:
     """Upload corpus source files.
 
-    Attached files will be added to the corpus or replace existing ones.
+    Attached files will be added to the corpus or replace existing ones. Files identical in name, size and md5 checksum
+    will not be uploaded again.
 
     Args:
         resource_id: The resource ID.
@@ -239,14 +240,19 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
         ), 500
 
     try:
+        existing_files = storage.list_contents(source_dir)
         h_max_file_size = str(round(app.config.get("MAX_FILE_LENGTH", 0) / 1024 / 1024, 2))
-        file_extension_warnings = []
+        warnings = []
         # Upload data
         for f in files[0]:
             name = sparv_utils.secure_filename(f.filename)
+            original_name = name
+
+            # Make sure the file suffix is lower case (issue warning later if name was changed)
             if name.suffix.lower() != name.suffix:
-                file_extension_warnings.append(str(name))
                 name = Path(name.stem + name.suffix.lower())
+
+            # Check if file can be processed by Sparv
             if not utils.file_ext_valid(name, app.config.get("SPARV_IMPORTER_MODULES", {}).keys()):
                 return utils.response(
                     f"Failed to upload some source files to '{resource_id}' due to invalid file extension",
@@ -255,6 +261,8 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
                     info="invalid file extension",
                     return_code="failed_uploading_sources_invalid_file_extension",
                 ), 400
+
+            # Check if file extension is compatible with existing files
             compatible, current_ext, existing_ext = utils.file_ext_compatible(name, source_dir)
             if not compatible:
                 return utils.response(
@@ -266,9 +274,9 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
                     existing_file_extension=existing_ext,
                     return_code="failed_uploading_sources_incompatible_file_extension",
                 ), 400
-            file_contents = f.read()
 
             # Check file size constraint
+            file_contents = f.read()
             if len(file_contents) > app.config.get("MAX_FILE_LENGTH"):
                 return utils.response(
                     f"Failed to upload some source files to '{resource_id}'. "
@@ -279,6 +287,26 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
                     max_file_size=app.config.get("MAX_FILE_LENGTH"),
                     return_code="failed_uploading_sources_file_size",
                 ), 403
+
+            # Skip uploading existing files (identical in name, size and md5 checksum)
+            if str(name) in [i.get("name") for i in existing_files]:
+                if utils.identical_file_exists(file_contents, source_dir / name):
+                    if name == original_name:
+                        # File with same name is identical; it will not be replaced during upload
+                        warnings.append(f"File '{name}' already existed with the same name, size and content. File was "
+                                        "not uploaded again.")
+                        continue
+                    # File extension was changed during upload and a file was replaced
+                    warnings.append(f"File '{original_name}' did not have a lower case file extension. Its name was "
+                                    f"changed to '{name}' during upload and it replaced an existing file with the same "
+                                    "name.")
+                else:
+                    # File with same name is not identical; it will be replaced during upload
+                    warnings.append(f"File called '{name}' already existed. The file was replaced during upload.")
+            # File extension was changed during upload (but no files were replaced)
+            elif name != original_name:
+                warnings.append(f"File '{original_name}' did not have a lower case file extension. Its name was "
+                                f"changed to '{name}' during upload.")
 
             # Validate XML files
             if current_ext == ".xml":
@@ -298,14 +326,8 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
         res.set_source_files()
 
         # Check if file extensions were changed during the upload process and produce a warning
-        warnings = ""
-        if file_extension_warnings:
-            name_changes = "'" + "', '".join(file_extension_warnings) + "'"
-            warnings = (
-                f"File extensions need to be in lower case! The following files have received new names during "
-                f"upload: {name_changes}. This may lead to existing files being replaced."
-            )
-
+        if warnings:
+            app.logger.warning("Warnings occurred during upload:\n%s", "\n".join(warnings))
         return utils.response(
             f"Source files successfully added to '{resource_id}'", warnings=warnings, return_code="uploaded_sources"
         )
