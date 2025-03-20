@@ -8,8 +8,7 @@ from flask import current_app as app
 
 from mink.core import utils
 
-# def list_contents(directory: Union[Path, str], exclude_dirs: bool = True,
-#                   blacklist: Optional[list] = None):
+# def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: Optional[list] = None):
 #     """
 #     List files in directory on storage server recursively.
 #     If a blacklist is specified, exclude paths that match anything on the blacklist.
@@ -45,7 +44,7 @@ from mink.core import utils
 #     return objlist
 
 
-def download_file(remote_file_path: str, local_file: Path, resource_id: str, ignore_missing: bool = False) -> bool:
+def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ignore_missing: bool = False) -> bool:
     """Download a file from the storage server.
 
     Args:
@@ -74,7 +73,7 @@ def download_file(remote_file_path: str, local_file: Path, resource_id: str, ign
     return not (ignore_missing and not local_file.is_file())
 
 
-# def get_file_contents(filepath):
+# def get_file_contents(filepath: Path) -> str:
 #     """Get contents of file at 'filepath'."""
 #     p = utils.ssh_run(f"cat {shlex.quote(str(filepath))}")
 #     if p.stderr:
@@ -83,7 +82,7 @@ def download_file(remote_file_path: str, local_file: Path, resource_id: str, ign
 #     return p.stdout.decode()
 
 
-def write_file_contents(filepath: str, file_contents: bytes, resource_id: str) -> None:
+def write_file_contents(filepath: Path, file_contents: bytes, resource_id: str) -> None:
     """Write contents to a new file on the storage server.
 
     Args:
@@ -102,7 +101,7 @@ def write_file_contents(filepath: str, file_contents: bytes, resource_id: str) -
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
 
-def remove_dir(path: str, resource_id: str) -> None:
+def remove_dir(path: Path, resource_id: str) -> None:
     """Remove directory on 'path' from storage server.
 
     Args:
@@ -120,7 +119,7 @@ def remove_dir(path: str, resource_id: str) -> None:
         raise Exception(f"Failed to remove corpus dir on storage server: {p.stderr.decode()}")
 
 
-# def remove_file(path, resource_id: str):
+# def remove_file(path: Path, resource_id: str) -> None:
 #     """Remove file on 'path' from storage server."""
 #     if not _is_valid_path(path, resource_id):
 #         raise Exception(f"You don't have permission to remove '{path}'")
@@ -141,7 +140,7 @@ def _get_login() -> tuple[str, str]:
     return user, host
 
 
-def _is_valid_path(path: str, resource_id: str) -> bool:
+def _is_valid_path(path: Path, resource_id: str) -> bool:
     """Check that path points to a certain resource dir (or a descendant).
 
     Args:
@@ -151,7 +150,7 @@ def _is_valid_path(path: str, resource_id: str) -> bool:
     Returns:
         True if the path is valid, False otherwise.
     """
-    return get_resource_dir(resource_id).resolve() in {*list(Path(path).resolve().parents), Path(path).resolve()}
+    return get_resource_dir(resource_id).resolve() in {*list(path.resolve().parents), path.resolve()}
 
 
 # ------------------------------------------------------------------------------
@@ -175,7 +174,7 @@ def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
 def get_source_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given resource."""
     resdir = get_resource_dir(resource_id)
-    source_dir = resdir / Path(app.config.get("METADATA_SOURCE_DIR"))
+    source_dir = resdir / app.config.get("METADATA_SOURCE_DIR")
     if mkdir:
         _make_dir(source_dir)
     return source_dir

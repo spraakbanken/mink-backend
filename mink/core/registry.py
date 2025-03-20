@@ -22,7 +22,7 @@ def initialize() -> None:
         registry_dir.mkdir(exist_ok=True)
 
         # Load queue priorities
-        queue_file = registry_dir / Path(app.config.get("QUEUE_FILE"))
+        queue_file = registry_dir / app.config.get("QUEUE_FILE")
         if queue_file.is_file():
             with queue_file.open() as p:
                 jsonstr = p.read()
@@ -152,10 +152,10 @@ def get_priority(job: jobs.Job) -> int:
 
 def save_priorities() -> None:
     """Save queue order so it can be loaded from disk upon app restart."""
-    registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
+    registry_dir = Path(app.instance_path) / app.config.get("REGISTRY_DIR")
     registry_dir.mkdir(exist_ok=True)
     queue = g.cache.get_job_queue()
-    queue_file = registry_dir / Path(app.config.get("QUEUE_FILE"))
+    queue_file = registry_dir / app.config.get("QUEUE_FILE")
     with queue_file.open("w") as f:
         f.write(json.dumps(queue))
 

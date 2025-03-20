@@ -86,10 +86,10 @@ class Info:
         g.cache.set_job(self.id, dump)
 
         # Save backup to file system queue
-        registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
+        registry_dir = Path(app.instance_path) / app.config.get("REGISTRY_DIR")
         subdir = registry_dir / self.id[len(app.config.get("RESOURCE_PREFIX"))]
         subdir.mkdir(parents=True, exist_ok=True)
-        backup_file = subdir / Path(self.id)
+        backup_file = subdir / self.id
         with backup_file.open("w") as f:
             f.write(dump)
 
@@ -127,9 +127,9 @@ class Info:
             app.logger.error("Failed to delete job ID from cache client: %s", e)
 
         # Remove backup from file system
-        registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
+        registry_dir = Path(app.instance_path) / app.config.get("REGISTRY_DIR")
         subdir = registry_dir / self.id[len(app.config.get("RESOURCE_PREFIX"))]
-        filename = subdir / Path(self.id)
+        filename = subdir / self.id
         filename.unlink(missing_ok=True)
 
 

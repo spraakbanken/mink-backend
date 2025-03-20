@@ -104,7 +104,7 @@ def create_metadata(user: dict, auth_token: str) -> tuple[Response, int]:
 
     # Create metadata resource dir with sources subdir
     try:
-        resource_dir = str(storage.get_resource_dir(resource_id, mkdir=True))
+        resource_dir = storage.get_resource_dir(resource_id, mkdir=True)
         storage.get_source_dir(resource_id, mkdir=True)
         return utils.response(
             f"Resource '{resource_id}' created successfully", resource_id=resource_id, return_code="created_resource"
@@ -143,8 +143,7 @@ def remove_metadata(resource_id: str) -> tuple[Response, int]:
 
     try:
         # Remove from storage
-        resdir = str(storage.get_resource_dir(resource_id))
-        storage.remove_dir(resdir, resource_id)
+        storage.remove_dir(storage.get_resource_dir(resource_id), resource_id)
     except Exception as e:
         return utils.response(
             f"Failed to remove resource '{resource_id}' from storage",
@@ -215,7 +214,7 @@ def upload_metadata_yaml(resource_id: str) -> tuple[Response, int]:
         try:
             new_yaml, resource_name = utils.standardize_metadata_yaml(yaml_contents)
             set_resource_name(resource_name)
-            storage.write_file_contents(str(storage.get_yaml_file(resource_id)), new_yaml.encode("UTF-8"), resource_id)
+            storage.write_file_contents(storage.get_yaml_file(resource_id), new_yaml.encode("UTF-8"), resource_id)
             return utils.response(
                 f"Metadata file successfully uploaded for '{resource_id}'", return_code="uploaded_yaml"
             ), 201
@@ -232,7 +231,7 @@ def upload_metadata_yaml(resource_id: str) -> tuple[Response, int]:
         try:
             new_yaml, resource_name = utils.standardize_metadata_yaml(metadata_txt)
             set_resource_name(resource_name)
-            storage.write_file_contents(str(storage.get_yaml_file(resource_id)), new_yaml.encode("UTF-8"), resource_id)
+            storage.write_file_contents(storage.get_yaml_file(resource_id), new_yaml.encode("UTF-8"), resource_id)
             return utils.response(
                 f"Metadata file successfully uploaded for '{resource_id}'", return_code="uploaded_metadata"
             ), 201
@@ -261,14 +260,13 @@ def download_metadata_yaml(resource_id: str) -> tuple[Response, int]:
     Returns:
         A tuple containing the response and the status code.
     """
-    storage_yaml_file = str(storage.get_yaml_file(resource_id))
     # Create directory for the current resource locally (on Mink backend server)
     utils.get_resource_dir(resource_id, mkdir=True)
     local_yaml_file = utils.get_metadata_yaml_file(resource_id)
 
     try:
         # Get file from storage
-        if storage.download_file(storage_yaml_file, local_yaml_file, resource_id, ignore_missing=True):
+        if storage.download_file(storage.get_yaml_file(resource_id), local_yaml_file, resource_id, ignore_missing=True):
             return send_file(local_yaml_file, mimetype="text/yaml")
         return utils.response(
             f"No metadata file found for corpus '{resource_id}'", err=True, return_code="metadata_not_found"

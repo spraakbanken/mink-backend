@@ -196,8 +196,7 @@ class Job:
         Raises:
             Exception: If no config file or input files are provided.
         """
-        remote_corpus_dir = str(storage.get_corpus_dir(self.id))
-        corpus_contents = storage.list_contents(remote_corpus_dir, exclude_dirs=False)
+        corpus_contents = storage.list_contents(storage.get_corpus_dir(self.id), exclude_dirs=False)
         if app.config.get("SPARV_CORPUS_CONFIG") not in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise Exception(f"No config file provided for '{self.id}'!")
@@ -213,10 +212,6 @@ class Job:
         """
         self.set_status(Status.running, ProcessName.sync2sparv)
 
-        # Get relevant directories
-        remote_corpus_dir = str(storage.get_corpus_dir(self.id))
-        local_user_dir = utils.get_corpora_dir(mkdir=True)
-
         # Create user and corpus dir on Sparv server
         p = utils.ssh_run(f"mkdir -p {self.remote_corpus_dir_esc} && rm -f {self.nohupfile} {self.runscript}")
         if p.stderr:
@@ -226,7 +221,8 @@ class Job:
         # Download from storage server to local tmp dir
         # TODO: do this async?
         try:
-            storage.download_dir(remote_corpus_dir, local_user_dir, self.id)
+            local_user_dir = utils.get_resources_dir(mkdir=True)
+            storage.download_dir(storage.get_corpus_dir(self.id), local_user_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
             raise Exception(f"Failed to download corpus '{self.id}' from the storage server! {e}") from e
@@ -605,7 +601,7 @@ class Job:
             None if successful, otherwise a tuple with error message and status code.
         """
         self.set_status(Status.running, ProcessName.sync2storage)
-        remote_corpus_dir = str(storage.get_corpus_dir(self.id))
+        remote_corpus_dir = storage.get_corpus_dir(self.id)
         local_corpus_dir = str(utils.get_resource_dir(self.id, mkdir=True))
 
         # Get exports from Sparv

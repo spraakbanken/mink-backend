@@ -32,9 +32,8 @@ def run_sparv(resource_id: str) -> tuple[Response, int]:
     current_files = [i.strip() for i in current_files.split(",") if i]
 
     # Get list of available source files to be stored in the job info
-    source_dir = str(storage.get_source_dir(resource_id))
     try:
-        source_files = storage.list_contents(source_dir)
+        source_files = storage.list_contents(storage.get_source_dir(resource_id))
     except Exception as e:
         return utils.response(
             f"Failed to list source files in '{resource_id}'",
@@ -50,8 +49,7 @@ def run_sparv(resource_id: str) -> tuple[Response, int]:
 
     # Check compatibility between source files and config
     try:
-        config_file = str(storage.get_config_file(resource_id))
-        config_contents = storage.get_file_contents(config_file)
+        config_contents = storage.get_file_contents(storage.get_config_file(resource_id))
         if source_files:
             compatible, resp = utils.config_compatible(config_contents, source_files[0])
             if not compatible:

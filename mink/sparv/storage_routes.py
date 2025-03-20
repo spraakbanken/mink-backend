@@ -61,7 +61,7 @@ def create_corpus(user: dict, auth_token: str) -> tuple[Response, int]:
 
     # Create corpus dir with subdirs
     try:
-        corpus_dir = str(storage.get_corpus_dir(resource_id, mkdir=True))
+        corpus_dir = storage.get_corpus_dir(resource_id, mkdir=True)
         storage.get_source_dir(resource_id, mkdir=True)
         return utils.response(
             f"Corpus '{resource_id}' created successfully", corpus_id=resource_id, return_code="created_corpus"
@@ -165,8 +165,7 @@ def remove_corpus(resource_id: str) -> tuple[Response, int]:
 
     try:
         # Remove from storage
-        corpus_dir = str(storage.get_corpus_dir(resource_id))
-        storage.remove_dir(corpus_dir, resource_id)
+        storage.remove_dir(storage.get_corpus_dir(resource_id), resource_id)
     except Exception as e:
         return utils.response(
             f"Failed to remove corpus '{resource_id}' from storage",
@@ -222,7 +221,7 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
     # Check request size constraint
     try:
         source_dir = storage.get_source_dir(resource_id)
-        if not utils.check_size_ok(source_dir, request.content_length):
+        if not utils.size_ok(source_dir, request.content_length):
             h_max_size = str(round(app.config.get("MAX_CORPUS_LENGTH", 0) / 1024 / 1024, 2))
             return utils.response(
                 f"Failed to upload source files to '{resource_id}'. Max corpus size ({h_max_size} MB) exceeded",
@@ -245,11 +244,10 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
         # Upload data
         for f in files[0]:
             name = sparv_utils.secure_filename(f.filename)
-            if Path(name).suffix.lower() != Path(name).suffix:
-                new_name = str(Path(name).stem + Path(name).suffix.lower())
-                file_extension_warnings.append((name, new_name))
-                name = new_name
-            if not utils.check_file_ext(name, app.config.get("SPARV_IMPORTER_MODULES", {}).keys()):
+            if name.suffix.lower() != name.suffix:
+                file_extension_warnings.append(str(name))
+                name = Path(name.stem + name.suffix.lower())
+            if not utils.file_ext_valid(name, app.config.get("SPARV_IMPORTER_MODULES", {}).keys()):
                 return utils.response(
                     f"Failed to upload some source files to '{resource_id}' due to invalid file extension",
                     err=True,
@@ -257,7 +255,7 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
                     info="invalid file extension",
                     return_code="failed_uploading_sources_invalid_file_extension",
                 ), 400
-            compatible, current_ext, existing_ext = utils.check_file_compatible(name, source_dir)
+            compatible, current_ext, existing_ext = utils.file_ext_compatible(name, source_dir)
             if not compatible:
                 return utils.response(
                     f"Failed to upload some source files to '{resource_id}' due to incompatible file extensions",
@@ -294,15 +292,15 @@ def upload_sources(resource_id: str) -> tuple[Response, int]:
                         info=f"invalid XML: {e}",
                         return_code="failed_uploading_sources_invalid_xml",
                     ), 400
-            storage.write_file_contents(str(source_dir / name), file_contents, resource_id)
+            storage.write_file_contents(source_dir / name, file_contents, resource_id)
 
         res = registry.get(resource_id).resource
         res.set_source_files()
 
-        # Check if file names have been changed and produce a warning
+        # Check if file extensions were changed during the upload process and produce a warning
         warnings = ""
         if file_extension_warnings:
-            name_changes = "'" + "', '".join(name for name, _ in file_extension_warnings) + "'"
+            name_changes = "'" + "', '".join(file_extension_warnings) + "'"
             warnings = (
                 f"File extensions need to be in lower case! The following files have received new names during "
                 f"upload: {name_changes}. This may lead to existing files being replaced."
@@ -331,9 +329,8 @@ def list_sources(resource_id: str) -> tuple[Response, int]:
     Returns:
         A tuple containing the response and the status code.
     """
-    source_dir = str(storage.get_source_dir(resource_id))
     try:
-        objlist = storage.list_contents(source_dir)
+        objlist = storage.list_contents(storage.get_source_dir(resource_id))
         return utils.response(
             f"Listing current source files for '{resource_id}'", contents=objlist, return_code="listing_sources"
         )
@@ -362,13 +359,11 @@ def remove_sources(resource_id: str) -> tuple[Response, int]:
     if not remove_files:
         return utils.response("No files provided for removal", err=True, return_code="missing_sources_remove"), 400
 
-    source_dir = storage.get_source_dir(resource_id)
-
     # Remove files
     successes = []
     fails = []
     for rf in remove_files:
-        storage_path = str(source_dir / Path(rf))
+        storage_path = storage.get_source_dir(resource_id) / rf
         try:
             storage.remove_file(storage_path, resource_id)
             successes.append(rf)
@@ -413,7 +408,7 @@ def download_sources(resource_id: str) -> tuple[Response, int]:
     download_file = request.args.get("file") or request.form.get("file") or ""
 
     # Check if there are any source files
-    storage_source_dir = str(storage.get_source_dir(resource_id))
+    storage_source_dir = storage.get_source_dir(resource_id)
     try:
         source_contents = storage.list_contents(storage_source_dir, exclude_dirs=False)
         if source_contents == []:
@@ -436,7 +431,7 @@ def download_sources(resource_id: str) -> tuple[Response, int]:
     # Download and zip file specified in args
     if download_file:
         download_file_name = Path(download_file).name
-        full_download_file = str(Path(storage_source_dir) / download_file)
+        download_file_path = storage_source_dir / download_file
         if download_file not in [i.get("path") for i in source_contents]:
             return utils.response(
                 "The source file you are trying to download does not exist", err=True, return_code="source_not_found"
@@ -445,15 +440,15 @@ def download_sources(resource_id: str) -> tuple[Response, int]:
             local_path = local_source_dir / download_file_name
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
             zipped = zipped.lower() != "false"
-            storage.download_file(full_download_file, local_path, resource_id)
+            storage.download_file(download_file_path, local_path, resource_id)
             if zipped:
-                outf = str(local_corpus_dir / Path(f"{resource_id}_{download_file_name}.zip"))
-                utils.create_zip(local_path, outf, zip_rootdir=resource_id)
-                return send_file(outf, mimetype="application/zip")
+                outfile_path = local_corpus_dir / f"{resource_id}_{download_file_name}.zip"
+                utils.create_zip(local_path, outfile_path, zip_rootdir=resource_id)
+                return send_file(str(outfile_path), mimetype="application/zip")
             # Determine content type
             content_type = "application/xml"
             for file_obj in source_contents:
-                if file_obj.get("name") == download_file_name:
+                if file_obj.get("name") == str(download_file_name):
                     content_type = file_obj.get("type")
                     break
             return send_file(local_path, mimetype=content_type)
@@ -464,7 +459,7 @@ def download_sources(resource_id: str) -> tuple[Response, int]:
 
     # Download all files as zip archive
     try:
-        zip_out = str(local_corpus_dir / f"{resource_id}_source.zip")
+        zip_out = local_corpus_dir / f"{resource_id}_source.zip"
         # Get files from storage server
         storage.download_dir(storage_source_dir, local_source_dir, resource_id, zipped=True, zippath=zip_out)
         return send_file(zip_out, mimetype="application/zip")
@@ -508,8 +503,7 @@ def upload_config(resource_id: str) -> tuple[Response, int]:
             return_code="too_many_params_upload_config",
         ), 400
 
-    source_dir = str(storage.get_source_dir(resource_id))
-    source_files = storage.list_contents(str(source_dir))
+    source_files = storage.list_contents(storage.get_source_dir(resource_id))
 
     # Process uploaded config file
     if attached_files:
@@ -529,9 +523,7 @@ def upload_config(resource_id: str) -> tuple[Response, int]:
         try:
             new_config, corpus_name = utils.standardize_config(config_contents, resource_id)
             set_corpus_name(corpus_name)
-            storage.write_file_contents(
-                str(storage.get_config_file(resource_id)), new_config.encode("UTF-8"), resource_id
-            )
+            storage.write_file_contents(storage.get_config_file(resource_id), new_config.encode("UTF-8"), resource_id)
             return utils.response(
                 f"Config file successfully uploaded for '{resource_id}'", return_code="uploaded_config"
             ), 201
@@ -552,9 +544,7 @@ def upload_config(resource_id: str) -> tuple[Response, int]:
                     return resp, 400
             new_config, corpus_name = utils.standardize_config(config_txt, resource_id)
             set_corpus_name(corpus_name)
-            storage.write_file_contents(
-                str(storage.get_config_file(resource_id)), new_config.encode("UTF-8"), resource_id
-            )
+            storage.write_file_contents(storage.get_config_file(resource_id), new_config.encode("UTF-8"), resource_id)
             return utils.response(
                 f"Config file successfully uploaded for '{resource_id}'", return_code="uploaded_config"
             ), 201
@@ -581,14 +571,15 @@ def download_config(resource_id: str) -> tuple[Response, int]:
     Returns:
         A tuple containing the response and the status code.
     """
-    storage_config_file = str(storage.get_config_file(resource_id))
     # Create directory for the current resource locally (on Mink backend server)
     utils.get_source_dir(resource_id, mkdir=True)
     local_config_file = utils.get_config_file(resource_id)
 
     try:
         # Get file from storage
-        if storage.download_file(storage_config_file, local_config_file, resource_id, ignore_missing=True):
+        if storage.download_file(
+            storage.get_config_file(resource_id), local_config_file, resource_id, ignore_missing=True
+        ):
             return send_file(local_config_file, mimetype="text/yaml")
         return utils.response(
             f"No config file found for corpus '{resource_id}'", err=True, return_code="config_not_found"
@@ -618,9 +609,10 @@ def list_exports(resource_id: str) -> tuple[Response, int]:
     Returns:
         A tuple containing the response and the status code.
     """
-    path = str(storage.get_export_dir(resource_id))
     try:
-        objlist = storage.list_contents(path, blacklist=app.config.get("SPARV_EXPORT_BLACKLIST"))
+        objlist = storage.list_contents(
+            storage.get_export_dir(resource_id), blacklist=app.config.get("SPARV_EXPORT_BLACKLIST")
+        )
         return utils.response(
             f"Listing current export files for '{resource_id}'", contents=objlist, return_code="listing_exports"
         )
@@ -658,7 +650,7 @@ def download_export(resource_id: str) -> tuple[Response, int]:
             return_code="too_many_params_download_exports",
         ), 400
 
-    storage_export_dir = str(storage.get_export_dir(resource_id))
+    storage_export_dir = storage.get_export_dir(resource_id)
     local_corpus_dir = utils.get_resource_dir(resource_id, mkdir=True)
     local_export_dir = utils.get_export_dir(resource_id, mkdir=True)
     blacklist = app.config.get("SPARV_EXPORT_BLACKLIST")
@@ -682,7 +674,7 @@ def download_export(resource_id: str) -> tuple[Response, int]:
     # Download and zip folder specified in args
     if download_folder:
         download_folder_name = "_".join(Path(download_folder).parts)
-        full_download_folder = str(Path(storage_export_dir) / download_folder)
+        full_download_folder = storage_export_dir / download_folder
         if download_folder not in [i.get("path") for i in export_contents]:
             return utils.response(
                 "The export folder you are trying to download does not exist",
@@ -690,7 +682,7 @@ def download_export(resource_id: str) -> tuple[Response, int]:
                 return_code="export_folder_not_found",
             ), 404
         try:
-            zip_out = str(local_corpus_dir / f"{resource_id}_{download_folder_name}.zip")
+            zip_out = local_corpus_dir / f"{resource_id}_{download_folder_name}.zip"
             (local_export_dir / download_folder).mkdir(exist_ok=True)
             storage.download_dir(
                 full_download_folder, local_export_dir / download_folder, resource_id, zipped=True, zippath=zip_out
@@ -707,12 +699,12 @@ def download_export(resource_id: str) -> tuple[Response, int]:
     # Download and zip file specified in args
     if download_file:
         download_file_name = Path(download_file).name
-        full_download_file = str(Path(storage_export_dir) / download_file)
+        download_file_path = storage_export_dir / download_file
         if download_file not in [i.get("path") for i in export_contents]:
             return utils.response(
                 f"The file '{download_file}' you are trying to download does not exist",
                 err=True,
-                file=str(download_file),
+                file=download_file,
                 return_code="export_not_found",
             ), 404
         try:
@@ -721,11 +713,11 @@ def download_export(resource_id: str) -> tuple[Response, int]:
             zipped = request.args.get("zip", "") or request.form.get("zip", "")
             zipped = zipped.lower() != "false"
             if zipped:
-                outf = str(local_corpus_dir / Path(f"{resource_id}_{download_file_name}.zip"))
-                storage.download_file(full_download_file, local_path, resource_id)
-                utils.create_zip(local_path, outf, zip_rootdir=resource_id)
-                return send_file(outf, mimetype="application/zip")
-            storage.download_file(full_download_file, local_path, resource_id)
+                outfile_path = local_corpus_dir / f"{resource_id}_{download_file_name}.zip"
+                storage.download_file(download_file_path, local_path, resource_id)
+                utils.create_zip(local_path, outfile_path, zip_rootdir=resource_id)
+                return send_file(str(outfile_path), mimetype="application/zip")
+            storage.download_file(download_file_path, local_path, resource_id)
             # Determine content type
             content_type = "application/xml"
             for file_obj in export_contents:
@@ -738,14 +730,14 @@ def download_export(resource_id: str) -> tuple[Response, int]:
                 "Failed to download file",
                 err=True,
                 info=str(e),
-                file=str(download_file),
+                file=download_file,
                 return_code="failed_downloading_file",
             ), 500
 
     # Download all export files (if not (download_file or download_folder))
     else:
         try:
-            zip_out = str(local_corpus_dir / f"{resource_id}_export.zip")
+            zip_out = local_corpus_dir / f"{resource_id}_export.zip"
             # Get files from storage server
             storage.download_dir(
                 storage_export_dir, local_export_dir, resource_id, zipped=True, zippath=zip_out, excludes=blacklist
@@ -774,8 +766,7 @@ def remove_exports(resource_id: str) -> tuple[Response, int]:
     if not storage.local:
         try:
             # Remove export dir from storage server and create a new empty one
-            export_dir = str(storage.get_export_dir(resource_id))
-            storage.remove_dir(export_dir, resource_id)
+            storage.remove_dir(storage.get_export_dir(resource_id), resource_id)
             storage.get_export_dir(resource_id, mkdir=True)
         except Exception as e:
             return utils.response(
@@ -824,8 +815,8 @@ def download_source_text(resource_id: str) -> tuple[Response, int]:
     """
     download_file = request.args.get("file") or request.form.get("file") or ""
 
-    storage_work_dir = str(storage.get_work_dir(resource_id))
-    local_corpus_dir = str(utils.get_resource_dir(resource_id, mkdir=True))
+    storage_work_dir = storage.get_work_dir(resource_id)
+    local_corpus_dir = utils.get_resource_dir(resource_id, mkdir=True)
 
     if not download_file:
         return utils.response(
@@ -847,22 +838,20 @@ def download_source_text(resource_id: str) -> tuple[Response, int]:
         ), 500
 
     # Download file specified in args
-    download_file_stem = Path(download_file).stem
-    short_path = str(Path(download_file_stem) / app.config.get("SPARV_PLAIN_TEXT_FILE"))
+    download_file = Path(download_file)
+    download_file_stem = Path(download_file.stem)
+    short_path = str(download_file_stem / app.config.get("SPARV_PLAIN_TEXT_FILE"))
     if short_path not in [i.get("path") for i in source_texts]:
         return utils.response(
             "The source text for this file does not exist", err=True, return_code="source_text_not_found"
         ), 404
     try:
-        full_download_path = str(
-            Path(storage_work_dir)
-            / Path(download_file).parent
-            / download_file_stem
-            / app.config.get("SPARV_PLAIN_TEXT_FILE")
+        download_file_path = (
+            storage_work_dir / download_file.parent / download_file_stem / app.config.get("SPARV_PLAIN_TEXT_FILE")
         )
-        out_file_name = download_file_stem + "_plain.txt"
-        local_path = Path(local_corpus_dir) / out_file_name
-        storage.download_file(full_download_path, local_path, resource_id)
+        out_file_name = str(download_file_stem) + "_plain.txt"
+        local_path = local_corpus_dir / out_file_name
+        storage.download_file(download_file_path, local_path, resource_id)
         utils.uncompress_gzip(local_path)
         return send_file(local_path, mimetype="text/plain")
     except Exception as e:

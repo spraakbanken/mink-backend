@@ -91,7 +91,7 @@ def uncompress_gzip(inpath: Path, outpath: Optional[Path] = None) -> None:
         data = z.read()
         if outpath is None:
             outpath = inpath
-        with Path(outpath).open("wb") as f:
+        with outpath.open("wb") as f:
             f.write(data)
 
 
@@ -103,19 +103,19 @@ def create_zip(inpath: Path, outpath: Path, zip_rootdir: Optional[str] = None) -
         outpath: The path to the output zip file.
         zip_rootdir: Name that the root folder inside the zip file should be renamed to.
     """
-    zipf = zipfile.ZipFile(outpath, "w")
-    if Path(inpath).is_file():
-        zipf.write(inpath, Path(inpath).name)
+    zipf = zipfile.ZipFile(str(outpath), "w")
+    if inpath.is_file():
+        zipf.write(inpath, inpath.name)
     else:
-        for filepath in Path(inpath).rglob("*"):
-            zippath = filepath.relative_to(Path(inpath).parent)
+        for filepath in inpath.rglob("*"):
+            zippath = filepath.relative_to(inpath.parent)
             if zip_rootdir:
-                zippath = Path(zip_rootdir) / Path(*zippath.parts[1:])
+                zippath = zip_rootdir / Path(*zippath.parts[1:])
             zipf.write(filepath, zippath)
     zipf.close()
 
 
-def check_file_ext(filename: str, valid_extensions: Optional[list[str]] = None) -> bool:
+def file_ext_valid(filename: Path, valid_extensions: Optional[list[str]] = None) -> bool:
     """Check if file extension is valid.
 
     Args:
@@ -125,11 +125,10 @@ def check_file_ext(filename: str, valid_extensions: Optional[list[str]] = None) 
     Returns:
         True if the file extension is valid, False otherwise.
     """
-    filename = Path(filename)
     return not (valid_extensions and not any(i.lower() == filename.suffix.lower() for i in valid_extensions))
 
 
-def check_file_compatible(filename: str, source_dir: Path) -> tuple[bool, str, Optional[str]]:
+def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, Optional[str]]:
     """Check if the file extension of filename is identical to the first file in source_dir.
 
     Args:
@@ -139,15 +138,15 @@ def check_file_compatible(filename: str, source_dir: Path) -> tuple[bool, str, O
     Returns:
         A tuple containing a boolean indicating compatibility, the current extension, and the existing extension.
     """
-    existing_files = storage.list_contents(str(source_dir))
-    current_ext = Path(filename).suffix
+    existing_files = storage.list_contents(source_dir)
+    current_ext = filename.suffix
     if not existing_files:
         return True, current_ext, None
     existing_ext = Path(existing_files[0].get("name")).suffix
     return current_ext == existing_ext, current_ext, existing_ext
 
 
-def check_size_ok(source_dir: Path, incoming_size: int) -> bool:
+def size_ok(source_dir: Path, incoming_size: int) -> bool:
     """Check if the size of the incoming files exceeds the max corpus size.
 
     Args:
@@ -158,7 +157,7 @@ def check_size_ok(source_dir: Path, incoming_size: int) -> bool:
         True if the size is within the limit, False otherwise.
     """
     if app.config.get("MAX_CORPUS_LENGTH") is not None:
-        current_size = storage.get_size(str(source_dir))
+        current_size = storage.get_size(source_dir)
         total_size = current_size + incoming_size
         if total_size > app.config.get("MAX_CORPUS_LENGTH"):
             return False
@@ -271,7 +270,7 @@ def standardize_metadata_yaml(metadata_yaml: str) -> tuple[str, str]:
 
 def get_resources_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
-    resources_dir = Path(app.instance_path) / Path(app.config.get("TMP_DIR")) / g.request_id
+    resources_dir = Path(app.instance_path) / app.config.get("TMP_DIR") / g.request_id
     if mkdir:
         resources_dir.mkdir(parents=True, exist_ok=True)
     return resources_dir
@@ -280,7 +279,7 @@ def get_resources_dir(mkdir: bool = False) -> Path:
 def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get dir for given resource."""
     resources_dir = get_resources_dir(mkdir=mkdir)
-    resdir = resources_dir / Path(resource_id)
+    resdir = resources_dir / resource_id
     if mkdir:
         resdir.mkdir(parents=True, exist_ok=True)
     return resdir
@@ -289,7 +288,7 @@ def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
 def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get export dir for given resource."""
     resdir = get_resource_dir(corpus_id, mkdir=mkdir)
-    export_dir = resdir / Path(app.config.get("SPARV_EXPORT_DIR"))
+    export_dir = resdir / app.config.get("SPARV_EXPORT_DIR")
     if mkdir:
         export_dir.mkdir(parents=True, exist_ok=True)
     return export_dir
@@ -298,7 +297,7 @@ def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
 def get_work_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get sparv workdir for given corpus."""
     resdir = get_resource_dir(corpus_id, mkdir=mkdir)
-    work_dir = resdir / Path(app.config.get("SPARV_WORK_DIR"))
+    work_dir = resdir / app.config.get("SPARV_WORK_DIR")
     if mkdir:
         work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
@@ -307,7 +306,7 @@ def get_work_dir(corpus_id: str, mkdir: bool = False) -> Path:
 def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given corpus."""
     resdir = get_resource_dir(corpus_id, mkdir=mkdir)
-    source_dir = resdir / Path(app.config.get("SPARV_SOURCE_DIR"))
+    source_dir = resdir / app.config.get("SPARV_SOURCE_DIR")
     if mkdir:
         source_dir.mkdir(parents=True, exist_ok=True)
     return source_dir
@@ -316,7 +315,7 @@ def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
 def get_config_file(corpus_id: str) -> Path:
     """Get path to corpus config file."""
     resdir = get_resource_dir(corpus_id)
-    return resdir / Path(app.config.get("SPARV_CORPUS_CONFIG"))
+    return resdir / app.config.get("SPARV_CORPUS_CONFIG")
 
 
 def get_metadata_yaml_file(resource_id: str) -> Path:

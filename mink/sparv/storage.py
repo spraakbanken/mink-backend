@@ -4,7 +4,7 @@ import mimetypes
 import shlex
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
 from dateutil.parser import isoparse, parse
 from flask import current_app as app
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 local = True
 
 
-def list_contents(directory: Union[Path, str], exclude_dirs: bool = True, blacklist: Optional[list] = None) -> list:
+def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: Optional[list] = None) -> list:
     """List files in directory on Sparv server recursively.
 
     Args:
@@ -64,7 +64,7 @@ def list_contents(directory: Union[Path, str], exclude_dirs: bool = True, blackl
     return objlist
 
 
-def download_file(remote_file_path: str, local_file: Path, resource_id: str, ignore_missing: bool = False) -> bool:
+def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ignore_missing: bool = False) -> bool:
     """Download a file from the Sparv server.
 
     Args:
@@ -93,7 +93,7 @@ def download_file(remote_file_path: str, local_file: Path, resource_id: str, ign
     return not (ignore_missing and not local_file.is_file())
 
 
-def get_file_contents(filepath: str) -> str:
+def get_file_contents(filepath: Path) -> str:
     """Get contents of file at 'filepath'.
 
     Args:
@@ -112,7 +112,7 @@ def get_file_contents(filepath: str) -> str:
     return p.stdout.decode()
 
 
-def get_size(remote_path: str) -> int:
+def get_size(remote_path: Path) -> int:
     """Get the size of a file or directory.
 
     Args:
@@ -133,7 +133,7 @@ def get_size(remote_path: str) -> int:
         raise Exception(f"Failed to retrieve size for path '{remote_path}': {e}") from e
 
 
-def write_file_contents(filepath: str, file_contents: bytes, resource_id: str) -> None:
+def write_file_contents(filepath: Path, file_contents: bytes, resource_id: str) -> None:
     """Write contents to a new file on the Sparv server.
 
     Args:
@@ -153,13 +153,13 @@ def write_file_contents(filepath: str, file_contents: bytes, resource_id: str) -
 
 
 def download_dir(
-    remote_dir: str,
+    remote_dir: Path,
     local_dir: Path,
     resource_id: str,
     zipped: bool = False,
     zippath: Optional[Path] = None,
     excludes: Optional[list] = None,
-) -> Union[Path, None]:
+) -> Path:
     """Download remote_dir on Sparv server to local_dir by rsyncing.
 
     Args:
@@ -202,7 +202,7 @@ def download_dir(
     return zippath
 
 
-def upload_dir(remote_dir: str, local_dir: Path, resource_id: str, delete: bool = False) -> None:
+def upload_dir(remote_dir: Path, local_dir: Path, resource_id: str, delete: bool = False) -> None:
     """Upload local dir to remote_dir on Sparv server by rsyncing.
 
     Args:
@@ -229,7 +229,7 @@ def upload_dir(remote_dir: str, local_dir: Path, resource_id: str, delete: bool 
         raise Exception(f"Failed to upload to '{remote_dir}': {p.stderr.decode()}")
 
 
-def remove_dir(path: str, resource_id: str) -> None:
+def remove_dir(path: Path, resource_id: str) -> None:
     """Remove directory on 'path' from Sparv server.
 
     Args:
@@ -247,7 +247,7 @@ def remove_dir(path: str, resource_id: str) -> None:
         raise Exception(f"Failed to remove corpus dir on Sparv server: {p.stderr.decode()}")
 
 
-def remove_file(path: str, resource_id: str) -> None:
+def remove_file(path: Path, resource_id: str) -> None:
     """Remove file on 'path' from Sparv server.
 
     Args:
@@ -284,9 +284,8 @@ def get_file_changes(resource_id: str, job: "Job") -> tuple:
     started = isoparse(job.started)
 
     # Get current source files
-    source_dir = str(get_source_dir(resource_id))
     try:
-        source_files = list_contents(source_dir)
+        source_files = list_contents(get_source_dir(resource_id))
     except Exception as e:
         raise exceptions.CouldNotListSourcesError(str(e)) from e
     source_file_paths = [f["path"] for f in source_files]
@@ -309,8 +308,7 @@ def get_file_changes(resource_id: str, job: "Job") -> tuple:
 
     # Compare the config file modification time to the time stamp of the last job started
     changed_config = {}
-    corpus_dir = str(get_corpus_dir(resource_id))
-    corpus_files = list_contents(corpus_dir)
+    corpus_files = list_contents(get_corpus_dir(resource_id))
     config_file = get_config_file(resource_id)
     for f in corpus_files:
         if f.get("name") == config_file.name:
@@ -336,7 +334,7 @@ def _get_login() -> tuple:
     return user, host
 
 
-def _is_valid_path(path: str, resource_id: str) -> bool:
+def _is_valid_path(path: Path, resource_id: str) -> bool:
     """Check that path points to a certain corpus dir (or a descendant).
 
     Args:
@@ -346,7 +344,7 @@ def _is_valid_path(path: str, resource_id: str) -> bool:
     Returns:
         True if the path is valid, False otherwise.
     """
-    return get_corpus_dir(resource_id).resolve() in {*list(Path(path).resolve().parents), Path(path).resolve()}
+    return get_corpus_dir(resource_id).resolve() in {*list(path.resolve().parents), path.resolve()}
 
 
 # ------------------------------------------------------------------------------

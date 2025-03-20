@@ -88,6 +88,5 @@ class Resource:
 
     def set_source_files(self) -> None:
         """Set source files and save."""
-        source_dir = str(storage.get_source_dir(self.id))
-        self.source_files = storage.list_contents(source_dir)
+        self.source_files = storage.list_contents(storage.get_source_dir(self.id))
         self.parent.update()
