@@ -4,6 +4,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 import shortuuid
+from apiflask import APIBlueprint
 from flask import Blueprint, Response, request, send_file
 from flask import current_app as app
 
@@ -13,7 +14,7 @@ from mink.sb_auth import login
 from mink.sparv import storage
 from mink.sparv import utils as sparv_utils
 
-bp = Blueprint("sparv_storage", __name__)
+bp = APIBlueprint("sparv_storage", __name__)
 
 
 # ------------------------------------------------------------------------------

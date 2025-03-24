@@ -110,3 +110,78 @@ PING_FREQUENCY = 60  # Frequency (in minutes) for how often healthchecks should 
 # TRACKING_MATOMO_IDSITE =
 # TRACKING_MATOMO_AUTH_TOKEN =
 # TRACKING_MATOMO_HTTP_TIMEOUT =
+
+
+
+DOCS_FAVICON = "static/favicon.ico"
+REDOC_CONFIG = {"typography": {"fontsize": "15px"}}
+
+INFO = {
+    "description": """# Introduction
+Web API serving as a backend to Mink.
+
+For now the API is used for uploading corpus data to a storage server and processing that data with Sparv.
+
+# Workflow
+A workflow for processing data with Sparv via Mink could look like this:
+
+1. <a href="#operation/createcorpus">Create a new corpus</a>
+2. <a href="#operation/uploadsources">Upload some corpus source files</a>
+3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
+4. <a href="#operation/runSparv">Run Sparv</a>
+5. <a href="#operation/resourceinfo">Check the status</a>
+6. <a href="#operation/downloadexports">Download export files</a>
+7. <a href="#operation/installinKorp">Install the corpus in Korp</a> / <a href="#operation/installinStrix">Strix</a>
+
+# Authentication
+Note that most HTTP requests need to be authenticated with A) a JSON Web Token (JWT, read more at https://jwt.io/)
+or B) an SB-Auth user API key:
+
+## JWT
+1. In the browser, log in at https://spraakbanken.gu.se/mink
+2. Open https://sp.spraakbanken.gu.se/auth/jwt to download the token in plain text
+3. Use the token in the request header as: `Authorization: Bearer <token>`
+4. The token is valid for a few hours. When it expires, repeat these steps.
+
+## API key
+1. Ask Språkbanken for an API key
+2. Use the API key token in the request header as: `X-Api-Key: <token>`
+3. The token is valid for an extended time, currently 90 days. When it expires, repeat these steps
+
+# Parameters
+Parameters such as `corpus_id` can usually be provided as a query parameter or as form data.
+The following two examples will thus result in the same response:
+
+`curl -X GET '{{host}}/list-sources?corpus_id=some_corpus_name' -H 'Authorization: Bearer YOUR_JWT`
+
+`curl -X GET -F "corpus_id=some_corpus_name" '{{host}}/list-sources' -H 'Authorization: Bearer YOUR_JWT`
+
+# Responses
+- Most responses will be in json format.
+- Json responses contain a `status` field which will have the value `success` if the response code is 200 and
+  `error` otherwise. Thus this `status` merely reports whether the call was processed correctly.
+- All json responses also contain a `return_code` field with a unique code that can be used for mapping to
+  human-friendly error messages.
+- Most responses contain a `message` field with information about what was done during the call or where things went
+  wrong.
+- Each call may have an arbitrary amount of additional fields containing more information or data.
+""",
+    "x-logo": {
+        "url": "https://raw.githubusercontent.com/spraakbanken/mink-backend/main/mink/static/mink.svg"
+    },
+    "contact": {
+        "name": "Språkbanken",
+        "url": "https://spraakbanken.gu.se/",
+        "email": "sb-info@svenska.gu.se",
+    },
+    "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    "servers": [
+        {
+            "url": "https://ws.spraakbanken.gu.se/ws/mink",
+            "description": "Production server",
+        }
+    ],
+}

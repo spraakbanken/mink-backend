@@ -2,6 +2,7 @@
 
 import time
 
+from apiflask import APIBlueprint, Schema, fields
 from flask import Blueprint, Response, request, session
 from flask import current_app as app
 
@@ -10,7 +11,7 @@ from mink.core.status import JobStatuses, ProcessName, Status
 from mink.sb_auth import login
 from mink.sparv import storage
 
-bp = Blueprint("sparv", __name__)
+bp = APIBlueprint("Process Corpus", __name__)
 
 
 @bp.route("/run-sparv", methods=["PUT"])
@@ -228,7 +229,28 @@ def resource_info(corpora: list) -> tuple[Response, int]:
         ), 500
 
 
+class CorpusID(Schema):
+    corpus_id = fields.String(metadata={"example": "mink-dxh6e6wtff"}, required=True)
+
+
+class AbortOut(Schema):
+    # job_status = fields.Nested(JobStatuses, required=True)
+    message = fields.String(metadata={"example": "Successfully aborted job for 'mink-dxh6e6wtff'"}, required=True)
+    return_code = fields.String(metadata={"example": "aborted_job"}, required=True)
+    status = fields.String(metadata={"example": "success"}, required=True)
+
+
 @bp.route("/abort-job", methods=["POST"])
+@bp.doc(
+    summary="Abort job",
+    tags=["Process Corpus"],
+    description=(
+        "Attempts to abort a running Sparv job.\n\n### Example\n\n```.bash\ncurl -X POST '{{host}}/abort-job?corpus_id"
+        "=some_corpus_name' -H 'Authorization: Bearer YOUR_JWT'\n```"
+    )
+)
+@bp.input(CorpusID, location="query")
+@bp.output(AbortOut, 200)
 @login.login()
 def abort_job(resource_id: str) -> tuple[Response, int]:
     """Try to abort a running job.

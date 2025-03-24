@@ -10,6 +10,7 @@ import traceback
 from pathlib import Path
 from typing import Optional
 
+from apiflask import APIFlask
 from flask import Flask, Response, g, request
 from flask_cors import CORS
 
@@ -36,7 +37,7 @@ def create_app(log_to_file: bool = True, log_level: Optional[str] = None) -> Fla
     Returns:
         The Flask application instance.
     """
-    app = Flask(__name__)
+    app = APIFlask(__name__, docs_ui="redoc", version=__version__)
 
     # Enable CORS
     CORS(app, supports_credentials=True)

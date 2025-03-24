@@ -5,11 +5,12 @@ from pathlib import Path
 import yaml
 from flask import Blueprint, Response, jsonify, redirect, render_template, send_from_directory, url_for
 from flask import current_app as app
+from apiflask import APIBlueprint
 
 from mink import __version__
 from mink.core import utils
 
-bp = Blueprint("general", __name__)
+bp = APIBlueprint("general", __name__)
 
 
 @bp.route("/")

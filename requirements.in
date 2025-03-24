@@ -1,6 +1,8 @@
+apiflask
 apscheduler
 flask
 flask_cors
+flask-matomo2>=0.6.0
 gunicorn[gevent]
 pyjwt[crypto]
 pymemcache
@@ -8,4 +10,3 @@ python-dateutil
 pyyaml
 requests
 shortuuid
-flask-matomo2>=0.6.0
