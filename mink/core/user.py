@@ -1,6 +1,6 @@
 """Class defining user objects."""
 
-from typing import Any, Optional
+from typing import Any
 
 
 class User:
@@ -11,7 +11,7 @@ class User:
         id: str,  # noqa: A002
         name: str,
         email: str,
-        ui_language: Optional[str] = None,
+        ui_language: str | None = None,
     ) -> None:
         """Init user by setting class variables.
 

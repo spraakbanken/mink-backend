@@ -2,7 +2,7 @@
 .idea/
 .vscode
 
-# Flask
+# Instance files
 instance/
 
 # Byte-compiled / optimized / DLL files

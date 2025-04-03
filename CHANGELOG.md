@@ -7,11 +7,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- The `run.py` script is now a command line tool and the host, the port and logging can be configured with flags.
+- The API documentation now contains better schemas for parameters and responses.
 - `/upload-sources` now contains the exception message in the response in case invalid XML is uploaded.
 
 ### Changed
 
+- The application is now fastAPI instead of Flask.
+- Parameters that could be supplied as both query and form parameters have been converted to pure query parameters.
+- The `corpus_id` parameter has been changed to `resource_id`. `corpus_id` may still be used but it is deprecated.
 - The `/sparv-exports` route now also lists the names of the exported files. Exports matching any pattern listed in
   the `SPARV_EXPORT_BLACKLIST` config variable will no longer be listed.
 - When uploading a file with a name that already exists, it will only be replaced if its contents have changed.

@@ -2,15 +2,14 @@
 
 import json
 from pathlib import Path
-from typing import Optional
 
-from flask import current_app as app
-from flask import g
-
+from mink.cache import cache_utils
+from mink.config import settings
 from mink.core import exceptions, registry
 from mink.core.jobs import Job
 from mink.core.resource import Resource
 from mink.core.user import User
+from mink.logging import logger
 
 
 class Info:
@@ -19,9 +18,9 @@ class Info:
     def __init__(
         self,
         id: str,  # noqa: A002
-        resource: Optional[Resource] = None,
-        owner: Optional[User] = None,
-        job: Optional[Job] = None,
+        resource: Resource | None = None,
+        owner: User | None = None,
+        job: Job | None = None,
     ) -> None:
         """Create an info instance.
 
@@ -72,22 +71,22 @@ class Info:
             CorpusExistsError: If the resource ID already exists.
         """
         # Save to cache
-        all_resources = g.cache.get_all_resources()
+        all_resources = cache_utils.get_all_resources()
         if self.id in all_resources:
             raise exceptions.CorpusExistsError("Resource ID already exists!")
         all_resources.append(self.id)
-        g.cache.set_all_resources(all_resources)
+        cache_utils.set_all_resources(all_resources)
         self.update()
 
     def update(self) -> None:
         """Write an info item to the cache and filesystem."""
         dump = json.dumps(self, default=lambda x: x.serialize())
 
-        g.cache.set_job(self.id, dump)
+        cache_utils.set_job(self.id, dump)
 
         # Save backup to file system queue
-        registry_dir = Path(app.instance_path) / app.config.get("REGISTRY_DIR")
-        subdir = registry_dir / self.id[len(app.config.get("RESOURCE_PREFIX"))]
+        registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
+        subdir = registry_dir / self.id[len(settings.RESOURCE_PREFIX)]
         subdir.mkdir(parents=True, exist_ok=True)
         backup_file = subdir / self.id
         with backup_file.open("w") as f:
@@ -118,17 +117,17 @@ class Info:
 
         # Remove from cache
         try:
-            g.cache.remove_job(self.id)
-            all_resources = g.cache.get_all_resources()
+            cache_utils.remove_job(self.id)
+            all_resources = cache_utils.get_all_resources()
             if self.id in all_resources:
                 all_resources.pop(all_resources.index(self.id))
-                g.cache.set_all_resources(all_resources)
+                cache_utils.set_all_resources(all_resources)
         except Exception as e:
-            app.logger.error("Failed to delete job ID from cache client: %s", e)
+            logger.error("Failed to delete job ID from cache client: %s", e)
 
         # Remove backup from file system
-        registry_dir = Path(app.instance_path) / app.config.get("REGISTRY_DIR")
-        subdir = registry_dir / self.id[len(app.config.get("RESOURCE_PREFIX"))]
+        registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
+        subdir = registry_dir / self.id[len(settings.RESOURCE_PREFIX)]
         filename = subdir / self.id
         filename.unlink(missing_ok=True)
 

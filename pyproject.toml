@@ -3,8 +3,8 @@ name = "mink-backend"
 dynamic = ["version"]
 description = ""
 readme = "README.md"
-requires-python = ">=3.9"
-license.text = "MIT License"
+requires-python = ">=3.10"
+license = "MIT"
 authors = [
     { name = "Språkbanken", email = "sb-info@svenska.gu.se" }
 ]
@@ -59,6 +59,8 @@ ignore = [
     "PLR09",   # Pylint: too-many-*
     "PLR1702", # Pylint: too-many-nested-blocks
     "SIM105",  # flake8-simplify: suppressible-exception
+    "B008",    # flake8-bugbear: function-call-in-default-argument
+    "PLR2004", # Pylint: magic-value-comparison
 ]
 
 preview = true

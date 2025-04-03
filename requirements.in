@@ -1,11 +1,11 @@
 apscheduler
-flask
-flask_cors
-gunicorn[gevent]
+asgi-matomo>=0.6.0
+fastapi
+pydantic_settings
 pyjwt[crypto]
 pymemcache
 python-dateutil
+python-dotenv
 pyyaml
-requests
 shortuuid
-flask-matomo2>=0.6.0
+uvicorn
