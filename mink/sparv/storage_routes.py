@@ -73,7 +73,7 @@ def create_corpus(user: dict, auth_token: str) -> tuple[Response, int]:
         except Exception:
             app.logger.exception("Failed to remove partially uploaded corpus data for '%s'.", resource_id)
         try:
-            login.remove_resource(resource_id)
+            login.remove_resource(auth_token, resource_id)
         except Exception:
             app.logger.exception("Failed to remove corpus '%s' from auth system.", resource_id)
         try:
@@ -129,10 +129,11 @@ def list_korp_corpora(corpora: list) -> tuple[Response, int]:
 
 @bp.route("/remove-corpus", methods=["DELETE"])
 @login.login()
-def remove_corpus(resource_id: str) -> tuple[Response, int]:
+def remove_corpus(resource_id: str, auth_token: str) -> tuple[Response, int]:
     """Remove corpus.
 
     Args:
+        auth_token: The authentication token.
         resource_id: The resource ID.
 
     Returns:
@@ -176,7 +177,7 @@ def remove_corpus(resource_id: str) -> tuple[Response, int]:
 
     try:
         # Remove from auth system
-        login.remove_resource(resource_id)
+        login.remove_resource(auth_token, resource_id)
     except Exception as e:
         return utils.response(
             f"Failed to remove corpus '{resource_id}' from authentication system",

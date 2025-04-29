@@ -393,10 +393,11 @@ def create_resource(auth_token: str, resource_id: str, resource_type: Optional[s
         raise Exception(message)
 
 
-def remove_resource(resource_id: str) -> bool:
+def remove_resource(auth_token: str, resource_id: str) -> bool:
     """Remove a resource from sb-auth.
 
     Args:
+        auth_token: The authentication token.
         resource_id: The resource ID.
 
     Returns:
@@ -408,9 +409,10 @@ def remove_resource(resource_id: str) -> bool:
     # API documented at https://github.com/spraakbanken/sb-auth#api
     url = app.config.get("SBAUTH_URL") + f"resource/{resource_id}"
     api_key = app.config.get("SBAUTH_API_KEY")
-    headers = {"Authorization": f"apikey {api_key}"}
+    headers = {"Authorization": f"apikey {api_key}", "Content-Type": "application/json"}
+    data = {"jwt": auth_token}
     try:
-        r = requests.delete(url, headers=headers)
+        r = requests.delete(url, headers=headers, data=json.dumps(data))
         status = r.status_code
     except Exception as e:
         raise e
