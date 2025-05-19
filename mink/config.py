@@ -24,9 +24,8 @@ class Settings(BaseSettings):
     # Log settings
     LOG_LEVEL: str = "INFO"
     LOG_TO_FILE: bool = True
-    LOG_FILE_PATH: str = str(
-        Path(__file__).resolve().parent.parent / f"instance/logs/mink-{datetime.now().strftime('%Y-%m-%d')}.log"
-    )
+    LOG_DIR: str = str(Path(INSTANCE_PATH) / "logs")  # Directory for log files
+    LOG_FILENAME: str = f"mink-{datetime.now().strftime('%Y-%m-%d')}.log"  # Name of the log file
     LOG_FORMAT: str = "%(asctime)-15s - %(name)s - %(levelname)s - %(message)s"
     LOG_DATEFORMAT: str = "%Y-%m-%d %H:%M:%S"
 

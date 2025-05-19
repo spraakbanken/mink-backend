@@ -6,8 +6,10 @@ from pathlib import Path
 
 from mink.config import settings
 
+log_file_path = Path(settings.LOG_DIR) / settings.LOG_FILENAME
+
 # Ensure the logs directory exists
-Path(settings.LOG_FILE_PATH).parent.mkdir(parents=True, exist_ok=True)
+Path(log_file_path).parent.mkdir(parents=True, exist_ok=True)
 
 LOGGING_CONFIG = {
     "version": 1,
@@ -26,7 +28,7 @@ LOGGING_CONFIG = {
         "file": {
             "class": "logging.FileHandler",
             "formatter": "default",
-            "filename": settings.LOG_FILE_PATH,
+            "filename": log_file_path,
         },
     },
     "root": {
