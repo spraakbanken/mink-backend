@@ -1,14 +1,14 @@
 # Mink Backend
 
-Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s data platform where
-users can upload corpus data, get it annotated with [Sparv](https://spraakbanken.gu.se/sparv) and view and search it in
-[Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
+Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s data platform, allowing users to upload corpus data, annotate
+it with [Sparv](https://spraakbanken.gu.se/sparv), and view or search it in [Korp](https://spraakbanken.gu.se/korp) and
+[Strix](https://spraakbanken.gu.se/strix).
 
 This is a fastAPI application serving as a backend to the [Mink frontend](https://spraakbanken.gu.se/mink).
 
 ## Prerequisites
 
-* [Python 3.9](http://python.org/) or newer
+* [Python 3.10](http://python.org/) or newer
 * [memcached](http://memcached.org/)
 
 ## How to run a test server

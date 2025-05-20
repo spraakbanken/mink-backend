@@ -865,7 +865,7 @@ async def sparv_exports(
     """List available Sparv export formats for the chosen language (default: 'swe').
 
     The language is specified with the `language` as ISO 639-3 code. See available languages by calling
-    [{{host}}/sparv-languages](`{{host}}/sparv-languages`).
+    <{{host}}/sparv-languages>.
 
     ### Example
 

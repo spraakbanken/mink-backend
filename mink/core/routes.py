@@ -1,5 +1,6 @@
 """Collection of general routes."""
 
+import json
 import re
 from pathlib import Path
 
@@ -18,41 +19,77 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/", include_in_schema=False)
 async def hello() -> RedirectResponse:
-    """Redirect to /api_doc."""
-    return RedirectResponse(url="/api-doc")
+    """Redirect to /redoc."""
+    return RedirectResponse(url="/redoc")
 
 
-@router.get("/api-spec", tags=["Documentation"], response_model=dict)
+@router.get("/openapi.json", tags=["Documentation"], response_model=dict)
 async def api_specification(request: Request) -> JSONResponse:
     """Get the open API specification (in json format) for this API."""
-    return request.app.openapi_url
+    oas = request.app.openapi()
+    # Convert markdown anchor links to ReDoc operation links, e.g. (#install-strix-put)->(#operation/install-strix-put)
+    oas_string = re.sub(r"\(#([a-zA-Z0-9\-]+)\)", r"(#operation/\1)", json.dumps(oas))
+    return JSONResponse(content=json.loads(oas_string))
 
 
-@router.get("/api-doc", tags=["Documentation"])
-async def api_documentation(request: Request) -> HTMLResponse:
+# Kept for backwards compatibility
+@router.get("/api-spec", include_in_schema=False)
+async def api_specification2() -> JSONResponse:
+    """Get the open API specification (in json format) for this API."""
+    return RedirectResponse(url="/openapi.json")
+
+
+@router.get("/redoc", tags=["Documentation"], response_class=HTMLResponse)
+async def api_documentation() -> HTMLResponse:
     """Render ReDoc HTML (documentation for this API)."""
     return get_redoc_html(
-        openapi_url=request.app.openapi_url,
+        openapi_url="/openapi.json",
         redoc_favicon_url="/static/favicon.ico",
         title="Mink API documentation"
     )
 
 
-@router.get("/swagger-test", include_in_schema=False)
-async def custom_swagger_ui_html(request: Request) -> HTMLResponse:
-    """Render Swagger UI with custom JavaScript to apply API key authentication in each request."""
+# Kept for backwards compatibility
+@router.get("/api-doc", include_in_schema=False)
+async def api_documentation2() -> HTMLResponse:
+    """Render ReDoc HTML (documentation for this API)."""
+    return RedirectResponse(url="/redoc")
+
+
+@router.get("/swagger-openapi.json", include_in_schema=False)
+async def swagger_api_spec(request: Request) -> JSONResponse:
+    """Serve a modified OpenAPI schema (OAS) for Swagger."""
+    oas = request.app.openapi()
+    # Create a dictionarey with paths as keys and their tag names as values (needed for Swagger links)
+    paths_dict = {
+        operation.get("operationId", ""): tag.replace(" ", "%20")
+        for operations in oas.get("paths", {}).values()
+        for operation in operations.values()
+        for tag in operation.get("tags", [])
+    }
+    # Convert markdown anchor links to Swagger links, e.g. (#install-strix-put)->(#/Process%20Corpus/install-strix-put)
+    oas_string = re.sub(
+        r"\(#([a-zA-Z0-9\-]+)\)",
+        lambda match: f"(#/{paths_dict.get(match.group(1), '')}/{match.group(1)})",
+        json.dumps(oas)
+    )
+    return JSONResponse(content=json.loads(oas_string))
+
+
+@router.get("/docs", tags=["Documentation"], response_class=HTMLResponse)
+async def swagger_api_documentation(request: Request) -> HTMLResponse:
+    """Render Swagger UI HTML (documentation for this API)."""
     html = get_swagger_ui_html(
-        openapi_url=request.app.openapi_url,
+        openapi_url="/swagger-openapi.json",
         swagger_favicon_url="/static/favicon.ico",
         title=request.app.title + " - Swagger UI",
     ).body.decode()
-
+    # Modify JavaScript to apply API key authentication in each request if SBAUTH_PERSONAL_API_KEY is set
     api_key = settings.SBAUTH_PERSONAL_API_KEY
     if api_key:
         # Insert a requestInterceptor into the swagger UI html
         intercept = f"""requestInterceptor: (req) => {{ req.headers["X-API-Key"] = "{api_key}"; return req; }},\n"""
         html = re.sub(r"(url: '/api-spec',\n)", r"\1" + " " * 8 + intercept, html)
-
     return HTMLResponse(html)
 
 

@@ -212,7 +212,7 @@ async def create_metadata(
 async def remove_metadata(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
     """Remove a metadata resource.
 
-    ## Example:
+    ### Example
 
     ```bash
     curl -X DELETE '{{host}}/remove-metadata?resource_id=resource-id' -H 'Authorization: Bearer YOUR_JWT'
@@ -317,7 +317,7 @@ async def upload_metadata_yaml(
 ) -> JSONResponse:
     """Upload a YAML metadata file or provide metadata as plain text.
 
-    ## Example:
+    ### Example
 
     ```bash
     curl -X PUT '{{host}}/upload-metadata-yaml?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT' \
@@ -423,7 +423,7 @@ async def upload_metadata_yaml(
 async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
     """Download the metadata yaml file for a specific resource.
 
-    ## Example:
+    ### Example
 
     ```bash
     curl -X GET '{{host}}/download-metadata-yaml?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'

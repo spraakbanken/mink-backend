@@ -1,38 +1,43 @@
 info:
   title: Mink backend
   description: |-
-    # Introduction
-    Web API serving as a backend to [Mink](https://spraakbanken.gu.se/mink) (Språkbanken's data platform).
+    ## Introduction
 
-    The API is maily used for uploading corpus data to a storage server and processing that data with Sparv.
+    The Mink backend is a REST API serving as a backend to [Mink](https://spraakbanken.gu.se/mink) (Språkbanken's data
+    platform). It is mainly used for uploading corpus data to a storage server and processing that data with Sparv.
 
-    # Workflow
+    ## Workflow
+
     A workflow for processing data with Sparv via Mink could look like this:
-    
-    1. <a href="#operation/createcorpus">Create a new corpus</a>
-    2. <a href="#operation/uploadsources">Upload some corpus source files</a>
-    3. <a href="#operation/uploadconfig">Upload a corpus config file</a>
-    4. <a href="#operation/runSparv">Run Sparv</a>
-    5. <a href="#operation/resourceinfo">Check the status</a>
-    6. <a href="#operation/downloadexports">Download export files</a>
-    7. <a href="#operation/installinKorp">Install the corpus in Korp</a> / <a href="#operation/installinStrix">Strix</a>
 
-    # Authentication
-    Note that most HTTP requests need to be authenticated with (A) a JSON Web Token (JWT, read more at https://jwt.io/)
-    or (B) an SB-Auth user API key:
+    1. [Create a new corpus](#create-corpus-post)
+    2. [Upload some corpus source files](#upload-sources-put)
+    3. [Upload a corpus config file](#upload-config-put)
+    4. [Run Sparv](#run-sparv-put)
+    5. [Check the status](#resource-info-get)
+    6. [Download export files](#download-exports-get)
+    7. [Install the corpus in Korp](#install-korp-put) / [Strix](#install-strix-put)
 
-    ## (A) JWT
-    1. In the browser, log in at https://spraakbanken.gu.se/mink
-    2. Open https://sp.spraakbanken.gu.se/auth/jwt to download the token in plain text
+    ## Authentication
+
+    Note that most HTTP requests need to be authenticated with (A) a JSON Web Token (JWT, read more at
+    <https://jwt.io/>) or (B) an SB-Auth user API key:
+
+    ### (A) JWT
+
+    1. In the browser, log in at <https://spraakbanken.gu.se/mink>
+    2. Open <https://sp.spraakbanken.gu.se/auth/jwt> to download the token in plain text
     3. Use the token in the request header as: `Authorization: Bearer <token>`
     4. The token is valid for a few hours. When it expires, repeat these steps.
 
-    ## (B) API key
+    ### (B) API key
+
     1. Ask Språkbanken for an API key
     2. Use the API key token in the request header as: `X-Api-Key: <token>`
     3. The token is valid for an extended time, currently 90 days. When it expires, repeat these steps
 
-    # Responses
+    ## Responses
+
     - Most responses will be in json format. - Json responses contain a `status` field which will have the value
       `success` if the response code is anything between 200 and 299 and `error` otherwise. Thus this `status` merely
       reports whether the call was processed correctly.
@@ -58,18 +63,18 @@ servers:
 
 tags:
   - name: Manage Corpora
-    description: Routes for creating, listing and removing corpora.
+    description: Routes for creating, listing, and removing corpora.
   - name: Manage Sources
-    description: Routes for uploading, listing, downloading and removing corpus source files.
+    description: Routes for uploading, listing, downloading, and removing corpus source files.
   - name: Manage Config
     description: Routes for uploading and downloading corpus config files.
-  - name: Manage Exports
-    description: Routes for listing, downloading and removing export files.
-  - name: Manage Metadata
-    description: Routes for creating, uploading and downloading meta data resources.
   - name: Process Corpus
     description: Routes for managing annotation and installation jobs with Sparv and checking job status.
+  - name: Manage Exports
+    description: Routes for listing, downloading, and removing export files.
+  - name: Manage Metadata
+    description: Routes for creating, uploading, and downloading metadata resources.
   - name: Admin Mode
-    description: Activate/deactivate admin mode.
+    description: Activate or deactivate admin mode.
   - name: Documentation
     description: Routes used for documentation purposes.

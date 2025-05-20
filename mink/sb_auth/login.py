@@ -170,7 +170,7 @@ class AuthDependency:
     async def __call__(
         self,
         request: Request,
-        session_id: str | None = Cookie(None),
+        session_id: str | None = Cookie(None, description="Session ID"),
         jwt_token: str | None = Security(oauth2_scheme),
         api_key: str | None = Security(api_key_scheme),
         corpus_id: str | None = Query(None, description="Resource ID (deprecated, use resource_id instead)"),
@@ -197,7 +197,7 @@ class AuthDependencyNoResourceId(AuthDependency):
     async def __call__(
         self,
         request: Request,
-        session_id: str | None = Cookie(None),
+        session_id: str | None = Cookie(None, description="Session ID"),
         jwt_token: str | None = Security(oauth2_scheme),
         api_key: str | None = Security(api_key_scheme),
     ) -> dict:

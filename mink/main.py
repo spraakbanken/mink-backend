@@ -67,7 +67,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     logger.info("Shutting down Mink")
 
 
-app = FastAPI(lifespan=lifespan, openapi_url="/api-spec", version=__version__)
+# Deactivate default Redoc and Swagger UI and openapi_url because we use custom ones
+app = FastAPI(lifespan=lifespan, version=__version__, redoc_url=None, docs_url=None, openapi_url=None)
 
 # Mount the static files directory
 app.mount("/static", StaticFiles(directory="mink/static"), name="static")
@@ -100,12 +101,6 @@ async def log_request(request: Request, call_next: Callable) -> Response:
     # Log request info, but don't log options and advance-queue requests (too much spam)
     if request.method != "OPTIONS" and request.url.path != "/advance-queue":
         logger.info("Request: %s %s?%s", request.method, request.url.path, request.url.query)
-
-        # # Log form data
-        # form_data = await request.form()
-        # if form_data:
-        #     args = ", ".join(f"{k}: {v}" for k, v in form_data.items())
-        #     logger.debug("Form data: %s", args)
 
     # Call the actual route
     return await call_next(request)
@@ -185,8 +180,16 @@ def custom_openapi() -> dict:
     for schema in openapi_schema.get("components", {}).get("schemas", {}).values():
         schema.pop("title", None)
 
-    for path_item in openapi_schema.get("paths", {}).values():
-        for operation in path_item.values():
+    for path, path_item in openapi_schema.get("paths", {}).items():
+        for method, operation in path_item.items():
+
+            # Generate simpler operationIds (used for anchor links in the documentation)
+            # Example: /admin-mode-off [POST] -> admin-mode-off-post
+            clean_path = path.strip("/").replace("/", "-")
+            if not clean_path:
+                clean_path = "root"
+            operation_id = f"{clean_path}-{method}"
+            operation["operationId"] = operation_id
 
             # Remove auto-generated "title" from response schemas in paths
             for response in operation.get("responses", {}).values():
@@ -202,6 +205,7 @@ def custom_openapi() -> dict:
             # Replace {{host}} in descriptions with actual backend URL
             operation["description"] = operation.get("description", "").replace("{{host}}", host)
 
+    # Cache the modified OpenAPI schema
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 

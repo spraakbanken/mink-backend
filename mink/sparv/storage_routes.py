@@ -1159,7 +1159,7 @@ async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSO
         },
     },
 )
-async def download_export(
+async def download_exports(
     download_file: str | None = Query(None, alias="file", description="The file name or path to download"),
     download_folder: str | None = Query(None, alias="dir", description="The directory to download"),
     zipped: bool = Query(True, alias="zip", description="Whether to zip the file or not"),
