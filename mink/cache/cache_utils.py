@@ -18,8 +18,8 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from mink.cache.cache import get_cache_client
-from mink.config import settings
 from mink.core import registry
+from mink.core.config import settings
 
 
 def get_queue_initialized() -> bool:

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     RESOURCE_PREFIX: str = "mink-"  # Prefix for resource IDs
 
     # Local files
-    INSTANCE_PATH: str = str(Path(__file__).resolve().parent.parent / "instance")  # Path to the instance directory
+    INSTANCE_PATH: str = str(Path(__file__).resolve().parent.parent.parent / "instance")  # Path to the instance dir
     TMP_DIR: str = str(Path(INSTANCE_PATH) / "tmp")  # Temporary file storage
     REGISTRY_DIR: str = str(Path(INSTANCE_PATH) / "registry")  # Directory for storing job files
     QUEUE_FILE: str = str(Path(INSTANCE_PATH) / "queue")  # File to store the queue priorities

@@ -8,8 +8,8 @@ from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from mink.config import settings
 from mink.core import utils
+from mink.core.config import settings
 from mink.core.models import InfoResponse
 
 router = APIRouter()

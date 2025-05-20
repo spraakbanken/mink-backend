@@ -12,7 +12,7 @@ from pathlib import Path
 import httpx
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from mink.config import settings
+from mink.core.config import settings
 
 # Configure logger
 logging.basicConfig(

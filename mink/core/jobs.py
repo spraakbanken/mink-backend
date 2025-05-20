@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING
 
 import dateutil
 
-from mink.config import settings
 from mink.core import exceptions, registry, utils
+from mink.core.config import settings
+from mink.core.logging import logger
 from mink.core.status import JobStatuses, ProcessName, Status
-from mink.logging import logger
 from mink.sparv import storage
 from mink.sparv import utils as sparv_utils
 

@@ -4,7 +4,7 @@ import logging
 from logging.config import dictConfig
 from pathlib import Path
 
-from mink.config import settings
+from mink.core.config import settings
 
 log_file_path = Path(settings.LOG_DIR) / settings.LOG_FILENAME
 

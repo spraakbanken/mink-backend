@@ -4,12 +4,12 @@ import json
 from pathlib import Path
 
 from mink.cache import cache_utils
-from mink.config import settings
 from mink.core import exceptions, registry
+from mink.core.config import settings
 from mink.core.jobs import Job
+from mink.core.logging import logger
 from mink.core.resource import Resource
 from mink.core.user import User
-from mink.logging import logger
 
 
 class Info:

@@ -16,9 +16,9 @@ from starlette.background import BackgroundTask
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import Message
 
-from mink.config import settings
 from mink.core import exceptions, models
-from mink.logging import logger
+from mink.core.config import settings
+from mink.core.logging import logger
 from mink.sb_auth.login import request_id_var
 from mink.sparv import storage
 

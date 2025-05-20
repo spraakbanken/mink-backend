@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, Query, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.cache import cache_utils
-from mink.config import settings
 from mink.core import exceptions, models, registry, utils
+from mink.core.config import settings
 from mink.core.info import Info
+from mink.core.logging import logger
 from mink.core.resource import Resource, ResourceType
-from mink.logging import logger
 from mink.metadata import storage
 from mink.sb_auth import login
 

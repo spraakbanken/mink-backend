@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from mink.core import models, utils
-from mink.logging import logger
+from mink.core.logging import logger
 
 
 class MinkHTTPException(HTTPException):

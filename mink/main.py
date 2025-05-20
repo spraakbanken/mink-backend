@@ -16,9 +16,9 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from mink.cache.cache import initialize_cache
-from mink.config import settings
 from mink.core import exceptions, registry, routes, utils
-from mink.logging import logger
+from mink.core.config import settings
+from mink.core.logging import logger
 from mink.metadata import routes as metadata_routes
 from mink.sb_auth import routes as login_routes
 from mink.sparv import process_routes, storage_routes

@@ -8,10 +8,10 @@ from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.cache import cache_utils
-from mink.config import settings
 from mink.core import exceptions, models, registry, utils
+from mink.core.config import settings
 from mink.core.info import Info
-from mink.logging import logger
+from mink.core.logging import logger
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
 from mink.sparv import storage

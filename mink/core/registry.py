@@ -7,9 +7,9 @@ import json
 from pathlib import Path
 
 from mink.cache import cache_utils
-from mink.config import settings
 from mink.core import exceptions, info, jobs
-from mink.logging import logger
+from mink.core.config import settings
+from mink.core.logging import logger
 
 
 def initialize() -> None:

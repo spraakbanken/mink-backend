@@ -4,7 +4,7 @@ import os
 import unicodedata
 from pathlib import Path
 
-from mink.config import settings
+from mink.core.config import settings
 
 
 def get_corpora_dir(default_dir: bool = False) -> Path:

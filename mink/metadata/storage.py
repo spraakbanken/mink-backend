@@ -4,8 +4,8 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from mink.config import settings
 from mink.core import utils
+from mink.core.config import settings
 
 # def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: list | None = None):
 #     """

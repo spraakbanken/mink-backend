@@ -11,10 +11,10 @@ from fastapi import Cookie, Query, Request, Security
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 
 from mink.cache import cache_utils
-from mink.config import settings
 from mink.core import exceptions
+from mink.core.config import settings
+from mink.core.logging import logger
 from mink.core.user import User
-from mink.logging import logger
 
 # Setup security schemes
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="", auto_error=False)

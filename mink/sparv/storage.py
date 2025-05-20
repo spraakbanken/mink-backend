@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 
 from dateutil.parser import isoparse, parse
 
-from mink.config import settings
 from mink.core import exceptions, utils
+from mink.core.config import settings
 from mink.sparv import utils as sparv_utils
 
 if TYPE_CHECKING:
