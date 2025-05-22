@@ -23,7 +23,7 @@
 #### Parameters
 
 {% for param in ep.operation.parameters -%}
-- `{{ param['name'] }}`: {{ param['description'] or "No description" }} ({{ param['in'] }})
+- `{{ param['name'] }}` ({{ param['in'] }}): {{ param['description'] or "No description" }}
 {% endfor %}
 
 {%- endif %}

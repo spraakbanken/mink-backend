@@ -154,15 +154,43 @@ class JobModel(BaseModel):
                     "install_scrambled": True,
                     "installed_korp": True,
                     "installed_strix": True,
-                    "latest_seconds_taken": 0,
+                    "latest_seconds_taken": 10.353667,
                     "priority": 1,
                     "warnings": "",
                     "errors": "",
-                    "sparv_output": "",
+                    "sparv_output": "Nothing to be done.",
                     "last_run_started": "2024-01-02T14:31:26+01:00",
                     "last_run_ended": "",
                     "progress": "0%",
-                }
+                },
+                {
+                    "status": {
+                        "sync2sparv": "none",
+                        "sync2storage": "none",
+                        "sparv": "done",
+                        "korp": "aborted",
+                        "strix": "done",
+                    },
+                    "current_process": "sparv",
+                    "pid": None,
+                    "started": "2023-12-11T13:24:09+01:00",
+                    "done": None,
+                    "sparv_exports": ["xml_export:pretty", "csv_export:csv", "stats_export:sbx_freq_list"],
+                    "current_files": [],
+                    "install_scrambled": True,
+                    "installed_korp": True,
+                    "installed_strix": True,
+                    "latest_seconds_taken": 20.379222,
+                    "priority": "",
+                    "warnings": "",
+                    "errors": "",
+                    "sparv_output": "The exported files can be found in the following locations:\n • export"
+                    "/csv_export/\n • export/stats_export.frequency_list_sbx/\n • export/"
+                    "xml_export.pretty/",
+                    "last_run_started": "2023-12-11T13:24:09+01:00",
+                    "last_run_ended": "",
+                    "progress": "100%",
+                },
             ]
         }
     }
