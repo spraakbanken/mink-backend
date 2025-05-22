@@ -246,7 +246,7 @@ data.
 ## Testing
 
 Currently, there are no automated tests for the Mink backend. Manual testing can be performed using SwaggerUI, which is
-included with FastAPI. To access it, navigate to <http://localhost:8000/swagger> in your browser. SwaggerUI displays all
+included with FastAPI. To access it, navigate to <http://localhost:8000/docs> in your browser. SwaggerUI displays all
 documented routes and provides "Try it out" buttons for sending requests directly to the backend.
 
 For local development, set `ENV=development` in your `.env` configuration file. This ensures SwaggerUI targets your

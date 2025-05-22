@@ -6,8 +6,9 @@ from pathlib import Path
 
 from fastapi import APIRouter, Request
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from jinja2 import Template
 
 from mink.core import utils
 from mink.core.config import settings
@@ -91,6 +92,62 @@ async def swagger_api_documentation(request: Request) -> HTMLResponse:
         intercept = f"""requestInterceptor: (req) => {{ req.headers["X-API-Key"] = "{api_key}"; return req; }},\n"""
         html = re.sub(r"(url: '/api-spec',\n)", r"\1" + " " * 8 + intercept, html)
     return HTMLResponse(html)
+
+
+@router.get("/openapi-to-markdown", include_in_schema=False, response_class=PlainTextResponse)
+async def openapi_to_markdown(request: Request) -> PlainTextResponse:
+    """Render OpenAPI schema in Markdown format."""
+    openapi_schema = request.app.openapi()
+
+    # Get the production server URL from the OpenAPI schema
+    servers = openapi_schema.get("servers", [])
+    production_server_url = None
+    for server in servers:
+        if server.get("description") == "Production server":
+            production_server_url = server.get("url", "")
+            break
+
+    # Fix all anchor links in the OpenAPI schema, e.g. (#install-strix-put) --> (#install-strix)
+    oas_string = re.sub(r"\(#([a-zA-Z0-9\-]+)-[a-zA-Z0-9]+\)", r"(#\1)", json.dumps(openapi_schema))
+
+    # Replace the current host with the production server URL
+    if production_server_url is not None and production_server_url != settings.MINK_URL:
+        oas_string = re.sub(rf"{settings.MINK_URL}", production_server_url, oas_string)
+
+    openapi_schema = json.loads(oas_string)
+
+    # Organize paths by tags, preserving tag order from the OpenAPI spec
+    tag_order = [tag["name"] for tag in openapi_schema.get("tags", [])]
+    tag_descriptions = {tag["name"]: tag["description"] for tag in openapi_schema.get("tags", [])}
+    tags_dict = {tag: [] for tag in tag_order}
+    for path, operations in openapi_schema["paths"].items():
+        for method, operation in operations.items():
+            for tag in operation.get("tags", []):
+                tags_dict[tag].append({
+                    "path": path,
+                    "method": method,
+                    "operation": operation,
+                    "summary": operation.get("summary", ""),
+                })
+            # Add another markdown header level to "Example" in description
+            if "description" in operation:
+                operation["description"] = re.sub(
+                    r"\n\n### Example\n\n", r"\n\n#### Example\n\n", operation["description"], flags=re.DOTALL
+                )
+
+    # Load the Jinja2 markdown template
+    template_path = Path("templates") / "openapi_to_markdown.j2"
+    with template_path.open("r", encoding="utf-8") as f:
+        markdown_template = f.read()
+    template = Template(markdown_template)
+
+    markdown = template.render(
+        info=openapi_schema["info"],
+        tags=tags_dict,
+        tag_descriptions=tag_descriptions,
+    )
+
+    return PlainTextResponse(content=markdown)
 
 
 @router.get("/developers-guide", tags=["Documentation"])

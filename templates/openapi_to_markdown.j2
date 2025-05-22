@@ -1,0 +1,37 @@
+{{ info.description }}
+{% for tag, endpoints in tags.items() %}
+## {{ tag }}
+
+{{ tag_descriptions[tag] | default("") }}
+{% for ep in endpoints %}
+### {{ ep.summary }}
+
+**Route:** `{{ ep.method.upper() }} {{ ep.path }}`
+
+{{ ep.operation.description }}
+{% if ep.operation.security %}
+#### Authentication Methods
+
+{% for sec in ep.operation.security -%}
+{% for name in sec.keys() -%}
+- {{ name }}
+{% endfor %}
+{%- endfor -%}
+
+{%- endif -%}
+{% if ep.operation.parameters %}
+#### Parameters
+
+{% for param in ep.operation.parameters -%}
+- `{{ param['name'] }}`: {{ param['description'] or "No description" }} ({{ param['in'] }})
+{% endfor %}
+
+{%- endif %}
+#### Responses
+
+{% for status, response in ep.operation.responses.items() -%}
+- **{{ status }}**: {{ response['description'] or "No description" }}
+{% endfor %}
+{%- endfor -%}
+{# --- #}
+{%- endfor -%}
