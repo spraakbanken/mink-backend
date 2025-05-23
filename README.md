@@ -33,7 +33,7 @@ Guide](http://localhost:8000/developers-guide).
 
 The default configuration is defined in `config.py`. To override these settings, create a `.env` file in the project's
 root directory and set the environment variables listed in `config.py`. For examples, see the [developer's
-guide](/documentation/developers-guide.md#configuration).
+guide](/docs/developers-guide.md#configuration).
 
 ## Tracking to Matomo
 
@@ -48,11 +48,11 @@ To enable tracking to Matomo, set the following config variables:
 To generate the PDF documentation, ensure that `pandoc`, `markdown`, and a LaTeX distribution are installed on your
 system. The development server should be running at `http://localhost:8000`.
 
-Navigate to the `/documentation/md2pdf` directory and execute:
+Navigate to the `/docs/md2pdf` directory and execute:
 
 ```bash
 ./make-pdf.sh
 ```
 
-The resulting PDF will be saved in the `documentation/md2pdf/output` directory. It includes both the Developer's Guide
+The resulting PDF will be saved in the `docs/md2pdf/output` directory. It includes both the Developer's Guide
 and the API documentation.

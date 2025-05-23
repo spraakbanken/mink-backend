@@ -237,7 +237,7 @@ Non-core packages provide additional, more easily replaceable functionality:
 
 The API for this application is documented using the [OpenAPI Specification](https://spec.openapis.org/oas/v3.1.0)
 (OAS), a standard for describing HTTP APIs. The OAS is used to generate the documentation web page available at the
-`/api-doc` route.
+`/openapi.json` route.
 
 Starting from version 1.3.0, the OAS is generated automatically by FastAPI. To ensure the documentation remains
 accurate, keep the docstrings of the route functions up to date. These docstrings typically include bash examples
