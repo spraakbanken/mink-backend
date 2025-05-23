@@ -18,6 +18,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - The `/sparv-exports` route now also lists the names of the exported files. Exports matching any pattern listed in
   the `SPARV_EXPORT_BLACKLIST` config variable will no longer be listed.
 - When uploading a file with a name that already exists, it will only be replaced if its contents have changed.
+- The developer's guide has received a new look (it is rendered with mkdocs now).
 
 ### Fixed
 
@@ -33,8 +34,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- The corpus registry and the job queue have been combined. Now, upon resource creation a job item is created immediately
-  (instead of it being created first upon starting a Sparv job).
+- The corpus registry and the job queue have been combined. Now, upon resource creation a job item is created
+  immediately (instead of it being created first upon starting a Sparv job).
 - The `/check-status`-call has been replaced with `/resource-info` with a different response format.
 
 ## [1.0.0] - 2023-09-19

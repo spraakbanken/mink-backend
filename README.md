@@ -4,7 +4,10 @@ Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s data platform, allowi
 it with [Sparv](https://spraakbanken.gu.se/sparv), and view or search it in [Korp](https://spraakbanken.gu.se/korp) and
 [Strix](https://spraakbanken.gu.se/strix).
 
-This is a fastAPI application serving as a backend to the [Mink frontend](https://spraakbanken.gu.se/mink).
+The Mink backend is a FastAPI application serving as a backend to the [Mink frontend](https://spraakbanken.gu.se/mink).
+
+The source code is available under the [MIT license](https://opensource.org/licenses/MIT). If you have any questions,
+problems or suggestions please contact <sb-mink@svenska.gu.se>.
 
 ## Prerequisites
 

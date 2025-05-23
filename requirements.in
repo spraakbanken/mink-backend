@@ -1,6 +1,7 @@
 apscheduler
 asgi-matomo>=0.6.0
 fastapi
+mkdocs-material
 pydantic_settings
 pyjwt[crypto]
 pymemcache

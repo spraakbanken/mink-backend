@@ -2,6 +2,7 @@
 
 __version__ = "1.2.0-dev"
 
+import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -25,7 +26,7 @@ from mink.sparv import process_routes, storage_routes
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
+async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
     """Lifespan context manager for the FastAPI app.
 
     Args:
@@ -59,6 +60,10 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     logger.info("Connected to memcached on %s", settings.CACHE_CLIENT)
     registry.initialize()
 
+    # Build the MkDocs documentation
+    utils.build_docs()
+    app.last_reload_time = time.time()
+
     yield
 
     # -------------------------------
@@ -70,8 +75,9 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
 # Deactivate default Redoc and Swagger UI and openapi_url because we use custom ones
 app = FastAPI(lifespan=lifespan, version=__version__, redoc_url=None, docs_url=None, openapi_url=None)
 
-# Mount the static files directory
+# Mount directories for static files
 app.mount("/static", StaticFiles(directory="mink/static"), name="static")
+app.mount("/docs", StaticFiles(directory="docs/site", html=True), name="mkdocs")
 
 # ------------------------------------------------------------------------------
 # Register custom exception handlers
@@ -103,6 +109,19 @@ async def log_request(request: Request, call_next: Callable) -> Response:
         logger.info("Request: %s %s?%s", request.method, request.url.path, request.url.query)
 
     # Call the actual route
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def reload_middleware(request: Request, call_next: Callable) -> Response:
+    """Middleware to rebuild the MkDocs documentation in development mode."""
+    if settings.ENV == "development" and request.url.path.startswith("/docs"):
+        # Compare the current time with the last reload time
+        current_time = time.time()
+        if current_time - app.last_reload_time > 5:
+            utils.build_docs()
+            app.last_reload_time = current_time
+
     return await call_next(request)
 
 

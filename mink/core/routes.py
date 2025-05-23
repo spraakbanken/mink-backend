@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Request
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from jinja2 import Template
 
@@ -33,7 +33,7 @@ async def api_specification(request: Request) -> JSONResponse:
     return JSONResponse(content=json.loads(oas_string))
 
 
-# Kept for backwards compatibility
+# Deprecated, kept for backwards compatibility
 @router.get("/api-spec", include_in_schema=False)
 async def api_specification2() -> JSONResponse:
     """Get the open API specification (in json format) for this API."""
@@ -50,7 +50,7 @@ async def api_documentation() -> HTMLResponse:
     )
 
 
-# Kept for backwards compatibility
+# Deprecated, kept for backwards compatibility
 @router.get("/api-doc", include_in_schema=False)
 async def api_documentation2() -> HTMLResponse:
     """Render ReDoc HTML (documentation for this API)."""
@@ -77,7 +77,7 @@ async def swagger_api_spec(request: Request) -> JSONResponse:
     return JSONResponse(content=json.loads(oas_string))
 
 
-@router.get("/docs", tags=["Documentation"], response_class=HTMLResponse)
+@router.get("/swagger", tags=["Documentation"], response_class=HTMLResponse)
 async def swagger_api_documentation(request: Request) -> HTMLResponse:
     """Render Swagger UI HTML (documentation for this API)."""
     html = get_swagger_ui_html(
@@ -92,6 +92,19 @@ async def swagger_api_documentation(request: Request) -> HTMLResponse:
         intercept = f"""requestInterceptor: (req) => {{ req.headers["X-API-Key"] = "{api_key}"; return req; }},\n"""
         html = re.sub(r"(url: '/api-spec',\n)", r"\1" + " " * 8 + intercept, html)
     return HTMLResponse(html)
+
+
+@router.get("/docs", tags=["Documentation"])
+async def developers_guide() -> HTMLResponse:
+    """Render mkdocs HTML with the developer's guide."""
+    return FileResponse(Path("docs/site/index.html"))
+
+
+# Deprecated, kept for backwards compatibility
+@router.get("/developers-guide", include_in_schema=False)
+async def developers_guide2() -> HTMLResponse:
+    """Render mkdocs HTML with the developer's guide."""
+    return RedirectResponse(url="/docs")
 
 
 @router.get("/openapi-to-markdown", include_in_schema=False, response_class=PlainTextResponse)
@@ -148,24 +161,6 @@ async def openapi_to_markdown(request: Request) -> PlainTextResponse:
     )
 
     return PlainTextResponse(content=markdown)
-
-
-@router.get("/developers-guide", tags=["Documentation"])
-async def developers_guide(request: Request) -> HTMLResponse:
-    """Render docsify HTML with the developer's guide."""
-    mink_url = settings.MINK_URL
-    return templates.TemplateResponse(
-        request=request, name="docsify.html", context={"favicon": f"{mink_url}/static/favicon.ico"}
-    )
-
-
-@router.get("/developers-guide/{path:path}", include_in_schema=False)
-async def developers_guide_files(path: str) -> HTMLResponse:
-    """Serve sub pages to the developer's guide needed by docsify."""
-    file_path = Path("templates") / path
-    if file_path.exists():
-        return HTMLResponse(content=file_path.read_text(encoding="UTF-8"))
-    return HTMLResponse(content="File not found", status_code=404)
 
 
 @router.get("/info", tags=["Documentation"], response_model=InfoResponse)

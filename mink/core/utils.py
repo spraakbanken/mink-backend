@@ -12,6 +12,8 @@ from typing import Any
 import yaml
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
+from mkdocs.commands import build
+from mkdocs.config import load_config
 from starlette.background import BackgroundTask
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import Message
@@ -123,6 +125,16 @@ class LimitRequestSizeMiddleware(BaseHTTPMiddleware):
             )
 
         return await call_next(request)
+
+
+def build_docs() -> None:
+    """Build the MkDocs documentation."""
+    try:
+        # Load the MkDocs configuration and build the documentation
+        config = load_config("docs/mkdocs.yml")
+        build.build(config)
+    except Exception:
+        logger.exception("Error building MkDocs documentation.")
 
 
 def ssh_run(command: str, ssh_input: bytes | None = None) -> subprocess.CompletedProcess:
