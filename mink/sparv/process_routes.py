@@ -203,7 +203,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     return utils.response(**make_status_response(info))
 
 
-@router.put("/advance-queue", response_model=models.BaseResponse, include_in_schema=False)
+@router.put("/advance-queue", tags=["Process Corpus"], response_model=models.BaseResponse, include_in_schema=False)
 async def advance_queue(
     secret_key: str = Query(..., alias="secret_key", description="Secret key for authentication")
 ) -> JSONResponse:

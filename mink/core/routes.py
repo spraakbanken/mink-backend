@@ -14,7 +14,7 @@ from mink.core import utils
 from mink.core.config import settings
 from mink.core.models import InfoResponse
 
-router = APIRouter()
+router = APIRouter(tags=["Documentation"])
 templates = Jinja2Templates(directory="templates")
 
 
@@ -24,7 +24,7 @@ async def hello() -> RedirectResponse:
     return RedirectResponse(url="/redoc")
 
 
-@router.get("/openapi.json", tags=["Documentation"], response_model=dict)
+@router.get("/openapi.json", response_model=dict)
 async def api_specification(request: Request) -> JSONResponse:
     """Get the open API specification (in json format) for this API."""
     oas = request.app.openapi()
@@ -40,7 +40,7 @@ async def api_specification2() -> JSONResponse:
     return RedirectResponse(url="/openapi.json")
 
 
-@router.get("/redoc", tags=["Documentation"], response_class=HTMLResponse)
+@router.get("/redoc", response_class=HTMLResponse)
 async def api_documentation() -> HTMLResponse:
     """Render ReDoc HTML (documentation for this API)."""
     return get_redoc_html(
@@ -77,7 +77,7 @@ async def swagger_api_spec(request: Request) -> JSONResponse:
     return JSONResponse(content=json.loads(oas_string))
 
 
-@router.get("/swagger", tags=["Documentation"], response_class=HTMLResponse)
+@router.get("/swagger", response_class=HTMLResponse)
 async def swagger_api_documentation(request: Request) -> HTMLResponse:
     """Render Swagger UI HTML (documentation for this API)."""
     html = get_swagger_ui_html(
@@ -94,7 +94,7 @@ async def swagger_api_documentation(request: Request) -> HTMLResponse:
     return HTMLResponse(html)
 
 
-@router.get("/docs", tags=["Documentation"])
+@router.get("/docs")
 async def developers_guide() -> HTMLResponse:
     """Render mkdocs HTML with the developer's guide."""
     return FileResponse(Path("docs/site/index.html"))
@@ -163,7 +163,7 @@ async def openapi_to_markdown(request: Request) -> PlainTextResponse:
     return PlainTextResponse(content=markdown)
 
 
-@router.get("/info", tags=["Documentation"], response_model=InfoResponse)
+@router.get("/info", response_model=InfoResponse)
 async def api_info() -> JSONResponse:
     """Show info about data processing, e.g. job status codes, file size limits and Sparv importer modules."""
     from mink.core.status import Status  # noqa: PLC0415

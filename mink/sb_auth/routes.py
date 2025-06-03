@@ -8,12 +8,11 @@ from mink.cache import cache_utils
 from mink.core import models, utils
 from mink.sb_auth.login import AuthDependencyNoResourceId
 
-router = APIRouter()
+router = APIRouter(tags=["Admin Mode"])
 
 
 @router.post(
     "/admin-mode-on",
-    tags=["Admin Mode"],
     response_model=models.BaseResponse,
     responses={
         200: {
@@ -48,7 +47,6 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
 
 @router.post(
     "/admin-mode-off",
-    tags=["Admin Mode"],
     response_model=models.BaseResponse,
     responses={
         200: {
@@ -78,7 +76,6 @@ async def admin_mode_off(
 
 @router.get(
     "/admin-mode-status",
-    tags=["Admin Mode"],
     response_model=models.BaseResponse,
     responses={
         200: {

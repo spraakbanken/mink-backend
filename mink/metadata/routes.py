@@ -14,7 +14,7 @@ from mink.core.resource import Resource, ResourceType
 from mink.metadata import storage
 from mink.sb_auth import login
 
-router = APIRouter()
+router = APIRouter(tags=["Manage Metadata"])
 
 
 # ------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ router = APIRouter()
 
 @router.post(
     "/create-metadata",
-    tags=["Manage Metadata"],
     status_code=201,
     response_model=models.BaseResponse,
     responses={
@@ -167,7 +166,6 @@ async def create_metadata(
 
 @router.delete(
     "/remove-metadata",
-    tags=["Manage Metadata"],
     response_model=models.BaseResponse,
     responses={
         200: {
@@ -267,7 +265,6 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency())) -> 
 
 @router.put(
     "/upload-metadata-yaml",
-    tags=["Manage Metadata"],
     status_code=201,
     response_model=models.BaseResponse,
     responses={
@@ -387,7 +384,6 @@ async def upload_metadata_yaml(
 
 @router.get(
     "/download-metadata-yaml",
-    tags=["Manage Metadata"],
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -454,21 +450,21 @@ async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency(
 # # Source file operations
 # # ------------------------------------------------------------------------------
 
-# @router.put("/upload-metadata-sources", tags=["Manage Metadata"])
+# @router.put("/upload-metadata-sources")
 # async def upload_metadata_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
 #     pass
 
 
-# @router.get("/list-metadata-sources", tags=["Manage Metadata"])
+# @router.get("/list-metadata-sources")
 # async def list_metadata_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
 #     pass
 
 
-# @router.delete("/remove-metadata-sources", tags=["Manage Metadata"])
+# @router.delete("/remove-metadata-sources")
 # async def remove_metadata_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
 #     pass
 
 
-# @router.get("/download-metadata-sources", tags=["Manage Metadata"])
+# @router.get("/download-metadata-sources")
 # async def download_metadata_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
 #     pass
