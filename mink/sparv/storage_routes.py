@@ -247,6 +247,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency())) -> JS
     resource_id = auth_data.get("resource_id")
     # Get job
     info_obj = registry.get(resource_id)
+
     if info_obj.job.installed_korp:
         try:
             # Uninstall corpus from Korp using Sparv

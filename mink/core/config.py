@@ -3,6 +3,7 @@
 from datetime import datetime
 from pathlib import Path
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -128,10 +129,10 @@ class Settings(BaseSettings):
     TRACKING_MATOMO_AUTH_TOKEN: str = ""
     TRACKING_MATOMO_HTTP_TIMEOUT: int = 5
 
-    class Config:
-        """Pydantic configuration."""
-        env_file = ".env"  # Load variables from a .env file if it exists
-        env_file_encoding = "utf-8"
+    model_config = ConfigDict(
+        env_file=".env",  # Load variables from a .env file if it exists
+        env_file_encoding="utf-8"
+    )
 
 
 settings = Settings()

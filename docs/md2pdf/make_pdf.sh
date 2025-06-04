@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Script for creating PDFs from markdown
-# Requires markdown, latex and pandoc
+# Requires pandoc and latex.
 # Development server needs to be running on localhost:8000
 # Usage: ./make_pdf.sh
 

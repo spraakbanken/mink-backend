@@ -643,7 +643,6 @@ class Job:
         # Transfer plain text sources to the storage server
         local_work_dir = utils.get_work_dir(self.id)
         try:
-            logger.warning(local_work_dir)
             storage.upload_dir(remote_corpus_dir, local_work_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)

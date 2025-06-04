@@ -29,8 +29,8 @@ Start the queue manager:
 python queue_manager.py
 ```
 
-Check out the [API documentation](http://localhost:8000/redoc) and the [Developer's
-Guide](http://localhost:8000/developers-guide).
+Now your development server should be up and running and you should be able to access the documentation pages
+(<http://localhost:8000/docs>).
 
 ## Configuration
 
@@ -48,7 +48,7 @@ To enable tracking to Matomo, set the following config variables:
 
 ## Generating PDF Documentation
 
-To generate the PDF documentation, ensure that `pandoc`, `markdown`, and a LaTeX distribution are installed on your
+To generate the PDF documentation, ensure that `pandoc` and a LaTeX distribution are installed on your
 system. The development server should be running at `http://localhost:8000`.
 
 Navigate to the `/docs/md2pdf` directory and execute:

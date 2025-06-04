@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest==8.4.0
+pytest-sugar==1.0.0
+uvicorn[standard]==0.34.3
