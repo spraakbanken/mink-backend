@@ -116,19 +116,6 @@ async def log_request(request: Request, call_next: Callable) -> Response:
     return await call_next(request)
 
 
-@app.middleware("http")
-async def reload_middleware(request: Request, call_next: Callable) -> Response:
-    """Middleware to rebuild the MkDocs documentation in development mode."""
-    if settings.ENV == "development" and request.url.path.startswith("/docs"):
-        # Compare the current time with the last reload time
-        current_time = time.time()
-        if current_time - app.last_reload_time > 5:
-            utils.build_docs()
-            app.last_reload_time = current_time
-
-    return await call_next(request)
-
-
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
