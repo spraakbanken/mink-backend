@@ -2,6 +2,7 @@
 
 __version__ = "1.2.0-dev"
 
+import shutil
 import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
@@ -69,7 +70,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
     # -------------------------------
     # Shutdown logic
     # -------------------------------
-    logger.info("Shutting down Mink")
+    logger.info("Shutting down Mink, removing temporary files")
+    tmp_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR
+    shutil.rmtree(str(tmp_dir), ignore_errors=True)
+    logger.info("Done")
 
 
 # Deactivate default Redoc and Swagger UI and openapi_url because we use custom ones
