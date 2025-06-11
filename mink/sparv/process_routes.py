@@ -760,8 +760,8 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
     if status.is_running():
         return {"message": "Job is running", "return_code": "job_running", **info_attrs}
 
-    # If done annotating, retrieve exports from Sparv (don't do this in admin mode)
-    if status.is_done(ProcessName.sparv) and not admin:
+    # If done annotating, sync exports from Sparv to storage server (don't do this in admin mode)
+    if status.is_done(ProcessName.sparv) and not storage.local and not admin:
         try:
             info.job.sync_results()
         except Exception as e:

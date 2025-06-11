@@ -295,7 +295,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency())) -> JS
 
     # Remove from Mink registry
     try:
-        info_obj.remove()
+        info_obj.remove(abort_job=True)
     except Exception:
         logger.exception("Failed to remove job '%s'.", resource_id)
     return utils.response(message=f"Corpus '{resource_id}' successfully removed", return_code="removed_corpus")
