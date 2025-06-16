@@ -16,11 +16,11 @@ problems or suggestions please contact <sb-mink@svenska.gu.se>.
 
 ## How to Run a Development Server
 
-Install the requirements listed in `requirements.in` e.g. by using a Python virtual environment. Start the development
-server:
+Install the requirements listed in `requirements-dev.txt` e.g. by using a Python virtual environment. Start the
+development server:
 
 ```bash
-fastapi dev [--host <host>] [--port <port>] mink/main.py
+python run.py [--host <host>] [--port <port>]
 ```
 
 Start the queue manager:
@@ -62,8 +62,8 @@ and the API documentation.
 
 ## Testing
 
-To run the tests, you can use `pytest`. Make sure you have the test dependencies installed (e.g. by running `pip install
--r requirements-dev.txt`), and then run:
+The automatic tests are run with `pytest`. Make sure you have the test dependencies installed (e.g. by running `pip
+install -r requirements-dev.txt`), and then run:
 
 ```bash
 pytest [--custom-log-level=<log_level>] [--mink-log-level=<log_level>] [-k <test_name>]

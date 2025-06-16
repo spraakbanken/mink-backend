@@ -15,10 +15,18 @@ LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "default": {
-            "format": settings.LOG_FORMAT,
-            "datefmt": settings.LOG_DATEFORMAT
-        },
+        "default": (
+            {
+                "()": "uvicorn.logging.DefaultFormatter",
+                "fmt": settings.LOG_FORMAT_UVICORN,
+                "use_colors": None,
+            }
+            if settings.ENV == "development" and not settings.LOG_TO_FILE
+            else {
+                "format": settings.LOG_FORMAT,
+                "datefmt": settings.LOG_DATEFORMAT,
+            }
+        ),
     },
     "handlers": {
         "console": {

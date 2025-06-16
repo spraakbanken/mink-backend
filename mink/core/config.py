@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     LOG_DIR: str = str(Path(INSTANCE_PATH) / "logs")  # Directory for log files
     LOG_FILENAME: str = f"mink-{datetime.now().strftime('%Y-%m-%d')}.log"  # Name of the log file
     LOG_FORMAT: str = "%(asctime)-15s - %(name)s - %(levelname)s - %(message)s"
+    LOG_FORMAT_UVICORN: str = "%(levelprefix)s %(name)s - %(message)s"  # Log format when running mink with Uvicorn
     LOG_DATEFORMAT: str = "%Y-%m-%d %H:%M:%S"
 
     # Cache settings
