@@ -1,0 +1,5 @@
+Hej!
+
+Detta är en textfil med ett par meningar. Tydligen bara fyra stycken.
+
+Hej då!

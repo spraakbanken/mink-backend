@@ -246,14 +246,22 @@ data.
 
 ## Testing
 
-Currently, there are no automated tests for the Mink backend. Manual testing can be performed using SwaggerUI, which is
-included with FastAPI. To access it, navigate to <http://localhost:8000/swagger> in your browser. SwaggerUI displays all
-documented routes and provides "Try it out" buttons for sending requests directly to the backend.
+There are automatic tests that call the routes in the Mink backend and complete a lifecycle of a resource. The tests are
+run with `pytest`. Make sure you have the required dependencies installed (e.g. by running `pip install -r
+requirements-dev.txt`), and then run:
 
-For local development, set `ENV=development` in your `.env` configuration file. This ensures SwaggerUI targets your
-local backend URL. If you add your sb-auth API key to `SBAUTH_PERSONAL_API_KEY`, you will be automatically authenticated
-for each request. You can also set `DEFAULT_RESOURCE_ID` to one of your Mink resource IDs to pre-fill the `resource-id`
-parameter in relevant routes.
+```bash
+pytest [--custom-log-level=<log_level>] [--mink-log-level=<log_level>] [-k <test_name>]
+```
+
+Manual testing can be performed using SwaggerUI, which is included with FastAPI. To access it, navigate to
+<http://localhost:8000/swagger> in your browser. SwaggerUI displays all documented routes and provides "Try it out"
+buttons for sending requests directly to the backend.
+
+For local development, set `ENV=development` or `ENV=testing` in your `.env` configuration file. This ensures SwaggerUI
+targets your local backend URL. If you add your sb-auth API key to `SBAUTH_PERSONAL_API_KEY`, you will be automatically
+authenticated for each request. You can also set `DEFAULT_RESOURCE_ID` to one of your Mink resource IDs to pre-fill the
+`resource-id` parameter in relevant routes.
 
 Alternatively, you can download the OpenAPI Specification (OAS) from the `/api-spec` route and import it into tools like
 [Apidog](https://apidog.com/) or [Postman](https://www.postman.com/). When using these tools, you may need to configure

@@ -9,6 +9,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - The API documentation now contains better schemas for parameters and responses.
 - `/upload-sources` now contains the exception message in the response in case invalid XML is uploaded.
+- Automatic tests with [pytest](https://docs.pytest.org/en/stable/) have been added.
 
 ### Changed
 

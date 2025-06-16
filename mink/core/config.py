@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     """Default app configuration."""
-    ENV: str = "production"  # Environment type (production or development)
+    ENV: str = "production"  # Environment type (production, development or testing)
     DEFAULT_RESOURCE_ID: str = ""  # Default resource ID to be used for testing in development mode
 
     # Mink settings

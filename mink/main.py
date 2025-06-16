@@ -62,8 +62,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
     registry.initialize()
 
     # Build the MkDocs documentation
-    utils.build_docs()
-    app.last_reload_time = time.time()
+    if settings.ENV != "testing":
+        utils.build_docs()
+        app.last_reload_time = time.time()
 
     yield
 
@@ -141,7 +142,7 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
         exclude_paths=["/advance-queue"],
         ignored_methods=["OPTIONS"],
     )
-else:
+elif settings.ENV not in {"testing", "development"}:
     logger.warning("Tracking to Matomo disabled, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE.")
 
 
@@ -173,8 +174,8 @@ def custom_openapi() -> dict:
     openapi_schema["info"]["version"] = __version__
     openapi_schema["tags"] = openapi_info["tags"]
     openapi_schema["servers"] = []
-    if settings.ENV == "development":
-        # Add local test server if in development mode
+    if settings.ENV in {"development", "testing"}:
+        # Add local test server if in development/testing mode
         openapi_schema["servers"].append({"url": settings.MINK_URL, "description": "Local test server"})
     openapi_schema["servers"].extend(openapi_info["servers"])
 
@@ -207,7 +208,7 @@ def custom_openapi() -> dict:
                     schema.pop("title", None)
 
             # Populate resource_id param with default value in development mode
-            if settings.ENV == "development" and settings.DEFAULT_RESOURCE_ID:
+            if settings.ENV in {"development", "testing"} and settings.DEFAULT_RESOURCE_ID:
                 for param in operation.get("parameters", []):
                     if param["name"] == "resource_id":
                         param["schema"]["default"] = settings.DEFAULT_RESOURCE_ID

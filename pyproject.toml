@@ -70,3 +70,7 @@ convention = "google"
 
 [tool.hatch]
 version.path = "mink/__init__.py"
+
+[tool.pytest.ini_options]
+addopts = "-s -v --tb=no --custom-log-level=info"
+log_cli = false

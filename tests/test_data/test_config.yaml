@@ -1,0 +1,16 @@
+metadata:
+    language: swe
+    name:
+        swe: Mink testkorpus
+        eng: Mink test corpus
+
+import:
+    importer: text_import:parse
+
+export:
+    annotations:
+        - <sentence>
+        - <token:word>
+        - <token>:stanza.pos
+    default:
+        - xml_export:pretty

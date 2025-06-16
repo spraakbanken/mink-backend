@@ -59,3 +59,12 @@ Navigate to the `/docs/md2pdf` directory and execute:
 
 The resulting PDF will be saved in the `docs/md2pdf/output` directory. It includes both the Developer's Guide
 and the API documentation.
+
+## Testing
+
+To run the tests, you can use `pytest`. Make sure you have the test dependencies installed (e.g. by running `pip install
+-r requirements-dev.txt`), and then run:
+
+```bash
+pytest [--custom-log-level=<log_level>] [--mink-log-level=<log_level>] [-k <test_name>]
+```
