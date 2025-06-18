@@ -2,29 +2,41 @@
 
 from collections import UserDict
 from enum import Enum
-from typing import Optional
 
 
-class Status(Enum):
+class Status(str, Enum):
     """Class for representing the status of a Sparv job."""
 
-    none = "Process does not exist"
-    waiting = "Waiting to be processed"
-    running = "Process is running"
-    done = "Process has finished"
-    error = "An error occurred in the process"
-    aborted = "Process was aborted by the user"
+    none = "none"
+    waiting = "waiting"
+    running = "running"
+    done = "done"
+    error = "error"
+    aborted = "aborted"
+
+    @property
+    def description(self) -> str:
+        """Return the description for the status."""
+        docs = {
+                self.none: "Process does not exist",
+                self.waiting: "Waiting to be processed",
+                self.running: "Process is running",
+                self.done: "Process has finished",
+                self.error: "An error occurred in the process",
+                self.aborted: "Process was aborted by the user"
+        }
+        return docs[self.value]
+
+    def __str__(self) -> str:
+        """Convert class data into a string."""
+        return self.name
 
     def serialize(self) -> str:
-        """Convert class data into a string.
-
-        Returns:
-            The serialized status as a string.
-        """
+        """Convert class data into a string."""
         return self.name
 
 
-class ProcessName(Enum):
+class ProcessName(str, Enum):
     """Enum class for process names."""
 
     sync2sparv = "sync2sparv"
@@ -37,7 +49,7 @@ class ProcessName(Enum):
 class JobStatuses(UserDict):
     """Class for representing the statuses of the different job processes."""
 
-    def __init__(self, status: Optional[dict] = None) -> None:
+    def __init__(self, status: dict | None = None) -> None:
         """Init the status for the different processes, default to none.
 
         Args:
@@ -66,7 +78,7 @@ class JobStatuses(UserDict):
         """
         return {k: v.name for k, v in self.items()}
 
-    def is_active(self, process_name: Optional[str] = None) -> bool:
+    def is_active(self, process_name: str | None = None) -> bool:
         """Check if status is active.
 
         Args:
@@ -97,7 +109,7 @@ class JobStatuses(UserDict):
             self.get(ProcessName.sync2sparv) == Status.running or self.get(ProcessName.sync2storage) == Status.running
         )
 
-    def is_none(self, process_name: Optional[str] = None) -> bool:
+    def is_none(self, process_name: str | None = None) -> bool:
         """Check if status is none.
 
         Args:
@@ -110,7 +122,7 @@ class JobStatuses(UserDict):
             return self.get(process_name) == Status.none
         return all(status == Status.none for status in self.values())
 
-    def is_waiting(self, process_name: Optional[str] = None) -> bool:
+    def is_waiting(self, process_name: str | None = None) -> bool:
         """Check if status is waiting.
 
         Args:
@@ -123,7 +135,7 @@ class JobStatuses(UserDict):
             return self.get(process_name) == Status.waiting
         return any(status == Status.waiting for status in self.values())
 
-    def is_running(self, process_name: Optional[str] = None) -> bool:
+    def is_running(self, process_name: str | None = None) -> bool:
         """Check if status is running.
 
         Args:
@@ -136,7 +148,7 @@ class JobStatuses(UserDict):
             return self.get(process_name) == Status.running
         return any(status == Status.running for status in self.values())
 
-    def is_done(self, process_name: Optional[str]) -> bool:
+    def is_done(self, process_name: str | None) -> bool:
         """Check if status is done processing.
 
         Args:
@@ -149,7 +161,7 @@ class JobStatuses(UserDict):
             return False
         return self.get(process_name) == Status.done
 
-    def is_error(self, process_name: Optional[str]) -> bool:
+    def is_error(self, process_name: str | None) -> bool:
         """Check if status is error.
 
         Args:
@@ -162,7 +174,7 @@ class JobStatuses(UserDict):
             return False
         return self.get(process_name) == Status.error
 
-    def is_aborted(self, process_name: Optional[str]) -> bool:
+    def is_aborted(self, process_name: str | None) -> bool:
         """Check if status is aborted.
 
         Args:
@@ -175,7 +187,7 @@ class JobStatuses(UserDict):
             return False
         return self.get(process_name) == Status.aborted
 
-    def has_process_output(self, process_name: Optional[str]) -> bool:
+    def has_process_output(self, process_name: str | None) -> bool:
         """Check if process is expected to have process output.
 
         Args:

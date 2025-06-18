@@ -1,0 +1,46 @@
+site_name: Mink Backend
+site_url: https://ws.spraakbanken.gu.se/ws/mink/docs
+repo_url: https://github.com/spraakbanken/mink-backend
+docs_dir: mkdocs
+
+theme:
+  name: material
+  palette:
+    primary: green
+    accent: deep orange
+  font:
+    text: Source Sans 3
+  logo: images/mink_white.svg
+  favicon: images/favicon.ico
+  custom_dir: mkdocs/overrides
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tabs
+    - navigation.tracking
+    - navigation.top  # Go to top button
+    # - navigation.tabs.sticky
+    - toc.integrate  # Render table of contents for each page as part of the left navigation
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+
+nav:
+  - Start: index.md
+  - Developer's Guide: developers-guide.md
+  - Changelog: changelog.md
+extra:
+  social: [null]  # Dummy value to enable the overrides/social.html to display the SBX logo in the footer
+
+validation:
+  links:
+    absolute_links: ignore
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences  # Needed by highlighting
+  - toc:
+      permalink: true
+plugins:
+  - search

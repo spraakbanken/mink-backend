@@ -4,11 +4,10 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from flask import current_app as app
-
 from mink.core import utils
+from mink.core.config import settings
 
-# def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: Optional[list] = None):
+# def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: list | None = None):
 #     """
 #     List files in directory on storage server recursively.
 #     If a blacklist is specified, exclude paths that match anything on the blacklist.
@@ -96,7 +95,7 @@ def write_file_contents(filepath: Path, file_contents: bytes, resource_id: str) 
     if not _is_valid_path(filepath, resource_id):
         raise Exception(f"You don't have permission to edit '{filepath}'")
 
-    p = utils.ssh_run(f"cat - > {shlex.quote(str(filepath))}", input=file_contents)
+    p = utils.ssh_run(f"cat - > {shlex.quote(str(filepath))}", ssh_input=file_contents)
     if p.stderr:
         raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
 
@@ -135,9 +134,7 @@ def _get_login() -> tuple[str, str]:
     Returns:
         A tuple containing the username and host.
     """
-    user = app.config.get("METADATA_USER")
-    host = app.config.get("METADATA_HOST")
-    return user, host
+    return settings.METADATA_USER, settings.METADATA_HOST
 
 
 def _is_valid_path(path: Path, resource_id: str) -> bool:
@@ -159,13 +156,13 @@ def _is_valid_path(path: Path, resource_id: str) -> bool:
 
 def get_resources_dir() -> Path:
     """Get dir for metadata resources."""
-    return Path(app.config.get("METADATA_DIR"))
+    return Path(settings.METADATA_DIR)
 
 
 def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get dir for given resource."""
     resources_dir = get_resources_dir()
-    resdir = resources_dir / resource_id[len(app.config.get("RESOURCE_PREFIX"))] / resource_id
+    resdir = resources_dir / resource_id[len(settings.RESOURCE_PREFIX)] / resource_id
     if mkdir:
         _make_dir(resdir)
     return resdir
@@ -174,7 +171,7 @@ def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
 def get_source_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given resource."""
     resdir = get_resource_dir(resource_id)
-    source_dir = resdir / app.config.get("METADATA_SOURCE_DIR")
+    source_dir = resdir / settings.METADATA_SOURCE_DIR
     if mkdir:
         _make_dir(source_dir)
     return source_dir

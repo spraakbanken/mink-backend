@@ -7,14 +7,19 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- The `run.py` script is now a command line tool and the host, the port and logging can be configured with flags.
+- The API documentation now contains better schemas for parameters and responses.
 - `/upload-sources` now contains the exception message in the response in case invalid XML is uploaded.
+- Automatic tests with [pytest](https://docs.pytest.org/en/stable/) have been added.
 
 ### Changed
 
+- The application is now fastAPI instead of Flask.
+- Parameters that could be supplied as both query and form parameters have been converted to pure query parameters.
+- The `corpus_id` parameter has been changed to `resource_id`. `corpus_id` may still be used but it is deprecated.
 - The `/sparv-exports` route now also lists the names of the exported files. Exports matching any pattern listed in
   the `SPARV_EXPORT_BLACKLIST` config variable will no longer be listed.
 - When uploading a file with a name that already exists, it will only be replaced if its contents have changed.
+- The developer's guide has received a new look (it is rendered with mkdocs now).
 
 ### Fixed
 
@@ -30,8 +35,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- The corpus registry and the job queue have been combined. Now, upon resource creation a job item is created immediately
-  (instead of it being created first upon starting a Sparv job).
+- The corpus registry and the job queue have been combined. Now, upon resource creation a job item is created
+  immediately (instead of it being created first upon starting a Sparv job).
 - The `/check-status`-call has been replaced with `/resource-info` with a different response format.
 
 ## [1.0.0] - 2023-09-19

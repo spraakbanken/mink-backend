@@ -1,7 +1,8 @@
 """Classes defining resource objects."""
 
+import builtins
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from mink.sparv import storage
 
@@ -27,10 +28,10 @@ class Resource:
     def __init__(
         self,
         id: str,  # noqa: A002
-        public_id: Optional[str] = "",
-        name: Optional[dict] = None,
-        type: ResourceType = ResourceType.corpus,  # noqa: A002
-        source_files: Optional[list] = None,
+        public_id: str | None = "",
+        name: dict | None = None,
+        type: ResourceType | str = ResourceType.corpus,  # noqa: A002
+        source_files: list | None = None,
     ) -> None:
         """Init resource by setting class variables.
 
@@ -44,7 +45,15 @@ class Resource:
         self.id = id
         self.public_id = public_id or self.id
         self.name = name or {"swe": "", "eng": ""}
-        self.type = type
+        if isinstance(type, ResourceType):
+            self.type = type
+        elif isinstance(type, str):
+            try:
+                self.type = ResourceType[type]
+            except KeyError:
+                raise TypeError(f"Invalid resource type: {type}") from None
+        else:
+            raise TypeError(f"Invalid data type for resource type: {builtins.type(type)}")
         self.source_files = source_files or []
 
     def __str__(self) -> str:

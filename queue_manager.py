@@ -8,101 +8,77 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from urllib import error, parse, request
 
+import httpx
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+from mink.core.config import settings
+
 # Configure logger
-logfmt = "%(asctime)-15s - %(name)s - %(levelname)s - %(message)s"
-datefmt = "%Y-%m-%d %H:%M:%S"
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=logfmt, datefmt=datefmt)
+logging.basicConfig(
+    stream=sys.stdout, level=settings.LOG_LEVEL, format=settings.LOG_FORMAT, datefmt=settings.LOG_DATEFORMAT
+)
 logger = logging.getLogger("mink_queue_manager")
 
 
-def advance_queue(config: dict) -> None:
-    """Check the queue and run jobs if possible.
-
-    Args:
-        config: Configuration dictionary.
-    """
+def advance_queue() -> None:
+    """Check the queue and run jobs if possible."""
     logger.info("Calling '/advance-queue'")
-    url = f"{config.get('MINK_URL')}/advance-queue"
+    url = f"{settings.MINK_URL}/advance-queue"
     try:
-        data = parse.urlencode({"secret_key": config.get("MINK_SECRET_KEY")}).encode()
-        req = request.Request(url, data=data, method="PUT")
-        with request.urlopen(req, timeout=60) as f:
-            logger.debug(f.read().decode("UTF-8"))
-    except error.HTTPError as e:
+        params = {"secret_key": settings.MINK_SECRET_KEY}
+        with httpx.Client(timeout=60.0) as client:
+            response = client.put(url, params=params)
+            response.raise_for_status()
+            logger.debug(response.text)
+    except httpx.HTTPError as e:
         logger.error("Error advancing queue! %s", e)
 
 
-def ping_healthchecks(config: dict) -> None:
-    """Ping healthchecks (https://healthchecks.io/) to tell it that the queue manager is running.
-
-    Args:
-        config: Configuration dictionary.
-    """
-    url = config.get("HEALTHCHECKS_URL")
-    if url:
-        logger.info("Sending ping to healthchecks")
-        try:
-            with request.urlopen(url, timeout=60) as f:
-                logger.debug(f.read().decode("UTF-8"))
-        except error.HTTPError as e:
-            logger.error("Error pinging healthchecks! %s", e)
-    else:
-        logger.debug("No health check URL found")
-
-
-def import_config() -> dict:
-    """Import default and instance config.
-
-    Returns:
-        A dictionary containing the configuration.
-
-    Raises:
-        ImportError: If the config module cannot be imported.
-    """
-    import config  # noqa: PLC0415
-    my_config = {item: getattr(config, item) for item in dir(config) if item.isupper()}
-
-    instance_config_path = Path("instance") / "config.py"
-    if instance_config_path.is_file():
-        from instance import config as instance_config  # noqa: PLC0415
-        instanceconfig = {item: getattr(instance_config, item) for item in dir(instance_config) if item.isupper()}
-        my_config.update(instanceconfig)
-
-    return my_config
+def ping_healthchecks(url: str) -> None:
+    """Ping healthchecks (https://healthchecks.io/) to tell it that the queue manager is running."""
+    logger.debug("Sending ping to healthchecks")
+    try:
+        with httpx.Client(timeout=60.0) as client:
+            response = client.get(url)
+            response.raise_for_status()
+            logger.debug(response.text)
+    except httpx.HTTPError as e:
+        logger.error("Error pinging healthchecks! %s", e)
 
 
 if __name__ == "__main__":
-    # Load config
-    config = import_config()
-
-    # If script is run interactively, log to console on debug level, otherwise log to file on info level
+    # Configure logging
+    # If script is not run interactively, log to file, otherwise log to console
     if not sys.stdin.isatty():
-        today = time.strftime("%Y-%m-%d")
-        logdir = Path("instance") / "logs"
-        logfile = logdir / f"queue-{today}.log"
-        # Create log dir and log file if they do not exist
-        logdir.mkdir(exist_ok=True)
-        logfile.touch(exist_ok=True)
-        file_handler = logging.FileHandler(logfile)
-        file_handler.setFormatter(logging.Formatter(fmt=logfmt, datefmt=datefmt))
-        logger.addHandler(file_handler)
-        logger.setLevel(config.get("LOG_LEVEL", "INFO").upper())
+        log_file_path = Path(settings.LOG_DIR) / f"queue-{time.strftime('%Y-%m-%d')}.log"
+        Path(log_file_path).parent.mkdir(parents=True, exist_ok=True)
+        loghandler = logging.FileHandler(log_file_path)
+        logger.addHandler(loghandler)
 
     logger.info("Starting Mink queue manager")
 
-    # Make apscheduler less chatty
+    # Make some loggers less chatty
     logging.getLogger("apscheduler").setLevel(logging.WARNING)
+    logging.getLogger("tzlocal").setLevel(logging.WARNING)
+    logging.getLogger("httpcore.http11").setLevel(logging.WARNING)
+    logging.getLogger("httpcore.connection").setLevel(logging.WARNING)
 
-    # Start scheduler
+    # Start scheduler and add jobs
     scheduler = BlockingScheduler()
     scheduler.add_executor("threadpool", max_workers=1)
-    scheduler.add_job(advance_queue, "interval", [config], seconds=config.get("CHECK_QUEUE_FREQUENCY", 20))
-    scheduler.add_job(ping_healthchecks, "interval", [config], minutes=config.get("PING_FREQUENCY", 60),
-                      next_run_time=datetime.now(), misfire_grace_time=10 * 60)
+    scheduler.add_job(advance_queue, "interval", seconds=settings.CHECK_QUEUE_FREQUENCY)
+    if settings.HEALTHCHECKS_URL:
+        scheduler.add_job(
+            ping_healthchecks,
+            "interval",
+            minutes=settings.PING_FREQUENCY,
+            next_run_time=datetime.now(),
+            misfire_grace_time=10 * 60,
+            args=[settings.HEALTHCHECKS_URL],
+        )
+    else:
+        logger.warning("No health check URL found, not pinging healthchecks")
 
     try:
         scheduler.start()

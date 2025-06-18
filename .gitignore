@@ -2,8 +2,11 @@
 .idea/
 .vscode
 
-# Flask
+# Instance files
 instance/
+
+# mkdocs
+docs/site
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -18,3 +21,6 @@ __pycache__/
 .venv
 env/
 venv/
+
+# pytest
+.pytest_cache/

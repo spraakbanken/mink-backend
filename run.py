@@ -1,24 +1,51 @@
-"""Run application locally for testing and debugging."""
+"""Run the FastAPI application with Uvicorn for development.
+
+This script sets up the Uvicorn server with custom logging and reload capabilities.
+"""
 
 import argparse
+import logging.config
 
-from mink import create_app
+import uvicorn
+
+from mink.core.config import settings as mink_settings
+
+LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": mink_settings.LOG_FORMAT_UVICORN,
+            "use_colors": None,
+        },
+    },
+    "handlers": {
+        "default": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+    },
+    "root": {"handlers": ["default"], "level": "INFO"},
+}
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the application locally for testing and debugging.")
-    parser.add_argument("--port", "-p", type=int, default=9000, help="Port to run the application on (default: 9000)")
-    parser.add_argument(
-        "--host", "-H", type=str, default="localhost", help="Host to run the application on (default: localhost)"
-    )
-    parser.add_argument("--log-to-file", "-f", action="store_true", help="Log to logfile instead of stdout")
-    parser.add_argument(
-        "--loglevel",
-        "-l",
-        type=str,
-        default="DEBUG",
-        help="Logging level (default: DEBUG, will override LOG_LEVEL in config)",
-    )
+    parser = argparse.ArgumentParser(description="Run the FastAPI app with Uvicorn.")
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind to (default: 8000)")
     args = parser.parse_args()
 
-    app = create_app(log_to_file=args.log_to_file, log_level=args.loglevel)
-    app.run(debug=True, host=args.host, port=args.port)
+    logging.config.dictConfig(LOGGING_CONFIG)
+    mink_settings.ENV = "development"
+    logging.getLogger("mink").info("Will start Mink in development mode")
+
+    uvicorn.run(
+        "mink.main:app",
+        host=args.host,
+        port=args.port,
+        reload=True,
+        reload_includes=["mink/**/*", "templates/**/*", "docs/developers-guide.md", "docs/mkdocs/index.md"],
+        reload_excludes=["run.py", "queue_manager.py", "tests/*.py", "**/__pycache__/**/*"],
+        log_config=None,  # Prevents uvicorn from overriding the above logging config
+    )

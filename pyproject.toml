@@ -3,10 +3,10 @@ name = "mink-backend"
 dynamic = ["version"]
 description = ""
 readme = "README.md"
-requires-python = ">=3.9"
-license.text = "MIT License"
+requires-python = ">=3.10"
+license = "MIT"
 authors = [
-    { name = "Språkbanken", email = "sb-info@svenska.gu.se" }
+    { name = "Språkbanken Text", email = "sb-info@svenska.gu.se" }
 ]
 dependencies = []
 
@@ -59,6 +59,8 @@ ignore = [
     "PLR09",   # Pylint: too-many-*
     "PLR1702", # Pylint: too-many-nested-blocks
     "SIM105",  # flake8-simplify: suppressible-exception
+    "B008",    # flake8-bugbear: function-call-in-default-argument
+    "PLR2004", # Pylint: magic-value-comparison
 ]
 
 preview = true
@@ -68,3 +70,7 @@ convention = "google"
 
 [tool.hatch]
 version.path = "mink/__init__.py"
+
+[tool.pytest.ini_options]
+addopts = "-s -v --tb=no --custom-log-level=info"
+log_cli = false

@@ -4,12 +4,12 @@ import mimetypes
 import shlex
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from dateutil.parser import isoparse, parse
-from flask import current_app as app
 
 from mink.core import exceptions, utils
+from mink.core.config import settings
 from mink.sparv import utils as sparv_utils
 
 if TYPE_CHECKING:
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 local = True
 
 
-def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: Optional[list] = None) -> list:
+def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: list | None = None) -> list:
     """List files in directory on Sparv server recursively.
 
     Args:
@@ -69,7 +69,7 @@ def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ig
 
     Args:
         remote_file_path: The path to the remote file.
-        local_file: The local file path to save the downloaded file.
+        local_file: The local file path to save the downloaded file to.
         resource_id: The resource ID.
         ignore_missing: Whether to ignore missing files.
 
@@ -157,8 +157,8 @@ def download_dir(
     local_dir: Path,
     resource_id: str,
     zipped: bool = False,
-    zippath: Optional[Path] = None,
-    excludes: Optional[list] = None,
+    zippath: Path | None = None,
+    excludes: list | None = None,
 ) -> Path:
     """Download remote_dir on Sparv server to local_dir by rsyncing.
 
@@ -329,9 +329,7 @@ def _get_login() -> tuple:
     Raises:
         KeyError: If the login credentials are not found in the config.
     """
-    user = app.config.get("SPARV_USER")
-    host = app.config.get("SPARV_HOST")
-    return user, host
+    return settings.SPARV_USER, settings.SPARV_HOST
 
 
 def _is_valid_path(path: Path, resource_id: str) -> bool:

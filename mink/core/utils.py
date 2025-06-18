@@ -1,67 +1,143 @@
 """General utility functions."""
 
-import functools
 import gzip
 import hashlib
-import json
+import shutil
 import subprocess
 import zipfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
 import yaml
-from flask import Response, g, request
-from flask import current_app as app
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
+from mkdocs.commands import build
+from mkdocs.config import load_config
+from starlette.background import BackgroundTask
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import Message
 
+from mink.core import exceptions, models
+from mink.core.config import settings
+from mink.core.logging import logger
+from mink.sb_auth.login import request_id_var
 from mink.sparv import storage
 
 
-def response(msg: str, err: bool = False, **kwargs: dict[str, Any]) -> Response:
-    """Create json error response.
+def response(
+    status_code: int = 200,
+    message: str = "",
+    return_code: str = "",
+    cookie: tuple[bool, str, str] | None = None,
+    **kwargs: dict[str, Any],
+) -> Response:
+    """Create a JSON response, check if a return code was provided, and remove empty key-value pairs.
 
     Args:
-        msg: The error message.
-        err: Whether the response is an error.
+        status_code: The HTTP status code.
+        message: The response message.
+        return_code: The return code (may not be empty).
+        cookie: A tuple containing a bool (True=set cookie, False=delete cookie), the cookie key and value.
         **kwargs: Additional key-value pairs to include in the response.
 
     Returns:
-        A Flask Response object.
+        The updated Response object.
     """
-    # Log error
-    if err:
-        args = "\n".join(f"{k}: {v}" for k, v in kwargs.items() if v != "")  # noqa: PLC1901
-        args = "\n" + args if args else ""
-        app.logger.error("%s%s", msg, args)
+    # Remove key-value pairs if the value is an empty string
+    args = {k: v for k, v in kwargs.items() if v != ""}  # noqa: PLC1901
 
-    res = {"status": "error" if err else "success", "message": msg}
-    res.update({k: v for k, v in kwargs.items() if v != ""})  # noqa: PLC1901
+    success = 200 <= status_code < 300
 
-    return Response(json.dumps(res, ensure_ascii=False), mimetype="application/json")
+    if not message and not success:
+        message = "An unexpected error occurred"
+
+    if not return_code:
+        return_code = "unexpected_error"
+        # raise ValueError("A return code must be provided in the response!")
+
+    status = "success" if success else "error"
+    if not success:
+        log_kwargs = {k: v for k, v in kwargs.items() if k != "status"} or ""
+        info_str = "; info: " + str(log_kwargs) if log_kwargs else ""
+        logger.error("%s: %s; return_code: %s%s", status_code, message, return_code, info_str)
+
+    response = JSONResponse(
+        content={"status": status, "message": message, "return_code": return_code, **args},
+        status_code=status_code,
+    )
+    if cookie is not None:
+        if cookie[0]:
+            response.set_cookie(key=cookie[1], value=cookie[2], httponly=True)
+        else:
+            response.delete_cookie(key=cookie[1])
+
+    response.background = BackgroundTask(remove_tmp_files, request_id_var.get())
+
+    return response
 
 
-def gatekeeper(function: Callable) -> Callable:
-    """Make sure that only the protected user can access the decorated endpoint.
+def remove_tmp_files(request_id: str | None) -> None:
+    """Remove temporary files.
 
     Args:
-        function: The function to decorate.
-
-    Returns:
-        The decorated function.
+        request_id: The request ID (randomly generated upon request and stored in request.state).
     """
+    if request_id is not None:
+        local_user_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / request_id
+        shutil.rmtree(str(local_user_dir), ignore_errors=True)
 
-    @functools.wraps(function)  # Copy original function's information, needed by Flask
-    def decorator(*args: tuple, **kwargs: dict) -> tuple[Response, Optional[int]] | Callable:
-        secret_key = request.args.get("secret_key") or request.form.get("secret_key")
-        if secret_key != app.config.get("MINK_SECRET_KEY"):
+
+class LimitRequestSizeMiddleware(BaseHTTPMiddleware):
+    """Middleware to limit the size of incoming requests.
+
+    https://github.com/fastapi/fastapi/issues/394#issuecomment-927272627
+    """
+    def __init__(self, app: FastAPI, max_body_size: int) -> None:
+        """Initialize the middleware."""
+        super().__init__(app)
+        self.max_body_size = max_body_size
+
+    @staticmethod
+    async def set_body(request: Request) -> None:
+        """Set the body of the request to a callable that returns the body."""
+        receive_ = await request._receive()
+
+        async def receive() -> Message:  # noqa: RUF029
+            """Capture the request body and set it to the request."""
+            return receive_
+        request._receive = receive
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """Check the size of the request body and return an error if it exceeds the limit."""
+        await self.set_body(request)
+        body = await request.body()
+
+        if len(body) > self.max_body_size:
+            h_max_size = str(round(self.max_body_size, 0) / 1024 / 1024, 3)
             return response(
-                "Failed to confirm secret key for protected route", err=True, return_code="failed_confirming_secret_key"
-            ), 401
-        return function(*args, **kwargs)
+                status_code=413,
+                **models.BaseErrorResponse(
+                    return_code="data_too_large",
+                    message=f"Request data too large (max {h_max_size} MB per upload)",
+                    max_content_length=self.max_body_size,
+                ).model_dump(),
+            )
 
-    return decorator
+        return await call_next(request)
 
 
-def ssh_run(command: str, ssh_input: Optional[bytes] = None) -> subprocess.CompletedProcess:
+def build_docs() -> None:
+    """Build the MkDocs documentation."""
+    try:
+        # Load the MkDocs configuration and build the documentation
+        config = load_config("docs/mkdocs.yml")
+        build.build(config)
+    except Exception:
+        logger.exception("Error building MkDocs documentation.")
+
+
+def ssh_run(command: str, ssh_input: bytes | None = None) -> subprocess.CompletedProcess:
     """Execute 'command' on server and return process.
 
     Args:
@@ -71,17 +147,15 @@ def ssh_run(command: str, ssh_input: Optional[bytes] = None) -> subprocess.Compl
     Returns:
         The completed process.
     """
-    user = app.config.get("SPARV_USER")
-    host = app.config.get("SPARV_HOST")
     return subprocess.run(
-        ["ssh", "-i", app.config.get("SSH_KEY"), f"{user}@{host}", command],
+        ["ssh", "-i", settings.SSH_KEY, f"{settings.SPARV_USER}@{settings.SPARV_HOST}", command],
         capture_output=True,
         input=ssh_input,
         check=False,
     )
 
 
-def uncompress_gzip(inpath: Path, outpath: Optional[Path] = None) -> None:
+def uncompress_gzip(inpath: Path, outpath: Path | None = None) -> None:
     """Uncompress file with gzip and save to outpath (or inpath if no outpath is given).
 
     Args:
@@ -96,7 +170,7 @@ def uncompress_gzip(inpath: Path, outpath: Optional[Path] = None) -> None:
             f.write(data)
 
 
-def create_zip(inpath: Path, outpath: Path, zip_rootdir: Optional[str] = None) -> None:
+def create_zip(inpath: Path, outpath: Path, zip_rootdir: str | None = None) -> None:
     """Zip files in inpath into an archive at outpath.
 
     Args:
@@ -114,9 +188,15 @@ def create_zip(inpath: Path, outpath: Path, zip_rootdir: Optional[str] = None) -
                 zippath = zip_rootdir / Path(*zippath.parts[1:])
             zipf.write(filepath, zippath)
     zipf.close()
+    if not outpath.exists() or outpath.lstat().st_size == 0:
+        raise exceptions.MinkHTTPException(
+            500,
+            message="The zip file could not be created or is empty",
+            return_code="failed_creating_zip",
+        )
 
 
-def file_ext_valid(filename: Path, valid_extensions: Optional[list[str]] = None) -> bool:
+def file_ext_valid(filename: Path, valid_extensions: list[str] | None = None) -> bool:
     """Check if file extension is valid.
 
     Args:
@@ -129,7 +209,7 @@ def file_ext_valid(filename: Path, valid_extensions: Optional[list[str]] = None)
     return not (valid_extensions and not any(i.lower() == filename.suffix.lower() for i in valid_extensions))
 
 
-def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, Optional[str]]:
+def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, str | None]:
     """Check if the file extension of filename is identical to the first file in source_dir.
 
     Args:
@@ -157,10 +237,10 @@ def size_ok(source_dir: Path, incoming_size: int) -> bool:
     Returns:
         True if the size is within the limit, False otherwise.
     """
-    if app.config.get("MAX_CORPUS_LENGTH") is not None:
+    if settings.MAX_CORPUS_LENGTH is not None:
         current_size = storage.get_size(source_dir)
         total_size = current_size + incoming_size
-        if total_size > app.config.get("MAX_CORPUS_LENGTH"):
+        if total_size > settings.MAX_CORPUS_LENGTH:
             return False
     return True
 
@@ -184,7 +264,7 @@ def identical_file_exists(incoming_file_contents: bytes, existing_file: Path) ->
     return False
 
 
-def config_compatible(config: str, source_file: dict) -> tuple[bool, Optional[Response]]:
+def config_compatible(config: str, source_file: dict) -> tuple[bool, dict[str, Any] | None]:
     """Check if the importer module in the corpus config is compatible with the source files.
 
     Args:
@@ -192,35 +272,29 @@ def config_compatible(config: str, source_file: dict) -> tuple[bool, Optional[Re
         source_file: The source file.
 
     Returns:
-        A tuple containing a boolean indicating compatibility and an optional response.
+        A tuple containing a boolean indicating compatibility, the current importer, and the expected importer.
     """
     file_ext = Path(source_file.get("name")).suffix
     config_yaml = yaml.load(config, Loader=yaml.FullLoader)
     current_importer = config_yaml.get("import", {}).get("importer", "").split(":")[0] or None
-    importer_dict = app.config.get("SPARV_IMPORTER_MODULES", {})
+    importer_dict = settings.SPARV_IMPORTER_MODULES
 
     # If no importer is specified xml is default
     if current_importer is None and file_ext == ".xml":
-        return True, None
+        return True, None, None
 
     expected_importer = importer_dict.get(file_ext)
     if current_importer == expected_importer:
-        return True, None
-    return False, response(
-        "The importer in your config file is not compatible with your source files",
-        err=True,
-        current_importer=current_importer,
-        expected_importer=expected_importer,
-        return_code="incompatible_config_importer",
-    )
+        return True, current_importer, expected_importer
+    return False, current_importer, expected_importer
 
 
-def standardize_config(config: str, corpus_id: str) -> tuple[str, str]:
+def standardize_config(config: str, resource_id: str) -> tuple[str, str]:
     """Set the correct corpus ID and remove the compression setting in the corpus config.
 
     Args:
         config: The corpus config.
-        corpus_id: The corpus ID.
+        resource_id: The corpus ID.
 
     Returns:
         A tuple containing the standardized config and the corpus name.
@@ -228,10 +302,10 @@ def standardize_config(config: str, corpus_id: str) -> tuple[str, str]:
     config_yaml = yaml.load(config, Loader=yaml.FullLoader)
 
     # Set correct corpus ID
-    if config_yaml.get("metadata", {}).get("id") != corpus_id:
+    if config_yaml.get("metadata", {}).get("id") != resource_id:
         if not config_yaml.get("metadata"):
             config_yaml["metadata"] = {}
-        config_yaml["metadata"]["id"] = corpus_id
+        config_yaml["metadata"]["id"] = resource_id
 
     # Get corpus name
     name = config_yaml.get("metadata", {}).get("name", {})
@@ -290,7 +364,9 @@ def standardize_metadata_yaml(metadata_yaml: str) -> tuple[str, str]:
 
 def get_resources_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
-    resources_dir = Path(app.instance_path) / app.config.get("TMP_DIR") / g.request_id
+    if request_id_var.get() is None:
+        raise ValueError("Request ID is not set. Cannot get path to local resources directory.")
+    resources_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / request_id_var.get()
     if mkdir:
         resources_dir.mkdir(parents=True, exist_ok=True)
     return resources_dir
@@ -305,37 +381,37 @@ def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
     return resdir
 
 
-def get_export_dir(corpus_id: str, mkdir: bool = False) -> Path:
+def get_export_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get export dir for given resource."""
-    resdir = get_resource_dir(corpus_id, mkdir=mkdir)
-    export_dir = resdir / app.config.get("SPARV_EXPORT_DIR")
+    resdir = get_resource_dir(resource_id, mkdir=mkdir)
+    export_dir = resdir / settings.SPARV_EXPORT_DIR
     if mkdir:
         export_dir.mkdir(parents=True, exist_ok=True)
     return export_dir
 
 
-def get_work_dir(corpus_id: str, mkdir: bool = False) -> Path:
+def get_work_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get sparv workdir for given corpus."""
-    resdir = get_resource_dir(corpus_id, mkdir=mkdir)
-    work_dir = resdir / app.config.get("SPARV_WORK_DIR")
+    resdir = get_resource_dir(resource_id, mkdir=mkdir)
+    work_dir = resdir / settings.SPARV_WORK_DIR
     if mkdir:
         work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
 
 
-def get_source_dir(corpus_id: str, mkdir: bool = False) -> Path:
+def get_source_dir(resource_id: str, mkdir: bool = False) -> Path:
     """Get source dir for given corpus."""
-    resdir = get_resource_dir(corpus_id, mkdir=mkdir)
-    source_dir = resdir / app.config.get("SPARV_SOURCE_DIR")
+    resdir = get_resource_dir(resource_id, mkdir=mkdir)
+    source_dir = resdir / settings.SPARV_SOURCE_DIR
     if mkdir:
         source_dir.mkdir(parents=True, exist_ok=True)
     return source_dir
 
 
-def get_config_file(corpus_id: str) -> Path:
+def get_config_file(resource_id: str) -> Path:
     """Get path to corpus config file."""
-    resdir = get_resource_dir(corpus_id)
-    return resdir / app.config.get("SPARV_CORPUS_CONFIG")
+    resdir = get_resource_dir(resource_id)
+    return resdir / settings.SPARV_CORPUS_CONFIG
 
 
 def get_metadata_yaml_file(resource_id: str) -> Path:
