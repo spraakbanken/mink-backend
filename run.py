@@ -32,8 +32,8 @@ LOGGING_CONFIG = {
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the FastAPI app with Uvicorn.")
-    parser.add_argument("--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
-    parser.add_argument("--port", type=int, default=8000, help="Port to bind to (default: 8000)")
+    parser.add_argument("--host", "-H", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
+    parser.add_argument("--port", "-p", type=int, default=8000, help="Port to bind to (default: 8000)")
     args = parser.parse_args()
 
     logging.config.dictConfig(LOGGING_CONFIG)

@@ -2,20 +2,60 @@
 
 # Script for creating PDFs from markdown
 # Requires pandoc and latex.
-# Development server needs to be running on localhost:8000
-# Usage: ./make_pdf.sh
 
-# Extract version number from ../../mink/main.py
-mink_version=$(grep -P '(?<=__version__ = ").+(?=")' -o ../../mink/main.py)
+# Define help message
+show_help() {
+  echo "Usage: $0 [--host HOST] [--port PORT] [-h]"
+  echo ""
+  echo "Options:"
+  echo "  --host HOST    Set the host address from which to get API documentation (default: http://localhost)"
+  echo "  --port PORT    Set the port from which to get API documentation (default: 8000)"
+  echo "  -h             Show this help message and exit"
+}
+
+# Parse command line arguments for host and port
+HOST="http://localhost"
+PORT=8000
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --host)
+      HOST="$2"
+      shift 2
+      ;;
+    --port)
+      PORT="$2"
+      shift 2
+      ;;
+    -h|--help)
+      show_help
+      exit 0
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+# Create output directory if it doesn't exist
+mkdir -p output
 
 # Get API documentation in markdown
 echo -e "# Mink Backend - API documentation\n" > output/mink_api.md
-curl -sS -o output/mink_api.md.tmp http://localhost:8000/openapi-to-markdown > /dev/null 2>&1
+echo "Fetching API documentation from $HOST:$PORT ..."
+curl -sS -o output/mink_api.md.tmp $HOST:$PORT/openapi-to-markdown #> /dev/null 2>&1
+# Abort if curl fails
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to fetch API documentation from $HOST:$PORT"
+  exit 1
+fi
 cat output/mink_api.md.tmp >> output/mink_api.md
 rm output/mink_api.md.tmp
 
+# Extract mink version number
+mink_version=$(grep -P '(?<=__version__ = ").+(?=")' -o ../../mink/main.py)
+
 # Define some variables
-filename="developers-guide"
+filename="mink_backend_documentation"
 filelist="
 ../developers-guide.md
 output/mink_api.md
@@ -38,23 +78,6 @@ author: |
 ---
   "
 
-function make_pandoc {
-    # # Convert markdown to tex (for debugging)
-    # pandoc -t latex -o "output/$1.tex" "$1.md" \
-    # Convert markdown to pdf
-    pandoc -t latex -o "output/$1.pdf" "output/$1.md" \
-    -H settings_template.tex `# include in header` \
-    --template template.tex `# use template` \
-    --toc `# table of contents` \
-    --top-level-division=chapter `# treat top-level headings as chapters` \
-    -N `# numbered sections` \
-    -V urlcolor=RoyalBlue `# color links blue` \
-    --listings `# use listings package for LaTeX code blocks`
-}
-
-
-mkdir -p output
-
 # Concat header and files and create PDF
 echo -e "$header" > "output/$filename.md"
 for f in $filelist; do
@@ -62,7 +85,20 @@ for f in $filelist; do
   cat $f >> "output/$filename.md"
   echo -e "\n\n" >> "output/$filename.md"
 done
-make_pandoc $filename
+
+# Create PDF from markdown using pandoc
+echo "Creating PDF from markdown for Mink v$mink_version ..."
+# pandoc -t latex -o "output/$1.tex" "$1.md" `# Convert markdown to tex (for debugging)` \
+pandoc -t latex -o "output/$filename.pdf" "output/$filename.md" `# Convert markdown to pdf` \
+-H settings_template.tex `# include in header` \
+--template template.tex `# use template` \
+--toc `# table of contents` \
+--top-level-division=chapter `# treat top-level headings as chapters` \
+-N `# numbered sections` \
+-V urlcolor=RoyalBlue `# color links blue` \
+--listings `# use listings package for LaTeX code blocks`
+
+echo "PDF created: output/$filename.pdf"
 
 # Clean up
 rm output/$filename.md output/mink_api.md

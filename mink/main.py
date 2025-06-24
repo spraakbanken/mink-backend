@@ -3,7 +3,6 @@
 __version__ = "1.2.0-dev"
 
 import shutil
-import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -27,7 +26,7 @@ from mink.sparv import process_routes, storage_routes
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
+async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
     """Lifespan context manager for the FastAPI app.
 
     Args:
@@ -64,7 +63,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
     # Build the MkDocs documentation
     if settings.ENV != "testing":
         utils.build_docs()
-        app.last_reload_time = time.time()
 
     yield
 
@@ -80,9 +78,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
 # Deactivate default Redoc and Swagger UI and openapi_url because we use custom ones
 app = FastAPI(lifespan=lifespan, version=__version__, redoc_url=None, docs_url=None, openapi_url=None)
 
+# Create docs/site directory if it does not exist
+docs_site_path = Path("docs/site")
+docs_site_path.mkdir(parents=True, exist_ok=True)
+
 # Mount directories for static files
 app.mount("/static", StaticFiles(directory="mink/static"), name="static")
-app.mount("/docs", StaticFiles(directory="docs/site", html=True), name="mkdocs")
+app.mount("/docs", StaticFiles(directory=docs_site_path, html=True), name="mkdocs")
 
 # ------------------------------------------------------------------------------
 # Register custom exception handlers

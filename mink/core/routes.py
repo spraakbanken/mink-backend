@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Request
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from jinja2 import Template
 
@@ -97,7 +97,7 @@ async def swagger_api_documentation(request: Request) -> HTMLResponse:
 @router.get("/docs")
 async def developers_guide() -> HTMLResponse:
     """Render mkdocs HTML with the developer's guide."""
-    return FileResponse(Path("docs/site/index.html"))
+    return RedirectResponse(url="/docs/")
 
 
 # Deprecated, kept for backwards compatibility
