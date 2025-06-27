@@ -75,8 +75,15 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     logger.info("Done")
 
 
-# Deactivate default Redoc and Swagger UI and openapi_url because we use custom ones
-app = FastAPI(lifespan=lifespan, version=__version__, redoc_url=None, docs_url=None, openapi_url=None)
+# Deactivate default Redoc, Swagger UI and openapi_url because we use custom routes
+app = FastAPI(
+    lifespan=lifespan,
+    version=__version__,
+    root_path=settings.ROOT_PATH,
+    redoc_url=None,
+    docs_url=None,
+    openapi_url=None,
+)
 
 # Create docs/site directory if it does not exist
 docs_site_path = Path("docs/site")

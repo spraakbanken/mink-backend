@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     # Mink settings
     MINK_URL: str = ""  # URL for mink API
+    ROOT_PATH: str = ""  # Root path for the API, e.g. "/mink" if served from a subpath
     RESOURCE_PREFIX: str = "mink-"  # Prefix for resource IDs
 
     # Local files
