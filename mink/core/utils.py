@@ -2,6 +2,7 @@
 
 import gzip
 import hashlib
+import os
 import shutil
 import subprocess
 import zipfile
@@ -131,6 +132,7 @@ def build_docs() -> None:
     """Build the MkDocs documentation."""
     try:
         # Load the MkDocs configuration and build the documentation
+        os.environ["BASE_URL"] = settings.MINK_URL
         config = load_config("docs/mkdocs.yml")
         build.build(config)
     except Exception:

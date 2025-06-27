@@ -22,10 +22,10 @@ problems or suggestions please contact <sb-mink@svenska.gu.se>.
 
 As a user of the Mink backend, you might want to:
 
-- Check out the [Redoc API documentation](/redoc) <img src="images/open-in-new.svg" alt="Open in
+- Check out the [Redoc API documentation]({{ base_url }}/redoc) <img src="images/open-in-new.svg" alt="Open in
   new window" width="16" height="16" style="vertical-align: middle;">
-- Test the Mink backend through the [Swagger API documentation](/swagger) <img src="images/open-in-new.svg" alt="Open in
-  new window" width="16" height="16" style="vertical-align: middle;">
+- Test the Mink backend through the [Swagger API documentation]({{ base_url }}/swagger) <img
+  src="images/open-in-new.svg" alt="Open in new window" width="16" height="16" style="vertical-align: middle;">
 - Use Mink through the [Mink frontend](https://spraakbanken.gu.se/mink/) <img src="images/open-in-new.svg" alt="Open in
   new window" width="16" height="16" style="vertical-align: middle;">
 - Read the [Documentation for the Mink frontend](https://github.com/spraakbanken/mink-frontend/) <img
@@ -37,8 +37,8 @@ As a developer, you might want to:
 
 - Read the [Developer's guide](developers-guide.md)
 - Check out the [Changelog](changelog.md)
-- Check out the [Redoc API documentation](/redoc) <img src="images/open-in-new.svg" alt="Open in
+- Check out the [Redoc API documentation]({{ base_url }}/redoc) <img src="images/open-in-new.svg" alt="Open in
   new window" width="16" height="16" style="vertical-align: middle;">
-- Test the Mink backend through the [Swagger API documentation](/swagger) <img src="images/open-in-new.svg" alt="Open in
-  new window" width="16" height="16" style="vertical-align: middle;">
-- Download the [OpenAPI schema](/openapi.json)
+- Test the Mink backend through the [Swagger API documentation]({{ base_url }}/swagger) <img
+  src="images/open-in-new.svg" alt="Open in new window" width="16" height="16" style="vertical-align: middle;">
+- Download the [OpenAPI schema]({{ base_url }}/openapi.json)
