@@ -1,12 +1,12 @@
-# Mink Backend - Developer's Guide
+# Mink Backend – Developer's Guide
 
 Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s data platform, allowing users to upload corpus data, annotate
 it with [Sparv](https://spraakbanken.gu.se/sparv), and view or search it in [Korp](https://spraakbanken.gu.se/korp) and
 [Strix](https://spraakbanken.gu.se/strix).
 
-This backend is a FastAPI application that supports the [Mink frontend](https://spraakbanken.gu.se/mink). It provides
-endpoints for uploading and downloading corpus files, processing corpora with Sparv, and installing them in Korp and
-Strix.
+This backend is a [FastAPI](https://fastapi.tiangolo.com/) application that supports the [Mink
+frontend](https://spraakbanken.gu.se/mink). It provides endpoints for uploading and downloading corpus files, processing
+corpora with Sparv, and installing them in Korp and Strix.
 
 This document is intended for Mink backend developers. It describes the backend's functionality, outlines the
 application's structure and key components, and explains how the API is documented and tested.
