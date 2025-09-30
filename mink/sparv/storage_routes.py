@@ -1021,7 +1021,7 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
         if storage.download_file(
             storage.get_config_file(resource_id), local_config_file, resource_id, ignore_missing=True
         ):
-            return FileResponse(local_config_file, media_type="application/x-yaml", filename=local_config_file.name)
+            return FileResponse(local_config_file, media_type="text/yaml", filename=local_config_file.name)
         raise exceptions.MinkHTTPException(
             404,
             message=f"No config file found for corpus '{resource_id}'",

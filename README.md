@@ -62,7 +62,7 @@ and the API documentation.
 
 ## Testing
 
-The automatic tests are run with `pytest`. Make sure you have the test dependencies installed (e.g. by running `pip
+The automatic tests are run with `pytest`. Make sure you have the dev dependencies installed (e.g. by running `pip
 install -r requirements-dev.txt`), and then run:
 
 ```bash

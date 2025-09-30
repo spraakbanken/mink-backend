@@ -220,7 +220,7 @@ def test_manage_metadata() -> None:
             response = call_route(method, path, query, status_code=status_code, headers=HEADERS)
 
     if path == "/download-metadata-yaml":
-        assert response.headers.get("Content-Type") == "application/x-yaml", "Download should return YAML"
+        assert response.headers.get("Content-Type") == "text/yaml", "Download should return YAML"
         assert len(response.content) > 0, "Downloaded metadata YAML should not be empty"
 
 
