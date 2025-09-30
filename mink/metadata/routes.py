@@ -432,10 +432,8 @@ async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency(
 
     try:
         # Get file from storage
-        if storage.download_file(storage.get_yaml_file(resource_id), local_yaml_file, resource_id, ignore_missing=True):
-            return FileResponse(local_yaml_file, media_type="text/yaml", filename=local_yaml_file.name)
-        return exceptions.MinkHTTPException(
-            404, message=f"Metadata file not found for resource '{resource_id}'", return_code="metadata_not_found"
+        download_ok = storage.download_file(
+            storage.get_yaml_file(resource_id), local_yaml_file, resource_id, ignore_missing=True
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
@@ -444,6 +442,11 @@ async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency(
             return_code="failed_downloading_metadata",
             info=str(e),
         ) from e
+    if download_ok:
+        return FileResponse(local_yaml_file, media_type="text/yaml", filename=local_yaml_file.name)
+    raise exceptions.MinkHTTPException(
+        404, message=f"Metadata file not found for resource '{resource_id}'", return_code="metadata_not_found"
+    )
 
 
 # # ------------------------------------------------------------------------------

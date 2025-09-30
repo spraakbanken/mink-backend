@@ -38,7 +38,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     # -------------------------------
     # Startup logic
     # -------------------------------
-    logger.info("Startig Mink version: %s", __version__)
+    logger.info("Starting Mink version: %s", __version__)
 
     # Make sure required config variables are set
     if not settings.CACHE_CLIENT:
