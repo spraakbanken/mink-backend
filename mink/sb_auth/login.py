@@ -108,7 +108,11 @@ async def get_auth_data(
     # Get user info and which resources the user has access to from sb-auth
     user = auth.get_user()
     is_admin = auth.is_admin()
-    resources = auth.get_resource_ids(include_read)
+    sb_auth_resources = auth.get_resource_ids(include_read)
+    all_resources = cache_utils.get_all_resources()
+    # Get intersection between resources in sb-auth and resources in Mink-backend
+    # (in case sb-auth is used for multiple backends)
+    resources = list(set(sb_auth_resources) & set(all_resources))
 
     # Check admin mode in cache with cookie (session_id) and turn it off if user is not admin according to sb-auth
     admin_mode = cache_utils.get_cookie_data(session_id, {}).get("admin_mode", False)
@@ -122,7 +126,7 @@ async def get_auth_data(
 
     # Give access to all resources if admin mode is on and user is mink admin
     if admin_mode and is_admin:
-        resources = cache_utils.get_all_resources()
+        resources = all_resources
 
     # Check if resource ID was provided
     if require_resource_id and not resource_id:
