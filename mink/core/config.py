@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     ROOT_PATH: str = ""  # Root path for the API, e.g. "/mink" if served from a subpath
     RESOURCE_PREFIX: str = "mink-"  # Prefix for resource IDs
 
+    # CORS settings
+    ALLOW_ORIGINS: list = ["*"]
+    ALLOW_METHODS: list = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    ALLOW_HEADERS: list = ["*"]
+
     # Local files
     INSTANCE_PATH: str = str(Path(__file__).resolve().parent.parent.parent / "instance")  # Path to the instance dir
     TMP_DIR: str = str(Path(INSTANCE_PATH) / "tmp")  # Temporary file storage
