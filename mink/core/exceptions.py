@@ -71,7 +71,7 @@ def internal_server_error_handler(_request: Request, exc: Exception) -> JSONResp
     """Handle uncaught exceptions."""
     return utils.response(
         status_code=500,
-        **models.BaseErrorResponse(
+        **models.BaseErrorResponseWithInfo(
             message="Internal server error", return_code="internal_server_error", info=str(exc)
         ).model_dump(),
     )
