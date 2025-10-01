@@ -270,6 +270,28 @@ class ErrorResponse404(BaseErrorResponse):
     }
 
 
+class ErrorResponse413(BaseErrorResponse):
+    """Model for 413 error responses."""
+
+    return_code: str = Field(default="data_too_large", description="Short code describing the error")
+    message: str = Field(
+        default="Request data too large (max 100 MB per upload)", description="Short message describing the error"
+    )
+    max_content_length: int = Field(default=100, description="Max allowed content length in bytes")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "error",
+                    "message": "Request data too large",
+                    "return_code": "data_too_large",
+                }
+            ]
+        }
+    }
+
+
 class ValidationErrorInfo(BaseModel):
     """Model for validation error information."""
     loc: list[str]

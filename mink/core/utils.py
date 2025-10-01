@@ -6,18 +6,15 @@ import os
 import shutil
 import subprocess
 import zipfile
-from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import yaml
-from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from mkdocs.commands import build
 from mkdocs.config import load_config
 from starlette.background import BackgroundTask
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import Message
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from mink.core import exceptions, models
 from mink.core.config import settings
@@ -32,7 +29,7 @@ def response(
     return_code: str = "",
     cookie: tuple[bool, str, str] | None = None,
     **kwargs: dict[str, Any],
-) -> Response:
+) -> JSONResponse:
     """Create a JSON response, check if a return code was provided, and remove empty key-value pairs.
 
     Args:
@@ -43,7 +40,7 @@ def response(
         **kwargs: Additional key-value pairs to include in the response.
 
     Returns:
-        The updated Response object.
+        The updated JSONResponse object.
     """
     # Remove key-value pairs if the value is an empty string
     args = {k: v for k, v in kwargs.items() if v != ""}  # noqa: PLC1901
@@ -89,43 +86,102 @@ def remove_tmp_files(request_id: str | None) -> None:
         shutil.rmtree(str(local_user_dir), ignore_errors=True)
 
 
-class LimitRequestSizeMiddleware(BaseHTTPMiddleware):
-    """Middleware to limit the size of incoming requests.
+class LimitRequestSizeMiddleware:
+    """ASGI middleware to limit request body size.
 
-    https://github.com/fastapi/fastapi/issues/394#issuecomment-927272627
+    Strategy:
+      1) If Content-Length is present and > limit: send 413 and return (never call app).
+      2) Otherwise, pre-read body in chunks before calling the app:
+         - If size ever exceeds the limit: send 413 and return.
+         - If within limit: replay the buffered chunks to the app.
     """
-    def __init__(self, app: FastAPI, max_body_size: int) -> None:
+    def __init__(self, app: ASGIApp) -> None:
         """Initialize the middleware."""
-        super().__init__(app)
-        self.max_body_size = max_body_size
+        self.app = app
+        self.max_body_size = settings.MAX_CONTENT_LENGTH  # in bytes
 
-    @staticmethod
-    async def set_body(request: Request) -> None:
-        """Set the body of the request to a callable that returns the body."""
-        receive_ = await request._receive()
+    async def _send_413(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """Send a 413 Payload Too Large response."""
+        h_max_size_mb = str(int(self.max_body_size / 1024 / 1024))
+        resp = response(
+            status_code=413,
+            **models.ErrorResponse413(
+                message=f"Request data too large (max {h_max_size_mb} MB per upload)",
+                return_code="data_too_large",
+                max_content_length=self.max_body_size,
+            ).model_dump(),
+        )
+        await resp(scope, receive, send)
 
-        async def receive() -> Message:  # noqa: RUF029
-            """Capture the request body and set it to the request."""
-            return receive_
-        request._receive = receive
-
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Check the size of the request body and return an error if it exceeds the limit."""
-        await self.set_body(request)
-        body = await request.body()
+        # Skip non-HTTP connections
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        if len(body) > self.max_body_size:
-            h_max_size = str(round(self.max_body_size, 0) / 1024 / 1024, 3)
-            return response(
-                status_code=413,
-                **models.BaseErrorResponse(
-                    return_code="data_too_large",
-                    message=f"Request data too large (max {h_max_size} MB per upload)",
-                    max_content_length=self.max_body_size,
-                ).model_dump(),
-            )
+        # Check Content-Length header, don't call app if too large
+        headers = {k.lower(): v for k, v in ((k.decode(), v.decode()) for k, v in scope.get("headers", []))}
+        cl = headers.get("content-length")
+        if cl is not None:
+            try:
+                content_length = int(cl)
+                if content_length > self.max_body_size:
+                    await self._send_413(scope, receive, send)
+                    return
+            # Invalid Content-Length: fall through to streaming path
+            except ValueError:
+                pass
 
-        return await call_next(request)
+        # Stream file and pre-read into buffer before entering the app
+        buffered: list[bytes] = []
+        received = 0
+        more_body_expected = True
+
+        while more_body_expected:
+            message = await receive()
+
+            if message["type"] == "http.disconnect":
+                # Client went away; nothing to send back. Just stop.
+                return
+
+            if message["type"] != "http.request":
+                # Nothing else meaningful to pre-read in HTTP; ignore and continue
+                continue
+
+            chunk = message.get("body", b"")
+            if chunk:
+                received += len(chunk)
+                # If size limit is exceeded, send 413 and return without calling app
+                if received > self.max_body_size:
+                    logger.warning("Request body too large: %.2f MB", received / 1024 / 1024)
+                    await self._send_413(scope, receive, send)
+                    return
+
+                buffered.append(chunk)
+
+            # If client says "more_body": False, we're done pre-reading.
+            more_body_expected = message.get("more_body", False)
+
+        # Request size is within the size limit: replay buffered chunks to the app
+        replay_index = 0
+        total = len(buffered)
+
+        async def replay_receive() -> Message:  # noqa: RUF029 (Function declared `async` but never awaits)
+            """Replay the pre-read body chunks to the app."""
+            nonlocal replay_index
+            if replay_index < total:
+                part = buffered[replay_index]
+                replay_index += 1
+                return {
+                    "type": "http.request",
+                    "body": part,
+                    "more_body": replay_index < total,
+                }
+            # After replaying everything, send one final empty frame with more_body=False
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        await self.app(scope, replay_receive, send)
 
 
 def build_docs() -> None:

@@ -160,7 +160,7 @@ elif settings.ENV not in {"testing", "development"}:
 
 
 # Add middleware to enforce the request size limit
-app.add_middleware(utils.LimitRequestSizeMiddleware, max_body_size=settings.MAX_CONTENT_LENGTH)
+app.add_middleware(utils.LimitRequestSizeMiddleware)
 
 
 # ------------------------------------------------------------------------------
