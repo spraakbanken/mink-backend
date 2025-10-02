@@ -119,16 +119,6 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     # Check compatibility between source files and config
     try:
         config_contents = storage.get_file_contents(storage.get_config_file(resource_id))
-        if source_files:
-            compatible, current_importer, expected_importer = utils.config_compatible(config_contents, source_files[0])
-            if not compatible:
-                raise exceptions.MinkHTTPException(
-                    400,
-                    message="The importer in your config file is incompatible with your source files",
-                    return_code="incompatible_config_importer",
-                    current_importer=current_importer,
-                    expected_importer=expected_importer,
-                )
     except Exception as e:
         raise exceptions.MinkHTTPException(
             500,
@@ -136,6 +126,16 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
             return_code="failed_getting_config",
             info=str(e),
         ) from e
+    if source_files:
+        compatible, current_importer, expected_importer = utils.config_compatible(config_contents, source_files[0])
+        if not compatible:
+            raise exceptions.MinkHTTPException(
+                400,
+                message="The importer in your config file is incompatible with your source files",
+                return_code="incompatible_config_importer",
+                current_importer=current_importer,
+                expected_importer=expected_importer,
+            )
 
     # Get job, check for changes and remove exports if necessary
     try:
@@ -318,22 +318,15 @@ async def resource_info(
 
     admin_status = cache_utils.get_cookie_data(auth_data.get("session_id"), {}).get("admin_mode", False)
     if resource_id:
+        # Check if corpus exists
+        if resource_id not in corpora:
+            raise exceptions.MinkHTTPException(
+                404,
+                message=f"Corpus '{resource_id}' does not exist or you do not have access to it",
+                return_code="corpus_not_found",
+            )
         try:
-            # Check if corpus exists
-            if resource_id not in corpora:
-                raise exceptions.MinkHTTPException(
-                    404,
-                    message=f"Corpus '{resource_id}' does not exist or you do not have access to it",
-                    return_code="corpus_not_found",
-                )
             info = registry.get(resource_id)
-            if not info:
-                return utils.response(
-                    message=f"There is no active job for '{resource_id}'",
-                    job_status=JobStatuses().serialize(),
-                    return_code="no_active_job",
-                )
-            return utils.response(**make_status_response(info, admin=admin_status))
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 500,
@@ -341,6 +334,13 @@ async def resource_info(
                 return_code="failed_getting_job_status",
                 info=str(e),
             ) from e
+        if not info:
+            return utils.response(
+                message=f"There is no active job for '{resource_id}'",
+                job_status=JobStatuses().serialize(),
+                return_code="no_active_job",
+            )
+        return utils.response(**make_status_response(info, admin=admin_status))
 
     try:
         # Get all job statuses for this user's corpora

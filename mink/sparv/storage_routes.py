@@ -395,14 +395,6 @@ async def upload_sources(
     try:
         content_length = int(request.headers.get("content-length", "0"))
         source_dir = storage.get_source_dir(resource_id)
-        if not utils.size_ok(source_dir, content_length):
-            h_max_size = str(round(settings.MAX_CORPUS_LENGTH / 1024 / 1024, 2))
-            raise exceptions.MinkHTTPException(
-                413,
-                message=f"Failed to upload source files to '{resource_id}'. Max corpus size ({h_max_size} MB) exceeded",
-                return_code="failed_uploading_sources_corpus_size",
-                info="max corpus size exceeded",
-            )
     except Exception as e:
         raise exceptions.MinkHTTPException(
             500,
@@ -410,6 +402,14 @@ async def upload_sources(
             return_code="failed_uploading_sources",
             info=str(e),
         ) from e
+    if not utils.size_ok(source_dir, content_length):
+        h_max_size = str(round(settings.MAX_CORPUS_LENGTH / 1024 / 1024, 2))
+        raise exceptions.MinkHTTPException(
+            413,
+            message=f"Failed to upload source files to '{resource_id}'. Max corpus size ({h_max_size} MB) exceeded",
+            return_code="failed_uploading_sources_corpus_size",
+            info="max corpus size exceeded",
+        )
 
     existing_files = storage.list_contents(source_dir)
     h_max_file_size = str(round(settings.MAX_FILE_LENGTH / 1024 / 1024, 2))
@@ -739,16 +739,10 @@ async def download_sources(
     ```
     """
     resource_id = auth_data.get("resource_id")
-    # Check if there are any source files
-    storage_source_dir = storage.get_source_dir(resource_id)
     try:
+        # Check if there are any source files
+        storage_source_dir = storage.get_source_dir(resource_id)
         source_contents = storage.list_contents(storage_source_dir, exclude_dirs=False)
-        if source_contents == []:
-            raise exceptions.MinkHTTPException(
-                404,
-                message=f"You have not uploaded any source files for corpus '{resource_id}'",
-                return_code="missing_sources_download",
-            )
     except Exception as e:
         raise exceptions.MinkHTTPException(
             500,
@@ -756,6 +750,12 @@ async def download_sources(
             return_code="failed_listing_sources",
             info=str(e),
         ) from e
+    if source_contents == []:
+        raise exceptions.MinkHTTPException(
+            404,
+            message=f"You have not uploaded any source files for corpus '{resource_id}'",
+            return_code="missing_sources_download",
+        )
 
     local_source_dir = utils.get_source_dir(resource_id, mkdir=True)
     local_corpus_dir = utils.get_resource_dir(resource_id, mkdir=True)
@@ -933,24 +933,30 @@ async def upload_config(
             ) from e
 
     elif config_txt:
-        try:
-            # Check if config file is compatible with the uploaded source files
-            if source_files:
+        if source_files:
+            try:
+                # Check if config file is compatible with the uploaded source files
                 compatible, current_importer, expected_importer = utils.config_compatible(config_txt, source_files[0])
-                if not compatible:
-                    raise exceptions.MinkHTTPException(
-                        400,
-                        message="The importer in your config file is incompatible with your source files",
-                        return_code="incompatible_config_importer",
-                        current_importer=current_importer,
-                        expected_importer=expected_importer,
-                    )
+            except Exception as e:
+                raise exceptions.MinkHTTPException(
+                    500,
+                    message=f"Failed to upload config file for '{resource_id}'",
+                    return_code="failed_uploading_config",
+                    info=str(e),
+                ) from e
+            if not compatible:
+                raise exceptions.MinkHTTPException(
+                    400,
+                    message="The importer in your config file is incompatible with your source files",
+                    return_code="incompatible_config_importer",
+                    current_importer=current_importer,
+                    expected_importer=expected_importer,
+                )
+        try:
+            # Standardize config (e.g. ensure that the resource_id is correct)
             new_config, corpus_name = utils.standardize_config(config_txt, resource_id)
             set_corpus_name(corpus_name)
             storage.write_file_contents(storage.get_config_file(resource_id), new_config.encode("UTF-8"), resource_id)
-            return utils.response(
-                201, message=f"Config file successfully uploaded for '{resource_id}'", return_code="uploaded_config"
-            )
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 500,
@@ -958,6 +964,11 @@ async def upload_config(
                 return_code="failed_uploading_config",
                 info=str(e),
             ) from e
+        return utils.response(
+            201,
+            message=f"Config file successfully uploaded for '{resource_id}'",
+            return_code="uploaded_config",
+        )
 
     else:
         raise exceptions.MinkHTTPException(
@@ -1018,14 +1029,8 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
 
     try:
         # Get file from storage
-        if storage.download_file(
+        download_ok = storage.download_file(
             storage.get_config_file(resource_id), local_config_file, resource_id, ignore_missing=True
-        ):
-            return FileResponse(local_config_file, media_type="text/yaml", filename=local_config_file.name)
-        raise exceptions.MinkHTTPException(
-            404,
-            message=f"No config file found for corpus '{resource_id}'",
-            return_code="config_not_found",
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
@@ -1034,6 +1039,13 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
             return_code="failed_downloading_config",
             info=str(e),
         ) from e
+    if not download_ok:
+        raise exceptions.MinkHTTPException(
+            404,
+            message=f"No config file found for corpus '{resource_id}'",
+            return_code="config_not_found",
+        )
+    return FileResponse(local_config_file, media_type="text/yaml", filename=local_config_file.name)
 
 
 # ------------------------------------------------------------------------------
@@ -1197,12 +1209,6 @@ async def download_exports(
 
     try:
         export_contents = storage.list_contents(storage_export_dir, exclude_dirs=False, blacklist=blacklist)
-        if export_contents == []:
-            raise exceptions.MinkHTTPException(
-                404,
-                message=f"There are currently no exports available for corpus '{resource_id}'",
-                return_code="no_exports_available",
-            )
     except Exception as e:
         raise exceptions.MinkHTTPException(
             500,
@@ -1210,6 +1216,12 @@ async def download_exports(
             return_code="failed_downloading_exports",
             info=str(e),
         ) from e
+    if export_contents == []:
+        raise exceptions.MinkHTTPException(
+            404,
+            message=f"There are currently no exports available for corpus '{resource_id}'",
+            return_code="no_exports_available",
+        )
 
     # Download and zip folder specified in args
     if download_folder:
@@ -1350,13 +1362,6 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency())) -> J
         # Remove from Sparv server
         job = registry.get(resource_id).job
         success, sparv_output = job.clean_export()
-        if not success:
-            raise exceptions.MinkHTTPException(
-                500,
-                message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'",
-                return_code="failed_removing_exports_sparv",
-                info=str(sparv_output),
-            )
     except Exception as e:
         raise exceptions.MinkHTTPException(
             500,
@@ -1364,6 +1369,13 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency())) -> J
             return_code="failed_removing_exports_sparv",
             info=str(e),
         ) from e
+    if not success:
+        raise exceptions.MinkHTTPException(
+            500,
+            message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'",
+            return_code="failed_removing_exports_sparv",
+            info=str(sparv_output),
+        )
 
     return utils.response(
         message=f"Export files for corpus '{resource_id}' successfully removed", return_code="removed_exports"
@@ -1446,13 +1458,6 @@ async def download_source_text(
 
     try:
         source_texts = storage.list_contents(storage_work_dir, exclude_dirs=False)
-        if source_texts == []:
-            raise exceptions.MinkHTTPException(
-                404,
-                message=f"There are currently no source texts for corpus '{resource_id}'. "
-                "You must run Sparv before you can view source texts.",
-                return_code="no_source_texts_run_sparv",
-            )
     except Exception as e:
         raise exceptions.MinkHTTPException(
             500,
@@ -1460,6 +1465,13 @@ async def download_source_text(
             return_code="failed_downloading_source_text",
             info=str(e),
         ) from e
+    if source_texts == []:
+        raise exceptions.MinkHTTPException(
+            404,
+            message=f"There are currently no source texts for corpus '{resource_id}'. "
+            "You must run Sparv before you can view source texts.",
+            return_code="no_source_texts_run_sparv",
+        )
 
     # Download file specified in args
     download_file = Path(download_file)
