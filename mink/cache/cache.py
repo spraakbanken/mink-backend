@@ -1,7 +1,7 @@
 """Cache client management."""
 
-from pymemcache.client.base import Client
 from pymemcache import serde
+from pymemcache.client.base import Client
 
 _cache_client = None
 

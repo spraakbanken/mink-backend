@@ -31,8 +31,8 @@ def advance_queue() -> None:
             response = client.put(url, params=params)
             response.raise_for_status()
             logger.debug(response.text)
-    except httpx.HTTPError as e:
-        logger.error("Error advancing queue! %s", e)
+    except httpx.HTTPError:
+        logger.exception("Error advancing queue!")
 
 
 def ping_healthchecks(url: str) -> None:
@@ -43,8 +43,8 @@ def ping_healthchecks(url: str) -> None:
             response = client.get(url)
             response.raise_for_status()
             logger.debug(response.text)
-    except httpx.HTTPError as e:
-        logger.error("Error pinging healthchecks! %s", e)
+    except httpx.HTTPError:
+        logger.exception("Error pinging healthchecks!")
 
 
 if __name__ == "__main__":

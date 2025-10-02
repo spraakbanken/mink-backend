@@ -107,8 +107,8 @@ class Info:
                     self.job.abort_sparv()
                 except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
                     pass
-                except Exception as e:
-                    raise e
+                except Exception:
+                    raise
             else:
                 raise exceptions.JobError("Job cannot be removed due to a running Sparv process!")
 

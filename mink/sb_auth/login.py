@@ -405,9 +405,9 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(url, headers=headers, json=data)
-        except Exception as e:
+        except Exception:
             logger.exception("Could not create resource")
-            raise e
+            raise
 
     if response.status_code == 400:
         raise exceptions.CorpusExistsError
@@ -435,11 +435,8 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
     headers = {"Authorization": f"apikey {settings.SBAUTH_API_KEY}", "Content-Type": "application/json"}
     data = {"jwt": auth_token} if is_jwt(auth_token) else {"apikey": auth_token}
     async with httpx.AsyncClient() as client:
-        try:
-            request = httpx.Request(method="DELETE", url=url, headers=headers, json=data)
-            response = await client.send(request)
-        except Exception as e:
-            raise e
+        request = httpx.Request(method="DELETE", url=url, headers=headers, json=data)
+        response = await client.send(request)
 
     if response.status_code == 204:
         return True

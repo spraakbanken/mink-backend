@@ -351,8 +351,8 @@ class Job:
             self.abort_sparv()
         except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
             pass
-        except Exception as e:
-            raise e
+        except Exception:
+            raise
 
         p = utils.ssh_run(
             f"{settings.SPARV_ENVIRON} {settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} "
@@ -417,8 +417,8 @@ class Job:
             self.abort_sparv()
         except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
             pass
-        except Exception as e:
-            raise e
+        except Exception:
+            raise
 
         p = utils.ssh_run(
             f"{settings.SPARV_ENVIRON} {settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} "
@@ -658,8 +658,8 @@ class Job:
             self.abort_sparv()
         except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
             pass
-        except Exception as e:
-            raise e
+        except Exception:
+            raise
 
         p = utils.ssh_run(f"rm -rf {self.remote_corpus_dir_esc}")
         if p.stderr:
