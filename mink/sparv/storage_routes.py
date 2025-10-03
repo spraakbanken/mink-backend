@@ -336,8 +336,8 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency())) -> JS
                 }
             },
         },
-        403: {
-            "model": models.BaseResponseWithInfo,
+        413: {
+            "model": models.ErrorResponse413,
             "content": {
                 "application/json": {
                     "example": {
@@ -347,7 +347,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency())) -> JS
                         "return_code": "failed_uploading_sources_file_size",
                         "file": "example.txt",
                         "info": "max file size exceeded",
-                        "max_file_size": 10485760,
+                        "max_size_mb": 10,
                     }
                 }
             },
@@ -403,16 +403,17 @@ async def upload_sources(
             info=str(e),
         ) from e
     if not utils.size_ok(source_dir, content_length):
-        h_max_size = str(round(settings.MAX_CORPUS_LENGTH / 1024 / 1024, 2))
+        max_size_mb = int(settings.MAX_CORPUS_LENGTH / (1024 * 1024))
         raise exceptions.MinkHTTPException(
             413,
-            message=f"Failed to upload source files to '{resource_id}'. Max corpus size ({h_max_size} MB) exceeded",
+            message=f"Failed to upload source files to '{resource_id}'. Max corpus size ({max_size_mb} MB) exceeded",
             return_code="failed_uploading_sources_corpus_size",
             info="max corpus size exceeded",
+            max_size_mb=max_size_mb,
         )
 
     existing_files = storage.list_contents(source_dir)
-    h_max_file_size = str(round(settings.MAX_FILE_LENGTH / 1024 / 1024, 2))
+    max_file_size_mb = int(settings.MAX_FILE_LENGTH / (1024 * 1024))
     warnings = []
     # Upload data
     for f in files:
@@ -453,11 +454,11 @@ async def upload_sources(
             raise exceptions.MinkHTTPException(
                 413,
                 message=(f"Failed to upload some source files to '{resource_id}'. "
-                        f"Max file size ({h_max_file_size} MB) exceeded"),
+                        f"Max file size ({max_file_size_mb} MB) exceeded"),
                 return_code="failed_uploading_sources_file_size",
                 file=f.filename,
                 info="max file size exceeded",
-                max_file_size=settings.MAX_FILE_LENGTH,
+                max_size_mb=max_file_size_mb,
             )
 
         # Skip uploading existing files (identical in name, size and md5 checksum)

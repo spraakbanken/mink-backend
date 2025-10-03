@@ -197,20 +197,13 @@ class JobModel(BaseModel):
 
 
 # ----------------------------------------------------
-# Error responses
+# Error response models
 # ----------------------------------------------------
 
 class BaseErrorResponse(BaseResponse):
     """Abstract base model for error responses."""
     status: str = Field(default="error", description="Response status, usually 'success' or 'error'")
-
-
-class BaseErrorResponseWithInfo(BaseResponse):
-    """Abstract base model for error responses with an additional info field."""
-    status: str = Field(default="error", description="Response status, usually 'success' or 'error'")
-    info: str | None = Field(
-        default=None, description="Additional information about the error"
-    )
+    info: str | None = Field(default=None, description="Additional information about the error")
 
 
 class ErrorResponse401(BaseErrorResponse):
@@ -277,7 +270,9 @@ class ErrorResponse413(BaseErrorResponse):
     message: str = Field(
         default="Request data too large (max 100 MB per upload)", description="Short message describing the error"
     )
-    max_content_length: int = Field(default=100, description="Max allowed content length in bytes")
+    max_size_mb: int = Field(default=100, description="Max allowed size in MB")
+    info: str | None = Field(default=None, description="Additional information about the error")
+    file: str | None = Field(default=None, description="Name of the file that was too large")
 
     model_config = {
         "json_schema_extra": {
@@ -286,6 +281,7 @@ class ErrorResponse413(BaseErrorResponse):
                     "status": "error",
                     "message": "Request data too large",
                     "return_code": "data_too_large",
+                    "max_size_mb": 100,
                 }
             ]
         }
@@ -318,7 +314,7 @@ class ErrorResponse422(BaseErrorResponse):
     }
 
 
-class ErrorResponse500(BaseErrorResponseWithInfo):
+class ErrorResponse500(BaseErrorResponse):
     """Model for 500 error responses."""
     model_config = {
         "json_schema_extra": {

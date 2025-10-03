@@ -102,13 +102,13 @@ class LimitRequestSizeMiddleware:
 
     async def _send_413(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Send a 413 Payload Too Large response."""
-        h_max_size_mb = str(int(self.max_body_size / 1024 / 1024))
+        max_size_mb = int(self.max_body_size / (1024 * 1024))
         resp = response(
             status_code=413,
             **models.ErrorResponse413(
-                message=f"Request data too large (max {h_max_size_mb} MB per upload)",
+                message=f"Request data too large (max {max_size_mb} MB per upload)",
                 return_code="data_too_large",
-                max_content_length=self.max_body_size,
+                max_size_mb=max_size_mb,
             ).model_dump(),
         )
         await resp(scope, receive, send)
@@ -154,7 +154,7 @@ class LimitRequestSizeMiddleware:
                 received += len(chunk)
                 # If size limit is exceeded, send 413 and return without calling app
                 if received > self.max_body_size:
-                    logger.warning("Request body too large: %.2f MB", received / 1024 / 1024)
+                    logger.warning("Request body too large: %.2f MB", received / (1024 * 1024))
                     await self._send_413(scope, receive, send)
                     return
 

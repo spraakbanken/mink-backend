@@ -60,7 +60,7 @@ def starlette_exceptions_handler(_request: Request, exc: StarletteHTTPException)
     logger.error("Unknown error: %s", exc)
     return utils.response(
         status_code=exc.status_code,
-        **models.BaseErrorResponseWithInfo(
+        **models.BaseErrorResponse(
             # TODO: add traceback in info?
             message="Unknown error", return_code="unknown_error", info=exc.detail
         ).model_dump(),
@@ -71,7 +71,7 @@ def internal_server_error_handler(_request: Request, exc: Exception) -> JSONResp
     """Handle uncaught exceptions."""
     return utils.response(
         status_code=500,
-        **models.BaseErrorResponseWithInfo(
+        **models.BaseErrorResponse(
             message="Internal server error", return_code="internal_server_error", info=str(exc)
         ).model_dump(),
     )
