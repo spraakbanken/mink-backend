@@ -130,14 +130,8 @@ async def log_request(request: Request, call_next: Callable) -> Response:
     return await call_next(request)
 
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOW_ORIGINS,
-    allow_credentials=True,
-    allow_methods=settings.ALLOW_METHODS,
-    allow_headers=settings.ALLOW_HEADERS,
-)
+# Add middleware to enforce the request size limit
+app.add_middleware(utils.LimitRequestSizeMiddleware)
 
 
 # Add Matomo middleware for tracking
@@ -159,8 +153,14 @@ elif settings.ENV not in {"testing", "development"}:
     logger.warning("Tracking to Matomo disabled, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE.")
 
 
-# Add middleware to enforce the request size limit
-app.add_middleware(utils.LimitRequestSizeMiddleware)
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOW_ORIGINS,
+    allow_credentials=True,
+    allow_methods=settings.ALLOW_METHODS,
+    allow_headers=settings.ALLOW_HEADERS,
+)
 
 
 # ------------------------------------------------------------------------------
