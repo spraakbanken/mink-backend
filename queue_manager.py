@@ -32,7 +32,7 @@ def advance_queue() -> None:
             response.raise_for_status()
             logger.debug(response.text)
     except httpx.HTTPError:
-        logger.exception("Error advancing queue!")
+        logger.exception("Error advancing queue")
 
 
 def ping_healthchecks(url: str) -> None:
@@ -44,7 +44,7 @@ def ping_healthchecks(url: str) -> None:
             response.raise_for_status()
             logger.debug(response.text)
     except httpx.HTTPError:
-        logger.exception("Error pinging healthchecks!")
+        logger.exception("Error pinging healthchecks")
 
 
 if __name__ == "__main__":

@@ -276,7 +276,7 @@ class StatusesResponse(models.BaseResponse):
                     "return_code": "listing_jobs",
                     "resources": [
                         {
-                            "message": "Job was completed successfully!",
+                            "message": "Job was completed successfully",
                             "resource": {
                                 "id": "mink-ezodmp4wxm",
                                 "name": {"swe": "txt-korpus", "eng": "txt-korpus"},
@@ -302,7 +302,7 @@ class StatusesResponse(models.BaseResponse):
                             "return_code": "job_completed",
                         },
                         {
-                            "message": "Job was completed successfully!",
+                            "message": "Job was completed successfully",
                             "resource": {
                                 "id": "mink-dxh6e6wtff",
                                 "name": {"swe": "Annes och Martins testkorpus", "eng": ""},

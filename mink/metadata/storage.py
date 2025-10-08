@@ -4,43 +4,8 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from mink.core import utils
+from mink.core import exceptions, utils
 from mink.core.config import settings
-
-# def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: list | None = None):
-#     """
-#     List files in directory on storage server recursively.
-#     If a blacklist is specified, exclude paths that match anything on the blacklist.
-#     """
-#     objlist = []
-#     directory_quoted = shlex.quote(str(directory))
-#     p = utils.ssh_run(f"test -d {directory_quoted} && cd {directory_quoted} && "
-#                       f"find . -exec ls -lgGd --time-style=full-iso {{}} \\;")
-#     if p.stderr:
-#         raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
-
-#     contents = p.stdout.decode()
-#     for line in contents.split("\n"):
-#         if not line.strip():
-#             continue
-#         permissions, _, size, date, time, tz, obj_path = line.split(maxsplit=6)
-#         if obj_path == ".":
-#             continue
-#         f = Path(obj_path)
-#         mod_time = parse(f"{date} {time} {tz}").isoformat(timespec="seconds")
-#         is_dir = permissions.startswith("d")
-#         mimetype = mimetypes.guess_type(str(f))[0] or "unknown"
-#         if is_dir:
-#             if exclude_dirs:
-#                 continue
-#             mimetype = "directory"
-#         if blacklist:
-#             if any(Path(f.parts[0]).match(item) for item in blacklist):
-#                 continue
-#         objlist.append({
-#             "name": f.name, "type": mimetype, "last_modified": mod_time, "size": int(size), "path": obj_path[2:]
-#         })
-#     return objlist
 
 
 def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ignore_missing: bool = False) -> bool:
@@ -56,10 +21,10 @@ def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ig
         True if the file was downloaded successfully, False otherwise.
 
     Raises:
-        Exception: If the download fails or the path is invalid.
+        exceptions.ReadError: If the download fails or the path is invalid.
     """
     if not _is_valid_path(remote_file_path, resource_id):
-        raise Exception(f"You don't have permission to download '{remote_file_path}'")
+        raise exceptions.ReadError(remote_file_path, "You don't have permission to download this file")
 
     user, host = _get_login()
     cmd = ["rsync", "--protect-args"]
@@ -68,17 +33,8 @@ def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ig
     cmd += [f"{user}@{host}:{remote_file_path}", f"{local_file}"]
     p = subprocess.run(cmd, capture_output=True, check=False)
     if p.stderr:
-        raise Exception(f"Failed to download '{remote_file_path}': {p.stderr.decode()}")
+        raise exceptions.ReadError(remote_file_path, p.stderr.decode())
     return not (ignore_missing and not local_file.is_file())
-
-
-# def get_file_contents(filepath: Path) -> str:
-#     """Get contents of file at 'filepath'."""
-#     p = utils.ssh_run(f"cat {shlex.quote(str(filepath))}")
-#     if p.stderr:
-#         raise Exception(f"Failed to retrieve contents for '{filepath}': {p.stderr.decode()}")
-
-#     return p.stdout.decode()
 
 
 def write_file_contents(filepath: Path, file_contents: bytes, resource_id: str) -> None:
@@ -90,14 +46,14 @@ def write_file_contents(filepath: Path, file_contents: bytes, resource_id: str) 
         resource_id: The resource ID.
 
     Raises:
-        Exception: If writing the contents fails or the path is invalid.
+        exceptions.WriteError: If writing the contents fails or the path is invalid.
     """
     if not _is_valid_path(filepath, resource_id):
-        raise Exception(f"You don't have permission to edit '{filepath}'")
+        raise exceptions.WriteError(filepath, "You don't have permission to edit this file")
 
     p = utils.ssh_run(f"cat - > {shlex.quote(str(filepath))}", ssh_input=file_contents)
     if p.stderr:
-        raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
+        raise exceptions.WriteError(filepath, p.stderr.decode())
 
 
 def remove_dir(path: Path, resource_id: str) -> None:
@@ -108,24 +64,14 @@ def remove_dir(path: Path, resource_id: str) -> None:
         resource_id: The resource ID.
 
     Raises:
-        Exception: If removing the directory fails or the path is invalid.
+        exceptions.WriteError: If removing the directory fails or the path is invalid.
     """
     if not _is_valid_path(path, resource_id):
-        raise Exception(f"You don't have permission to remove '{path}'")
+        raise exceptions.WriteError(path, "You don't have permission to remove this directory")
 
     p = utils.ssh_run(f"test -d {shlex.quote(str(path))} && rm -r {shlex.quote(str(path))}")
     if p.stderr:
-        raise Exception(f"Failed to remove corpus dir on storage server: {p.stderr.decode()}")
-
-
-# def remove_file(path: Path, resource_id: str) -> None:
-#     """Remove file on 'path' from storage server."""
-#     if not _is_valid_path(path, resource_id):
-#         raise Exception(f"You don't have permission to remove '{path}'")
-
-#     p = utils.ssh_run(f"test -f {shlex.quote(str(path))} && rm {shlex.quote(str(path))}")
-#     if p.stderr:
-#         raise Exception(f"Failed to remove file '{path}' on storage server: {p.stderr.decode()}")
+        raise exceptions.WriteError(path, f"Cannot remove corpus dir: {p.stderr.decode()}")
 
 
 def _get_login() -> tuple[str, str]:
@@ -187,4 +133,4 @@ def _make_dir(dirpath: Path) -> None:
     """Create directory on storage server."""
     p = utils.ssh_run(f"mkdir -p {shlex.quote(str(dirpath))}")
     if p.stderr:
-        raise Exception(f"Failed to create resource dir on storage server! {p.stderr.decode()}")
+        raise exceptions.WriteError(dirpath, f"Failed to create resource dir: {p.stderr.decode()}")

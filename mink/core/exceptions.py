@@ -1,5 +1,7 @@
 """Exceptions for Mink."""
 
+from pathlib import Path
+
 from fastapi import HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -81,8 +83,14 @@ def internal_server_error_handler(_request: Request, exc: Exception) -> JSONResp
 # Custom exceptions
 # ------------------------------------------------------------------------------
 
+# Job related exceptions
+
 class JobError(Exception):
     """Exception used for when something is wrong with a Sparv job."""
+
+
+class ProcessStillRunningError(JobError):
+    """Exception used for when a process is still running although it should not be."""
 
 
 class ProcessNotRunningError(JobError):
@@ -95,7 +103,12 @@ class ProcessNotFoundError(JobError):
 
 class JobNotFoundError(JobError):
     """Exception used for when a job could not be found."""
+    def __init__(self, resource_id: str) -> None:
+        """Initialize the exception with a message."""
+        super().__init__(f"No resource found with ID '{resource_id}'")
 
+
+# Authentication/authorization related exceptions
 
 class ApikeyCheckFailedError(Exception):
     """Exception used for when an API key fails to validate."""
@@ -109,9 +122,74 @@ class ApikeyNotFoundError(Exception):
     """Exception used for when an API key was not found."""
 
 
+class CreateResourceError(Exception):
+    """Exception used for when a resource could not be created."""
+    def __init__(self, resource_id: str, message: str) -> None:
+        """Initialize the exception with a message."""
+        super().__init__(f"Failed to create resource '{resource_id}': {message}")
+
+
+class RemoveResourceError(Exception):
+    """Exception used for when a resource could not be removed."""
+    def __init__(self, resource_id: str, message: str) -> None:
+        """Initialize the exception with a message."""
+        super().__init__(f"Failed to remove resource '{resource_id}': {message}")
+
+
+# Storage related exceptions
+
+class ReadError(Exception):
+    """Exception used for when reading/downloading from the storage server fails."""
+    def __init__(self, path: Path, error: str) -> None:
+        """Initialize the exception with the path and error message."""
+        super().__init__(f"Failed to read or download '{path}': {error}")
+
+
+class WriteError(Exception):
+    """Exception used for when writing to the storage server fails."""
+    def __init__(self, path: Path, error: str) -> None:
+        """Initialize the exception with the path and error message."""
+        super().__init__(f"Failed to write to '{path}': {error}")
+
+
+# Misc exceptions
+
+class CacheNotInitializedError(RuntimeError):
+    """Exception used for when the cache client is not initialized."""
+
+
+class ConfigVariableNotSetError(ValueError):
+    """Exception used for when a config variable is not set."""
+    def __init__(self, config_variable: str) -> None:
+        """Initialize the exception with the config variable name."""
+        super().__init__(f"Config variable '{config_variable}' is not set.")
+
+
 class CorpusExistsError(Exception):
     """Exception used for when a corpus ID already exists."""
+    def __init__(self, resource_id: str) -> None:
+        """Initialize the exception with the resource ID."""
+        super().__init__(f"Resource {resource_id} already exists")
 
 
 class CouldNotListSourcesError(Exception):
     """Exception used for when listing of source files failed."""
+
+
+class InvalidResourceTypeError(TypeError):
+    """Exception used for when a resource type is invalid."""
+    def __init__(self, resource_type: str) -> None:
+        """Initialize the exception with the resource type."""
+        super().__init__(f"Invalid resource type: {resource_type}")
+
+
+class ParameterError(ValueError):
+    """Exception used for when parameters are used incorrectly."""
+
+
+class PrerequisiteError(Exception):
+    """Exception used for when a prerequisite is not met."""
+
+
+class RequestIDNotSetError(Exception):
+    """Exception used for when a request ID is not set although it should be."""

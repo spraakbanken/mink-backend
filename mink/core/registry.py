@@ -62,11 +62,11 @@ def get(resource_id: str) -> info.Info:
         An Info instance corresponding to the resource ID.
 
     Raises:
-        JobNotFoundError: If no resource is found with the given ID.
+        exceptions.JobNotFoundError: If no resource is found with the given ID.
     """
     if cache_utils.get_job(resource_id) is not None:
         return info.load_from_str(cache_utils.get_job(resource_id))
-    raise exceptions.JobNotFoundError(f"No resource found with ID '{resource_id}'!")
+    raise exceptions.JobNotFoundError(resource_id)
 
 
 def filter_resources(resource_ids: list[str] | None = None) -> list[info.Info]:
@@ -98,12 +98,12 @@ def add_to_queue(job: jobs.Job) -> info.Job:
         The job that was added to the queue.
 
     Raises:
-        Exception: If there is an unfinished job for the resource.
+        exceptions.ProcessStillRunningError: If there is an unfinished job for the resource.
     """
     queue = cache_utils.get_job_queue()
     # Avoid starting multiple jobs for the same resource simultaneously
     if job.id in queue and job.status.is_active():
-        raise Exception("There is an unfinished job for this resource!")
+        raise exceptions.ProcessStillRunningError
     # Unqueue if old job is queued since before
     if job.id in queue:
         queue.pop(queue.index(job.id))

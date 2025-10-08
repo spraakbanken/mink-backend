@@ -309,9 +309,9 @@ def is_jwt(token: str) -> bool:
     """
     try:
         jwt.decode(token, options={"verify_signature": False})
-        return True
     except jwt.DecodeError:
         return False
+    return True
 
 
 class ApikeyAuthentication(Authentication):
@@ -331,11 +331,6 @@ class ApikeyAuthentication(Authentication):
 
         Returns:
             An instance of ApikeyAuthentication.
-
-        Raises:
-            ApikeyNotFoundError: If the API key is not recognized.
-            ApikeyExpiredError: If the API key has expired.
-            ApikeyCheckFailedError: If the API key check failed.
         """
         # Make a cached HTTP request
         # TODO: what happens if we create/delete resources? Will cache be invalidated?
@@ -357,9 +352,9 @@ class ApikeyAuthentication(Authentication):
             A dictionary containing the user and scope information.
 
         Raises:
-            ApikeyNotFoundError: If the API key is not recognized.
-            ApikeyExpiredError: If the API key has expired.
-            ApikeyCheckFailedError: If the API key check failed.
+            exceptions.ApikeyNotFoundError: If the API key is not recognized.
+            exceptions.ApikeyExpiredError: If the API key has expired.
+            exceptions.ApikeyCheckFailedError: If the API key check failed.
         """
         # API documented at https://github.com/spraakbanken/sb-auth#api
         url = settings.SBAUTH_URL + "apikey-check"
@@ -394,8 +389,8 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
         resource_type: The resource type.
 
     Raises:
-        CorpusExistsError: If the corpus already exists.
-        Exception: If creating the resource fails.
+        exceptions.CorpusExistsError: If the corpus already exists.
+        exceptions.CreateResourceError: If creating the resource fails.
     """
     # API documented at https://github.com/spraakbanken/sb-auth#api
     # TODO: specify resource_type when sbauth is ready
@@ -410,11 +405,11 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
             raise
 
     if response.status_code == 400:
-        raise exceptions.CorpusExistsError
+        raise exceptions.CorpusExistsError(resource_id)
     if response.status_code != 201:
         message = response.content
         logger.error("Could not create resource, sb-auth returned status %s: %s", response.status_code, message)
-        raise Exception(message)
+        raise exceptions.CreateResourceError(resource_id, message)
 
 
 async def remove_resource(auth_token: str, resource_id: str) -> bool:
@@ -428,7 +423,7 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
         True if the resource was removed successfully, False otherwise.
 
     Raises:
-        Exception: If removing the resource fails.
+        exceptions.RemoveResourceError: If removing the resource fails.
     """
     # API documented at https://github.com/spraakbanken/sb-auth#api
     url = settings.SBAUTH_URL + f"resource/{resource_id}"
@@ -444,4 +439,4 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
         # Corpus does not exist
         return False
     message = response.content
-    raise Exception(message)
+    raise exceptions.RemoveResourceError(resource_id, message)

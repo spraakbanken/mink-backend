@@ -3,6 +3,8 @@
 from pymemcache import serde
 from pymemcache.client.base import Client
 
+from mink.core import exceptions
+
 _cache_client = None
 
 
@@ -23,5 +25,5 @@ def get_cache_client() -> Client:
         The cache client instance.
     """
     if _cache_client is None:
-        raise RuntimeError("Cache client is not initialized.")
+        raise exceptions.CacheNotInitializedError
     return _cache_client

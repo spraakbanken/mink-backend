@@ -194,21 +194,22 @@ class Job:
         """Check if required corpus contents are present.
 
         Raises:
-            Exception: If no config file or input files are provided.
+            exceptions.PrerequisiteError: If no config file or input files are provided.
         """
         corpus_contents = storage.list_contents(storage.get_corpus_dir(self.id), exclude_dirs=False)
         if settings.SPARV_CORPUS_CONFIG not in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
-            raise Exception(f"No config file provided for '{self.id}'!")
+            raise exceptions.PrerequisiteError(f"No config file provided for '{self.id}'")
         if not [i for i in corpus_contents if i.get("path").startswith(settings.SPARV_SOURCE_DIR)]:
             self.set_status(Status.error)
-            raise Exception(f"No input files provided for '{self.id}'!")
+            raise exceptions.PrerequisiteError(f"No input files provided for '{self.id}'")
 
     def sync_to_sparv(self) -> None:
         """Sync corpus files from storage server to the Sparv server.
 
         Raises:
-            Exception: If syncing fails.
+            exceptions.WriteError: If writing to the Sparv server fails.
+            exceptions.ReadError: If downloading from storage server or uploading to Sparv server fails.
         """
         self.set_status(Status.running, ProcessName.sync2sparv)
 
@@ -216,7 +217,7 @@ class Job:
         p = utils.ssh_run(f"mkdir -p {self.remote_corpus_dir_esc} && rm -f {self.nohupfile} {self.runscript}")
         if p.stderr:
             self.set_status(Status.error)
-            raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
+            raise exceptions.WriteError(self.remote_corpus_dir_esc, f"Failed to create corpus dir: {p.stderr.decode()}")
 
         # Download from storage server to local tmp dir
         # TODO: do this async?
@@ -225,7 +226,7 @@ class Job:
             storage.download_dir(storage.get_corpus_dir(self.id), local_user_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to download corpus '{self.id}' from the storage server! {e}") from e
+            raise exceptions.ReadError(self.id, "Failed to download corpus") from e
 
         # Sync corpus config to Sparv server
         p = subprocess.run(
@@ -240,10 +241,11 @@ class Job:
         )
         if p.stderr:
             self.set_status(Status.error)
-            raise Exception(f"Failed to copy corpus config file to Sparv server! {p.stderr.decode()}")
+            config_path = self.remote_corpus_dir / settings.SPARV_CORPUS_CONFIG
+            raise exceptions.WriteError(config_path, f"Failed to copy file to Sparv server: {p.stderr.decode()}")
 
         # Sync corpus files to Sparv server
-        # TODO: do this async!
+        # TODO: do this async
         local_source_dir = utils.get_source_dir(self.id)
         p = subprocess.run(
             [
@@ -258,7 +260,7 @@ class Job:
         )
         if p.stderr:
             self.set_status(Status.error)
-            raise Exception(f"Failed to copy corpus files to Sparv server! {p.stderr.decode()}")
+            raise exceptions.WriteError(self.id, f"Failed to copy corpus files to Sparv server: {p.stderr.decode()}")
 
         self.set_status(Status.done)
 
@@ -287,7 +289,7 @@ class Job:
             stderr = p.stderr.decode() if p.stderr else ""
             self.reset_time()
             self.set_status(Status.error, ProcessName.sparv)
-            raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
+            raise exceptions.JobError(f"Failed to run Sparv: {stderr}")
 
         # Get pid from Sparv process and store job info
         try:
@@ -330,7 +332,7 @@ class Job:
             stderr = p.stderr.decode() if p.stderr else ""
             self.reset_time()
             self.set_status(Status.error, ProcessName.korp)
-            raise exceptions.JobError(f"Failed to install corpus in Korp. {stderr}")
+            raise exceptions.JobError(f"Failed to install corpus in Korp: {stderr}")
 
         self.installed_korp = True
         # Get pid from Sparv process and store job info
@@ -396,7 +398,7 @@ class Job:
             stderr = p.stderr.decode() if p.stderr else ""
             self.reset_time()
             self.set_status(Status.error, ProcessName.strix)
-            raise exceptions.JobError(f"Failed to install corpus in Strix. {stderr}")
+            raise exceptions.JobError(f"Failed to install corpus in Strix: {stderr}")
 
         self.installed_strix = True
         # Get pid from Sparv process and store job info
@@ -444,11 +446,11 @@ class Job:
             self.set_status(Status.aborted)
             return
         if not self.status.is_running():
-            raise exceptions.ProcessNotRunningError("Failed to abort job because Sparv was not running!")
+            raise exceptions.ProcessNotRunningError("Failed to abort job because Sparv was not running")
         if not self.pid:
             self.set_status(Status.aborted)
             return
-            # raise exceptions.ProcessNotFound("Failed to abort job because no process ID was found!")
+            # raise exceptions.ProcessNotFound("Failed to abort job because no process ID was found")
 
         p = utils.ssh_run(f"kill -SIGTERM {self.pid}")
         if p.returncode == 0:
@@ -461,7 +463,7 @@ class Job:
                 self.set_pid(None)
                 self.set_status(Status.aborted)
             else:
-                raise exceptions.JobError(f"Failed to abort job! Error: '{stderr}'")
+                raise exceptions.JobError(f"Failed to abort job: {stderr}")
 
     def process_running(self) -> bool:
         """Check if process with this job's pid is still running on Sparv server.
@@ -599,6 +601,9 @@ class Job:
 
         Returns:
             None if successful, otherwise a tuple with error message and status code.
+
+        Raises:
+            exceptions.WriteError: If writing to the storage server fails.
         """
         self.set_status(Status.running, ProcessName.sync2storage)
         remote_corpus_dir = storage.get_corpus_dir(self.id)
@@ -638,7 +643,7 @@ class Job:
             storage.upload_dir(remote_corpus_dir, local_export_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
-            raise Exception(f"Failed to upload exports to the storage server! {e}") from e
+            raise exceptions.WriteError(remote_corpus_dir, "Failed to upload exports") from e
 
         # Transfer plain text sources to the storage server
         local_work_dir = utils.get_work_dir(self.id)
@@ -647,7 +652,7 @@ class Job:
         except Exception as e:
             self.set_status(Status.error)
             logger.warning(e)
-            raise Exception(f"Failed to upload plain text sources to the storage server! {e}") from e
+            raise exceptions.WriteError(remote_corpus_dir, "Failed to upload plain text sources") from e
 
         self.set_status(Status.done)
         return None
@@ -663,7 +668,7 @@ class Job:
 
         p = utils.ssh_run(f"rm -rf {self.remote_corpus_dir_esc}")
         if p.stderr:
-            logger.error("Failed to remove corpus dir '%s'!", self.remote_corpus_dir)
+            logger.error("Failed to remove corpus dir '%s'", self.remote_corpus_dir)
 
     def clean(self) -> str:
         """Remove annotation and export files from Sparv server by running 'sparv clean --all'.
@@ -677,7 +682,7 @@ class Job:
         )
 
         if p.stderr:
-            raise Exception(p.stderr.decode())
+            raise exceptions.WriteError(self.remote_corpus_dir_esc, f"Failed to clean corpus dir: {p.stderr.decode()}")
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         return ", ".join([line for line in sparv_output.split("\n") if line])
@@ -691,7 +696,7 @@ class Job:
         p = utils.ssh_run(f"{settings.SPARV_ENVIRON} {settings.SPARV_COMMAND} "
                           f"--dir {self.remote_corpus_dir_esc} clean --export")
         if p.stderr:
-            raise Exception(p.stderr.decode())
+            raise exceptions.WriteError(self.remote_corpus_dir_esc, f"Failed to clean exports: {p.stderr.decode()}")
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
@@ -731,14 +736,14 @@ class DefaultJob:
             f"{self.remote_corpus_dir_esc + '/' + shlex.quote(self.config_file)}"
         )
         if p.stderr:
-            raise Exception(f"Failed to list languages! {p.stderr.decode()}")
+            raise exceptions.ReadError(self.remote_corpus_dir, f"Failed to list languages: {p.stderr.decode()}")
 
         p = utils.ssh_run(f"{settings.SPARV_ENVIRON} {settings.SPARV_COMMAND} "
                           f"--dir {self.remote_corpus_dir_esc} languages")
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
+            raise exceptions.JobError(f"Failed to run Sparv: {stderr}")
 
         languages = []
         stdout = p.stdout.decode() if p.stdout else ""
@@ -760,21 +765,21 @@ class DefaultJob:
             f"{self.remote_corpus_dir_esc + '/' + shlex.quote(self.config_file)}"
         )
         if p.stderr:
-            raise Exception(f"Failed to list exports! {p.stderr.decode()}")
+            raise exceptions.ReadError(self.remote_corpus_dir, f"Failed to list exports: {p.stderr.decode()}")
 
         # Run Sparv to get available exports
         p = utils.ssh_run(f"{settings.SPARV_ENVIRON} {settings.SPARV_COMMAND} --dir "
                           f"{self.remote_corpus_dir_esc} modules --exporters --json")
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            raise exceptions.JobError(f"Failed to run Sparv! {stderr}")
+            raise exceptions.JobError(f"Failed to run Sparv: {stderr}")
 
         # Parse stdout as json and extract relevant data
         stdout = p.stdout.decode() if p.stdout else ""
         try:
             json_data = json.loads(stdout.strip())
         except json.JSONDecodeError as e:
-            raise exceptions.JobError(f"Failed to parse Sparv output as JSON! {e}") from e
+            raise exceptions.JobError("Failed to parse Sparv output as JSON") from e
         exports = []
         for exporter, exporter_data in json_data["exporters"].items():
             # Skip exporers blacklisted exporters

@@ -1,9 +1,9 @@
 """Classes defining resource objects."""
 
-import builtins
 from enum import Enum
 from typing import Any
 
+from mink.core import exceptions
 from mink.sparv import storage
 
 
@@ -51,9 +51,9 @@ class Resource:
             try:
                 self.type = ResourceType[type]
             except KeyError:
-                raise TypeError(f"Invalid resource type: {type}") from None
+                raise exceptions.InvalidResourceTypeError(type) from None
         else:
-            raise TypeError(f"Invalid data type for resource type: {builtins.type(type)}")
+            raise exceptions.InvalidResourceTypeError(type)
         self.source_files = source_files or []
 
     def __str__(self) -> str:

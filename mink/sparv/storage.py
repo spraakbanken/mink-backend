@@ -30,7 +30,7 @@ def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: list | 
         A list of dictionaries containing file information.
 
     Raises:
-        Exception: If listing contents fails.
+        exceptions.ReadError: If listing contents fails.
     """
     objlist = []
     directory_quoted = shlex.quote(str(directory))
@@ -39,7 +39,7 @@ def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: list | 
         f"find . -exec ls -lgGd --time-style=full-iso {{}} \\;"
     )
     if p.stderr:
-        raise Exception(f"Failed to list contents of '{directory}': {p.stderr.decode()}")
+        raise exceptions.ReadError(directory, f"Failed to list contents: {p.stderr.decode()}")
 
     contents = p.stdout.decode()
     for line in contents.split("\n"):
@@ -77,10 +77,10 @@ def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ig
         True if the file was downloaded successfully, False otherwise.
 
     Raises:
-        Exception: If the download fails or the path is invalid.
+        exceptions.ReadError: If the download fails or the path is invalid.
     """
     if not _is_valid_path(remote_file_path, resource_id):
-        raise Exception(f"You don't have permission to download '{remote_file_path}'")
+        raise exceptions.ReadError(remote_file_path, "You don't have permission to download this file")
 
     user, host = _get_login()
     cmd = ["rsync", "--protect-args"]
@@ -89,7 +89,7 @@ def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ig
     cmd += [f"{user}@{host}:{remote_file_path}", f"{local_file}"]
     p = subprocess.run(cmd, capture_output=True, check=False)
     if p.stderr:
-        raise Exception(f"Failed to download '{remote_file_path}': {p.stderr.decode()}")
+        raise exceptions.ReadError(remote_file_path, p.stderr.decode())
     return not (ignore_missing and not local_file.is_file())
 
 
@@ -103,11 +103,11 @@ def get_file_contents(filepath: Path) -> str:
         The contents of the file as a string.
 
     Raises:
-        Exception: If retrieving the contents fails.
+        exceptions.ReadError: If retrieving the contents fails.
     """
     p = utils.ssh_run(f"cat {shlex.quote(str(filepath))}")
     if p.stderr:
-        raise Exception(f"Failed to retrieve contents for '{filepath}': {p.stderr.decode()}")
+        raise exceptions.ReadError(filepath, p.stderr.decode())
 
     return p.stdout.decode()
 
@@ -122,15 +122,15 @@ def get_size(remote_path: Path) -> int:
         The size of the file or directory in bytes.
 
     Raises:
-        Exception: If retrieving the size fails.
+        exceptions.ReadError: If retrieving the size fails.
     """
     p = utils.ssh_run(f"du -b -s {shlex.quote(str(remote_path))}")
     if p.stderr:
-        raise Exception(f"Failed to retrieve size for path '{remote_path}': {p.stderr.decode()}")
+        raise exceptions.ReadError(remote_path, f"Failed to retrieve size: {p.stderr.decode()}")
     try:
         return int(p.stdout.decode().split()[0])
     except Exception as e:
-        raise Exception(f"Failed to retrieve size for path '{remote_path}': {e}") from e
+        raise exceptions.ReadError(remote_path, "Failed to retrieve size") from e
 
 
 def write_file_contents(filepath: Path, file_contents: bytes, resource_id: str) -> None:
@@ -142,14 +142,14 @@ def write_file_contents(filepath: Path, file_contents: bytes, resource_id: str) 
         resource_id: The resource ID.
 
     Raises:
-        Exception: If writing the contents fails or the path is invalid.
+        exceptions.WriteError: If writing the contents fails or the path is invalid.
     """
     if not _is_valid_path(filepath, resource_id):
-        raise Exception(f"You don't have permission to edit '{filepath}'")
+        raise exceptions.WriteError(filepath, "You don't have permission to edit this file")
 
     p = utils.ssh_run(f"cat - > {shlex.quote(str(filepath))}", ssh_input=file_contents)
     if p.stderr:
-        raise Exception(f"Failed to upload contents to '{filepath}': {p.stderr.decode()}")
+        raise exceptions.WriteError(filepath, p.stderr.decode())
 
 
 def download_dir(
@@ -174,18 +174,18 @@ def download_dir(
         The path to the local directory or the zipped file.
 
     Raises:
-        Exception: If the download fails or the path is invalid.
+        exceptions.ReadError: If the download fails or the path is invalid.
     """
     if not excludes:
         excludes = []
     if not _is_valid_path(remote_dir, resource_id):
-        raise Exception(f"You don't have permission to download '{remote_dir}'")
+        raise exceptions.ReadError(remote_dir, "You don't have permission to download this directory")
 
     if not local_dir.is_dir():
-        raise Exception(f"'{local_dir}' is not a directory")
+        raise exceptions.ReadError(local_dir, "Directory is not valid")
 
     if zipped and zippath is None:
-        raise Exception("Parameter zippath needs to be supplied when 'zipped=True'")
+        raise exceptions.ParameterError("'zippath' may not be None if 'zipped=True'")
 
     user, host = _get_login()
     command = ["rsync", "--recursive"]
@@ -193,7 +193,7 @@ def download_dir(
     command.extend([f"{user}@{host}:{remote_dir}/", f"{local_dir}"])
     p = subprocess.run(command, capture_output=True, check=False)
     if p.stderr:
-        raise Exception(f"Failed to download '{remote_dir}': {p.stderr.decode()}")
+        raise exceptions.ReadError(remote_dir, p.stderr.decode())
 
     if not zipped:
         return local_dir
@@ -212,13 +212,13 @@ def upload_dir(remote_dir: Path, local_dir: Path, resource_id: str, delete: bool
         resource_id: Resource ID.
 
     Raises:
-        Exception: If the upload fails or the path is invalid.
+        exceptions.WriteError: If the upload fails or the path is invalid.
     """
     if not _is_valid_path(remote_dir, resource_id):
-        raise Exception(f"You don't have permission to edit '{remote_dir}'")
+        raise exceptions.WriteError(remote_dir, "You don't have permission to edit this directory")
 
     if not local_dir.is_dir():
-        raise Exception(f"'{local_dir}' is not a directory")
+        raise exceptions.WriteError(local_dir, "Directory is not valid")
 
     args = ["--recursive", "--delete", f"{local_dir}/"] if delete else ["--recursive", f"{local_dir}/"]
 
@@ -226,7 +226,7 @@ def upload_dir(remote_dir: Path, local_dir: Path, resource_id: str, delete: bool
     user, host = _get_login()
     p = subprocess.run(["rsync", *args, f"{user}@{host}:{remote_dir}"], capture_output=True, check=False)
     if p.stderr:
-        raise Exception(f"Failed to upload to '{remote_dir}': {p.stderr.decode()}")
+        raise exceptions.WriteError(remote_dir, p.stderr.decode())
 
 
 def remove_dir(path: Path, resource_id: str) -> None:
@@ -237,14 +237,14 @@ def remove_dir(path: Path, resource_id: str) -> None:
         resource_id: The resource ID.
 
     Raises:
-        Exception: If removing the directory fails or the path is invalid.
+        exceptions.WriteError: If removing the directory fails or the path is invalid.
     """
     if not _is_valid_path(path, resource_id):
-        raise Exception(f"You don't have permission to remove '{path}'")
+        raise exceptions.WriteError(path, "You don't have permission to remove this directory")
 
     p = utils.ssh_run(f"test -d {shlex.quote(str(path))} && rm -r {shlex.quote(str(path))}")
     if p.stderr:
-        raise Exception(f"Failed to remove corpus dir on Sparv server: {p.stderr.decode()}")
+        raise exceptions.WriteError(path, f"Cannot remove corpus dir: {p.stderr.decode()}")
 
 
 def remove_file(path: Path, resource_id: str) -> None:
@@ -255,14 +255,14 @@ def remove_file(path: Path, resource_id: str) -> None:
         resource_id: The resource ID.
 
     Raises:
-        Exception: If removing the file fails or the path is invalid.
+        exceptions.WriteError: If removing the file fails or the path is invalid.
     """
     if not _is_valid_path(path, resource_id):
-        raise Exception(f"You don't have permission to remove '{path}'")
+        raise exceptions.WriteError(path, "You don't have permission to remove this file")
 
     p = utils.ssh_run(f"test -f {shlex.quote(str(path))} && rm {shlex.quote(str(path))}")
     if p.stderr:
-        raise Exception(f"Failed to remove file '{path}' on Sparv server: {p.stderr.decode()}")
+        raise exceptions.WriteError(path, f"Failed to remove file: {p.stderr.decode()}")
 
 
 def get_file_changes(resource_id: str, job: "Job") -> tuple:
@@ -276,11 +276,11 @@ def get_file_changes(resource_id: str, job: "Job") -> tuple:
         A tuple containing lists of added, changed, and deleted source files, and the changed config file.
 
     Raises:
-        JobNotFoundError: If the job has not started.
-        CouldNotListSourcesError: If listing source files fails.
+        exceptions.JobNotFoundError: If the job has not started.
+        exceptions.CouldNotListSourcesError: If listing source files fails.
     """
     if not job.started:
-        raise exceptions.JobNotFoundError
+        raise exceptions.JobNotFoundError(resource_id)
     started = isoparse(job.started)
 
     # Get current source files
@@ -390,4 +390,4 @@ def _make_dir(dirpath: Path) -> None:
     """Create directory on Sparv server."""
     p = utils.ssh_run(f"mkdir -p {shlex.quote(str(dirpath))}")
     if p.stderr:
-        raise Exception(f"Failed to create corpus dir on Sparv server! {p.stderr.decode()}")
+        raise exceptions.WriteError(dirpath, f"Failed to create resource dir: {p.stderr.decode()}")

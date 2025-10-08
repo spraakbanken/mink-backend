@@ -52,7 +52,7 @@ def response(
 
     if not return_code:
         return_code = "unexpected_error"
-        # raise ValueError("A return code must be provided in the response!")
+        # raise ValueError("A return code must be provided in the response")
 
     status = "success" if success else "error"
     if not success:
@@ -423,7 +423,8 @@ def standardize_metadata_yaml(metadata_yaml: str) -> tuple[str, str]:
 def get_resources_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
     if request_id_var.get() is None:
-        raise ValueError("Request ID is not set. Cannot get path to local resources directory.")
+        logger.error("Resource ID not set. Cannot get path to local corpora dir.")
+        raise exceptions.RequestIDNotSetError
     resources_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / request_id_var.get()
     if mkdir:
         resources_dir.mkdir(parents=True, exist_ok=True)

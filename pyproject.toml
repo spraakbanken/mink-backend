@@ -60,6 +60,7 @@ ignore = [
     "PLR09",   # Pylint: too-many-*
     "PLR1702", # Pylint: too-many-nested-blocks
     "PLR2004", # Pylint: magic-value-comparison
+    "TRY003",  # tryceratops: Avoid specifying long messages outside the exception class
     "SIM105",  # flake8-simplify: suppressible-exception
 ]
 

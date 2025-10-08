@@ -68,12 +68,12 @@ class Info:
         """Create new info object in cache and filesystem.
 
         Raises:
-            CorpusExistsError: If the resource ID already exists.
+            exceptions.CorpusExistsError: If the resource ID already exists.
         """
         # Save to cache
         all_resources = cache_utils.get_all_resources()
         if self.id in all_resources:
-            raise exceptions.CorpusExistsError("Resource ID already exists!")
+            raise exceptions.CorpusExistsError(self.id)
         all_resources.append(self.id)
         cache_utils.set_all_resources(all_resources)
         self.update()
@@ -99,7 +99,7 @@ class Info:
             abort_job: Whether to abort the job if it is running.
 
         Raises:
-            JobError: If the job cannot be removed due to a running Sparv process.
+            exceptions.ProcessStillRunningError: If the job cannot be removed due to a running Sparv process.
         """
         if self.job.status.is_running():
             if abort_job:
@@ -110,7 +110,7 @@ class Info:
                 except Exception:
                     raise
             else:
-                raise exceptions.JobError("Job cannot be removed due to a running Sparv process!")
+                raise exceptions.ProcessStillRunningError
 
         # Remove from queue
         registry.pop_from_queue(self.job)

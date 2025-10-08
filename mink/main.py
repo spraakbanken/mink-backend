@@ -42,15 +42,15 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
 
     # Make sure required config variables are set
     if not settings.CACHE_CLIENT:
-        raise ValueError("Config variable 'CACHE_CLIENT' is not set.")
+        raise exceptions.ConfigVariableNotSetError("CACHE_CLIENT")
     if not settings.SPARV_HOST:
-        raise ValueError("Config variable 'SPARV_HOST' is not set.")
+        raise exceptions.ConfigVariableNotSetError("SPARV_HOST")
     if not settings.SPARV_USER:
-        raise ValueError("Config variable 'SPARV_USER' is not set.")
+        raise exceptions.ConfigVariableNotSetError("SPARV_USER")
     if not settings.SBAUTH_PUBKEY_FILE:
-        raise ValueError("Config variable 'SBAUTH_PUBKEY_FILE' is not set.")
+        raise exceptions.ConfigVariableNotSetError("SBAUTH_PUBKEY_FILE")
     if not settings.INSTANCE_PATH:
-        raise ValueError("Config variable 'INSTANCE_PATH' is not set.")
+        raise exceptions.ConfigVariableNotSetError("INSTANCE_PATH")
 
     # Create instance directory if it does not exist
     Path(settings.INSTANCE_PATH).mkdir(exist_ok=True)

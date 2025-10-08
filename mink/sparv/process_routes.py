@@ -771,13 +771,13 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
                 "info": str(e),
             }
         return {
-            "message": "Sparv was run successfully! Starting to sync results",
+            "message": "Sparv was run successfully. Starting to sync results",
             "return_code": "sparv_success_start_sync",
             **info_attrs,
         }
 
     if status.is_done(info.job.current_process):
-        return {"message": "Job was completed successfully!", "return_code": "job_completed", **info_attrs}
+        return {"message": "Job was completed successfully", "return_code": "job_completed", **info_attrs}
 
     if status.is_error(info.job.current_process):
         logger.error(
