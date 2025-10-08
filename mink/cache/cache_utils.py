@@ -2,7 +2,7 @@
 
 The cache connection is created upon application startup.
 
-The cache client (get_cache_client, e.g. a pymemcache instance) is expected to support the following methods:
+The cache client (e.g. a pymemcache instance) is expected to support the following methods:
     - get(key: str) -> Any: Get value for key from cache.
     - set(key: str, value: Any, expire: int) -> None: Set value for key in cache.
     - delete(key: str) -> None: Delete key from cache.
@@ -14,10 +14,9 @@ Keys in cache related to the job queue:
     - resource_dict: dict containing all resource info objects
 """
 
-from datetime import datetime, timedelta
 from typing import Any
 
-from mink.cache.cache import get_cache_client
+from mink.cache.memcached import cache
 from mink.core import registry
 from mink.core.config import settings
 
@@ -28,7 +27,8 @@ def get_queue_initialized() -> bool:
     Returns:
         True if the queue is initialized, False otherwise.
     """
-    return get_cache_client().get("queue_initialized")
+    with cache.get_client() as client:
+        return client.get("queue_initialized")
 
 
 def set_queue_initialized(is_initialized: bool) -> None:
@@ -37,7 +37,8 @@ def set_queue_initialized(is_initialized: bool) -> None:
     Args:
         is_initialized: Whether the queue is initialized.
     """
-    get_cache_client().set("queue_initialized", bool(is_initialized))
+    with cache.get_client() as client:
+        client.set("queue_initialized", bool(is_initialized))
 
 
 def get_job_queue() -> list:
@@ -47,7 +48,8 @@ def get_job_queue() -> list:
         The job queue as a list.
     """
     registry.initialize()
-    return get_cache_client().get("job_queue")
+    with cache.get_client() as client:
+        return client.get("job_queue")
 
 
 def set_job_queue(value: list) -> None:
@@ -56,7 +58,8 @@ def set_job_queue(value: list) -> None:
     Args:
         value: The job queue as a list.
     """
-    get_cache_client().set("job_queue", value)
+    with cache.get_client() as client:
+        client.set("job_queue", value)
 
 
 def get_all_resources() -> list:
@@ -66,7 +69,8 @@ def get_all_resources() -> list:
         A list of all resource IDs.
     """
     registry.initialize()
-    return get_cache_client().get("all_resources")
+    with cache.get_client() as client:
+        return client.get("all_resources")
 
 
 def set_all_resources(value: list) -> None:
@@ -75,7 +79,8 @@ def set_all_resources(value: list) -> None:
     Args:
         value: A list of all resource IDs.
     """
-    get_cache_client().set("all_resources", list(set(value)))
+    with cache.get_client() as client:
+        client.set("all_resources", list(set(value)))
 
 
 def get_job(job: str) -> dict:
@@ -88,7 +93,8 @@ def get_job(job: str) -> dict:
         The job as a dictionary.
     """
     registry.initialize()
-    return get_cache_client().get(job)
+    with cache.get_client() as client:
+        return client.get(job)
 
 
 def set_job(job: str, value: dict) -> None:
@@ -99,7 +105,8 @@ def set_job(job: str, value: dict) -> None:
         value: The job as a dictionary.
     """
     registry.initialize()
-    get_cache_client().set(job, value)
+    with cache.get_client() as client:
+        client.set(job, value)
 
 
 def remove_job(job: str) -> None:
@@ -109,31 +116,22 @@ def remove_job(job: str) -> None:
         job: The job ID.
     """
     registry.initialize()
-    get_cache_client().delete(job)
+    with cache.get_client() as client:
+        client.delete(job)
 
 
-def get_apikey_data(apikey: str) -> dict | None:
+def get_apikey_data(apikey: str, default: Any = None) -> dict | None:
     """Get cached API key data, if recent enough.
 
     Args:
         apikey: The API key.
+        default: Default value to return if the API key data is not found or expired.
 
     Returns:
         The API key data as a dictionary, or None if not found or expired.
     """
-    item = get_cache_client().get(f"apikey_data_{apikey}")
-    if not item:
-        return None
-
-    timestamp, data = item
-
-    # Delete if expired
-    lifetime = settings.SBAUTH_CACHE_LIFETIME
-    if timestamp + timedelta(seconds=lifetime) < datetime.now():
-        remove_apikey_data(apikey)
-        return None
-
-    return data
+    with cache.get_client() as client:
+        return client.get(f"apikey_data_{apikey}") or default
 
 
 def set_apikey_data(apikey: str, data: dict) -> None:
@@ -143,9 +141,8 @@ def set_apikey_data(apikey: str, data: dict) -> None:
         apikey: The API key.
         data: The API key data as a dictionary.
     """
-    item = (datetime.now(), data)
-    if get_cache_client is not None:
-        get_cache_client().set(f"apikey_data_{apikey}", item)
+    with cache.get_client() as client:
+        client.set(f"apikey_data_{apikey}", data, expire=settings.SBAUTH_CACHE_LIFETIME)
 
 
 def remove_apikey_data(apikey: str) -> None:
@@ -154,7 +151,8 @@ def remove_apikey_data(apikey: str) -> None:
     Args:
         apikey: The API key.
     """
-    get_cache_client().delete(f"apikey_data_{apikey}")
+    with cache.get_client() as client:
+        client.delete(f"apikey_data_{apikey}")
 
 
 def get_cookie_data(cookie: str, default: Any = None) -> dict | None:
@@ -167,7 +165,8 @@ def get_cookie_data(cookie: str, default: Any = None) -> dict | None:
     Returns:
         The cookie data as a dictionary, or None if not found or expired.
     """
-    return get_cache_client().get(f"cookie_data_{cookie}") or default
+    with cache.get_client() as client:
+        return client.get(f"cookie_data_{cookie}") or default
 
 
 def set_cookie_data(cookie: str, data: dict) -> None:
@@ -177,7 +176,8 @@ def set_cookie_data(cookie: str, data: dict) -> None:
         cookie: The cookie.
         data: The cookie data as a dictionary.
     """
-    get_cache_client().set(f"cookie_data_{cookie}", data, expire=settings.ADMIN_MODE_LIFETIME)
+    with cache.get_client() as client:
+        client.set(f"cookie_data_{cookie}", data, expire=settings.ADMIN_MODE_LIFETIME)
 
 
 def remove_cookie_data(cookie: str) -> None:
@@ -186,4 +186,5 @@ def remove_cookie_data(cookie: str) -> None:
     Args:
         cookie: The cookie (user session ID).
     """
-    get_cache_client().delete(f"cookie_data_{cookie}")
+    with cache.get_client() as client:
+        client.delete(f"cookie_data_{cookie}")

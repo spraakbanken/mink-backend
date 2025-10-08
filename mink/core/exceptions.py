@@ -154,8 +154,11 @@ class WriteError(Exception):
 
 # Misc exceptions
 
-class CacheNotInitializedError(RuntimeError):
-    """Exception used for when the cache client is not initialized."""
+class CacheConnectionError(Exception):
+    """Exception used for when the cache client could not connect."""
+    def __init__(self, server: str, error: str) -> None:
+        """Initialize the exception with a message."""
+        super().__init__(f"Could not connect to cache server at {server}: {error}")
 
 
 class ConfigVariableNotSetError(ValueError):

@@ -16,7 +16,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from mink.cache.cache import initialize_cache
+from mink.cache.memcached import cache
 from mink.core import exceptions, registry, routes, utils
 from mink.core.config import settings
 from mink.core.logging import logger
@@ -56,12 +56,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     Path(settings.INSTANCE_PATH).mkdir(exist_ok=True)
 
     # Initialize the cache client and the resource registry
-    try:
-        initialize_cache(settings.CACHE_CLIENT)
-    except Exception as e:
-        logger.error("Failed to connect to memcached on %s: %s", settings.CACHE_CLIENT, e)
-        raise
-    logger.info("Connected to memcached on %s", settings.CACHE_CLIENT)
+    cache.initialize(settings.CACHE_CLIENT)
     registry.initialize()
 
     # Build the MkDocs documentation
