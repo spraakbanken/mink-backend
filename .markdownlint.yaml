@@ -5,3 +5,5 @@ MD033:  # Don't use inline HTML
 
 MD013:  # Line length
   line_length: 120
+
+MD024: false # Turn off MD024/no-duplicate-headings (used in CHANGELOG.md)
