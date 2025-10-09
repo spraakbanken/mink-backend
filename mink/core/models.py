@@ -288,26 +288,23 @@ class ErrorResponse413(BaseErrorResponse):
     }
 
 
-class ValidationErrorInfo(BaseModel):
-    """Model for validation error information."""
-    loc: list[str]
-    msg: str
-    type: str
-
-
 class ErrorResponse422(BaseErrorResponse):
     """Model for 422 error responses."""
-    info: list[ValidationErrorInfo]
-    message: str = Field(default="Validation Error", description="Short message describing the validation error")
+    message: str = Field(default="Validation Error", description="Short message describing the error")
+    return_code: str = Field(default="validation_error", description="Short code describing the error")
+    info: str = Field(default="Could not process the request due to errors in the input (see errors for details).",
+                      description="More detailed information about the response")
+    errors: list[str]
 
     model_config = {
         "json_schema_extra": {
             "examples": [
                 {
                     "status": "error",
-                    "message": "Validation Error",
+                    "message": "Validation error",
                     "return_code": "validation_error",
-                    "info": [{"type": "missing", "loc": ["query", "q"], "msg": "Field required", "input": None}],
+                    "info": "Could not process the request due to errors in the input (see errors for details).",
+                    "errors": ["query: q (Field required)"],
                 }
             ]
         }

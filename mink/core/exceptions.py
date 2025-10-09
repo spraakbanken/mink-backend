@@ -33,13 +33,17 @@ def custom_http_exception_handler(_request: Request, exc: MinkHTTPException) -> 
 
 def validation_exception_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
     """Handle validation exceptions."""
-    errors = jsonable_encoder(exc.errors())
-    response_content = models.ErrorResponse422(
-        message="Validation error",
-        return_code="validation_error",
-        info=[models.ValidationErrorInfo(loc=error["loc"], msg=error["msg"], type=error["type"]) for error in errors],
-    )
-    return utils.response(status_code=422, **response_content.model_dump())
+    exc_errors = jsonable_encoder(exc.errors())
+
+    # Parse pydantic errors into a list of readable strings
+    errors = []
+    for pydantic_error in exc_errors:
+        loc = pydantic_error["loc"]
+        # Format loc into a string, e.g. "body: field.subfield" or "query: param"
+        field_string = loc[0] + ": " + ".".join(loc[1:]) if loc[0] in {"body", "query", "path"} else str(loc)
+        errors.append(field_string + f" ({pydantic_error['msg']})")
+
+    return utils.response(status_code=422, **models.ErrorResponse422(errors=errors).model_dump())
 
 
 def starlette_exceptions_handler(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
