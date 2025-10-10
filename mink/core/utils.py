@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from fastapi import status
 from fastapi.responses import JSONResponse
 from mkdocs.commands import build
 from mkdocs.config import load_config
@@ -24,7 +25,7 @@ from mink.sparv import storage
 
 
 def response(
-    status_code: int = 200,
+    status_code: int = status.HTTP_200_OK,
     message: str = "",
     return_code: str = "",
     cookie: tuple[bool, str, str] | None = None,
@@ -45,7 +46,7 @@ def response(
     # Remove key-value pairs if the value is an empty string
     args = {k: v for k, v in kwargs.items() if v != ""}  # noqa: PLC1901
 
-    success = 200 <= status_code < 300
+    success = status.HTTP_200_OK <= status_code < status.HTTP_300_MULTIPLE_CHOICES
 
     if not message and not success:
         message = "An unexpected error occurred"
@@ -54,14 +55,14 @@ def response(
         return_code = "unexpected_error"
         # raise ValueError("A return code must be provided in the response")
 
-    status = "success" if success else "error"
+    status_str = "success" if success else "error"
     if not success:
         log_kwargs = {k: v for k, v in kwargs.items() if k != "status"} or ""
         info_str = "; info: " + str(log_kwargs) if log_kwargs else ""
         logger.error("%s: %s; return_code: %s%s", status_code, message, return_code, info_str)
 
     response = JSONResponse(
-        content={"status": status, "message": message, "return_code": return_code, **args},
+        content={"status": status_str, "message": message, "return_code": return_code, **args},
         status_code=status_code,
     )
     if cookie is not None:
@@ -104,7 +105,7 @@ class LimitRequestSizeMiddleware:
         """Send a 413 Payload Too Large response."""
         max_size_mb = int(self.max_body_size / (1024 * 1024))
         resp = response(
-            status_code=413,
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             **models.ErrorResponse413(
                 message=f"Request data too large (max {max_size_mb} MB per upload)",
                 return_code="data_too_large",
@@ -248,7 +249,7 @@ def create_zip(inpath: Path, outpath: Path, zip_rootdir: str | None = None) -> N
     zipf.close()
     if not outpath.exists() or outpath.lstat().st_size == 0:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="The zip file could not be created or is empty",
             return_code="failed_creating_zip",
         )

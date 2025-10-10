@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -43,24 +43,26 @@ def validation_exception_handler(_request: Request, exc: RequestValidationError)
         field_string = loc[0] + ": " + ".".join(loc[1:]) if loc[0] in {"body", "query", "path"} else str(loc)
         errors.append(field_string + f" ({pydantic_error['msg']})")
 
-    return utils.response(status_code=422, **models.ErrorResponse422(errors=errors).model_dump())
+    return utils.response(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, **models.ErrorResponse422(errors=errors).model_dump()
+    )
 
 
 def starlette_exceptions_handler(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
     """Handle most other uncaught exceptions."""
-    if exc.status_code == 400:
+    if exc.status_code == status.HTTP_400_BAD_REQUEST:
         return utils.response(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             **models.BaseErrorResponse(message="Bad request", return_code="bad_request").model_dump(),
         )
-    if exc.status_code == 404:
+    if exc.status_code == status.HTTP_404_NOT_FOUND:
         return utils.response(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             **models.BaseErrorResponse(message="Resource not found", return_code="resource_not_found").model_dump(),
         )
-    if exc.status_code == 405:
+    if exc.status_code == status.HTTP_405_METHOD_NOT_ALLOWED:
         return utils.response(
-            status_code=405,
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
             **models.BaseErrorResponse(message="Method not allowed", return_code="method_not_allowed").model_dump(),
         )
     logger.error("Unknown error: %s", exc)
@@ -76,7 +78,7 @@ def starlette_exceptions_handler(_request: Request, exc: StarletteHTTPException)
 def internal_server_error_handler(_request: Request, exc: Exception) -> JSONResponse:
     """Handle uncaught exceptions."""
     return utils.response(
-        status_code=500,
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         **models.BaseErrorResponse(
             message="Internal server error", return_code="internal_server_error", info=str(exc)
         ).model_dump(),

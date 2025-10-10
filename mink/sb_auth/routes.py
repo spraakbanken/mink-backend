@@ -1,7 +1,7 @@
 """Routes for the sb-auth module."""
 
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from mink.cache import cache_utils
@@ -15,7 +15,7 @@ router = APIRouter(tags=["Admin Mode"])
     "/admin-mode-on",
     response_model=models.BaseResponse,
     responses={
-        200: {
+        status.HTTP_200_OK: {
             "content": {
                 "application/json": {
                     "example": {"status": "success", "message": "Admin mode turned on", "return_code": "admin_on"}
@@ -49,7 +49,7 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
     "/admin-mode-off",
     response_model=models.BaseResponse,
     responses={
-        200: {
+        status.HTTP_200_OK: {
             "content": {
                 "application/json": {
                     "example": {"status": "success", "message": "Admin mode turned off", "return_code": "admin_off"}
@@ -78,7 +78,7 @@ async def admin_mode_off(
     "/admin-mode-status",
     response_model=models.BaseResponse,
     responses={
-        200: {
+        status.HTTP_200_OK: {
             "content": {
                 "application/json": {
                     "example": {

@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 import jwt
 import shortuuid
-from fastapi import Cookie, Query, Request, Security
+from fastapi import Cookie, Query, Request, Security, status
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 
 from mink.cache import cache_utils
@@ -64,11 +64,14 @@ async def get_auth_data(
             auth_token = jwt_token
         except jwt.ExpiredSignatureError as e:
             raise exceptions.MinkHTTPException(
-                401, message="The provided JWT has expired", return_code="jwt_expired"
+                status.HTTP_401_UNAUTHORIZED, message="The provided JWT has expired", return_code="jwt_expired"
             ) from e
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                401, message="Failed to authenticate", return_code="failed_authenticating", info=str(e)
+                status.HTTP_401_UNAUTHORIZED,
+                message="Failed to authenticate",
+                return_code="failed_authenticating",
+                info=str(e),
             ) from e
 
     # Look for API key
@@ -78,26 +81,31 @@ async def get_auth_data(
             auth_token = api_key
         except exceptions.ApikeyNotFoundError as e:
             raise exceptions.MinkHTTPException(
-                401, message="API key not recognized", return_code="apikey_not_found"
+                status.HTTP_401_UNAUTHORIZED, message="API key not recognized", return_code="apikey_not_found"
             ) from e
         except exceptions.ApikeyExpiredError as e:
             raise exceptions.MinkHTTPException(
-                401, message="API key expired", return_code="apikey_expired"
+                status.HTTP_401_UNAUTHORIZED, message="API key expired", return_code="apikey_expired"
             ) from e
         except exceptions.ApikeyCheckFailedError as e:
             raise exceptions.MinkHTTPException(
-                500, message="API key check failed", return_code="apikey_check_failed"
+                status.HTTP_500_INTERNAL_SERVER_ERROR, message="API key check failed", return_code="apikey_check_failed"
             ) from e
         except Exception as e:
             logger.exception("API key authentication failed")
             raise exceptions.MinkHTTPException(
-                500, message="API key authentication failed", return_code="apikey_error", info=str(e)
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message="API key authentication failed",
+                return_code="apikey_error",
+                info=str(e),
             ) from e
 
     # No authentication provided
     else:
         raise exceptions.MinkHTTPException(
-            401, message="No login credentials provided", return_code="missing_login_credentials"
+            status.HTTP_401_UNAUTHORIZED,
+            message="No login credentials provided",
+            return_code="missing_login_credentials",
         )
 
     # Store random ID in contextvar and in request state (used for temporary file storage and cookies)
@@ -121,7 +129,9 @@ async def get_auth_data(
         # Raise exception if admin mode is required by the route
         if require_admin:
             raise exceptions.MinkHTTPException(
-                401, message="Mink admin status could not be confirmed", return_code="not_admin"
+                status.HTTP_401_UNAUTHORIZED,
+                message="Mink admin status could not be confirmed",
+                return_code="not_admin",
             )
 
     # Give access to all resources if admin mode is on and user is mink admin
@@ -130,7 +140,9 @@ async def get_auth_data(
 
     # Check if resource ID was provided
     if require_resource_id and not resource_id:
-        raise exceptions.MinkHTTPException(400, message="No resource ID provided", return_code="missing_resource_id")
+        raise exceptions.MinkHTTPException(
+            status.HTTP_400_BAD_REQUEST, message="No resource ID provided", return_code="missing_resource_id"
+        )
 
     auth_data = {
         "user_id": user.id,
@@ -148,7 +160,7 @@ async def get_auth_data(
     # Check if user has access to the requested resource
     if require_resource_exists and resource_id not in resources:
         raise exceptions.MinkHTTPException(
-            404,
+            status.HTTP_404_NOT_FOUND,
             message=f"Resource '{resource_id}' does not exist or you do not have access to it",
             return_code="resource_not_found",
         )
@@ -158,6 +170,7 @@ async def get_auth_data(
 
 class AuthDependency:
     """Dependency to get authentication data."""
+
     def __init__(
         self,
         include_read: bool = False,
@@ -179,7 +192,7 @@ class AuthDependency:
         api_key: str | None = Security(api_key_scheme),
         corpus_id: str | None = Query(None, description="Resource ID (deprecated, use resource_id instead)"),
         # TODO: make resource_id required by replacing "None" with "..." when corpus_id has been removed
-        resource_id: str = Query(None, description="Resource ID")
+        resource_id: str = Query(None, description="Resource ID"),
     ) -> dict:
         """Call the authentication dependency."""
         return await get_auth_data(
@@ -192,12 +205,13 @@ class AuthDependency:
             self.include_read,
             self.require_resource_id,
             self.require_resource_exists,
-            self.require_admin
+            self.require_admin,
         )
 
 
 class AuthDependencyNoResourceId(AuthDependency):
     """AuthDependency variant that excludes resource_id."""
+
     async def __call__(
         self,
         request: Request,
@@ -367,11 +381,11 @@ class ApikeyAuthentication(Authentication):
         async with httpx.AsyncClient() as client:
             response = await client.post(url, headers=headers, json=data)
 
-        if response.status_code == 404:
+        if response.status_code == status.HTTP_404_NOT_FOUND:
             raise exceptions.ApikeyNotFoundError
-        if response.status_code == 410:
+        if response.status_code == status.HTTP_410_GONE:
             raise exceptions.ApikeyExpiredError
-        if response.status_code != 200:
+        if response.status_code != status.HTTP_200_OK:
             logger.error(
                 "API key check had unexpected status %s and content: %s", response.status_code, response.content
             )
@@ -404,9 +418,9 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
             logger.exception("Could not create resource")
             raise
 
-    if response.status_code == 400:
+    if response.status_code == status.HTTP_400_BAD_REQUEST:
         raise exceptions.CorpusExistsError(resource_id)
-    if response.status_code != 201:
+    if response.status_code != status.HTTP_201_CREATED:
         message = response.content
         logger.error("Could not create resource, sb-auth returned status %s: %s", response.status_code, message)
         raise exceptions.CreateResourceError(resource_id, message)
@@ -433,9 +447,9 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
         request = httpx.Request(method="DELETE", url=url, headers=headers, json=data)
         response = await client.send(request)
 
-    if response.status_code == 204:
+    if response.status_code == status.HTTP_204_NO_CONTENT:
         return True
-    if response.status_code == 400:
+    if response.status_code == status.HTTP_400_BAD_REQUEST:
         # Corpus does not exist
         return False
     message = response.content

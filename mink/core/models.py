@@ -2,7 +2,7 @@
 
 from typing import Generic, TypeVar
 
-from fastapi import File
+from fastapi import File, status
 from pydantic import BaseModel, Field
 
 from mink.core.status import Status
@@ -338,10 +338,10 @@ class ErrorResponse500(BaseErrorResponse):
 
 
 common_auth_error_responses = {
-    401: {"model": ErrorResponse401},
-    404: {"model": ErrorResponse404},
-    422: {"model": ErrorResponse422},
-    500: {"model": ErrorResponse500}
+    status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponse401},
+    status.HTTP_404_NOT_FOUND: {"model": ErrorResponse404},
+    status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": ErrorResponse422},
+    status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": ErrorResponse500}
 }
 
 # ------------------------------------------------------------------------------

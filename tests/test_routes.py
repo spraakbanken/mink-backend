@@ -11,7 +11,7 @@ import typing
 from pathlib import Path
 
 import pytest
-from fastapi import Response
+from fastapi import Response, status
 from fastapi.testclient import TestClient
 
 from mink.core.config import settings
@@ -31,6 +31,7 @@ HEADERS = {"X-Api-Key": settings.SBAUTH_PERSONAL_API_KEY}
 # Testing
 # ------------------------------------------------------------------------------
 
+
 def test_untagged_routes() -> None:
     """Test that all routes are tagged."""
     logger.debug("Found %d routes", ROUTE_INFO.routes)
@@ -48,24 +49,24 @@ def test_documentation_route() -> None:
 def test_admin_mode() -> None:
     """Test admin mode routes."""
     routes = [
-            (1, "POST", "/admin-mode-on"),
-            (2, "GET", "/admin-mode-status"),
-            (3, "POST", "/admin-mode-off"),
-            (4, "GET", "/admin-mode-status"),
-        ]
+        ("1", "POST", "/admin-mode-on"),
+        ("2", "GET", "/admin-mode-status"),
+        ("3", "POST", "/admin-mode-off"),
+        ("4", "GET", "/admin-mode-status"),
+    ]
     for n, method, path in routes:
         response = call_route(method, path, headers=HEADERS)
-        if n == 1:
+        if n == "1":
             assert response.json().get("return_code") == "admin_on", f"Route {method} {path} did not enable admin mode"
-        elif n == 2:
+        elif n == "2":
             assert response.json().get("admin_mode_status") is True, (
                 f"Admin mode should be on after enabling, but got {response.json().get('admin_mode_status')}"
             )
-        if n == 3:
+        if n == "3":
             assert response.json().get("return_code") == "admin_off", (
                 f"Route {method} {path} did not disable admin mode"
             )
-        elif n == 4:
+        elif n == "4":
             assert response.json().get("admin_mode_status") is False, (
                 f"Admin mode should be off after disabling, but got {response.json().get('admin_mode_status')}"
             )
@@ -74,7 +75,7 @@ def test_admin_mode() -> None:
 @pytest.fixture(scope="module")
 def resource() -> typing.Generator[str, None, None]:
     """Test creating a resource."""
-    response = call_route("POST", "/create-corpus", status_code=201, headers=HEADERS)
+    response = call_route("POST", "/create-corpus", status_code=status.HTTP_201_CREATED, headers=HEADERS)
     json_data = response.json()
     assert json_data.get("return_code") == "created_corpus", f"Resource creation failed: {json_data}"
     resource_id = json_data.get("resource_id")
@@ -99,9 +100,7 @@ def test_list_resources(resource: str) -> None:
         json_data = response.json()
         assert isinstance(json_data.get("corpora"), list), "Response should be a list of resources"
         if path == "/list-corpora":
-            assert resource in json_data.get("corpora", []), (
-                f"Resource {resource} should be in the list of corpora"
-            )
+            assert resource in json_data.get("corpora", []), f"Resource {resource} should be in the list of corpora"
 
 
 @pytest.fixture(scope="module")
@@ -111,11 +110,14 @@ def resource_with_sources(resource: str) -> str:
         Path("tests/test_data/test_source.txt").open("rb") as f1,
     ):
         call_route(
-            "PUT", "/upload-sources", f"resource_id={resource}", headers=HEADERS,
+            "PUT",
+            "/upload-sources",
+            f"resource_id={resource}",
+            headers=HEADERS,
             files=[
                 ("files", ("test_source1.txt", f1)),
                 ("files", ("test_source2.txt", f1)),
-            ]
+            ],
         )
     return resource
 
@@ -137,15 +139,11 @@ def test_manage_sources(resource_with_sources: str) -> None:
             assert response.headers.get("Content-Disposition") is not None, (
                 "Download response should have Content-Disposition header"
             )
-            assert response.headers.get("Content-Type") == "application/zip", (
-                "Download response should be a zip file"
-            )
+            assert response.headers.get("Content-Type") == "application/zip", "Download response should be a zip file"
             assert len(response.content) > 0, "Downloaded file should not be empty"
         elif path == "/remove-sources":
             json_data = response.json()
-            assert json_data.get("return_code") == "removed_sources", (
-                f"Source removal failed: {json_data}"
-            )
+            assert json_data.get("return_code") == "removed_sources", f"Source removal failed: {json_data}"
 
 
 @pytest.fixture(scope="module")
@@ -153,17 +151,19 @@ def resource_with_sources_and_config(resource_with_sources: str) -> str:
     """Ensure a resource exists and sources are uploaded."""
     with Path("tests/test_data/test_config.yaml").open("rb") as f:
         call_route(
-            "PUT", "/upload-config", f"resource_id={resource_with_sources}", status_code=201, headers=HEADERS,
-            files=[("file", ("config.yaml", f))]
+            "PUT",
+            "/upload-config",
+            f"resource_id={resource_with_sources}",
+            status_code=status.HTTP_201_CREATED,
+            headers=HEADERS,
+            files=[("file", ("config.yaml", f))],
         )
     return resource_with_sources
 
 
 def test_download_config(resource_with_sources_and_config: str) -> None:
     """Test download config route."""
-    response = call_route(
-        "GET", "/download-config", f"resource_id={resource_with_sources_and_config}", headers=HEADERS
-    )
+    response = call_route("GET", "/download-config", f"resource_id={resource_with_sources_and_config}", headers=HEADERS)
     assert len(response.content) > 0, "Downloaded file should not be empty"
 
 
@@ -200,21 +200,27 @@ def test_processing_corpora(resource_processed: str) -> None:
 def test_manage_metadata() -> None:
     """Test manage metadata routes."""
     # Create metadata resource
-    response = call_route("POST", "/create-metadata", "public_id=sbx-pytest", status_code=201, headers=HEADERS)
+    response = call_route(
+        "POST", "/create-metadata", "public_id=sbx-pytest", status_code=status.HTTP_201_CREATED, headers=HEADERS
+    )
     resource_id = response.json().get("resource_id")
     assert resource_id is not None, "Resource ID should not be None"
 
     routes = [
-        ("PUT", "/upload-metadata-yaml", f"resource_id={resource_id}", 201),
-        ("GET", "/download-metadata-yaml", f"resource_id={resource_id}", 200),
-        ("DELETE", "/remove-metadata", f"resource_id={resource_id}", 200)
+        ("PUT", "/upload-metadata-yaml", f"resource_id={resource_id}", status.HTTP_201_CREATED),
+        ("GET", "/download-metadata-yaml", f"resource_id={resource_id}", status.HTTP_200_OK),
+        ("DELETE", "/remove-metadata", f"resource_id={resource_id}", status.HTTP_200_OK),
     ]
     for method, path, query, status_code in routes:
         if path == "/upload-metadata-yaml":
             with Path("tests/test_data/test_config.yaml").open("rb") as f:
                 response = call_route(
-                    method, path, query, status_code=status_code, headers=HEADERS,
-                    files=[("file", ("test_metadata.yaml", f))]
+                    method,
+                    path,
+                    query,
+                    status_code=status_code,
+                    headers=HEADERS,
+                    files=[("file", ("test_metadata.yaml", f))],
                 )
         else:
             response = call_route(method, path, query, status_code=status_code, headers=HEADERS)
@@ -241,15 +247,11 @@ def test_manage_exports(resource_processed: str) -> None:
             assert response.headers.get("Content-Disposition") is not None, (
                 "Download response should have Content-Disposition header"
             )
-            assert response.headers.get("Content-Type") == "application/zip", (
-                "Download response should be a zip file"
-            )
+            assert response.headers.get("Content-Type") == "application/zip", "Download response should be a zip file"
             assert len(response.content) > 0, "Downloaded exports file should not be empty"
         elif path == "/remove-exports":
             json_data = response.json()
-            assert json_data.get("return_code") == "removed_exports", (
-                f"Exports removal failed: {json_data}"
-            )
+            assert json_data.get("return_code") == "removed_exports", f"Exports removal failed: {json_data}"
         elif path == "/download-source-text":
             assert response.headers.get("Content-Type", "").startswith("text/"), (
                 "Download source text should return a text content type"
@@ -261,15 +263,16 @@ def test_manage_exports(resource_processed: str) -> None:
 # Utilities
 # ------------------------------------------------------------------------------
 
+
 def call_route(
     method: str,
     path: str,
     query: str | None = None,
-    status_code: int = 200,
+    status_code: int = status.HTTP_200_OK,
     headers: dict | None = None,
     files: list | None = None,
     fail_ok: bool = False,
-    log: bool = True
+    log: bool = True,
 ) -> Response:
     """Call a route with the specified method, path and query and check if it returns the expected status code.
 
@@ -352,7 +355,5 @@ def check_resource_loop(resource_id: str, process_name: str = "sparv", timeout: 
         if process_status in {"done", "error", "aborted"}:
             return json_data
         if time.time() - start > timeout:
-            pytest.fail(
-                f"{process_status} processing timed out after {timeout} seconds. Last status: {process_status}"
-            )
+            pytest.fail(f"{process_status} processing timed out after {timeout} seconds. Last status: {process_status}")
         time.sleep(5)

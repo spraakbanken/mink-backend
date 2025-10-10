@@ -2,7 +2,7 @@
 
 import time
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
 from mink.cache import cache_utils
@@ -23,7 +23,7 @@ router = APIRouter()
     response_model=sparv_models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
-        400: {
+        status.HTTP_400_BAD_REQUEST: {
             "model": models.BaseErrorResponse,
             "content": {
                 "application/json": {
@@ -37,7 +37,7 @@ router = APIRouter()
                 }
             },
         },
-        404: {
+        status.HTTP_404_NOT_FOUND: {
             "model": models.ErrorResponse404,
             "content": {
                 "application/json": {
@@ -49,7 +49,7 @@ router = APIRouter()
                 }
             },
         },
-        500: {
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
@@ -103,7 +103,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         source_files = storage.list_contents(storage.get_source_dir(resource_id))
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to list source files in '{resource_id}'",
             return_code="failed_listing_sources",
             info=str(e),
@@ -111,7 +111,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
 
     if not source_files:
         raise exceptions.MinkHTTPException(
-            404,
+            status.HTTP_404_NOT_FOUND,
             message=f"No source files found for '{resource_id}'",
             return_code="no_sources_found",
         )
@@ -121,7 +121,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         config_contents = storage.get_file_contents(storage.get_config_file(resource_id))
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to get config file for '{resource_id}'",
             return_code="failed_getting_config",
             info=str(e),
@@ -130,7 +130,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         compatible, current_importer, expected_importer = utils.config_compatible(config_contents, source_files[0])
         if not compatible:
             raise exceptions.MinkHTTPException(
-                400,
+                status.HTTP_400_BAD_REQUEST,
                 message="The importer in your config file is incompatible with your source files",
                 return_code="incompatible_config_importer",
                 current_importer=current_importer,
@@ -147,9 +147,9 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
                 assert success
             except Exception as e:
                 raise exceptions.MinkHTTPException(
-                    500,
+                    status.HTTP_500_INTERNAL_SERVER_ERROR,
                     message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                            "Cannot run Sparv safely",
+                    "Cannot run Sparv safely",
                     return_code="failed_removing_exports",
                     info=str(e),
                     sparv_message=sparv_output,
@@ -158,7 +158,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         pass
     except exceptions.CouldNotListSourcesError as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to list source files in '{resource_id}'",
             return_code="failed_listing_sources",
             info=str(e),
@@ -175,7 +175,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         job = registry.add_to_queue(job)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to queue job for '{resource_id}'",
             return_code="failed_queuing",
             info=str(e),
@@ -192,7 +192,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
             job.sync_to_sparv()
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                500,
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
                 message=f"Failed to start job for '{resource_id}'",
                 return_code="failed_starting_job",
                 info=str(e),
@@ -205,7 +205,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
 
 @router.put("/advance-queue", tags=["Process Corpus"], response_model=models.BaseResponse, include_in_schema=False)
 async def advance_queue(
-    secret_key: str = Query(..., alias="secret_key", description="Secret key for authentication")
+    secret_key: str = Query(..., alias="secret_key", description="Secret key for authentication"),
 ) -> JSONResponse:
     """Check the job queue and attempt to advance it.
 
@@ -217,9 +217,9 @@ async def advance_queue(
     """
     if secret_key != settings.MINK_SECRET_KEY:
         raise exceptions.MinkHTTPException(
-            401,
+            status.HTTP_401_UNAUTHORIZED,
             message="Failed to confirm secret key for protected route",
-            return_code="failed_confirming_secret_key"
+            return_code="failed_confirming_secret_key",
         )
 
     # Unqueue jobs that are done, aborted or erroneous
@@ -268,7 +268,7 @@ async def advance_queue(
     response_model=sparv_models.StatusResponse | sparv_models.StatusesResponse,
     responses={
         **models.common_auth_error_responses,
-        404: {
+        status.HTTP_404_NOT_FOUND: {
             "model": models.ErrorResponse404,
             "content": {
                 "application/json": {
@@ -280,7 +280,7 @@ async def advance_queue(
                 }
             },
         },
-        500: {
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
@@ -321,7 +321,7 @@ async def resource_info(
         # Check if corpus exists
         if resource_id not in corpora:
             raise exceptions.MinkHTTPException(
-                404,
+                status.HTTP_404_NOT_FOUND,
                 message=f"Corpus '{resource_id}' does not exist or you do not have access to it",
                 return_code="corpus_not_found",
             )
@@ -329,7 +329,7 @@ async def resource_info(
             info = registry.get(resource_id)
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                500,
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
                 message=f"Failed to get job status for '{resource_id}'",
                 return_code="failed_getting_job_status",
                 info=str(e),
@@ -352,7 +352,7 @@ async def resource_info(
         return utils.response(message="Listing resource infos", resources=res_list, return_code="listing_jobs")
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Failed to get job statuses",
             return_code="failed_getting_job_statuses",
             info=str(e),
@@ -364,19 +364,19 @@ async def resource_info(
     tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
-        200: {
+        status.HTTP_200_OK: {
             "content": {
                 "application/json": {
                     "example": {
                         "status": "success",
                         "message": "Successfully aborted job for 'mink-dxh6e6wtff'",
-                        "return_code": "aborted_job"
+                        "return_code": "aborted_job",
                     }
                 }
             }
         },
         **models.common_auth_error_responses,
-        404: {
+        status.HTTP_404_NOT_FOUND: {
             "model": models.ErrorResponse404,
             "content": {
                 "application/json": {
@@ -388,7 +388,7 @@ async def resource_info(
                 }
             },
         },
-        500: {
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
@@ -401,7 +401,7 @@ async def resource_info(
                 }
             },
         },
-        503: {
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
             "model": models.BaseErrorResponse,
             "content": {
                 "application/json": {
@@ -432,9 +432,9 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
     # Syncing
     if job.status.is_syncing():
         raise exceptions.MinkHTTPException(
-            503,
+            status.HTTP_503_SERVICE_UNAVAILABLE,
             message="Cannot abort job while syncing files",
-            return_code="failed_aborting_job_syncing"
+            return_code="failed_aborting_job_syncing",
         )
     # Waiting
     if job.status.is_waiting():
@@ -448,7 +448,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
             )
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                500,
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
                 message=f"Failed to unqueue job for '{resource_id}'",
                 return_code="failed_unqueuing_job",
                 info=str(e),
@@ -456,7 +456,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
     # No running job
     if not job.status.is_running():
         raise exceptions.MinkHTTPException(
-            404,
+            status.HTTP_404_NOT_FOUND,
             message=f"No running job found for '{resource_id}'",
             return_code="no_running_job",
         )
@@ -465,13 +465,13 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
         job.abort_sparv()
     except exceptions.ProcessNotRunningError as e:
         raise exceptions.MinkHTTPException(
-            404,
+            status.HTTP_404_NOT_FOUND,
             message=f"No running job found for '{resource_id}'",
             return_code="no_running_job",
         ) from e
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to abort job for '{resource_id}'",
             return_code="failed_aborting_job",
             info=str(e),
@@ -488,19 +488,19 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
     tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
-        200: {
+        status.HTTP_200_OK: {
             "content": {
                 "application/json": {
                     "example": {
                         "status": "success",
                         "message": "Annotations for 'mink-dxh6e6wtff' successfully removed",
-                        "return_code": "removed_annotations"
+                        "return_code": "removed_annotations",
                     }
                 }
             }
         },
         **models.common_auth_error_responses,
-        500: {
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
@@ -513,7 +513,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
                 }
             },
         },
-        503: {
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
             "model": models.BaseErrorResponse,
             "content": {
                 "application/json": {
@@ -543,7 +543,7 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency())) -
     job = registry.get(resource_id).job
     if job.status.is_running():
         raise exceptions.MinkHTTPException(
-            503,
+            status.HTTP_503_SERVICE_UNAVAILABLE,
             message="Cannot clear annotations while a job is running",
             return_code="failed_clearing_annotations_job_running",
         )
@@ -557,7 +557,7 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency())) -
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Failed to clear annotations",
             return_code="failed_clearing_annotations",
             info=str(e),
@@ -570,7 +570,7 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency())) -
     response_model=sparv_models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
-        500: {
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
@@ -610,9 +610,9 @@ async def install_korp(
                 assert success
             except Exception as e:
                 raise exceptions.MinkHTTPException(
-                    500,
+                    status.HTTP_500_INTERNAL_SERVER_ERROR,
                     message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                            "Cannot run Sparv safely",
+                    "Cannot run Sparv safely",
                     return_code="failed_removing_exports",
                     info=str(e),
                     sparv_message=sparv_output,
@@ -621,7 +621,7 @@ async def install_korp(
         pass
     except exceptions.CouldNotListSourcesError as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to list source files in '{resource_id}'",
             return_code="failed_listing_sources",
             info=str(e),
@@ -636,7 +636,7 @@ async def install_korp(
         job = registry.add_to_queue(job)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to queue job for '{resource_id}'",
             return_code="failed_queuing",
             info=str(e),
@@ -655,7 +655,7 @@ async def install_korp(
     response_model=sparv_models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
-        500: {
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
@@ -690,9 +690,9 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
                 assert success
             except Exception as e:
                 raise exceptions.MinkHTTPException(
-                    500,
+                    status.HTTP_500_INTERNAL_SERVER_ERROR,
                     message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                            "Cannot run Sparv safely",
+                    "Cannot run Sparv safely",
                     return_code="failed_removing_exports",
                     info=str(e),
                     sparv_message=sparv_output,
@@ -701,7 +701,7 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
         pass
     except exceptions.CouldNotListSourcesError as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to list source files in '{resource_id}'",
             return_code="failed_listing_sources",
             info=str(e),
@@ -715,7 +715,7 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
         job = registry.add_to_queue(job)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to queue job for '{resource_id}'",
             return_code="failed_queuing",
             info=str(e),
@@ -744,9 +744,7 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
     status = info.job.status
 
     if status.is_none():
-        return {
-            "message": f"There is no active job for '{info.job.id}'", "return_code": "no_active_job", **info_attrs
-        }
+        return {"message": f"There is no active job for '{info.job.id}'", "return_code": "no_active_job", **info_attrs}
 
     if status.is_syncing():
         return {"message": "Files are being synced", "return_code": "syncing_files", **info_attrs}
@@ -790,7 +788,10 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
         return {"message": "An error occurred during processing", "return_code": "processing_error", **info_attrs}
 
     raise exceptions.MinkHTTPException(
-        501, message="Cannot handle this Job status yet", return_code="cannot_handle_status", **info_attrs
+        status.HTTP_501_NOT_IMPLEMENTED,
+        message="Cannot handle this Job status yet",
+        return_code="cannot_handle_status",
+        **info_attrs,
     )
 
 
@@ -799,7 +800,7 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
     tags=["Documentation"],
     response_model=sparv_models.LanguagesResponse,
     responses={
-        500: {
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
@@ -828,7 +829,7 @@ async def sparv_languages() -> JSONResponse:
         languages = job.list_languages()
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Failed listing languages",
             return_code="failed_listing_languages",
             info=str(e),
@@ -843,8 +844,8 @@ async def sparv_languages() -> JSONResponse:
     tags=["Documentation"],
     response_model=sparv_models.ExportsResponse,
     responses={
-        422: {"model": models.ErrorResponse422},
-        500: {
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
@@ -878,14 +879,14 @@ async def sparv_exports(
         exports = job.list_exports()
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            500,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Failed listing exports",
             return_code="failed_listing_sparv_exports",
-            info=str(e)
+            info=str(e),
         ) from e
     return utils.response(
         message="Listing exports available in Sparv",
         return_code="listing_sparv_exports",
         language=language,
-        exports=exports
+        exports=exports,
     )

@@ -8,6 +8,7 @@ import subprocess
 from typing import TYPE_CHECKING
 
 import dateutil
+from fastapi import status
 
 from mink.core import exceptions, registry, utils
 from mink.core.config import settings
@@ -18,6 +19,9 @@ from mink.sparv import utils as sparv_utils
 
 if TYPE_CHECKING:
     from mink.core.info import Info
+
+
+PROGRESS_DONE = 100
 
 
 class Job:
@@ -481,7 +485,7 @@ class Job:
             self.set_pid(None)
 
         _warnings, errors, misc = self.get_output()
-        if self.progress_output == 100:
+        if self.progress_output == PROGRESS_DONE:
             if self.status.is_running(self.current_process):
                 self.set_status(Status.done)
         else:
@@ -516,7 +520,7 @@ class Job:
                     json_output = json.loads(line)
                     msg = json_output.get("message")
                     if json_output.get("level") == "FINAL" and msg == "Nothing to be done.":
-                        progress = 100
+                        progress = PROGRESS_DONE
                         misc.append(msg)
                     elif json_output.get("level") == "PROGRESS":
                         progress = int(msg[:-1])
@@ -589,7 +593,7 @@ class Job:
             Progress percentage as a string.
         """
         if self.status.has_process_output(self.current_process):
-            if self.progress_output == 100 and not self.status.is_done(self.current_process):
+            if self.progress_output == PROGRESS_DONE and not self.status.is_done(self.current_process):
                 return "99%"
             return f"{self.progress_output}%"
         if self.status.is_active(self.current_process):
@@ -618,7 +622,12 @@ class Job:
         )
         if p.stderr:
             self.set_status(Status.error)
-            return utils.response("Failed to retrieve Sparv exports", err=True, info=p.stderr.decode()), 500
+            raise exceptions.MinkHTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                return_code="failed_to_retrieve_sparv_exports",
+                message="Failed to retrieve Sparv exports",
+                info=p.stderr.decode()
+            )
 
         # Get plain text sources from Sparv
         remote_work_dir = sparv_utils.get_work_dir(self.id)
@@ -655,7 +664,6 @@ class Job:
             raise exceptions.WriteError(remote_corpus_dir, "Failed to upload plain text sources") from e
 
         self.set_status(Status.done)
-        return None
 
     def remove_from_sparv(self) -> None:
         """Remove corpus dir from the Sparv server and abort running job if necessary."""
