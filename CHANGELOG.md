@@ -41,6 +41,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed bug: config changes were ignored when re-installing a corpus to Korp or Strix.
 - Fixed bug: `sparv.storage.get_size()` did not return size in bytes.
 - Fixed bugs related to exception handling.
+- Fixed bug: when downloading a plain text source file, it was not unpickled before being sent to the user.
 
 ## [1.1.0] - 2024-01-05
 

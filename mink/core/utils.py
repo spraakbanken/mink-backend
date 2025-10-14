@@ -3,6 +3,7 @@
 import gzip
 import hashlib
 import os
+import pickle
 import shutil
 import subprocess
 import zipfile
@@ -227,6 +228,28 @@ def uncompress_gzip(inpath: Path, outpath: Path | None = None) -> None:
             outpath = inpath
         with outpath.open("wb") as f:
             f.write(data)
+
+
+def unpickle_file(inpath: Path, outpath: Path | None = None) -> None:
+    """Unpickle file and save to outpath (or inpath if no outpath is given).
+
+    Args:
+        inpath: The path to the input file.
+        outpath: The path to the output file.
+
+    Returns:
+        The path to the output file.
+    """
+    with inpath.open("rb") as f:
+        data = pickle.load(f)
+        # Remove .pkl or .pickle suffix if present
+        if outpath is None and inpath.suffix in {".pkl", ".pickle"}:
+            outpath = inpath.with_suffix("")
+        elif outpath is None:
+            outpath = inpath
+        with outpath.open("wb") as out_f:
+            out_f.write(data.encode("utf-8"))
+    return outpath
 
 
 def create_zip(inpath: Path, outpath: Path, zip_rootdir: str | None = None) -> None:

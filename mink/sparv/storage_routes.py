@@ -1499,6 +1499,7 @@ async def download_source_text(
         local_path = local_corpus_dir / out_file_name
         storage.download_file(download_file_path, local_path, resource_id)
         utils.uncompress_gzip(local_path)
+        utils.unpickle_file(local_path)
         return FileResponse(local_path, media_type="text/plain", filename=local_path.name)
     except Exception as e:
         raise exceptions.MinkHTTPException(
