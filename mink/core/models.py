@@ -124,20 +124,20 @@ class JobModel(BaseModel):
     )
     current_process: str = Field(default="", description="The current process being executed")
     pid: int | None = Field(default=None, description="The process ID of the current job")
-    started: str | None = Field(default=None, description="Timestamp of when the job started")
-    done: str | None = Field(default=None, description="Timestamp of when the job was completed")
     sparv_exports: list[str] = Field(default=[], description="List of the Sparv export formats requested in the job")
     current_files: list[str] = Field(default=[], description="List of the files currently being processed")
     install_scrambled: bool = Field(default=False, description="Indicates if the installation is scrambled")
     installed_korp: bool = Field(default=False, description="Indicates if the resource is installed in Korp")
     installed_strix: bool = Field(default=False, description="Indicates if the resource is installed in Strix")
-    latest_seconds_taken: int = Field(default=0, description="The time taken for the latest run in seconds")
     priority: int = Field(default=0, description="The priority of the job in the queue")
     warnings: str = Field(default="", description="Warnings generated during the job")
     errors: str = Field(default="", description="Errors generated during the job")
     sparv_output: str = Field(default="", description="Output from the Sparv process")
-    last_run_started: str | None = Field(default=None, description="Timestamp of when the last run started")
-    last_run_ended: str | None = Field(default=None, description="Timestamp of when the last run ended")
+    started: str = Field(default="", description="Timestamp of when the current Sparv process started")
+    ended: str = Field(default="", description="Timestamp of when the current Sparv process ended")
+    duration: int = Field(
+        default=0, description="The time elapsed for the current Sparv process (in seconds), until ended or until now."
+    )
     progress: str = Field(default="0%", description="Progress of the job in percentage")
 
     model_config = {
@@ -147,20 +147,18 @@ class JobModel(BaseModel):
                     "status": StatusModel.model_config["json_schema_extra"]["examples"][0],
                     "current_process": "sparv",
                     "pid": None,
-                    "started": "2024-01-02T14:31:26+01:00",
-                    "done": None,
                     "sparv_exports": ["csv_export:csv", "stats_export:freq_list", "xml_export:pretty"],
                     "current_files": ["dokument1", "dokument2"],
                     "install_scrambled": True,
                     "installed_korp": True,
                     "installed_strix": True,
-                    "latest_seconds_taken": 10.353667,
                     "priority": 1,
                     "warnings": "",
                     "errors": "",
                     "sparv_output": "Nothing to be done.",
-                    "last_run_started": "2024-01-02T14:31:26+01:00",
-                    "last_run_ended": "",
+                    "started": "2024-01-02T14:31:26+01:00",
+                    "ended": "",
+                    "duration": 10,
                     "progress": "0%",
                 },
                 {
@@ -173,22 +171,20 @@ class JobModel(BaseModel):
                     },
                     "current_process": "sparv",
                     "pid": None,
-                    "started": "2023-12-11T13:24:09+01:00",
-                    "done": None,
                     "sparv_exports": ["xml_export:pretty", "csv_export:csv", "stats_export:sbx_freq_list"],
                     "current_files": [],
                     "install_scrambled": True,
                     "installed_korp": True,
                     "installed_strix": True,
-                    "latest_seconds_taken": 20.379222,
                     "priority": "",
                     "warnings": "",
                     "errors": "",
                     "sparv_output": "The exported files can be found in the following locations:\n • export"
                     "/csv_export/\n • export/stats_export.frequency_list_sbx/\n • export/"
                     "xml_export.pretty/",
-                    "last_run_started": "2023-12-11T13:24:09+01:00",
-                    "last_run_ended": "",
+                    "started": "2023-12-11T13:24:09+01:00",
+                    "ended": "",
+                    "duration": 20,
                     "progress": "100%",
                 },
             ]

@@ -33,50 +33,61 @@ class Job:
         status: str | None = None,
         current_process: str | None = None,
         pid: int | None = None,
-        started: str | None = None,
-        done: str | None = None,
         sparv_exports: list | None = None,
         current_files: list | None = None,
         source_files: list | None = None,
         install_scrambled: bool | None = None,
         installed_korp: bool = False,
         installed_strix: bool = False,
-        latest_seconds_taken: int = 0,
+        priority: int | str = "",
+        warnings: str = "",
+        errors: str = "",
+        sparv_output: str = "",
+        started: str = "",
+        ended: str = "",
+        duration: int = 0,
         **_obsolete,  # needed to catch invalid arguments from outdated job items (avoids crashes)  # noqa: ANN003
     ) -> None:
         """Initialize job by setting class variables.
 
         Args:
             id: Job ID.
-            status: Job status.
-            current_process: Current process name.
-            pid: Process ID.
-            started: Start time.
-            done: End time.
-            sparv_exports: List of Sparv exports.
-            current_files: List of current files.
-            source_files: List of source files.
-            install_scrambled: Whether to install scrambled.
-            installed_korp: Whether Korp is installed.
-            installed_strix: Whether Strix is installed.
-            latest_seconds_taken: Latest seconds taken.
+            status: Job status (e.g. 'none', 'running', 'done', etc.).
+            current_process: Current process (e.g. 'sparv', 'korp', 'strix').
+            pid: Process ID in the Sparv server.
+            sparv_exports: List of Sparv exports to create (e.g. ['xml_export:pretty']).
+            current_files: List of current source files to process (all files if left empty).
+            source_files: List of all available source files.
+            install_scrambled: Whether to install the corpus scrambled in Korp.
+            installed_korp: Whether corpus is installed in Korp.
+            installed_strix: Whether corpus is installed in Strix.
+            priority: Number in queue.
+            warnings: Latest Sparv warnings.
+            errors: Latest Sparv errors.
+            sparv_output: Latest Sparv misc output.
+            started: Timestamp of when the current Sparv process started.
+            ended: Timestamp of when the current Sparv process ended.
+            duration: The time elapsed for the current Sparv process (in seconds), until ended or until now.
             **_obsolete: Catch invalid arguments from outdated job items.
         """
         self.id = id
         self.status = JobStatuses(status)
         self.current_process = current_process
         self.pid = pid
-        self.started = started
-        self.done = done
-        self.sparv_done = None
         self.sparv_exports = sparv_exports or []
         self.current_files = current_files or []
         self.source_files = source_files or []
         self.install_scrambled = install_scrambled
         self.installed_korp = installed_korp
         self.installed_strix = installed_strix
-        self.latest_seconds_taken = latest_seconds_taken
+        self.priority = priority
+        self.warnings = warnings
+        self.errors = errors
+        self.sparv_output = sparv_output
         self.progress_output = 0
+        self.started = started
+        self.ended = ended
+        self.duration = duration
 
         self.sparv_user = settings.SPARV_USER
         self.sparv_server = settings.SPARV_HOST
@@ -95,28 +106,75 @@ class Job:
         Returns:
             Dictionary representation of the job.
         """
-        warnings, errors, misc_output = self.get_output()
-        priority = registry.get_priority(self) if registry.get_priority(self) != -1 else ""
         return {
             "status": self.status,
             "current_process": self.current_process,
             "pid": self.pid,
-            "started": self.started,
-            "done": self.done,
             "sparv_exports": self.sparv_exports,
             "current_files": self.current_files,
             "install_scrambled": self.install_scrambled,
             "installed_korp": self.installed_korp,
             "installed_strix": self.installed_strix,
-            "latest_seconds_taken": self.latest_seconds_taken,
-            "priority": priority,
-            "warnings": warnings,
-            "errors": errors,
-            "sparv_output": misc_output,
-            "last_run_started": self.started or "",
-            "last_run_ended": self.done or "",
-            "progress": self.progress or "",
+            "priority": self.priority,
+            "warnings": self.warnings,
+            "errors": self.errors,
+            "sparv_output": self.sparv_output,
+            "started": self.started,
+            "ended": self.ended,
+            "duration": self.duration,
+            "progress": self.progress,
         }
+
+    def update_job_info(self) -> None:
+        """Update job info: queue priority, Sparv output and process time taken."""
+        self.priority = registry.get_priority(self) if registry.get_priority(self) != -1 else ""
+        self.warnings, self.errors, self.sparv_output, sparv_ended = self.get_output()
+        self.ended, self.duration = self.calculate_ended_timeinfo(sparv_ended)
+        self.parent.update()
+
+    def calculate_ended_timeinfo(self, sparv_ended: str) -> tuple[str | int]:
+        """Calculate value for 'duration' and timestamp for 'ended'.
+
+        Calculate the time it took to process the corpus until it ended or until now. When a Sparv job has ended (with
+        success or error) it reads the time Sparv took (from the nohup file) and compensates for extra time the backend
+        may have taken (e.g. because it was waiting for advance-queue or file syncing).
+        """
+        ended = ""
+        duration = self.duration or 0
+
+        # Job was aborted successfully ('self.ended' has been set during abort), calculate 'duration'
+        if self.status.is_aborted(self.current_process) and self.ended:
+            ended = self.ended
+            time_elapsed = self.get_timedelta(ended)
+            duration = max(self.duration, time_elapsed)
+        # Job has not started, is waiting or has been aborted with some error
+        elif (
+            self.started is None
+            or self.status.is_none(self.current_process)
+            or self.status.is_waiting(self.current_process)
+            or self.status.is_aborted(self.current_process)
+        ):
+            duration = 0
+        # Job is running, just calculate time elapsed since it started (don't set 'ended')
+        elif self.status.is_running(self.current_process):
+            duration = self.get_timedelta()
+        # Job has ended (done or error), read time taken from Sparv output or 'duration' if it is larger.
+        elif sparv_ended or self.status.is_error(self.current_process):
+            time_elapsed = self.get_timedelta(sparv_ended)
+            duration = max(self.duration, time_elapsed)
+            ended = self.get_ended_timestamp(duration)
+        # This should never happen!
+        else:
+            logger.error(
+                "Something went wrong while calculating time taken. Job status: %s; "
+                "Current process: %s; Job started: %s; Job ended: %s",
+                self.status,
+                self.current_process,
+                self.started,
+                sparv_ended,
+            )
+
+        return ended, duration
 
     def set_parent(self, parent: "Info") -> None:
         """Save reference to parent class.
@@ -176,22 +234,28 @@ class Job:
         self.current_files = current_files
         self.parent.update()
 
-    def set_latest_seconds_taken(self, seconds_taken: int) -> None:
-        """Set 'latest_seconds_taken' and save.
+    @staticmethod
+    def get_current_time() -> str:
+        """Get the current timestamp as an ISO 8601 string."""
+        return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
 
-        Args:
-            seconds_taken: Seconds taken.
-        """
-        if self.latest_seconds_taken != seconds_taken:
-            self.latest_seconds_taken = seconds_taken
-            self.parent.update()
+    def get_timedelta(self, end_time: str | None = None) -> int:
+        """Get the time elapsed in seconds since 'self.started' until 'end_time' (ISO 8601) or now."""
+        if end_time is None:
+            end_time = self.get_current_time()
+        return int((dateutil.parser.isoparse(end_time) - dateutil.parser.isoparse(self.started)).total_seconds())
+
+    def get_ended_timestamp(self, duration: int) -> str:
+        """Get the timestamp (ISO 8601) for when the job ended based on 'self.started' and 'duration' (in seconds)."""
+        return (dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=duration)).isoformat(
+            timespec="seconds"
+        )
 
     def reset_time(self) -> None:
-        """Reset the processing time for a job (e.g. when starting a new one)."""
-        self.latest_seconds_taken = 0
-        # self.started = None
-        self.done = None
-        self.sparv_done = None
+        """Reset the processing time for a job (e.g. when queuing a new one)."""
+        self.started = ""
+        self.ended = ""
+        self.duration = 0
         self.parent.update()
 
     def check_requirements(self) -> None:
@@ -284,7 +348,7 @@ class Job:
         script_content = (f"{settings.SPARV_ENVIRON} nohup time -p {sparv_command} >{self.nohupfile} "
                           "2>&1 &\necho $!")
 
-        self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+        self.started = self.get_current_time()
         p = utils.ssh_run(
             f"echo {shlex.quote(script_content)} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
         )
@@ -329,7 +393,7 @@ class Job:
             f"{settings.SPARV_ENVIRON} nohup time -p sh -c {sparv_command} >{self.nohupfile} "
             "2>&1 &\necho $!"
         )
-        self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+        self.started = self.get_current_time()
         p = utils.ssh_run(f"echo {script_content} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}")
 
         if p.returncode != 0:
@@ -393,7 +457,7 @@ class Job:
             f"{settings.SPARV_ENVIRON} nohup time -p sh -c {sparv_command} >{self.nohupfile} "
             "2>&1 &\necho $!"
         )
-        self.started = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+        self.started = self.get_current_time()
         p = utils.ssh_run(
             f"echo {script_content} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
         )
@@ -450,8 +514,10 @@ class Job:
             self.set_status(Status.aborted)
             return
         if not self.status.is_running():
+            self.reset_time()
             raise exceptions.ProcessNotRunningError("Failed to abort job because Sparv was not running")
         if not self.pid:
+            self.reset_time()
             self.set_status(Status.aborted)
             return
             # raise exceptions.ProcessNotFound("Failed to abort job because no process ID was found")
@@ -460,11 +526,14 @@ class Job:
         if p.returncode == 0:
             self.set_pid(None)
             self.set_status(Status.aborted)
+            self.ended = self.get_current_time()
+            self.update_job_info()
         else:
             stderr = p.stderr.decode()
             # Ignore 'no such process' error
             if stderr.endswith(("Processen finns inte\n", "No such process\n")):
                 self.set_pid(None)
+                self.reset_time()
                 self.set_status(Status.aborted)
             else:
                 raise exceptions.JobError(f"Failed to abort job: {stderr}")
@@ -484,7 +553,7 @@ class Job:
             logger.debug("stderr: '%s'", p.stderr.decode())
             self.set_pid(None)
 
-        _warnings, errors, misc = self.get_output()
+        _warnings, errors, misc, _sparv_ended = self.get_output()
         if self.progress_output == PROGRESS_DONE:
             if self.status.is_running(self.current_process):
                 self.set_status(Status.done)
@@ -497,19 +566,19 @@ class Job:
             self.set_status(Status.error)
         return False
 
-    def get_output(self) -> tuple[str, str, str]:
+    def get_output(self) -> tuple[str, str, str, str]:
         """Check latest Sparv output of this job by reading the nohup file.
 
         Returns:
             Tuple of warnings, errors, and miscellaneous output.
         """
         if not self.status.has_process_output(self.current_process):
-            return "", "", ""
+            return "", "", "", ""
 
         p = utils.ssh_run(f"cat {self.nohupfile}")
 
         stdout = p.stdout.decode().strip() if p.stdout else ""
-        warnings = errors = misc = ""
+        warnings = errors = misc = sparv_ended = ""
         progress = 0
         if stdout:
             warnings = []
@@ -534,9 +603,7 @@ class Job:
                     # Catch "real" time output
                     if re.match(r"real \d.+", line):
                         real_seconds = float(line[5:].strip())
-                        self.sparv_done = (
-                            dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=real_seconds)
-                        ).isoformat()
+                        sparv_ended = self.get_ended_timestamp(real_seconds)
                     # Ignore "user" and "sys" time output
                     elif re.match(r"user|sys \d.+", line):
                         pass
@@ -547,43 +614,7 @@ class Job:
             errors = "\n".join(errors)
             misc = "\n".join(misc)
 
-        return warnings, errors, misc
-
-    @property
-    def seconds_taken(self) -> int:
-        """Calculate the time it took to process the corpus until it finished, aborted or until now.
-
-        When a Sparv job is finished it reads the time Sparv took and compensates for extra time the backend
-        may take.
-        """
-        if (
-            self.started is None
-            or self.status.is_waiting(self.current_process)
-            or self.status.is_none(self.current_process)
-            or self.status.is_aborted(self.current_process)
-        ):
-            seconds_taken = 0
-        elif self.status.is_running(self.current_process):
-            now = datetime.datetime.now(datetime.timezone.utc)
-            delta = now - dateutil.parser.isoparse(self.started)
-            seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
-        elif self.sparv_done or self.status.is_error(self.current_process):
-            delta = dateutil.parser.isoparse(self.sparv_done) - dateutil.parser.isoparse(self.started)
-            seconds_taken = max(self.latest_seconds_taken, delta.total_seconds())
-            self.done = (dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=seconds_taken)).isoformat()
-        else:
-            # TODO: This should never happen!
-            logger.error(
-                "Something went wrong while calculating time taken. Job status: %s; "
-                "Current process: %s; Job started: %s",
-                self.status,
-                self.current_process,
-                self.started,
-            )
-            seconds_taken = 0
-
-        self.set_latest_seconds_taken(seconds_taken)
-        return seconds_taken
+        return warnings, errors, misc, sparv_ended
 
     @property
     def progress(self) -> str | None:
@@ -598,7 +629,7 @@ class Job:
             return f"{self.progress_output}%"
         if self.status.is_active(self.current_process):
             return "0%"
-        return None
+        return ""
 
     def sync_results(self) -> None:
         """Sync exports from Sparv server to the storage server.

@@ -170,7 +170,6 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     job.set_current_files(files)
 
     # Queue job
-    job.reset_time()
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
@@ -630,7 +629,6 @@ async def install_korp(
     # Queue job
     info = registry.get(resource_id)
     job = info.job
-    job.reset_time()
     job.set_install_scrambled(scramble)
     try:
         job = registry.add_to_queue(job)
@@ -710,7 +708,6 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
     # Queue job
     info = registry.get(resource_id)
     job = info.job
-    job.reset_time()
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
@@ -735,6 +732,7 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
         info: The info object.
         admin: Whether the user is an admin.
     """
+    info.job.update_job_info()
     info_attrs = info.to_dict()
 
     if not admin:

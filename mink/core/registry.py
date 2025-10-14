@@ -111,6 +111,8 @@ def add_to_queue(job: jobs.Job) -> info.Job:
     queue.append(job.id)
     cache_utils.set_job_queue(queue)
     save_priorities()
+    # Reset time stamps for the job
+    job.reset_time()
     return job
 
 

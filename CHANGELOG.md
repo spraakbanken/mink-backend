@@ -28,6 +28,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Cache management has been improved.
 - When listing resources from the authentication system, only resources that are handled by the current backend instance
   (e.g. resources belonging to the current registry) will be shown.
+- The field `latest_seconds_taken` (used e.g. in the response from `/resource-info`) is now called `duration`.
+- The field `done` (used e.g. in the response from `/resource-info`) is now called `ended`.
 
 ### Deprecated
 
@@ -36,12 +38,18 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - The `/api-docs` route is deprecated and will be removed in a future release. Use `/redoc` instead.
 - The `/developers-guide` route is deprecated and will be removed in a future release. Use `/docs` instead.
 
+### Removed
+
+- The fields `last_run_started`, `last_run_ended`, `latest_seconds_taken` and `done` have been removed from the job info
+  (e.g. in the response from `/resource-info`). Use `started` and `ended` and `duration` instead.
+
 ### Fixed
 
 - Fixed bug: config changes were ignored when re-installing a corpus to Korp or Strix.
 - Fixed bug: `sparv.storage.get_size()` did not return size in bytes.
 - Fixed bugs related to exception handling.
 - Fixed bug: when downloading a plain text source file, it was not unpickled before being sent to the user.
+- Fixed buggy calculation of timestamps and elapsed time for job processes.
 
 ## [1.1.0] - 2024-01-05
 
