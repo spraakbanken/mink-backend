@@ -332,6 +332,16 @@ class Job:
 
         self.set_status(Status.done)
 
+    def unlock_snakemake(self) -> None:
+        """Unlock a possibly locked corpus dir from Snakemake (e.g. after killing a Sparv process)."""
+        p = utils.ssh_run(f"{settings.SPARV_ENVIRON} {settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} "
+                          f"{settings.SPARV_RUN} --unlock")
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            logger.error("Failed to unlock Snakemake for corpus %s: %s", self.id, stderr)
+            raise exceptions.JobError(f"Failed to unlock Snakemake: {stderr}")
+
     def run_sparv(self) -> None:
         """Start a Sparv annotation process.
 
@@ -528,6 +538,7 @@ class Job:
             self.set_status(Status.aborted)
             self.ended = self.get_current_time()
             self.update_job_info()
+            self.unlock_snakemake()
         else:
             stderr = p.stderr.decode()
             # Ignore 'no such process' error

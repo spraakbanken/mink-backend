@@ -50,6 +50,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed bugs related to exception handling.
 - Fixed bug: when downloading a plain text source file, it was not unpickled before being sent to the user.
 - Fixed buggy calculation of timestamps and elapsed time for job processes.
+- When killing a Sparv process, the Snakemake lock is now removed so that the corpus can be processed again.
 
 ## [1.1.0] - 2024-01-05
 
