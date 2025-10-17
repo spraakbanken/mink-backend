@@ -36,13 +36,14 @@ class Job:
         sparv_exports: list | None = None,
         current_files: list | None = None,
         source_files: list | None = None,
-        install_scrambled: bool | None = None,
+        install_scrambled: bool = False,
         installed_korp: bool = False,
         installed_strix: bool = False,
         priority: int | str = "",
         warnings: str = "",
         errors: str = "",
         sparv_output: str = "",
+        progress: str = "",
         started: str = "",
         ended: str = "",
         duration: int = 0,
@@ -65,6 +66,7 @@ class Job:
             warnings: Latest Sparv warnings.
             errors: Latest Sparv errors.
             sparv_output: Latest Sparv misc output.
+            progress: Progress percentage as a string (e.g. '45%').
             started: Timestamp of when the current Sparv process started.
             ended: Timestamp of when the current Sparv process ended.
             duration: The time elapsed for the current Sparv process (in seconds), until ended or until now.
@@ -84,7 +86,7 @@ class Job:
         self.warnings = warnings
         self.errors = errors
         self.sparv_output = sparv_output
-        self.progress_output = 0
+        self.progress_output = int(progress.strip("%")) if progress else 0
         self.started = started
         self.ended = ended
         self.duration = duration
@@ -149,7 +151,7 @@ class Job:
             duration = max(self.duration, time_elapsed)
         # Job has not started, is waiting or has been aborted with some error
         elif (
-            self.started is None
+            not self.started
             or self.status.is_none(self.current_process)
             or self.status.is_waiting(self.current_process)
             or self.status.is_aborted(self.current_process)
@@ -251,9 +253,10 @@ class Job:
             timespec="seconds"
         )
 
-    def reset_time(self) -> None:
+    def reset_time(self, reset_started: bool = True) -> None:
         """Reset the processing time for a job (e.g. when queuing a new one)."""
-        self.started = ""
+        if reset_started:
+            self.started = ""
         self.ended = ""
         self.duration = 0
         self.parent.update()
@@ -524,10 +527,10 @@ class Job:
             self.set_status(Status.aborted)
             return
         if not self.status.is_running():
-            self.reset_time()
             raise exceptions.ProcessNotRunningError("Failed to abort job because Sparv was not running")
         if not self.pid:
-            self.reset_time()
+            logger.debug("Resetting time from abort_sparv due to missing PID (corpus %s)", self.id)
+            self.reset_time(reset_started=False)
             self.set_status(Status.aborted)
             return
             # raise exceptions.ProcessNotFound("Failed to abort job because no process ID was found")
@@ -544,7 +547,8 @@ class Job:
             # Ignore 'no such process' error
             if stderr.endswith(("Processen finns inte\n", "No such process\n")):
                 self.set_pid(None)
-                self.reset_time()
+                logger.debug("Resetting time from abort_sparv due to process not running (corpus %s)", self.id)
+                self.reset_time(reset_started=False)
                 self.set_status(Status.aborted)
             else:
                 raise exceptions.JobError(f"Failed to abort job: {stderr}")
@@ -561,7 +565,11 @@ class Job:
             if p.returncode == 0:
                 return True
             # Process not running anymore
-            logger.debug("stderr: '%s'", p.stderr.decode())
+            logger.debug(
+                "Failed to kill process (corpus %s). stderr : '%s'",
+                self.id,
+                p.stderr.decode().strip() if p.stderr else "",
+            )
             self.set_pid(None)
 
         _warnings, errors, misc, _sparv_ended = self.get_output()
@@ -570,10 +578,10 @@ class Job:
                 self.set_status(Status.done)
         else:
             if errors:
-                logger.debug("Error in Sparv: %s", errors)
+                logger.debug("Error in Sparv (corpus %s): %s", self.id, errors)
             if misc:
-                logger.debug("Sparv output: %s", misc)
-            logger.debug("Sparv process was not completed successfully.")
+                logger.debug("Sparv output (corpus %s): %s", self.id, misc)
+            logger.debug("Sparv process was not completed successfully (corpus %s).", self.id)
             self.set_status(Status.error)
         return False
 
