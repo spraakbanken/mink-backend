@@ -6,7 +6,7 @@ system. The development server should be running at `http://localhost:8000`.
 From this directory run the following command:
 
 ```bash
-./make-pdf.sh
+./make_pdf.sh
 ```
 
 The resulting PDF will be saved in the `docs/md2pdf/output` directory. It includes both the Developer's Guide

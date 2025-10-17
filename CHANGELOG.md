@@ -13,6 +13,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added route `/swagger` which serves the Swagger UI for exploring the OpenAPI spec.
 - Added route `/openapi-to-markdown` which generates a markdown version of the OpenAPI spec (mostly used for
   documentation).
+- Added routes `/uninstall-korp` and `/uninstall-strix` for uninstalling a corpus from Korp or Strix.
+- Added to config: a list of protected Sparv corpus config options (`SPARV_PROTECTED_CONFIG_OPTIONS`) that a Mink user
+  is not allowed to modify. These options will be removed from the corpus config upon upload.
 
 ### Changed
 
@@ -37,6 +40,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - The `/api-spec` route is deprecated and will be removed in a future release. Use `/openapi.json` instead.
 - The `/api-docs` route is deprecated and will be removed in a future release. Use `/redoc` instead.
 - The `/developers-guide` route is deprecated and will be removed in a future release. Use `/docs` instead.
+- The `/list-korp-corpora` route is deprecated and will be removed in a future release.
 
 ### Removed
 
