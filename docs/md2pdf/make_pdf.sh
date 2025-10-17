@@ -54,7 +54,7 @@ OUTPUT_DIR="output"
 mkdir -p $OUTPUT_DIR
 
 # Get API documentation in markdown
-echo -e "# Mink Backend – API documentation\n" > output/mink_api.md
+echo -e "# Mink Backend – API Documentation\n" > output/mink_api.md
 echo "Fetching API documentation from $HOST:$PORT ..."
 curl -sS -o output/mink_api.md.tmp $HOST:$PORT/openapi-to-markdown #> /dev/null 2>&1
 # Abort if curl fails

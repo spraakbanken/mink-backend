@@ -58,8 +58,10 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: https://ws.spraakbanken.gu.se/ws/mink
+  - url: https://ws.spraakbanken.gu.se/ws/mink/v2
     description: Production server
+  - url: https://ws.spraakbanken.gu.se/ws/mink/dev
+    description: Development server
 
 tags:
   - name: Manage Corpora
