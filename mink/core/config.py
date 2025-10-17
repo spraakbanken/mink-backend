@@ -113,6 +113,16 @@ class Settings(BaseSettings):
         "sbx_strix:uninstall_corpus",
         "sbx_strix:uninstall_xml",
     ]
+    SPARV_PROTECTED_CONFIG_OPTIONS: list = [  # Config options that users are not allowed to set
+        "cwb",
+        "korp.config_dir",
+        "korp.modes",
+        "korp.mysql_dbname",
+        "korp.protected",
+        "korp.remote_host",
+        "korp.wordpicture_table",
+        "sbx_strix",
+    ]
     SPARV_NOHUP_FILE: str = "mink.out"  # File collecting Sparv output for a job
     SPARV_TMP_RUN_SCRIPT: str = "run_sparv.sh"  # Temporary Sparv run script created for every job
 

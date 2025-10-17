@@ -400,25 +400,32 @@ def standardize_config(config: str, resource_id: str) -> tuple[str, str]:
             config_yaml.pop("sparv")
 
     # Remove settings that a Mink user is not allowed to modify
-    config_yaml.pop("cwb", None)
-    config_yaml.pop("korp", None)
-    config_yaml.pop("sbx_strix", None)
+    protected_options = settings.SPARV_PROTECTED_CONFIG_OPTIONS
+    for value in protected_options:
+        nested_options = value.split(".")
+        current_level = config_yaml
+        for option in nested_options[:-1]:
+            current_level = current_level.get(option, {})
+        current_level.pop(nested_options[-1], None)
+
     # Remove all install and uninstall targets (this is handled in the installation step instead)
     config_yaml.pop("install", None)
     config_yaml.pop("uninstall", None)
 
     # Add Korp settings
-    config_yaml["korp"] = {
-        "protected": True,
-        "context": ["1 sentence", "5 sentence"],
-        "within": ["sentence", "5 sentence"],
-    }
+    korp = config_yaml.setdefault("korp", {})
+    korp["protected"] = True
+    korp.setdefault("context", ["1 sentence", "5 sentence"])
+    korp.setdefault("within", ["sentence", "5 sentence"])
+
     # Make Strix corpora appear in correct mode
-    config_yaml["sbx_strix"] = {"modes": [{"name": "mink"}]}
+    strix = config_yaml.setdefault("sbx_strix", {})
+    strix["modes"] = [{"name": "mink"}]
     # Add '<text>:misc.id as _id' to annotations for Strix' sake
-    if "export" in config_yaml and "annotations" in config_yaml["export"]:  # noqa: SIM102
-        if "<text>:misc.id as _id" not in config_yaml["export"]["annotations"]:
-            config_yaml["export"]["annotations"].append("<text>:misc.id as _id")
+    export = config_yaml.setdefault("export", {})
+    export.setdefault("annotations", [])
+    if "<text>:misc.id as _id" not in export["annotations"]:
+        export["annotations"].append("<text>:misc.id as _id")
 
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 
