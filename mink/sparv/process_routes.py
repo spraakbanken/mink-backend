@@ -647,6 +647,85 @@ async def install_korp(
     return utils.response(**make_status_response(info))
 
 
+@router.delete(
+    "/uninstall-korp",
+    tags=["Process Corpus"],
+    response_model=models.BaseResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": "Corpus 'mink-dxh6e6wtff' successfully removed from Korp",
+                        "return_code": "uninstalled_korp",
+                    }
+                }
+            }
+        },
+        **models.common_auth_error_responses,
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "model": models.BaseErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": "Cannot uninstall while a job is running",
+                        "return_code": "failed_uninstalling_job_running",
+                    }
+                }
+            },
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": "Failed to uninstall corpus from Korp",
+                        "return_code": "failed_uninstalling_korp",
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+    },
+)
+async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+    """Uninstall the corpus from Korp with Sparv.
+
+    ### Example
+
+    ```bash
+    curl -X DELETE '{{host}}/uninstall-korp?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    resource_id = auth_data.get("resource_id")
+    # Check if there is an active job
+    job = registry.get(resource_id).job
+    if job.status.is_running():
+        raise exceptions.MinkHTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            message="Cannot uninstall while a job is running",
+            return_code="failed_uninstalling_job_running",
+        )
+
+    try:
+        sparv_output = job.uninstall_korp()
+        return utils.response(
+            message=f"Corpus '{resource_id}' successfully removed from Korp",
+            sparv_output=sparv_output,
+            return_code="uninstalled_korp",
+        )
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed to uninstall corpus from Korp",
+            return_code="failed_uninstalling_korp",
+            info=str(e),
+        ) from e
+
+
 @router.put(
     "/install-strix",
     tags=["Process Corpus"],
@@ -723,6 +802,85 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
     return utils.response(**make_status_response(info))
+
+
+@router.delete(
+    "/uninstall-strix",
+    tags=["Process Corpus"],
+    response_model=models.BaseResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": "Corpus 'mink-dxh6e6wtff' successfully removed from Strix",
+                        "return_code": "uninstalled_strix",
+                    }
+                }
+            }
+        },
+        **models.common_auth_error_responses,
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "model": models.BaseErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": "Cannot uninstall while a job is running",
+                        "return_code": "failed_uninstalling_job_running",
+                    }
+                }
+            },
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": "Failed to uninstall corpus from Strix",
+                        "return_code": "failed_uninstalling_strix",
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+    },
+)
+async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+    """Uninstall the corpus from Strix with Sparv.
+
+    ### Example
+
+    ```bash
+    curl -X DELETE '{{host}}/uninstall-strix?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    resource_id = auth_data.get("resource_id")
+    # Check if there is an active job
+    job = registry.get(resource_id).job
+    if job.status.is_running():
+        raise exceptions.MinkHTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            message="Cannot uninstall while a job is running",
+            return_code="failed_uninstalling_job_running",
+        )
+
+    try:
+        sparv_output = job.uninstall_strix()
+        return utils.response(
+            message=f"Corpus '{resource_id}' successfully removed from Strix",
+            sparv_output=sparv_output,
+            return_code="uninstalled_strix",
+        )
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed to uninstall corpus from Strix",
+            return_code="failed_uninstalling_strix",
+            info=str(e),
+        ) from e
 
 
 def make_status_response(info: info.Info, admin: bool = False) -> dict:

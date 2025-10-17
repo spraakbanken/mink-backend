@@ -185,7 +185,9 @@ def test_processing_corpora(resource_processed: str) -> None:
         ("POST", "/abort-job", f"resource_id={resource_processed}"),
         ("DELETE", "/clear-annotations", f"resource_id={resource_processed}"),
         ("PUT", "/install-korp", f"resource_id={resource_processed}"),
+        ("DELETE", "/uninstall-korp", f"resource_id={resource_processed}"),
         ("PUT", "/install-strix", f"resource_id={resource_processed}"),
+        ("DELETE", "/uninstall-strix", f"resource_id={resource_processed}"),
     ]
     for method, path, query in routes:
         call_route(method, path, query, headers=HEADERS)
