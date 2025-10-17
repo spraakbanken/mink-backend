@@ -46,20 +46,6 @@ To enable tracking to Matomo, set the following config variables:
 * `TRACKING_MATOMO_IDSITE` - id for this site (get from matomo admin)
 * `TRACKING_MATOMO_AUTH_TOKEN` - access token to enable tracking IP numbers
 
-## Generating PDF Documentation
-
-To generate the PDF documentation, ensure that `pandoc` and a LaTeX distribution are installed on your
-system. The development server should be running at `http://localhost:8000`.
-
-Navigate to the `/docs/md2pdf` directory and execute:
-
-```bash
-./make-pdf.sh
-```
-
-The resulting PDF will be saved in the `docs/md2pdf/output` directory. It includes both the Developer's Guide
-and the API documentation.
-
 ## Testing
 
 The automatic tests are run with `pytest`. Make sure you have the dev dependencies installed (e.g. by running `pip
