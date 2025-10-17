@@ -346,18 +346,17 @@ class ApikeyAuthentication(Authentication):
         Returns:
             An instance of ApikeyAuthentication.
         """
-        # Make a cached HTTP request
-        # TODO: what happens if we create/delete resources? Will cache be invalidated?
-        # data = cache_utils.get_apikey_data(apikey)
-        # if not data:
-        data = await cls.check_apikey(apikey)
+        # Get cached API key data if available, otherwise get from sb-auth
+        data = cache_utils.get_apikey_data(apikey)
+        if not data:
+            data = await cls.check_apikey(apikey)
         cache_utils.set_apikey_data(apikey, data)
 
         return cls(user=data["user"], scope=data["scope"], levels=data["levels"])
 
     @staticmethod
     async def check_apikey(apikey: str) -> dict:
-        """Check the given API key against SB-Auth.
+        """Check the given API key against SB-Auth and get user information.
 
         Args:
             apikey: The API key.
@@ -425,6 +424,10 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
         logger.error("Could not create resource, sb-auth returned status %s: %s", response.status_code, message)
         raise exceptions.CreateResourceError(resource_id, message)
 
+    if not is_jwt(auth_token):
+        # Remove cached API key data to force refresh next time
+        cache_utils.remove_apikey_data(auth_token)
+
 
 async def remove_resource(auth_token: str, resource_id: str) -> bool:
     """Remove a resource from sb-auth.
@@ -448,6 +451,11 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
         response = await client.send(request)
 
     if response.status_code == status.HTTP_204_NO_CONTENT:
+
+        if not is_jwt(auth_token):
+            # Remove cached API key data to force refresh next time
+            cache_utils.remove_apikey_data(auth_token)
+
         return True
     if response.status_code == status.HTTP_400_BAD_REQUEST:
         # Corpus does not exist
