@@ -1,5 +1,6 @@
 """Exceptions for Mink."""
 
+import traceback
 from pathlib import Path
 
 from fastapi import HTTPException, Request, status
@@ -65,11 +66,11 @@ def starlette_exceptions_handler(_request: Request, exc: StarletteHTTPException)
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
             **models.BaseErrorResponse(message="Method not allowed", return_code="method_not_allowed").model_dump(),
         )
-    logger.error("Unknown error: %s", exc)
+    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    logger.error("Unexpected error: %s\n%s", exc, tb)
     return utils.response(
         status_code=exc.status_code,
         **models.BaseErrorResponse(
-            # TODO: add traceback in info?
             message="Unknown error", return_code="unknown_error", info=exc.detail
         ).model_dump(),
     )
@@ -77,6 +78,8 @@ def starlette_exceptions_handler(_request: Request, exc: StarletteHTTPException)
 
 def internal_server_error_handler(_request: Request, exc: Exception) -> JSONResponse:
     """Handle uncaught exceptions."""
+    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    logger.error("Internal server error: %s\n%s", exc, tb)
     return utils.response(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         **models.BaseErrorResponse(
