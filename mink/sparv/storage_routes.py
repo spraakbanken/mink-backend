@@ -514,8 +514,8 @@ async def upload_sources(
         logger.warning("Warnings occurred during upload:\n%s", "\n".join(warnings))
     return utils.response(
         message=f"Source files successfully added to '{resource_id}'",
-        warnings=warnings,
         return_code="uploaded_sources",
+        warnings=warnings,
     )
 
 
@@ -530,8 +530,8 @@ async def upload_sources(
                     "example": {
                         "status": "success",
                         "message": "Current source files for 'mink-dxh6e6wtff'",
-                        "contents": models.FileModel.model_config["json_schema_extra"]["examples"],
                         "return_code": "listing_sources",
+                        "contents": models.FileModel.model_config["json_schema_extra"]["examples"],
                     }
                 }
             },

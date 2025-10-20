@@ -336,8 +336,8 @@ async def resource_info(
         if not info:
             return utils.response(
                 message=f"There is no active job for '{resource_id}'",
-                job_status=JobStatuses().serialize(),
                 return_code="no_active_job",
+                job_status=JobStatuses().serialize(),
             )
         return utils.response(**make_status_response(info, admin=admin_status))
 
@@ -442,8 +442,8 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
             job.set_status(Status.aborted)
             return utils.response(
                 message=f"Successfully aborted job for '{resource_id}'",
-                job_status=job.status.serialize(),
                 return_code="aborted_job",
+                job_status=job.status.serialize(),
             )
         except Exception as e:
             raise exceptions.MinkHTTPException(
@@ -477,8 +477,8 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
         ) from e
     return utils.response(
         message=f"Successfully aborted job for '{resource_id}'",
-        job_status=job.status.serialize(),
         return_code="aborted_job",
+        job_status=job.status.serialize(),
     )
 
 
@@ -551,8 +551,8 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency())) -
         sparv_output = job.clean()
         return utils.response(
             message=f"Annotations for '{resource_id}' successfully removed",
-            sparv_output=sparv_output,
             return_code="removed_annotations",
+            sparv_output=sparv_output,
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
@@ -714,8 +714,8 @@ async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency())) -> J
         sparv_output = job.uninstall_korp()
         return utils.response(
             message=f"Corpus '{resource_id}' successfully removed from Korp",
-            sparv_output=sparv_output,
             return_code="uninstalled_korp",
+            sparv_output=sparv_output,
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
@@ -871,8 +871,8 @@ async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency())) -> 
         sparv_output = job.uninstall_strix()
         return utils.response(
             message=f"Corpus '{resource_id}' successfully removed from Strix",
-            sparv_output=sparv_output,
             return_code="uninstalled_strix",
+            sparv_output=sparv_output,
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(

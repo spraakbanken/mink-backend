@@ -84,6 +84,7 @@ class LanguagesResponse(models.BaseResponse):
                 {
                     "status": "success",
                     "message": "Listing languages available in Sparv",
+                    "return_code": "listing_languages",
                     "languages": [
 
                         {
@@ -98,8 +99,7 @@ class LanguagesResponse(models.BaseResponse):
                             "name": "Swedish",
                             "code": "swe"
                         }
-                    ],
-                    "return_code": "listing_languages"
+                    ]
                 }
             ]
         }
@@ -116,6 +116,7 @@ class ExportsResponse(models.BaseResponse):
                 {
                     "status": "success",
                     "message": "Listing exports available in Sparv",
+                    "return_code": "listing_sparv_exports",
                     "language": "swe",
                     "exports": [
                         {
@@ -143,8 +144,7 @@ class ExportsResponse(models.BaseResponse):
                             "description": "Scrambled XML export",
                             "export_files": ["xml_export.scrambled/{file}_export.xml"],
                         },
-                    ],
-                    "return_code": "listing_sparv_exports",
+                    ]
                 }
             ]
         }
@@ -242,6 +242,7 @@ class StatusesResponse(models.BaseResponse):
                     "resources": [
                         {
                             "message": "Job was completed successfully",
+                            "return_code": "job_completed",
                             "resource": {
                                 "id": "mink-ezodmp4wxm",
                                 "name": {"swe": "txt-korpus", "eng": "txt-korpus"},
@@ -264,10 +265,10 @@ class StatusesResponse(models.BaseResponse):
                                 ],
                             },
                             "job": models.JobModel.model_config["json_schema_extra"]["examples"][0],
-                            "return_code": "job_completed",
                         },
                         {
                             "message": "Job was completed successfully",
+                            "return_code": "job_completed",
                             "resource": {
                                 "id": "mink-dxh6e6wtff",
                                 "name": {"swe": "Annes och Martins testkorpus", "eng": ""},
@@ -304,7 +305,6 @@ class StatusesResponse(models.BaseResponse):
                                 ],
                             },
                             "job": models.JobModel.model_config["json_schema_extra"]["examples"][1],
-                            "return_code": "job_completed",
                         }
                     ]
                 }
