@@ -140,8 +140,8 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     # Get job, check for changes and remove exports if necessary
     try:
         old_job = registry.get(resource_id).job
-        _, _, deleted_sources, changed_config = storage.get_file_changes(resource_id, old_job)
-        if deleted_sources or changed_config:
+        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, old_job)
+        if sources_deleted or config_changed:
             try:
                 success, sparv_output = old_job.clean_export()
                 assert success
@@ -602,8 +602,8 @@ async def install_korp(
     # Get job, check for changes and remove exports if necessary
     try:
         old_job = registry.get(resource_id).job
-        _, _, deleted_sources, changed_config = storage.get_file_changes(resource_id, old_job)
-        if deleted_sources or changed_config:
+        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, old_job)
+        if sources_deleted or config_changed:
             try:
                 success, sparv_output = old_job.clean_export()
                 assert success
@@ -760,8 +760,8 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
     # Get job, check for changes and remove exports if necessary
     try:
         old_job = registry.get(resource_id).job
-        _, _, deleted_sources, changed_config = storage.get_file_changes(resource_id, old_job)
-        if deleted_sources or changed_config:
+        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, old_job)
+        if sources_deleted or config_changed:
             try:
                 success, sparv_output = old_job.clean_export()
                 assert success

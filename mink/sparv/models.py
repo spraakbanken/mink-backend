@@ -43,11 +43,11 @@ class ListCorporaResponse(models.BaseResponse):
 
 class CheckChangesResponse(models.BaseResponse):
     """Model for the /check-changes response."""
+    input_changed: bool = Field(
+        default=False, description="Indicates if the input for the corpus has changed since the last run"
+    )
     config_changed: bool = Field(
         default=False, description="Indicates if the configuration has changed since the last run"
-    )
-    sources_added: bool = Field(
-        default=False, description="Indicates if new sources have been added since the last run"
     )
     sources_changed: bool = Field(
         default=False, description="Indicates if existing sources have changed since the last run"
@@ -55,12 +55,6 @@ class CheckChangesResponse(models.BaseResponse):
     sources_deleted: bool = Field(
         default=False, description="Indicates if sources have been deleted since the last run"
     )
-    changed_config: models.FileModel | None = Field(
-        default=None, description="Details of the changed configuration file, if any"
-    )
-    added_sources: list[models.FileModel] | None = Field(default=None, description="List of added sources, if any")
-    changed_sources: list[models.FileModel] | None = Field(default=None, description="List of changed sources, if any")
-    deleted_sources: list[models.FileModel] | None = Field(default=None, description="List of deleted sources, if any")
     last_run_started: str | None = Field(default=None, description="Timestamp of when the last run started")
 
     model_config: ClassVar[dict] = {
@@ -69,41 +63,12 @@ class CheckChangesResponse(models.BaseResponse):
                 {
                     "status": "success",
                     "message": "Your input for the corpus 'mink-dxh6e6wtff' has changed since the last run",
-                    "config_changed": True,
-                    "sources_added": True,
-                    "sources_changed": True,
-                    "sources_deleted": True,
-                    "changed_config": {
-                        "name": "config.yaml",
-                        "type": "application/yaml",
-                        "last_modified": "2021-11-25T15:52:17+00:00",
-                        "size": 848,
-                        "path": "config.yaml",
-                    },
-                    "added_sources": [
-                        models.FileModel.model_config["json_schema_extra"]["examples"][1],
-                    ],
-                    "changed_sources": [
-                        models.FileModel.model_config["json_schema_extra"]["examples"][0],
-                        {
-                            "name": "dokument4.xml",
-                            "type": "application/xml",
-                            "last_modified": "2021-11-25T15:56:51+00:00",
-                            "size": 115,
-                            "path": "dokument2.xml",
-                        },
-                    ],
-                    "deleted_sources": [
-                        {
-                            "name": "dokument3.xml",
-                            "type": "application/xml",
-                            "last_modified": "2021-11-29T14:22:54+00:00",
-                            "size": 41,
-                            "path": "dokument3.xml",
-                        }
-                    ],
-                    "last_run_started": "2021-11-19T14:16:10+00:00",
                     "return_code": "input_changed",
+                    "input_changed": True,
+                    "config_changed": False,
+                    "sources_changed": True,
+                    "sources_deleted": False,
+                    "last_run_started": "2021-11-19T14:16:10+00:00",
                 },
             ]
         }

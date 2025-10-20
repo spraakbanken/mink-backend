@@ -16,6 +16,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added routes `/uninstall-korp` and `/uninstall-strix` for uninstalling a corpus from Korp or Strix.
 - Added to config: a list of protected Sparv corpus config options (`SPARV_PROTECTED_CONFIG_OPTIONS`) that a Mink user
   is not allowed to modify. These options will be removed from the corpus config upon upload.
+- Added field `input_changed` to the `/check-changes` response, indicating whether the input for the corpus has changed
+  since the last run.
 
 ### Changed
 
@@ -46,6 +48,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - The fields `last_run_started`, `last_run_ended`, `latest_seconds_taken` and `done` have been removed from the job info
   (e.g. in the response from `/resource-info`). Use `started` and `ended` and `duration` instead.
+- The fields `sources_added`, `added_sources`, `changed_config`, `changed_sources` and `deleted_sources` have been
+  removed from the `/check-changes` response.
 
 ### Fixed
 
@@ -55,6 +59,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed bug: when downloading a plain text source file, it was not unpickled before being sent to the user.
 - Fixed buggy calculation of timestamps and elapsed time for job processes.
 - When killing a Sparv process, the Snakemake lock is now removed so that the corpus can be processed again.
+- Fixed bugs with `/check-changes` not detecting changes correctly.
 
 ## [1.1.0] - 2024-01-05
 

@@ -13,7 +13,7 @@ from mink.core.config import settings
 from mink.sparv import utils as sparv_utils
 
 if TYPE_CHECKING:
-    from mink.core.jobs import Job
+    from mink.core.info import Info
 
 local = True
 
@@ -265,59 +265,49 @@ def remove_file(path: Path, resource_id: str) -> None:
         raise exceptions.WriteError(path, f"Failed to remove file: {p.stderr.decode()}")
 
 
-def get_file_changes(resource_id: str, job: "Job") -> tuple:
+def get_file_changes(resource_id: str, info_item: "Info") -> tuple[bool, bool, bool]:
     """Get changes for source files and config file.
 
     Args:
         resource_id: The resource ID.
-        job: The job object.
+        info_item: The resource info item.
 
     Returns:
-        A tuple containing lists of added, changed, and deleted source files, and the changed config file.
+        A tuple containing three booleans:
+        - Whether source files have changed.
+        - Whether source files have been deleted.
+        - Whether the config file has changed.
 
     Raises:
         exceptions.JobNotFoundError: If the job has not started.
-        exceptions.CouldNotListSourcesError: If listing source files fails.
     """
-    if not job.started:
+    source_changed = sources_deleted = config_changed = False
+
+    if not info_item.job.started:
         raise exceptions.JobNotFoundError(resource_id)
-    started = isoparse(job.started)
+    started = isoparse(info_item.job.started)
 
-    # Get current source files
-    try:
-        source_files = list_contents(get_source_dir(resource_id))
-    except Exception as e:
-        raise exceptions.CouldNotListSourcesError(str(e)) from e
-    source_file_paths = [f["path"] for f in source_files]
-    available_file_paths = [f["path"] for f in job.source_files]
-
-    # Check for new source files
-    added_sources = [sf for sf in source_files if sf["path"] not in available_file_paths]
-
-    # Compare all source files modification time to the time stamp of the last job started
-    changed_sources = []
+    # Compare source files modification times to the time stamp of the last job started
+    source_files = info_item.resource.source_files
     for sf in source_files:
-        if sf in added_sources:
-            continue
-        mod = isoparse(sf.get("last_modified"))
-        if mod > started:
-            changed_sources.append(sf)
+        if isoparse(sf.get("last_modified")) > started:
+            source_changed = True
+            break
 
-    # Check for deleted source files
-    deleted_sources = [fileobj for fileobj in job.source_files if fileobj["path"] not in source_file_paths]
+    # Compare the 'sources_deleted' timestamp to the time stamp of the last job started
+    if isoparse(info_item.resource.sources_deleted) > started:
+        sources_deleted = True
 
     # Compare the config file modification time to the time stamp of the last job started
-    changed_config = {}
     corpus_files = list_contents(get_corpus_dir(resource_id))
     config_file = get_config_file(resource_id)
     for f in corpus_files:
         if f.get("name") == config_file.name:
-            config_mod = isoparse(f.get("last_modified"))
-            if config_mod > started:
-                changed_config = f
+            if isoparse(f.get("last_modified")) > started:
+                config_changed = True
             break
 
-    return added_sources, changed_sources, deleted_sources, changed_config
+    return source_changed, sources_deleted, config_changed
 
 
 def _get_login() -> tuple:

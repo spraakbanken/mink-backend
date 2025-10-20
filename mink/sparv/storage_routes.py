@@ -672,7 +672,7 @@ async def remove_sources(
         )
 
     res = registry.get(resource_id).resource
-    res.set_source_files()
+    res.set_source_files(deleted_sources=True)
 
     return utils.response(
         message=f"Source files for '{resource_id}' successfully removed", return_code="removed_sources"
@@ -1556,7 +1556,7 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
     """
     resource_id = auth_data.get("resource_id")
     try:
-        job = registry.get(resource_id).job
+        info_item = registry.get(resource_id)
     except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1565,24 +1565,17 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
             info=str(e),
         ) from e
     try:
-        added_sources, changed_sources, deleted_sources, changed_config = storage.get_file_changes(resource_id, job)
-        if added_sources or changed_sources or deleted_sources or changed_config:
-            return utils.response(
-                message=f"Your input for the corpus '{resource_id}' has changed since the last run",
-                return_code="input_changed",
-                config_changed=bool(changed_config),
-                sources_added=bool(added_sources),
-                sources_changed=bool(changed_sources),
-                sources_deleted=bool(deleted_sources),
-                changed_config=changed_config,
-                added_sources=added_sources,
-                changed_sources=changed_sources,
-                deleted_sources=deleted_sources,
-                last_run_started=job.started,
-            )
+        sources_changed, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
+        input_changed = sources_changed or sources_deleted or config_changed
         return utils.response(
-            message=f"Your input for the corpus '{resource_id}' has not changed since the last run",
-            return_code="input_not_changed",
+            message=f"Your input for the corpus '{resource_id}' has {'not ' if not input_changed else ''}changed since"
+            " the last run",
+            return_code="input_changed" if input_changed else "input_not_changed",
+            input_changed=input_changed,
+            config_changed=config_changed,
+            sources_changed=sources_changed,
+            sources_deleted=sources_deleted,
+            last_run_started=info_item.job.started,
         )
 
     except exceptions.JobNotFoundError as e:

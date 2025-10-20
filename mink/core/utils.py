@@ -1,5 +1,6 @@
 """General utility functions."""
 
+import datetime
 import gzip
 import hashlib
 import os
@@ -195,6 +196,11 @@ def build_docs() -> None:
         build.build(config)
     except Exception:
         logger.exception("Error building MkDocs documentation.")
+
+
+def get_current_time() -> str:
+    """Get the current timestamp as an ISO 8601 string."""
+    return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
 
 
 def ssh_run(command: str, ssh_input: bytes | None = None) -> subprocess.CompletedProcess:

@@ -35,7 +35,6 @@ class Job:
         pid: int | None = None,
         sparv_exports: list | None = None,
         current_files: list | None = None,
-        source_files: list | None = None,
         install_scrambled: bool = False,
         installed_korp: bool = False,
         installed_strix: bool = False,
@@ -58,7 +57,6 @@ class Job:
             pid: Process ID in the Sparv server.
             sparv_exports: List of Sparv exports to create (e.g. ['xml_export:pretty']).
             current_files: List of current source files to process (all files if left empty).
-            source_files: List of all available source files.
             install_scrambled: Whether to install the corpus scrambled in Korp.
             installed_korp: Whether corpus is installed in Korp.
             installed_strix: Whether corpus is installed in Strix.
@@ -78,7 +76,6 @@ class Job:
         self.pid = pid
         self.sparv_exports = sparv_exports or []
         self.current_files = current_files or []
-        self.source_files = source_files or []
         self.install_scrambled = install_scrambled
         self.installed_korp = installed_korp
         self.installed_strix = installed_strix
@@ -236,15 +233,10 @@ class Job:
         self.current_files = current_files
         self.parent.update()
 
-    @staticmethod
-    def get_current_time() -> str:
-        """Get the current timestamp as an ISO 8601 string."""
-        return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-
     def get_timedelta(self, end_time: str | None = None) -> int:
         """Get the time elapsed in seconds since 'self.started' until 'end_time' (ISO 8601) or now."""
         if end_time is None:
-            end_time = self.get_current_time()
+            end_time = utils.get_current_time()
         return int((dateutil.parser.isoparse(end_time) - dateutil.parser.isoparse(self.started)).total_seconds())
 
     def get_ended_timestamp(self, duration: int) -> str:
@@ -361,7 +353,7 @@ class Job:
         script_content = (f"{settings.SPARV_ENVIRON} nohup time -p {sparv_command} >{self.nohupfile} "
                           "2>&1 &\necho $!")
 
-        self.started = self.get_current_time()
+        self.started = utils.get_current_time()
         p = utils.ssh_run(
             f"echo {shlex.quote(script_content)} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
         )
@@ -406,7 +398,7 @@ class Job:
             f"{settings.SPARV_ENVIRON} nohup time -p sh -c {sparv_command} >{self.nohupfile} "
             "2>&1 &\necho $!"
         )
-        self.started = self.get_current_time()
+        self.started = utils.get_current_time()
         p = utils.ssh_run(f"echo {script_content} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}")
 
         if p.returncode != 0:
@@ -470,7 +462,7 @@ class Job:
             f"{settings.SPARV_ENVIRON} nohup time -p sh -c {sparv_command} >{self.nohupfile} "
             "2>&1 &\necho $!"
         )
-        self.started = self.get_current_time()
+        self.started = utils.get_current_time()
         p = utils.ssh_run(
             f"echo {script_content} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
         )
@@ -539,7 +531,7 @@ class Job:
         if p.returncode == 0:
             self.set_pid(None)
             self.set_status(Status.aborted)
-            self.ended = self.get_current_time()
+            self.ended = utils.get_current_time()
             self.update_job_info()
             self.unlock_snakemake()
         else:
