@@ -1464,8 +1464,18 @@ async def download_source_text(
             return_code="missing_sources_download_text",
         )
 
+    file_stem = Path(download_file).stem
+    download_file_path = storage_work_dir / Path(download_file).parent / file_stem / settings.SPARV_PLAIN_TEXT_FILE
+
+    # Check if file exists
     try:
-        source_texts = storage.list_contents(storage_work_dir, exclude_dirs=False)
+        storage.get_file_info(download_file_path)
+    except exceptions.ReadError as e:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_404_NOT_FOUND,
+            message="The source text for this file does not exist",
+            return_code="source_text_not_found",
+        ) from e
     except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1473,29 +1483,10 @@ async def download_source_text(
             return_code="failed_downloading_source_text",
             info=str(e),
         ) from e
-    if source_texts == []:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"There are currently no source texts for corpus '{resource_id}'. "
-            "You must run Sparv before you can view source texts.",
-            return_code="no_source_texts_run_sparv",
-        )
 
-    # Download file specified in args
-    download_file = Path(download_file)
-    download_file_stem = Path(download_file.stem)
-    short_path = str(download_file_stem / settings.SPARV_PLAIN_TEXT_FILE)
-    if short_path not in [i.get("path") for i in source_texts]:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message="The source text for this file does not exist",
-            return_code="source_text_not_found",
-        )
+    # Download and return file
     try:
-        download_file_path = (
-            storage_work_dir / download_file.parent / download_file_stem / settings.SPARV_PLAIN_TEXT_FILE
-        )
-        out_file_name = str(download_file_stem) + "_plain.txt"
+        out_file_name = file_stem + "_plain.txt"
         local_path = local_corpus_dir / out_file_name
         storage.download_file(download_file_path, local_path, resource_id)
         utils.uncompress_gzip(local_path)

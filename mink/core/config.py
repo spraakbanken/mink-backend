@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     SPARV_SOURCE_DIR: str = "source"  # Dir for storing corpus source files
     SPARV_EXPORT_DIR: str = "export"  # Dir for storing corpus exports
     SPARV_WORK_DIR: str = "sparv-workdir"  # Dir for Sparv work files
+    SPARV_LOG_DIR: str = "logs"  # Dir for Sparv log files
     SPARV_CORPUS_CONFIG: str = "config.yaml"  # Name of the corpus config file
     SPARV_PLAIN_TEXT_FILE: str = "@text"  # Name of the plain text file in Sparv
     SPARV_IMPORTER_MODULES: dict = {  # File extensions for corpus input and the modules that handle them

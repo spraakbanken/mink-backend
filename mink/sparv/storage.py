@@ -41,6 +41,10 @@ def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: list | 
     if p.stderr:
         raise exceptions.ReadError(directory, f"Failed to list contents: {p.stderr.decode()}")
 
+    # Always exclude .snakemake dir from listing
+    blacklist = blacklist or []
+    blacklist.append(".snakemake")
+
     contents = p.stdout.decode()
     for line in contents.split("\n"):
         if not line.strip():
@@ -56,12 +60,42 @@ def list_contents(directory: Path, exclude_dirs: bool = True, blacklist: list | 
             if exclude_dirs:
                 continue
             mimetype = "directory"
-        if blacklist and any(Path(f.parts[0]).match(item) for item in blacklist):
+        if any(Path(f.parts[0]).match(item) for item in blacklist):
             continue
         objlist.append(
             {"name": f.name, "type": mimetype, "last_modified": mod_time, "size": int(size), "path": obj_path[2:]}
         )
     return objlist
+
+
+def get_file_info(filepath: Path) -> dict:
+    """Get info about a file on Sparv server.
+
+    Args:
+        filepath: The path to the file.
+
+    Returns:
+        A dictionary containing file information.
+
+    Raises:
+        exceptions.ReadError: If retrieving the info fails.
+    """
+    p = utils.ssh_run(f"ls -lgGd --time-style=full-iso {shlex.quote(str(filepath))}")
+    if p.stderr:
+        raise exceptions.ReadError(filepath, f"Failed to get file info: {p.stderr.decode()}")
+
+    fileinfo = p.stdout.decode().strip()
+    permissions, _, size, date, time, tz, _ = fileinfo.split(maxsplit=6)
+    mod_time = parse(f"{date} {time} {tz}").isoformat(timespec="seconds")
+    mimetype = "directory" if permissions.startswith("d") else mimetypes.guess_type(str(filepath))[0] or "unknown"
+
+    return {
+        "name": filepath.name,
+        "type": mimetype,
+        "last_modified": mod_time,
+        "size": int(size),
+        "path": "/".join(filepath.parts[4:]),
+    }
 
 
 def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ignore_missing: bool = False) -> bool:
@@ -299,13 +333,9 @@ def get_file_changes(resource_id: str, info_item: "Info") -> tuple[bool, bool, b
         sources_deleted = True
 
     # Compare the config file modification time to the time stamp of the last job started
-    corpus_files = list_contents(get_corpus_dir(resource_id))
-    config_file = get_config_file(resource_id)
-    for f in corpus_files:
-        if f.get("name") == config_file.name:
-            if isoparse(f.get("last_modified")) > started:
-                config_changed = True
-            break
+    config_file_obj = get_file_info(get_config_file(resource_id))
+    if isoparse(config_file_obj.get("last_modified")) > started:
+        config_changed = True
 
     return source_changed, sources_deleted, config_changed
 

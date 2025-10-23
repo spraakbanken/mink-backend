@@ -254,12 +254,13 @@ class Job:
         self.parent.update()
 
     def check_requirements(self) -> None:
-        """Check if required corpus contents are present.
+        """Check if required corpus contents (config file and at least one input file) are present.
 
         Raises:
             exceptions.PrerequisiteError: If no config file or input files are provided.
         """
-        corpus_contents = storage.list_contents(storage.get_corpus_dir(self.id), exclude_dirs=False)
+        exclude = [settings.SPARV_EXPORT_DIR, settings.SPARV_WORK_DIR, settings.SPARV_LOG_DIR]
+        corpus_contents = storage.list_contents(storage.get_corpus_dir(self.id), exclude_dirs=False, blacklist=exclude)
         if settings.SPARV_CORPUS_CONFIG not in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise exceptions.PrerequisiteError(f"No config file provided for '{self.id}'")
