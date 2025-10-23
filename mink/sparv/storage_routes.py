@@ -1585,14 +1585,6 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
             return_code="corpus_not_run",
         ) from e
 
-    except exceptions.CouldNotListSourcesError as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to list source files in '{resource_id}'",
-            return_code="failed_listing_sources",
-            info=str(e),
-        ) from e
-
     except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,

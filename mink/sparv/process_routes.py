@@ -137,35 +137,35 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
                 expected_importer=expected_importer,
             )
 
-    # Get job, check for changes and remove exports if necessary
+    # Get info_item, check for changes and remove exports if necessary
+    sources_deleted = config_changed = False
     try:
-        old_job = registry.get(resource_id).job
-        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, old_job)
-        if sources_deleted or config_changed:
-            try:
-                success, sparv_output = old_job.clean_export()
-                assert success
-            except Exception as e:
-                raise exceptions.MinkHTTPException(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                    "Cannot run Sparv safely",
-                    return_code="failed_removing_exports",
-                    info=str(e),
-                    sparv_message=sparv_output,
-                ) from e
+        info_item = registry.get(resource_id)
+        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except exceptions.JobNotFoundError:
         pass
-    except exceptions.CouldNotListSourcesError as e:
+    except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to list source files in '{resource_id}'",
-            return_code="failed_listing_sources",
+            message=f"Failed to run job for '{resource_id}'",
+            return_code="failed_running",
             info=str(e),
         ) from e
+    if sources_deleted or config_changed:
+        try:
+            success, sparv_output = info_item.job.clean_export()
+            assert success
+        except Exception as e:
+            raise exceptions.MinkHTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
+                "Cannot run Sparv safely",
+                return_code="failed_removing_exports",
+                info=str(e),
+                sparv_message=sparv_output,
+            ) from e
 
-    info = registry.get(resource_id)
-    job = info.job
+    job = info_item.job
     job.set_sparv_exports(exports)
     job.set_current_files(files)
 
@@ -199,7 +199,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**make_status_response(info))
+    return utils.response(**make_status_response(info_item))
 
 
 @router.put("/advance-queue", tags=["Process Corpus"], response_model=models.BaseResponse, include_in_schema=False)
@@ -599,36 +599,37 @@ async def install_korp(
     ```
     """
     resource_id = auth_data.get("resource_id")
-    # Get job, check for changes and remove exports if necessary
+
+    # Get info_item, check for changes and remove exports if necessary
+    sources_deleted = config_changed = False
     try:
-        old_job = registry.get(resource_id).job
-        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, old_job)
-        if sources_deleted or config_changed:
-            try:
-                success, sparv_output = old_job.clean_export()
-                assert success
-            except Exception as e:
-                raise exceptions.MinkHTTPException(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                    "Cannot run Sparv safely",
-                    return_code="failed_removing_exports",
-                    info=str(e),
-                    sparv_message=sparv_output,
-                ) from e
+        info_item = registry.get(resource_id)
+        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except exceptions.JobNotFoundError:
         pass
-    except exceptions.CouldNotListSourcesError as e:
+    except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to list source files in '{resource_id}'",
-            return_code="failed_listing_sources",
+            message=f"Failed to run job for '{resource_id}'",
+            return_code="failed_running",
             info=str(e),
         ) from e
+    if sources_deleted or config_changed:
+        try:
+            success, sparv_output = info_item.job.clean_export()
+            assert success
+        except Exception as e:
+            raise exceptions.MinkHTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
+                "Cannot run Sparv safely",
+                return_code="failed_removing_exports",
+                info=str(e),
+                sparv_message=sparv_output,
+            ) from e
 
     # Queue job
-    info = registry.get(resource_id)
-    job = info.job
+    job = info_item.job
     job.set_install_scrambled(scramble)
     try:
         job = registry.add_to_queue(job)
@@ -644,7 +645,7 @@ async def install_korp(
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**make_status_response(info))
+    return utils.response(**make_status_response(info_item))
 
 
 @router.delete(
@@ -757,36 +758,37 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
     ```
     """
     resource_id = auth_data.get("resource_id")
-    # Get job, check for changes and remove exports if necessary
+
+    # Get info_item, check for changes and remove exports if necessary
+    sources_deleted = config_changed = False
     try:
-        old_job = registry.get(resource_id).job
-        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, old_job)
-        if sources_deleted or config_changed:
-            try:
-                success, sparv_output = old_job.clean_export()
-                assert success
-            except Exception as e:
-                raise exceptions.MinkHTTPException(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                    "Cannot run Sparv safely",
-                    return_code="failed_removing_exports",
-                    info=str(e),
-                    sparv_message=sparv_output,
-                ) from e
+        info_item = registry.get(resource_id)
+        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except exceptions.JobNotFoundError:
         pass
-    except exceptions.CouldNotListSourcesError as e:
+    except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to list source files in '{resource_id}'",
-            return_code="failed_listing_sources",
+            message=f"Failed to run job for '{resource_id}'",
+            return_code="failed_running",
             info=str(e),
         ) from e
+    if sources_deleted or config_changed:
+        try:
+            success, sparv_output = info_item.job.clean_export()
+            assert success
+        except Exception as e:
+            raise exceptions.MinkHTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
+                "Cannot run Sparv safely",
+                return_code="failed_removing_exports",
+                info=str(e),
+                sparv_message=sparv_output,
+            ) from e
 
     # Queue job
-    info = registry.get(resource_id)
-    job = info.job
+    job = info_item.job
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
@@ -801,7 +803,7 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**make_status_response(info))
+    return utils.response(**make_status_response(info_item))
 
 
 @router.delete(

@@ -295,7 +295,7 @@ def get_file_changes(resource_id: str, info_item: "Info") -> tuple[bool, bool, b
             break
 
     # Compare the 'sources_deleted' timestamp to the time stamp of the last job started
-    if isoparse(info_item.resource.sources_deleted) > started:
+    if info_item.resource.sources_deleted and isoparse(info_item.resource.sources_deleted) > started:
         sources_deleted = True
 
     # Compare the config file modification time to the time stamp of the last job started
