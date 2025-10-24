@@ -36,7 +36,7 @@ async def get_auth_data(
     require_resource_exists: bool = True,
     require_admin: bool = False,
 ) -> dict:
-    """Attempt to login on sb-auth and check for different conditions required by the route.
+    """Attempt to login on SB Auth and check for different conditions required by the route.
 
     Args:
         request: The request object.
@@ -113,16 +113,16 @@ async def get_auth_data(
     request.state.request_id = request_id
     request_id_var.set(request_id)
 
-    # Get user info and which resources the user has access to from sb-auth
+    # Get user info and which resources the user has access to from SB Auth
     user = auth.get_user()
     is_admin = auth.is_admin()
     sb_auth_resources = auth.get_resource_ids(include_read)
     all_resources = cache_utils.get_all_resources()
-    # Get intersection between resources in sb-auth and resources in Mink-backend
-    # (in case sb-auth is used for multiple backends)
+    # Get intersection between resources in SB Auth and resources in Mink-backend
+    # (in case SB Auth is used for multiple backends)
     resources = list(set(sb_auth_resources) & set(all_resources))
 
-    # Check admin mode in cache with cookie (session_id) and turn it off if user is not admin according to sb-auth
+    # Check admin mode in cache with cookie (session_id) and turn it off if user is not admin according to SB Auth
     admin_mode = cache_utils.get_cookie_data(session_id, {}).get("admin_mode", False)
     if not is_admin:
         cache_utils.set_cookie_data(session_id, {"admin_mode": False})
@@ -346,7 +346,7 @@ class ApikeyAuthentication(Authentication):
         Returns:
             An instance of ApikeyAuthentication.
         """
-        # Get cached API key data if available, otherwise get from sb-auth
+        # Get cached API key data if available, otherwise get from SB Auth
         data = cache_utils.get_apikey_data(apikey)
         if not data:
             data = await cls.check_apikey(apikey)
@@ -356,7 +356,7 @@ class ApikeyAuthentication(Authentication):
 
     @staticmethod
     async def check_apikey(apikey: str) -> dict:
-        """Check the given API key against SB-Auth and get user information.
+        """Check the given API key against SB Auth and get user information.
 
         Args:
             apikey: The API key.
@@ -394,7 +394,7 @@ class ApikeyAuthentication(Authentication):
 
 
 async def create_resource(auth_token: str, resource_id: str, resource_type: str | None = None) -> None:
-    """Create a new resource in sb-auth.
+    """Create a new resource in SB Auth.
 
     Args:
         auth_token: The authentication token (JWT or API key).
@@ -406,7 +406,7 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
         exceptions.CreateResourceError: If creating the resource fails.
     """
     # API documented at https://github.com/spraakbanken/sb-auth#api
-    # TODO: specify resource_type when sbauth is ready
+    # TODO: specify resource_type when SB Auth is ready
     url = settings.SBAUTH_URL + f"resource/{resource_id}"
     headers = {"Authorization": f"apikey {settings.SBAUTH_API_KEY}", "Content-Type": "application/json"}
     data = {"jwt": auth_token} if is_jwt(auth_token) else {"apikey": auth_token}
@@ -421,7 +421,7 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
         raise exceptions.CorpusExistsError(resource_id)
     if response.status_code != status.HTTP_201_CREATED:
         message = response.content
-        logger.error("Could not create resource, sb-auth returned status %s: %s", response.status_code, message)
+        logger.error("Could not create resource, SB Auth returned status %s: %s", response.status_code, message)
         raise exceptions.CreateResourceError(resource_id, message)
 
     if not is_jwt(auth_token):
@@ -430,7 +430,7 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
 
 
 async def remove_resource(auth_token: str, resource_id: str) -> bool:
-    """Remove a resource from sb-auth.
+    """Remove a resource from SB Auth.
 
     Args:
         auth_token: The authentication token (JWT or API key).

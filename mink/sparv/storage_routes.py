@@ -180,6 +180,8 @@ async def list_korp_corpora(
 ) -> JSONResponse:
     """List the IDs of the user's Mink corpora that are installed in Korp.
 
+    This route is deprecated and will be removed in future versions.
+
     ### Example
 
     ```bash

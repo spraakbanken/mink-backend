@@ -48,13 +48,13 @@ class Settings(BaseSettings):
     RECOMMENDED_MIN_FILE_LENGTH: int = 1024 * 1024 * 1  # Recommended min size (bytes) for one corpus source file
     RECOMMENDED_MAX_FILE_LENGTH: int = 1024 * 1024 * 5  # Recommended max size (bytes) for one corpus source file
 
-    # sb-auth settings
+    # SB Auth settings
     SBAUTH_PUBKEY_FILE: str = "pubkey.pem"
-    SBAUTH_URL: str = ""  # URL for sb-auth
-    SBAUTH_API_KEY: str = ""  # API key for sb-auth
+    SBAUTH_URL: str = ""  # URL for SB Auth
+    SBAUTH_API_KEY: str = ""  # API key for SB Auth
     SBAUTH_MINK_APP_RESOURCE: str = "mink-app"  # Name of the resource used to control admin grants
     SBAUTH_CACHE_LIFETIME: int = 10 * 60  # How long to cache fetched permissions (in seconds)
-    SBAUTH_PERSONAL_API_KEY: str = ""  # Personal API key for sb-auth (used for testing purposes)
+    SBAUTH_PERSONAL_API_KEY: str = ""  # Personal API key for SB Auth (used for testing purposes)
 
     # Sparv settings
     SPARV_SOURCE_DIR: str = "source"  # Dir for storing corpus source files

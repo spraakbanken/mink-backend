@@ -3,8 +3,9 @@ info:
   description: |-
     ## Introduction
 
-    The Mink backend is a REST API serving as a backend to [Mink](https://spraakbanken.gu.se/mink) (Språkbanken's data
-    platform). It is mainly used for uploading corpus data to a storage server and processing that data with Sparv.
+    The Mink backend is a REST API that powers the [Mink](https://spraakbanken.gu.se/mink) frontend, Språkbanken's data
+    platform. It enables users to upload corpus data to a storage server and process that data using Sparv. This
+    documentation provides a comprehensive reference for all available API routes.
 
     ## Workflow
 
@@ -21,26 +22,27 @@ info:
     ## Authentication
 
     Note that most HTTP requests need to be authenticated with (A) a JSON Web Token (JWT, read more at
-    <https://jwt.io/>) or (B) an SB-Auth user API key:
+    <https://jwt.io/>) or (B) an SB Auth user API key:
 
     ### (A) JWT
 
-    1. In the browser, log in at <https://spraakbanken.gu.se/mink>
-    2. Open <https://sp.spraakbanken.gu.se/auth/jwt> to download the token in plain text
-    3. Use the token in the request header as: `Authorization: Bearer <token>`
+    1. In the browser, log in at <https://spraakbanken.gu.se/mink>.
+    2. Open <https://sp.spraakbanken.gu.se/auth/jwt> to download the token in plain text.
+    3. Use the token in the request header as: `Authorization: Bearer <token>`.
     4. The token is valid for a few hours. When it expires, repeat these steps.
 
     ### (B) API key
 
-    1. Ask Språkbanken for an API key
-    2. Use the API key token in the request header as: `X-Api-Key: <token>`
-    3. The token is valid for an extended time, currently 90 days. When it expires, repeat these steps
+    1. Ask Språkbanken for an API key.
+    2. Use the API key token in the request header as: `X-Api-Key: <token>`.
+    3. The token is valid for an extended time, currently 90 days. When it expires, repeat these steps.
 
     ## Responses
 
-    - Most responses will be in json format. - Json responses contain a `status` field which will have the value
-      `success` if the response code is anything between 200 and 299 and `error` otherwise. Thus this `status` merely
-      reports whether the call was processed correctly.
+    - Most responses will be in json format.
+    - Json responses contain a `status` field which will have the value `success` if the response status code is
+      anything between 200 and 299 and `error` otherwise. Thus this `status` merely reports whether the call was
+      processed correctly.
     - All json responses also contain a `return_code` field with a unique code that can be used for mapping to
       human-friendly error messages.
     - All json responses contain a `message` field with information about what was done during the call or where things
@@ -71,12 +73,12 @@ tags:
   - name: Manage Config
     description: Routes for uploading and downloading corpus config files.
   - name: Process Corpus
-    description: Routes for managing annotation and installation jobs with Sparv and checking job status.
+    description: Routes for managing annotation and installation jobs with Sparv and checking the job status.
   - name: Manage Exports
     description: Routes for listing, downloading, and removing export files.
   - name: Manage Metadata
     description: Routes for creating, uploading, and downloading metadata resources.
   - name: Admin Mode
-    description: Activate or deactivate admin mode.
+    description: Routes for activating and deactivating admin mode, and checking the admin mode status.
   - name: Documentation
     description: Routes used for documentation purposes.
