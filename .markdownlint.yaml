@@ -1,0 +1,9 @@
+MD033:  # Don't use inline HTML
+  allowed_elements:
+    - img
+    - p
+
+MD013:  # Line length
+  line_length: 120
+
+MD024: false # Turn off MD024/no-duplicate-headings (used in CHANGELOG.md)

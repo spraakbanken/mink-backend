@@ -5,31 +5,30 @@ The registry and job queue live in the cache and also on the local file system (
 
 import json
 from pathlib import Path
-from typing import List
 
-from flask import current_app as app
-from flask import g
+from mink.cache import cache_utils
+from mink.core import exceptions, info, jobs
+from mink.core.config import settings
+from mink.core.logging import logger
 
-from mink.core import exceptions, info
 
-
-def initialize():
-    """Init the registry and job queue from the filesystem if it has not been initialized already."""
-    if not g.cache.get_queue_initialized():
-        app.logger.info("Initializing queue")
+def initialize() -> None:
+    """Initialize the registry and job queue from the filesystem if it has not been initialized already."""
+    if not cache_utils.get_queue_initialized():
+        logger.info("Initializing queue")
         all_resources = []  # Storage for all resource IDs
-        registry_dir = Path(app.instance_path) / app.config.get("REGISTRY_DIR")
+        registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
         registry_dir.mkdir(exist_ok=True)
 
         # Load queue priorities
-        queue_file = registry_dir / Path(app.config.get("QUEUE_FILE"))
+        queue_file = registry_dir / settings.QUEUE_FILE
         if queue_file.is_file():
             with queue_file.open() as p:
                 jsonstr = p.read()
                 queue = json.loads(jsonstr) or []
         else:
             queue = []
-        g.cache.set_queue_initialized(True)
+        cache_utils.set_queue_initialized(True)
 
         # Load info instances into memory, append to queue if necessary
         for f in sorted(registry_dir.glob("*/*"), key=lambda x: x.stat().st_mtime):
@@ -40,64 +39,105 @@ def initialize():
                     infoobj = info.load_from_str(fobj.read())
                     infoobj.update()  # Update resource in file system and add to cache
                     all_resources.append(infoobj.id)
-                    # app.logger.debug(f"Job in cache: '{g.cache.get_job(job.id)}'")
+                    logger.debug("Job in cache: '%s'", cache_utils.get_job(infoobj.id))
                 # Queue job unless it is done, aborted or erroneous
-                if infoobj.id not in queue:
-                    if not (infoobj.job.status.is_done(infoobj.job.current_process) or infoobj.job.status.is_inactive()):
-                        queue.append(infoobj.job.id)
-        g.cache.set_job_queue(queue)
-        g.cache.set_all_resources(all_resources)
-        app.logger.debug(f"Queue in cache: {g.cache.get_job_queue()}")
-        # app.logger.debug(f"All jobs in cache: {g.cache.get_all_resources()}")
-        app.logger.debug(f"Total resources in cache: {len(g.cache.get_all_resources())}")
+                if infoobj.id not in queue and (
+                    not (infoobj.job.status.is_done(infoobj.job.current_process) or infoobj.job.status.is_inactive())
+                ):
+                    queue.append(infoobj.job.id)
+        cache_utils.set_job_queue(queue)
+        cache_utils.set_all_resources(all_resources)
+        logger.info("Queue in cache: %s", cache_utils.get_job_queue())
+        # logger.debug("All jobs in cache: %s", cache_utils.get_all_resources())
+        logger.info("Total resources in cache: %d", len(cache_utils.get_all_resources()))
 
-def get_all_resources() -> str:
-    """Get a list of all existing resource IDs."""
-    return g.cache.get_all_resources()
 
-def get(resource_id) -> info.Info:
-    """Get an existing info instance from the cache."""
-    if g.cache.get_job(resource_id) is not None:
-        return info.load_from_str(g.cache.get_job(resource_id))
-    else:
-        raise exceptions.JobNotFound(f"No resource found with ID '{resource_id}'!")
+def get(resource_id: str) -> info.Info:
+    """Get an existing info instance from the cache.
 
-def filter_resources(resource_ids: list = None) -> List[info.Info]:
-    """Get info for all resources listed in 'resource_ids'."""
+    Args:
+        resource_id: The ID of the resource to retrieve.
+
+    Returns:
+        An Info instance corresponding to the resource ID.
+
+    Raises:
+        exceptions.JobNotFoundError: If no resource is found with the given ID.
+    """
+    if cache_utils.get_job(resource_id) is not None:
+        return info.load_from_str(cache_utils.get_job(resource_id))
+    raise exceptions.JobNotFoundError(resource_id)
+
+
+def filter_resources(resource_ids: list[str] | None = None) -> list[info.Info]:
+    """Get info for all resources listed in 'resource_ids'.
+
+    Args:
+        resource_ids: A list of resource IDs to filter by.
+
+    Returns:
+        A list of Info instances for the filtered resources.
+    """
     filtered_resources = []
-    all_resources = g.cache.get_all_resources()
+    all_resources = cache_utils.get_all_resources()
     for res_id in all_resources:
         if resource_ids is not None and res_id not in resource_ids:
             continue
-        infoobj = info.load_from_str(g.cache.get_job(res_id))
+        infoobj = info.load_from_str(cache_utils.get_job(res_id))
         filtered_resources.append(infoobj)
     return filtered_resources
 
-def add_to_queue(job):
-    """Add a job item to the queue."""
-    queue = g.cache.get_job_queue()
+
+def add_to_queue(job: jobs.Job) -> info.Job:
+    """Add a job item to the queue.
+
+    Args:
+        job: The job to add to the queue.
+
+    Returns:
+        The job that was added to the queue.
+
+    Raises:
+        exceptions.ProcessStillRunningError: If there is an unfinished job for the resource.
+    """
+    queue = cache_utils.get_job_queue()
     # Avoid starting multiple jobs for the same resource simultaneously
     if job.id in queue and job.status.is_active():
-        raise Exception("There is an unfinished job for this resource!")
+        raise exceptions.ProcessStillRunningError
     # Unqueue if old job is queued since before
     if job.id in queue:
         queue.pop(queue.index(job.id))
     # Add job to queue and save priority
     queue.append(job.id)
-    g.cache.set_job_queue(queue)
+    cache_utils.set_job_queue(queue)
     save_priorities()
+    # Reset time stamps for the job
+    job.reset_time()
     return job
 
-def pop_from_queue(job):
-    """Remove job item from queue (but keep in all jobs), e.g. when a job is aborted."""
-    queue = g.cache.get_job_queue()
+
+def pop_from_queue(job: jobs.Job) -> None:
+    """Remove job item from queue (but keep in all jobs), e.g. when a job is aborted.
+
+    Args:
+        job: The job to remove from the queue.
+    """
+    queue = cache_utils.get_job_queue()
     if job.id in queue:
         queue.pop(queue.index(job.id))
-        g.cache.set_job_queue(queue)
+        cache_utils.set_job_queue(queue)
         save_priorities()
 
-def get_priority(job):
-    """Get the queue priority of the job."""
+
+def get_priority(job: jobs.Job) -> int:
+    """Get the queue priority of the job.
+
+    Args:
+        job: The job to get the priority for.
+
+    Returns:
+        The priority of the job in the queue.
+    """
     _, waiting_jobs = get_running_waiting()
     waiting_jobs = [j.id for j in waiting_jobs]
     try:
@@ -105,25 +145,31 @@ def get_priority(job):
     except ValueError:
         return -1
 
-def save_priorities():
+
+def save_priorities() -> None:
     """Save queue order so it can be loaded from disk upon app restart."""
-    registry_dir = Path(app.instance_path) / Path(app.config.get("REGISTRY_DIR"))
+    registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
     registry_dir.mkdir(exist_ok=True)
-    queue = g.cache.get_job_queue()
-    queue_file = registry_dir / Path(app.config.get("QUEUE_FILE"))
+    queue = cache_utils.get_job_queue()
+    queue_file = registry_dir / settings.QUEUE_FILE
     with queue_file.open("w") as f:
         f.write(json.dumps(queue))
 
-def get_running_waiting():
-    """Get the running and waiting jobs from the queue."""
+
+def get_running_waiting() -> tuple[list[jobs.Job], list[jobs.Job]]:
+    """Get the running and waiting jobs from the queue.
+
+    Returns:
+        A tuple containing two lists: running jobs and waiting jobs.
+    """
     running_jobs = []
     waiting_jobs = []
 
-    queue = g.cache.get_job_queue()
+    queue = cache_utils.get_job_queue()
     # queue is None before it is done initializing
     if queue is not None:
         for res_id in queue:
-            job = info.load_from_str(g.cache.get_job(res_id)).job
+            job = info.load_from_str(cache_utils.get_job(res_id)).job
             if job.status.is_running():
                 running_jobs.append(job)
             elif job.status.is_waiting():
@@ -131,18 +177,19 @@ def get_running_waiting():
 
     return running_jobs, waiting_jobs
 
-def unqueue_inactive():
+
+def unqueue_inactive() -> None:
     """Unqueue jobs that are done, aborted or erroneous."""
-    queue = g.cache.get_job_queue()
+    queue = cache_utils.get_job_queue()
     old_jobs = []
     for res_id in queue:
-        job = info.load_from_str(g.cache.get_job(res_id)).job
+        job = info.load_from_str(cache_utils.get_job(res_id)).job
         if job.status.is_inactive():
             old_jobs.append(res_id)
 
     if old_jobs:
         for res_id in old_jobs:
-            app.logger.info(f"Removing job {res_id}")
+            logger.info("Removing job %s", res_id)
             queue.pop(queue.index(res_id))
-        g.cache.set_job_queue(queue)
+        cache_utils.set_job_queue(queue)
         save_priorities()

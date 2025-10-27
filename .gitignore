@@ -1,23 +1,26 @@
-# Test examples
-testcorpus/
-
 # Editors
 .idea/
 .vscode
 
-# Flask
+# Instance files
 instance/
+
+# mkdocs
+docs/site
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
+# pyenv
+.python-version
+
 # Environments
 .env
 .venv
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
+
+# pytest
+.pytest_cache/

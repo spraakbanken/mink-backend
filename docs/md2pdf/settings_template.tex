@@ -1,12 +1,9 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
-\usepackage{fourier} % Use the Adobe Utopia font for the document
-\usepackage[english]{babel} % English language/hyphenation
+\usepackage{fontspec} % For Unicode fonts with XeLaTeX
+\setmainfont{DejaVu Sans} % Or Noto Sans, Arial Unicode MS, etc.
 
-\usepackage[scaled]{helvet} % Use Helvetica font
-\renewcommand\familydefault{\sfdefault}
+\usepackage[english]{babel} % English language/hyphenation
 
 \usepackage{graphicx} % For including graphics
 \usepackage[dvipsnames]{xcolor} % Display colors
@@ -19,6 +16,20 @@
 % \linespread{1.1} % Line spacing
 
 \usepackage{titlesec}
+
+% Remove the "Chapter" prefix from chapter titles
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{}{0pt}{\Huge}
+
+% Fix numbering of chapters and sections
+\renewcommand{\thechapter}{}
+\renewcommand{\thesection}{\arabic{section}}
+\setcounter{section}{0} % Reset the section counter
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+
+% Don't number subsubsections
+\setcounter{secnumdepth}{2} % Number sections and subsections only
 
 \titleformat{\paragraph}[hang]{\normalfont\scshape}{\theparagraph}{1em}{}
 \titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{0.5em} % Line break after paragraph
@@ -80,11 +91,8 @@
 \BeforeBeginEnvironment{lstlisting}{\par\noindent\begin{minipage}{\linewidth}}
 \AfterEndEnvironment{lstlisting}{\end{minipage}\par\addvspace{\topskip}}
 
-% Remove "figure" prefix from figure captions
-% \usepackage[labelformat=empty]{caption}
-
 % New page for new chapter
-\newcommand{\sectionbreak}{\clearpage}
+% \newcommand{\sectionbreak}{\clearpage}
 
 % Prettier block quotes
 \usepackage[most]{tcolorbox}
