@@ -96,24 +96,29 @@ fi
 # Define some variables
 if [[ $COMMON_REPORT -eq 1 ]]; then
   filename="mink_report"
-  title="Mink, Språkbanken's data platform – Technical Report"
   filelist="
 $OUTPUT_DIR/$frontend_report.md
 ../developers-guide.md
 output/mink_api.md
 "
+  header="
+---
+title: Mink, Språkbanken's data platform – Technical Report"
 else
   filename="mink_backend_report"
-  title="Mink, Språkbanken's data platform – Technical Report for the Backend $mink_version"
   filelist="
 ../developers-guide.md
 output/mink_api.md
 "
+  header="
+---
+title: |
+  | Mink, Språkbanken's data platform –
+  | Technical Report for the Mink Backend v$mink_version"
 fi
 
-header="
----
-title: \"$title\"
+# Add author to header
+header="$header
 author: |
   | Språkbanken Text
   | Institutionen för svenska, flerspråkighet och språkteknologi
@@ -127,7 +132,7 @@ author: |
   |
   | ![](mink.png){width=6cm}
 ---
-  "
+"
 
 # Concat header and files and create PDF
 echo -e "$header" > "$OUTPUT_DIR/$filename.md"
