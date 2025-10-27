@@ -127,14 +127,15 @@ def download_file(remote_file_path: Path, local_file: Path, resource_id: str, ig
     return not (ignore_missing and not local_file.is_file())
 
 
-def get_file_contents(filepath: Path) -> str:
+def get_file_contents(filepath: Path, as_bytes: bool = False) -> bytes | str:
     """Get contents of file at 'filepath'.
 
     Args:
         filepath: The path to the file.
+        as_bytes: If True, return bytes; else return decoded string.
 
     Returns:
-        The contents of the file as a string.
+        The contents of the file as string or bytes.
 
     Raises:
         exceptions.ReadError: If retrieving the contents fails.
@@ -142,7 +143,8 @@ def get_file_contents(filepath: Path) -> str:
     p = utils.ssh_run(f"cat {shlex.quote(str(filepath))}")
     if p.stderr:
         raise exceptions.ReadError(filepath, p.stderr.decode())
-
+    if as_bytes:
+        return p.stdout
     return p.stdout.decode()
 
 

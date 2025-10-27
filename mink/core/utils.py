@@ -344,7 +344,7 @@ def identical_file_exists(incoming_file_contents: bytes, existing_file: Path) ->
         True if the files are identical (in size and md5 hash), False otherwise.
     """
     if len(incoming_file_contents) == storage.get_size(existing_file):
-        remote_file_contents = storage.get_file_contents(existing_file).encode("utf-8")
+        remote_file_contents = storage.get_file_contents(existing_file, as_bytes=True)
         remote_file_hash = hashlib.md5(remote_file_contents).hexdigest()
         incoming_file_hash = hashlib.md5(incoming_file_contents).hexdigest()
         if incoming_file_hash == remote_file_hash:

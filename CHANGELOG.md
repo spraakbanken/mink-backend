@@ -60,6 +60,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed buggy calculation of timestamps and elapsed time for job processes.
 - When killing a Sparv process, the Snakemake lock is now removed so that the corpus can be processed again.
 - Fixed bugs with `/check-changes` not detecting changes correctly.
+- Fixed bug: uploading non-text source files sometimes failed due to incorrect handling of file contents.
 
 ## [1.1.0] - 2024-01-05
 
