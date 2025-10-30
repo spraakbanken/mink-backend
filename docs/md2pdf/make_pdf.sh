@@ -11,6 +11,7 @@ show_help() {
   echo "  --host HOST       Set the host address from which to get API documentation (default: http://localhost)"
   echo "  --port PORT       Set the port from which to get API documentation (default: 8000)"
   echo "  --common-report   Create the Mink frontend & backend report and exit"
+  echo "  --no-titlepage    Do not include title page in the PDF"
   echo "  -k                Do not remove intermediate files (for debugging)"
   echo "  -h                Show this help message and exit"
 }
@@ -33,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --common-report)
       COMMON_REPORT=1
+      shift
+      ;;
+    --no-titlepage)
+      NO_TITLEPAGE=1
       shift
       ;;
     -k)
@@ -103,7 +108,7 @@ output/mink_api.md
 "
   header="
 ---
-title: Mink, Språkbanken's data platform – Technical Report"
+title: Mink 2025: Språkbanken's data platform – Technical Report"
 else
   filename="mink_backend_report"
   filelist="
@@ -114,7 +119,8 @@ output/mink_api.md
 ---
 title: |
   | Mink, Språkbanken's data platform –
-  | Technical Report for the Mink Backend v$mink_version"
+  | Technical Report for the Mink Backend v$mink_version
+"
 fi
 
 # Add author to header
@@ -134,7 +140,17 @@ author: |
 ---
 "
 
+if [[ $COMMON_REPORT -eq 1 ]]; then
+  echo "Creating common PDF report from markdown for Mink frontend and backend ..."
+else
+  echo "Creating PDF from markdown for Mink backend v$mink_version ..."
+fi
+
 # Concat header and files and create PDF
+if [[ $NO_TITLEPAGE -eq 1 ]]; then
+  header=""
+  echo "Skipping title page ..."
+fi
 echo -e "$header" > "$OUTPUT_DIR/$filename.md"
 if [[ $COMMON_REPORT -eq 1 ]]; then
   cat intro_common_report.md >> "$OUTPUT_DIR/$filename.md"
@@ -146,12 +162,6 @@ for f in $filelist; do
 done
 
 # Create PDF from markdown using pandoc
-if [[ $COMMON_REPORT -eq 1 ]]; then
-  echo "Creating common PDF report from markdown for Mink frontend and backend ..."
-else
-  echo "Creating PDF from markdown for Mink backend v$mink_version ..."
-fi
-
 # pandoc -t latex -o "$OUTPUT_DIR/$filename.tex" "$OUTPUT_DIR/$filename.md" `# Convert markdown to tex (for debugging)` \
 pandoc -t latex -o "$OUTPUT_DIR/$filename.pdf" "$OUTPUT_DIR/$filename.md" `# Convert markdown to pdf` \
 -H settings_template.tex `# include in header` \
