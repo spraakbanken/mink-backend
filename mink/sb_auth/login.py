@@ -112,6 +112,8 @@ async def get_auth_data(
     request_id = shortuuid.uuid()
     request.state.request_id = request_id
     request_id_var.set(request_id)
+    if session_id is None:
+        session_id = request_id
 
     # Get user info and which resources the user has access to from SB Auth
     user = auth.get_user()

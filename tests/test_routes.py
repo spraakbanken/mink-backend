@@ -54,10 +54,15 @@ def test_admin_mode() -> None:
         ("3", "POST", "/admin-mode-off"),
         ("4", "GET", "/admin-mode-status"),
     ]
+    admin_cookie = None
     for n, method, path in routes:
-        response = call_route(method, path, headers=HEADERS)
+        response = call_route(
+            method, path, headers=HEADERS, cookies={"session_id": admin_cookie} if admin_cookie else None
+        )
         if n == "1":
             assert response.json().get("return_code") == "admin_on", f"Route {method} {path} did not enable admin mode"
+            admin_cookie = response.cookies.get("session_id")
+            assert admin_cookie is not None, "No session_id cookie set when enabling admin mode"
         elif n == "2":
             assert response.json().get("admin_mode_status") is True, (
                 f"Admin mode should be on after enabling, but got {response.json().get('admin_mode_status')}"
@@ -273,6 +278,7 @@ def call_route(
     status_code: int = status.HTTP_200_OK,
     headers: dict | None = None,
     files: list | None = None,
+    cookies: dict | None = None,
     fail_ok: bool = False,
     log: bool = True,
 ) -> Response:
@@ -285,6 +291,7 @@ def call_route(
         status_code (int): Expected status code of the response.
         headers (dict | None): Headers to include in the request.
         files (list | None): Files to upload with the request, if any.
+        cookies (dict | None): Cookies to include in the request, if any.
         fail_ok (bool): If True, do not fail the test if the status code does not match.
         log (bool): Whether to log the request and response.
 
@@ -292,6 +299,8 @@ def call_route(
         Response: The response from the route call.
     """
     with TestClient(app) as client:
+        if cookies:
+            client.cookies.update(cookies)
         try:
             if log:
                 log_request(method, path, query)

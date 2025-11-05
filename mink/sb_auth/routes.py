@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from mink.cache import cache_utils
-from mink.core import models, utils
+from mink.core import exceptions, models, utils
 from mink.sb_auth.login import AuthDependencyNoResourceId
 
 router = APIRouter(tags=["Admin Mode"])
@@ -38,7 +38,13 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
     curl -X POST '{{host}}/admin-mode-on' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    session_id = auth_data.get("session_id")
+    session_id = auth_data["session_id"]
+    if session_id is None:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            message="Failed to set admin mode: no session ID found in authentication data",
+            return_code="no_session_id",
+        )
     cache_utils.set_cookie_data(session_id, {"admin_mode": True})
     return utils.response(
         message="Admin mode turned on", return_code="admin_on", cookie=(True, "session_id", session_id)
@@ -69,8 +75,15 @@ async def admin_mode_off(
     curl -X POST '{{host}}/admin-mode-off' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    session_id = auth_data.get("session_id")
-    cache_utils.set_cookie_data(session_id, {"admin_mode": False})
+    session_id = auth_data["session_id"]
+    if session_id is None:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            message="Failed to set admin mode: no session ID found in authentication data",
+            return_code="no_session_id",
+        )
+    # For now we can remove the cookie data because admin mode is the only data stored in the session
+    cache_utils.remove_cookie_data(session_id)
     return utils.response(message="Admin mode turned off", return_code="admin_off", cookie=(False, "session_id", ""))
 
 
@@ -103,7 +116,7 @@ async def admin_mode_status(
     curl -X GET '{{host}}/admin-mode-status' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    admin_status = cache_utils.get_cookie_data(auth_data.get("session_id"), {}).get("admin_mode", False)
+    admin_status = cache_utils.get_cookie_data(auth_data["session_id"], {}).get("admin_mode", False)
     return utils.response(
         message="Returning status of admin mode", return_code="returning_admin_status", admin_mode_status=admin_status
     )
