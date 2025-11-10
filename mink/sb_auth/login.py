@@ -21,7 +21,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="", auto_error=False)
 api_key_scheme = APIKeyHeader(name="X-Api-Key", auto_error=False)
 
 # Context variable to store request ID
-request_id_var = ContextVar("request_id_var", default=None)
+request_id_var = ContextVar("request_id_var", default="")
 
 
 async def get_auth_data(
@@ -127,7 +127,8 @@ async def get_auth_data(
     # Check admin mode in cache with cookie (session_id) and turn it off if user is not admin according to SB Auth
     admin_mode = cache_utils.get_cookie_data(session_id, {}).get("admin_mode", False)
     if not is_admin:
-        cache_utils.set_cookie_data(session_id, {"admin_mode": False})
+        if session_id is not None:
+            cache_utils.set_cookie_data(session_id, {"admin_mode": False})
         # Raise exception if admin mode is required by the route
         if require_admin:
             raise exceptions.MinkHTTPException(
@@ -234,7 +235,7 @@ class AuthDependencyNoResourceId(AuthDependency):
         )
 
 
-def read_jwt_key() -> None:
+def read_jwt_key() -> str:
     """Read and return the public key for validating JWTs."""
     return (Path(settings.INSTANCE_PATH) / settings.SBAUTH_PUBKEY_FILE).open(encoding="utf-8").read()
 
@@ -422,7 +423,7 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
     if response.status_code == status.HTTP_400_BAD_REQUEST:
         raise exceptions.CorpusExistsError(resource_id)
     if response.status_code != status.HTTP_201_CREATED:
-        message = response.content
+        message = str(response.content)
         logger.error("Could not create resource, SB Auth returned status %s: %s", response.status_code, message)
         raise exceptions.CreateResourceError(resource_id, message)
 
@@ -462,5 +463,5 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
     if response.status_code == status.HTTP_400_BAD_REQUEST:
         # Corpus does not exist
         return False
-    message = response.content
+    message = str(response.content)
     raise exceptions.RemoveResourceError(resource_id, message)

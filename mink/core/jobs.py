@@ -30,7 +30,7 @@ class Job:
     def __init__(
         self,
         id: str,  # noqa: A002
-        status: str | None = None,
+        status: dict | None = None,
         current_process: str | None = None,
         pid: int | None = None,
         sparv_exports: list | None = None,
@@ -52,7 +52,7 @@ class Job:
 
         Args:
             id: Job ID.
-            status: Job status (e.g. 'none', 'running', 'done', etc.).
+            status: Job status dictionary.
             current_process: Current process (e.g. 'sparv', 'korp', 'strix').
             pid: Process ID in the Sparv server.
             sparv_exports: List of Sparv exports to create (e.g. ['xml_export:pretty']).
@@ -131,7 +131,7 @@ class Job:
         self.ended, self.duration = self.calculate_ended_timeinfo(sparv_ended)
         self.parent.update()
 
-    def calculate_ended_timeinfo(self, sparv_ended: str) -> tuple[str | int]:
+    def calculate_ended_timeinfo(self, sparv_ended: str) -> tuple[str, int]:
         """Calculate value for 'duration' and timestamp for 'ended'.
 
         Calculate the time it took to process the corpus until it ended or until now. When a Sparv job has ended (with
@@ -190,14 +190,14 @@ class Job:
             status: New status.
             process: Process name.
         """
-        process = self.current_process if process is None else process.name
-        if self.status[process] != status:
-            self.status[process] = status
+        process_name = self.current_process if process is None else process.name
+        if self.status[process_name] != status:
+            self.status[process_name] = status
             if self.status.is_active():
-                self.current_process = process
+                self.current_process = process_name
             self.parent.update()
 
-    def set_pid(self, pid: int) -> None:
+    def set_pid(self, pid: int | None) -> None:
         """Set pid of job and save.
 
         Args:
@@ -239,7 +239,7 @@ class Job:
             end_time = utils.get_current_time()
         return int((dateutil.parser.isoparse(end_time) - dateutil.parser.isoparse(self.started)).total_seconds())
 
-    def get_ended_timestamp(self, duration: int) -> str:
+    def get_ended_timestamp(self, duration: float | int) -> str:
         """Get the timestamp (ISO 8601) for when the job ended based on 'self.started' and 'duration' (in seconds)."""
         return (dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=duration)).isoformat(
             timespec="seconds"
@@ -516,7 +516,7 @@ class Job:
             exceptions.JobError: If aborting job fails.
         """
         if self.status.is_waiting(self.current_process):
-            registry.pop_queue(self)
+            registry.pop_from_queue(self)
             self.set_status(Status.aborted)
             return
         if not self.status.is_running():

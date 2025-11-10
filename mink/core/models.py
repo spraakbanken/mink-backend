@@ -38,6 +38,24 @@ class StatusCodeModel(BaseModel):
     description: str = Field(default="", description="Description of the status code")
 
 
+file_model_examples = [
+    {
+        "name": "dokument1.xml",
+        "type": "application/xml",
+        "last_modified": "2022-06-10T17:05:18+02:00",
+        "size": 1397,
+        "path": "dokument1.xml",
+    },
+    {
+        "name": "dokument2.xml",
+        "type": "application/xml",
+        "last_modified": "2022-06-10T17:05:16+02:00",
+        "size": 116,
+        "path": "dokument2.xml",
+    },
+]
+
+
 class FileModel(BaseModel):
     """Model for file list."""
     name: str = Field(default="", description="Name of the file")
@@ -48,22 +66,7 @@ class FileModel(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "examples": [
-                {
-                    "name": "dokument1.xml",
-                    "type": "application/xml",
-                    "last_modified": "2022-06-10T17:05:18+02:00",
-                    "size": 1397,
-                    "path": "dokument1.xml",
-                },
-                {
-                    "name": "dokument2.xml",
-                    "type": "application/xml",
-                    "last_modified": "2022-06-10T17:05:16+02:00",
-                    "size": 116,
-                    "path": "dokument2.xml",
-                },
-            ]
+            "examples": [*file_model_examples]
         }
     }
 
@@ -144,7 +147,13 @@ class JobModel(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {
-                    "status": StatusModel.model_config["json_schema_extra"]["examples"][0],
+                    "status": {
+                        "sync2sparv": "done",
+                        "sync2storage": "running",
+                        "sparv": "waiting",
+                        "korp": "error",
+                        "strix": "none",
+                    },
                     "current_process": "sparv",
                     "pid": None,
                     "sparv_exports": ["csv_export:csv", "stats_export:freq_list", "xml_export:pretty"],

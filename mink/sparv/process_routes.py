@@ -87,7 +87,7 @@ async def run_sparv(
 xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     # Parse requested exports
     if exports is None:
         exports = []
@@ -426,7 +426,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
     curl -X POST '{{host}}/abort-job?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     job = registry.get(resource_id).job
     # Syncing
     if job.status.is_syncing():
@@ -537,7 +537,7 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency())) -
     curl -X DELETE '{{host}}/clear-annotations?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     # Check if there is an active job
     job = registry.get(resource_id).job
     if job.status.is_running():
@@ -598,7 +598,7 @@ async def install_korp(
     curl -X PUT '{{host}}/install-korp?resource_id=some_resource_id?scramble=true' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
 
     # Get info_item, check for changes and remove exports if necessary
     sources_deleted = config_changed = False
@@ -701,7 +701,7 @@ async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency())) -> J
     curl -X DELETE '{{host}}/uninstall-korp?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     # Check if there is an active job
     job = registry.get(resource_id).job
     if job.status.is_running():
@@ -757,7 +757,7 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
     curl -X PUT '{{host}}/install-strix?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
 
     # Get info_item, check for changes and remove exports if necessary
     sources_deleted = config_changed = False
@@ -859,7 +859,7 @@ async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency())) -> 
     curl -X DELETE '{{host}}/uninstall-strix?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     # Check if there is an active job
     job = registry.get(resource_id).job
     if job.status.is_running():
@@ -899,25 +899,25 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
         # Only show owner info in admin mode
         info_attrs.pop("owner", None)
 
-    status = info.job.status
+    job_status = info.job.status
 
-    if status.is_none():
+    if job_status.is_none():
         return {"message": f"There is no active job for '{info.job.id}'", "return_code": "no_active_job", **info_attrs}
 
-    if status.is_syncing():
+    if job_status.is_syncing():
         return {"message": "Files are being synced", "return_code": "syncing_files", **info_attrs}
 
-    if status.is_waiting():
+    if job_status.is_waiting():
         return {"message": "Job has been queued", "return_code": "job_queued", **info_attrs}
 
-    if status.is_aborted(info.job.current_process):
+    if job_status.is_aborted(info.job.current_process):
         return {"message": "Job was aborted by the user", "return_code": "job_aborted_by_user", **info_attrs}
 
-    if status.is_running():
+    if job_status.is_running():
         return {"message": "Job is running", "return_code": "job_running", **info_attrs}
 
     # If done annotating, sync exports from Sparv to storage server (don't do this in admin mode)
-    if status.is_done(ProcessName.sparv) and not storage.local and not admin:
+    if job_status.is_done(ProcessName.sparv) and not storage.local and not admin:
         try:
             info.job.sync_results()
         except Exception as e:
@@ -932,10 +932,10 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
             **info_attrs,
         }
 
-    if status.is_done(info.job.current_process):
+    if job_status.is_done(info.job.current_process):
         return {"message": "Job was completed successfully", "return_code": "job_completed", **info_attrs}
 
-    if status.is_error(info.job.current_process):
+    if job_status.is_error(info.job.current_process):
         logger.error(
             "An error occurred during processing, warnings: %s, errors: %s, sparv_output: %s, job_attrs: %s",
             info_attrs["job"]["warnings"],

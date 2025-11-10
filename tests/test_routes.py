@@ -10,8 +10,9 @@ import time
 import typing
 from pathlib import Path
 
+import httpx
 import pytest
-from fastapi import Response, status
+from fastapi import status
 from fastapi.testclient import TestClient
 
 from mink.core.config import settings
@@ -281,7 +282,7 @@ def call_route(
     cookies: dict | None = None,
     fail_ok: bool = False,
     log: bool = True,
-) -> Response:
+) -> httpx._models.Response:
     """Call a route with the specified method, path and query and check if it returns the expected status code.
 
     Args:
@@ -296,7 +297,7 @@ def call_route(
         log (bool): Whether to log the request and response.
 
     Returns:
-        Response: The response from the route call.
+        The response from the route call.
     """
     with TestClient(app) as client:
         if cookies:

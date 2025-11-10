@@ -18,26 +18,26 @@ class Info:
     def __init__(
         self,
         id: str,  # noqa: A002
+        owner: User,
         resource: Resource | None = None,
-        owner: User | None = None,
         job: Job | None = None,
     ) -> None:
         """Create an info instance.
 
         Args:
             id: The ID of the resource.
-            resource: The resource associated with the info.
             owner: The owner of the resource.
+            resource: The resource associated with the info.
             job: The job associated with the resource.
         """
         self.id = id
+        self.owner = owner
         self.resource = resource or Resource(id=self.id)
-        self.owner = owner or User()
         self.job = job or Job(id=self.id, owner=self.owner)
 
         # Set parent in subclasses
-        self.resource.set_parent(self)
         self.owner.set_parent(self)
+        self.resource.set_parent(self)
         self.job.set_parent(self)
 
     def __str__(self) -> str:

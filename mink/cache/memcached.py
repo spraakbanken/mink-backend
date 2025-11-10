@@ -11,7 +11,7 @@ class CacheManager:
     """Manages the cache client instance."""
 
     def __init__(self) -> None:
-        """Initialize the CacheManager without a connecting."""
+        """Initialize the CacheManager without connecting."""
         self.server = None
 
     def initialize(self, cache_server: str) -> None:
@@ -31,6 +31,8 @@ class CacheManager:
     @contextmanager
     def get_client(self) -> Generator[Client, None, None]:
         """Retrieve a connected Memcached client."""
+        if self.server is None:
+            raise RuntimeError("Cache client not initialized. Call 'initialize' first.")
         client = Client(self.server, serde=serde.pickle_serde)
         try:
             yield client

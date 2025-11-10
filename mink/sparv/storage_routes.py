@@ -75,7 +75,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
             resource_id = None
         else:
             try:
-                await login.create_resource(auth_data.get("auth_token"), resource_id, resource_type="corpora")
+                await login.create_resource(auth_data["auth_token"], resource_id, resource_type="corpora")
             except exceptions.CorpusExistsError:
                 # Corpus ID is in use in authentication system, try to create another one
                 resource_id = None
@@ -87,7 +87,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
                     info=str(e),
                 ) from e
 
-    info_obj = Info(resource_id, owner=auth_data.get("user"))
+    info_obj = Info(resource_id, owner=auth_data["user"])
     info_obj.create()
 
     # Create corpus dir with subdirs
@@ -107,7 +107,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
         except Exception:
             logger.exception("Failed to remove partially uploaded corpus data for '%s'.", resource_id)
         try:
-            await login.remove_resource(auth_data.get("auth_token"), resource_id)
+            await login.remove_resource(auth_data["auth_token"], resource_id)
         except Exception:
             logger.exception("Failed to remove corpus '%s' from auth system.", resource_id)
         try:
@@ -126,7 +126,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
     "/list-corpora",
     tags=["Manage Corpora"],
     response_model=sparv_models.ListCorporaResponse,
-    responses=models.common_auth_error_responses,
+    responses={**models.common_auth_error_responses},
 )
 async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
     """List the IDs of all available corpora.
@@ -248,7 +248,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency())) -> JS
     curl -X DELETE '{{host}}/remove-corpus?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     # Get job
     info_obj = registry.get(resource_id)
 
@@ -288,7 +288,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency())) -> JS
 
     try:
         # Remove from auth system
-        await login.remove_resource(auth_data.get("auth_token"), resource_id)
+        await login.remove_resource(auth_data["auth_token"], resource_id)
     except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -388,7 +388,7 @@ async def upload_sources(
 -F 'files=@path_to_file1' -F 'files=@path_to_file2'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     # Check if corpus files were provided
     if not files:
         raise exceptions.MinkHTTPException(
@@ -423,6 +423,12 @@ async def upload_sources(
     warnings = []
     # Upload data
     for f in files:
+        if f.filename is None:
+            raise exceptions.MinkHTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                message=f"Failed to upload some source files to '{resource_id}' due to missing filename",
+                return_code="failed_uploading_sources_missing_filename",
+            )
         name = sparv_utils.secure_filename(f.filename)
         original_name = name
 
@@ -431,7 +437,7 @@ async def upload_sources(
             name = Path(name.stem + name.suffix.lower())
 
         # Check if file can be processed by Sparv
-        if not utils.file_ext_valid(name, settings.SPARV_IMPORTER_MODULES.keys()):
+        if not utils.file_ext_valid(name, list(settings.SPARV_IMPORTER_MODULES.keys())):
             raise exceptions.MinkHTTPException(
                 status.HTTP_400_BAD_REQUEST,
                 message=f"Failed to upload some source files to '{resource_id}' due to invalid file extension",
@@ -533,7 +539,7 @@ async def upload_sources(
                         "status": "success",
                         "message": "Current source files for 'mink-dxh6e6wtff'",
                         "return_code": "listing_sources",
-                        "contents": models.FileModel.model_config["json_schema_extra"]["examples"],
+                        "contents": models.file_model_examples,
                     }
                 }
             },
@@ -563,7 +569,7 @@ async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSO
     curl '{{host}}/list-sources?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     try:
         objlist = storage.list_contents(storage.get_source_dir(resource_id))
         return utils.response(
@@ -647,7 +653,7 @@ async def remove_sources(
         )
 
     # Remove files
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     successes = []
     fails = []
     for rf in remove:
@@ -746,7 +752,7 @@ async def download_sources(
 -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     try:
         # Check if there are any source files
         storage_source_dir = storage.get_source_dir(resource_id)
@@ -886,7 +892,7 @@ async def upload_config(
 -F 'file=@path_to_config_file'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
 
     def set_corpus_name(corpus_name: str) -> None:
         res = registry.get(resource_id).resource
@@ -1032,7 +1038,7 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
     curl '{{host}}/download-config?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     # Create directory for the current resource locally (on Mink backend server)
     utils.get_source_dir(resource_id, mkdir=True)
     local_config_file = utils.get_config_file(resource_id)
@@ -1120,7 +1126,7 @@ async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSO
     curl '{{host}}/list-exports?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     try:
         objlist = storage.list_contents(storage.get_export_dir(resource_id), blacklist=settings.SPARV_EXPORT_BLACKLIST)
         return utils.response(
@@ -1211,7 +1217,7 @@ async def download_exports(
             return_code="too_many_params_download_exports",
         )
 
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     storage_export_dir = storage.get_export_dir(resource_id)
     local_corpus_dir = utils.get_resource_dir(resource_id, mkdir=True)
     local_export_dir = utils.get_export_dir(resource_id, mkdir=True)
@@ -1354,7 +1360,7 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency())) -> J
     curl -X DELETE '{{host}}/remove-exports?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     if not storage.local:
         try:
             # Remove export dir from storage server and create a new empty one
@@ -1455,7 +1461,7 @@ async def download_source_text(
 -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     storage_work_dir = storage.get_work_dir(resource_id)
     local_corpus_dir = utils.get_resource_dir(resource_id, mkdir=True)
 
@@ -1547,7 +1553,7 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
     curl -X GET '{{host}}/check-changes?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     try:
         info_item = registry.get(resource_id)
     except Exception as e:

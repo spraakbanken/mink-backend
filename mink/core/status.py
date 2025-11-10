@@ -18,12 +18,12 @@ class Status(str, Enum):
     def description(self) -> str:
         """Return the description for the status."""
         docs = {
-                self.none: "Process does not exist",
-                self.waiting: "Waiting to be processed",
-                self.running: "Process is running",
-                self.done: "Process has finished",
-                self.error: "An error occurred in the process",
-                self.aborted: "Process was aborted by the user"
+                "none": "Process does not exist",
+                "waiting": "Waiting to be processed",
+                "running": "Process is running",
+                "done": "Process has finished",
+                "error": "An error occurred in the process",
+                "aborted": "Process was aborted by the user"
         }
         return docs[self.value]
 

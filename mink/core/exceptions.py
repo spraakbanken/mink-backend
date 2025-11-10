@@ -2,6 +2,7 @@
 
 import traceback
 from pathlib import Path
+from typing import Any
 
 from fastapi import HTTPException, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -15,7 +16,7 @@ from mink.core.logging import logger
 
 class MinkHTTPException(HTTPException):
     """Custom HTTP exception class."""
-    def __init__(self, status_code: int, return_code: str, message: str, **kwargs: dict) -> None:
+    def __init__(self, status_code: int, return_code: str, message: str, **kwargs: Any) -> None:
         """Create a custom HTTP exception."""
         super().__init__(
             status_code=status_code,
@@ -29,7 +30,9 @@ class MinkHTTPException(HTTPException):
 
 def custom_http_exception_handler(_request: Request, exc: MinkHTTPException) -> JSONResponse:
     """Handle custom HTTP exceptions."""
-    return utils.response(status_code=exc.status_code, **exc.detail)
+    # Make sure exc.detail is a mapping with string keys and serializable values
+    detail = jsonable_encoder(exc.detail)
+    return utils.response(status_code=exc.status_code, **detail)
 
 
 def validation_exception_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
@@ -149,14 +152,14 @@ class RemoveResourceError(Exception):
 
 class ReadError(Exception):
     """Exception used for when reading/downloading from the storage server fails."""
-    def __init__(self, path: Path, error: str) -> None:
+    def __init__(self, path: Path | str, error: str) -> None:
         """Initialize the exception with the path and error message."""
         super().__init__(f"Failed to read or download '{path}': {error}")
 
 
 class WriteError(Exception):
     """Exception used for when writing to the storage server fails."""
-    def __init__(self, path: Path, error: str) -> None:
+    def __init__(self, path: Path | str, error: str) -> None:
         """Initialize the exception with the path and error message."""
         super().__init__(f"Failed to write to '{path}': {error}")
 

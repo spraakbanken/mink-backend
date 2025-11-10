@@ -234,8 +234,8 @@ def download_dir(
     if not zipped:
         return local_dir
 
-    utils.create_zip(local_dir, zippath, zip_rootdir=resource_id)
-    return zippath
+    utils.create_zip(local_dir, zippath, zip_rootdir=resource_id)  # type: ignore (will raise exception if None above)
+    return zippath  # type: ignore (will raise exception if None above)
 
 
 def upload_dir(remote_dir: Path, local_dir: Path, resource_id: str, delete: bool = False) -> None:
@@ -336,7 +336,7 @@ def get_file_changes(resource_id: str, info_item: "Info") -> tuple[bool, bool, b
 
     # Compare the config file modification time to the time stamp of the last job started
     config_file_obj = get_file_info(get_config_file(resource_id))
-    if isoparse(config_file_obj.get("last_modified")) > started:
+    if isoparse(config_file_obj["last_modified"]) > started:
         config_changed = True
 
     return source_changed, sources_deleted, config_changed

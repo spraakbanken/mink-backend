@@ -31,7 +31,7 @@ def response(
     message: str = "",
     return_code: str = "",
     cookie: tuple[bool, str, str] | None = None,
-    **kwargs: dict[str, Any],
+    **kwargs: Any,
 ) -> JSONResponse:
     """Create a JSON response, check if a return code was provided, and remove empty key-value pairs.
 
@@ -78,13 +78,13 @@ def response(
     return response
 
 
-def remove_tmp_files(request_id: str | None) -> None:
+def remove_tmp_files(request_id: str) -> None:
     """Remove temporary files.
 
     Args:
         request_id: The request ID (randomly generated upon request and stored in request.state).
     """
-    if request_id is not None:
+    if request_id:
         local_user_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / request_id
         shutil.rmtree(str(local_user_dir), ignore_errors=True)
 
@@ -236,7 +236,7 @@ def uncompress_gzip(inpath: Path, outpath: Path | None = None) -> None:
             f.write(data)
 
 
-def unpickle_file(inpath: Path, outpath: Path | None = None) -> None:
+def unpickle_file(inpath: Path, outpath: Path | None = None) -> Path:
     """Unpickle file and save to outpath (or inpath if no outpath is given).
 
     Args:
@@ -345,14 +345,14 @@ def identical_file_exists(incoming_file_contents: bytes, existing_file: Path) ->
     """
     if len(incoming_file_contents) == storage.get_size(existing_file):
         remote_file_contents = storage.get_file_contents(existing_file, as_bytes=True)
-        remote_file_hash = hashlib.md5(remote_file_contents).hexdigest()
+        remote_file_hash = hashlib.md5(remote_file_contents).hexdigest()  # type: ignore
         incoming_file_hash = hashlib.md5(incoming_file_contents).hexdigest()
         if incoming_file_hash == remote_file_hash:
             return True
     return False
 
 
-def config_compatible(config: str, source_file: dict) -> tuple[bool, dict[str, Any] | None]:
+def config_compatible(config: str | bytes, source_file: dict) -> tuple[bool, Any, Any]:
     """Check if the importer module in the corpus config is compatible with the source files.
 
     Args:
@@ -362,7 +362,7 @@ def config_compatible(config: str, source_file: dict) -> tuple[bool, dict[str, A
     Returns:
         A tuple containing a boolean indicating compatibility, the current importer, and the expected importer.
     """
-    file_ext = Path(source_file.get("name")).suffix
+    file_ext = Path(source_file["name"]).suffix
     config_yaml = yaml.load(config, Loader=yaml.FullLoader)
     current_importer = config_yaml.get("import", {}).get("importer", "").split(":")[0] or None
     importer_dict = settings.SPARV_IMPORTER_MODULES
@@ -377,7 +377,7 @@ def config_compatible(config: str, source_file: dict) -> tuple[bool, dict[str, A
     return False, current_importer, expected_importer
 
 
-def standardize_config(config: str, resource_id: str) -> tuple[str, str]:
+def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, str]:
     """Set the correct corpus ID and remove the compression setting in the corpus config.
 
     Args:
@@ -436,7 +436,7 @@ def standardize_config(config: str, resource_id: str) -> tuple[str, str]:
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 
 
-def standardize_metadata_yaml(metadata_yaml: str) -> tuple[str, str]:
+def standardize_metadata_yaml(metadata_yaml: str | bytes) -> tuple[str, str]:
     """Get resource name from metadata yaml and remove comments etc.
 
     Args:
@@ -459,7 +459,7 @@ def standardize_metadata_yaml(metadata_yaml: str) -> tuple[str, str]:
 
 def get_resources_dir(mkdir: bool = False) -> Path:
     """Get user specific dir for corpora."""
-    if request_id_var.get() is None:
+    if not request_id_var.get():
         logger.error("Resource ID not set. Cannot get path to local corpora dir.")
         raise exceptions.RequestIDNotSetError
     resources_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / request_id_var.get()

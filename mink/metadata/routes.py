@@ -69,7 +69,7 @@ async def create_metadata(
     ```
     """
     # TODO: better solution for getting user's organization prefix!
-    user = auth_data.get("user")
+    user = auth_data["user"]
     org_prefix = settings.METADATA_ORG_PREFIXES.get(user.id)
     if org_prefix is None:
         raise exceptions.MinkHTTPException(
@@ -124,7 +124,7 @@ async def create_metadata(
             resource_id = None
         else:
             try:
-                await login.create_resource(auth_data.get("auth_token"), resource_id, resource_type="metadata")
+                await login.create_resource(auth_data["auth_token"], resource_id, resource_type="metadata")
             except exceptions.CorpusExistsError:
                 # Resource ID is in use in authentication system, try to create another one
                 resource_id = None
@@ -165,7 +165,7 @@ async def create_metadata(
         except Exception:
             logger.exception("Failed to remove partially uploaded corpus data for '%s'.", resource_id)
         try:
-            await login.remove_resource(auth_data.get("auth_token"), resource_id)
+            await login.remove_resource(auth_data["auth_token"], resource_id)
         except Exception:
             logger.exception("Failed to remove corpus '%s' from auth system.", resource_id)
         try:
@@ -232,7 +232,7 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency())) -> 
     curl -X DELETE '{{host}}/remove-metadata?resource_id=resource-id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     info_obj = registry.get(resource_id)
 
     # Check for correct resource type
@@ -257,7 +257,7 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency())) -> 
 
     try:
         # Remove from auth system
-        await login.remove_resource(auth_data.get("auth_token"), resource_id)
+        await login.remove_resource(auth_data["auth_token"], resource_id)
     except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -337,7 +337,7 @@ async def upload_metadata_yaml(
 -F 'file=@path_to_metadata.yaml'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
 
     def set_resource_name(resource_name: str) -> None:
         res = registry.get(resource_id).resource
@@ -440,7 +440,7 @@ async def upload_metadata_yaml(
         },
     },
 )
-async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency())) -> FileResponse:
     """Download the metadata yaml file for a specific resource.
 
     ### Example
@@ -449,7 +449,7 @@ async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency(
     curl -X GET '{{host}}/download-metadata-yaml?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
+    resource_id = auth_data["resource_id"]
     # Create directory for the current resource locally (on Mink backend server)
     utils.get_resource_dir(resource_id, mkdir=True)
     local_yaml_file = utils.get_metadata_yaml_file(resource_id)

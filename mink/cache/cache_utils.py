@@ -83,26 +83,26 @@ def set_all_resources(value: list) -> None:
         client.set("all_resources", list(set(value)))
 
 
-def get_job(job: str) -> dict:
+def get_job(job: str) -> str:
     """Get 'job' from the cache and return it.
 
     Args:
         job: The job ID.
 
     Returns:
-        The job as a dictionary.
+        The job as a serialized dictionary.
     """
     registry.initialize()
     with cache.get_client() as client:
         return client.get(job)
 
 
-def set_job(job: str, value: dict) -> None:
+def set_job(job: str, value: str) -> None:
     """Set 'job' to 'value' in the cache.
 
     Args:
         job: The job ID.
-        value: The job as a dictionary.
+        value: The job as a serialized dictionary.
     """
     registry.initialize()
     with cache.get_client() as client:
@@ -155,7 +155,7 @@ def remove_apikey_data(apikey: str) -> None:
         client.delete(f"apikey_data_{apikey}")
 
 
-def get_cookie_data(cookie: str, default: Any = None) -> dict | None:
+def get_cookie_data(cookie: str | None, default: Any = None) -> Any:
     """Get cached cookie data, if recent enough.
 
     Args:
@@ -165,6 +165,8 @@ def get_cookie_data(cookie: str, default: Any = None) -> dict | None:
     Returns:
         The cookie data as a dictionary, or None if not found or expired.
     """
+    if cookie is None:
+        return default
     with cache.get_client() as client:
         return client.get(f"cookie_data_{cookie}") or default
 

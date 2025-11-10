@@ -64,9 +64,11 @@ def get(resource_id: str) -> info.Info:
     Raises:
         exceptions.JobNotFoundError: If no resource is found with the given ID.
     """
-    if cache_utils.get_job(resource_id) is not None:
-        return info.load_from_str(cache_utils.get_job(resource_id))
-    raise exceptions.JobNotFoundError(resource_id)
+    info_obj = cache_utils.get_job(resource_id)
+    logger.debug("Info object from cache: %s", info_obj)
+    if info_obj == "null":
+        raise exceptions.JobNotFoundError(resource_id)
+    return info.load_from_str(info_obj)
 
 
 def filter_resources(resource_ids: list[str] | None = None) -> list[info.Info]:

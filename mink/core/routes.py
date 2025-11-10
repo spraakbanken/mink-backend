@@ -35,7 +35,7 @@ async def api_specification(request: Request) -> JSONResponse:
 
 # Deprecated, kept for backwards compatibility
 @router.get("/api-spec", include_in_schema=False)
-async def api_specification2(request: Request) -> JSONResponse:
+async def api_specification2(request: Request) -> RedirectResponse:
     """Get the open API specification (in json format) for this API."""
     return RedirectResponse(url=request.url_for("api_specification"))
 
@@ -44,15 +44,15 @@ async def api_specification2(request: Request) -> JSONResponse:
 async def api_documentation(request: Request) -> HTMLResponse:
     """Render ReDoc HTML (documentation for this API)."""
     return get_redoc_html(
-        openapi_url=request.url_for("api_specification"),
-        redoc_favicon_url=request.url_for("static", path="favicon.ico"),
+        openapi_url=str(request.url_for("api_specification")),
+        redoc_favicon_url=str(request.url_for("static", path="favicon.ico")),
         title="Mink API documentation"
     )
 
 
 # Deprecated, kept for backwards compatibility
 @router.get("/api-doc", include_in_schema=False)
-async def api_documentation2(request: Request) -> HTMLResponse:
+async def api_documentation2(request: Request) -> RedirectResponse:
     """Render ReDoc HTML (documentation for this API)."""
     return RedirectResponse(url=request.url_for("api_documentation"))
 
@@ -80,22 +80,24 @@ async def swagger_api_spec(request: Request) -> JSONResponse:
 @router.get("/swagger", response_class=HTMLResponse)
 async def swagger_api_documentation(request: Request) -> HTMLResponse:
     """Render Swagger UI HTML (documentation for this API)."""
-    html = get_swagger_ui_html(
-        openapi_url=request.url_for("swagger_api_spec"),
-        swagger_favicon_url=request.url_for("static", path="favicon.ico"),
+    html_body = get_swagger_ui_html(
+        openapi_url=str(request.url_for("swagger_api_spec")),
+        swagger_favicon_url=str(request.url_for("static", path="favicon.ico")),
         title=request.app.title + " - Swagger UI",
-    ).body.decode()
+    ).body
+    # Decode the HTML body
+    html_body = html_body.tobytes().decode() if isinstance(html_body, memoryview) else html_body.decode()
     # Modify JavaScript to apply API key authentication in each request if SBAUTH_PERSONAL_API_KEY is set
     api_key = settings.SBAUTH_PERSONAL_API_KEY
     if api_key:
         # Insert a requestInterceptor into the swagger UI html
         intercept = f"""requestInterceptor: (req) => {{ req.headers["X-API-Key"] = "{api_key}"; return req; }},\n"""
-        html = re.sub(r"(url: '/swagger-openapi.json',\n)", r"\1" + " " * 8 + intercept, html)
+        html = re.sub(r"(url: '/swagger-openapi.json',\n)", r"\1" + " " * 8 + intercept, html_body)
     return HTMLResponse(html)
 
 
 @router.get("/docs")
-async def developers_guide(request: Request) -> HTMLResponse:
+async def developers_guide(request: Request) -> RedirectResponse:
     """Render mkdocs HTML with the developer's guide."""
     docs_url = request.scope.get("root_path", "") + "/docs/"
     return RedirectResponse(url=docs_url)
@@ -103,7 +105,7 @@ async def developers_guide(request: Request) -> HTMLResponse:
 
 # Deprecated, kept for backwards compatibility
 @router.get("/developers-guide", include_in_schema=False)
-async def developers_guide2(request: Request) -> HTMLResponse:
+async def developers_guide2(request: Request) -> RedirectResponse:
     """Render mkdocs HTML with the developer's guide."""
     return RedirectResponse(url=request.url_for("developers_guide"))
 

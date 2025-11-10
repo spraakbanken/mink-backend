@@ -95,9 +95,9 @@ app.mount("/docs", StaticFiles(directory=docs_site_path, html=True), name="mkdoc
 # ------------------------------------------------------------------------------
 # Register custom exception handlers
 # ------------------------------------------------------------------------------
-app.add_exception_handler(exceptions.MinkHTTPException, exceptions.custom_http_exception_handler)
-app.add_exception_handler(RequestValidationError, exceptions.validation_exception_handler)
-app.add_exception_handler(StarletteHTTPException, exceptions.starlette_exceptions_handler)
+app.add_exception_handler(exceptions.MinkHTTPException, exceptions.custom_http_exception_handler)  # type: ignore
+app.add_exception_handler(RequestValidationError, exceptions.validation_exception_handler)  # type: ignore
+app.add_exception_handler(StarletteHTTPException, exceptions.starlette_exceptions_handler)  # type: ignore
 app.add_exception_handler(Exception, exceptions.internal_server_error_handler)
 
 
@@ -136,13 +136,13 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
     # logger.getLogger("httpx").setLevel("WARNING")
     # Add the Matomo middleware
     app.add_middleware(
-        MatomoMiddleware,
+        MatomoMiddleware,  # type: ignore
         matomo_url=settings.TRACKING_MATOMO_URL,
         idsite=settings.TRACKING_MATOMO_IDSITE,
         access_token=settings.TRACKING_MATOMO_AUTH_TOKEN,
-        http_timeout=settings.TRACKING_MATOMO_HTTP_TIMEOUT,
+        http_timeout=settings.TRACKING_MATOMO_HTTP_TIMEOUT,  # type: ignore
         exclude_paths=["/advance-queue"],
-        ignored_methods=["OPTIONS"],
+        ignored_methods=["OPTIONS"],  # type: ignore
     )
 elif settings.ENV not in {"testing", "development"}:
     logger.warning("Tracking to Matomo disabled, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE.")

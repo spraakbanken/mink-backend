@@ -7,6 +7,7 @@ from typing import ClassVar
 
 import pytest
 from colorama import Fore, Style
+from fastapi.routing import APIRoute
 
 # Ensure mink app and loggers are imported before logging config
 sys.path.insert(0, str((__file__).rsplit("/", 2)[0]))  # Add project root to sys.path if needed
@@ -97,14 +98,15 @@ class RouteInfo:
         self.untagged_routes = []
         self.tested_routes = set()
         for route in app.routes:
-            # Get tags from the route if available
-            if hasattr(route, "tags") and route.tags:
-                self.tag_dict[route.tags[0]].extend((method, route.path) for method in route.methods)
-                self.tagged_routes += 1
-                self.routes.add(route.path)
-            elif hasattr(route, "methods") and hasattr(route, "path"):
-                self.untagged_routes.extend((method, route.path) for method in route.methods)
-                self.routes.add(route.path)
+            if isinstance(route, APIRoute):
+                # Get tags from the route if available and non-empty
+                if hasattr(route, "tags") and route.tags:
+                    self.tag_dict[route.tags[0]].extend((method, route.path) for method in route.methods)
+                    self.tagged_routes += 1
+                    self.routes.add(route.path)
+                elif hasattr(route, "methods") and hasattr(route, "path"):
+                    self.untagged_routes.extend((method, route.path) for method in route.methods)
+                    self.routes.add(route.path)
 
     def set_tested(self, path: str) -> None:
         """Mark a route as tested."""
