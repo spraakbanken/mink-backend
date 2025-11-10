@@ -3,6 +3,13 @@
 All notable API changes will be documented in this file. The format is based on [Keep a
 Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [unreleased]
+
+### Fixed
+
+- Fixed bug: `installed_korp` and `installed_strix` were not reset after uninstallation
+- Type issues reported by pylance have been fixed across the codebase.
+
 ## [2.0.1] - 2025-11-05
 
 ### Fixed
@@ -87,7 +94,7 @@ This is the first release of the Mink backend! This application contains functio
 corpus-related files, processing corpora with [Sparv](https://spraakbanken.gu.se/sparv/) and installing them in
 [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
 
-<!-- [unreleased]: https://github.com/spraakbanken/mink-backend/compare/v2.0.1...dev -->
+[unreleased]: https://github.com/spraakbanken/mink-backend/compare/v2.0.1...dev
 [2.0.1]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.0.1
 [2.0.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.0.0
 [1.1.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v1.1.0

@@ -5,7 +5,7 @@ import json
 import re
 import shlex
 import subprocess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import dateutil
 from fastapi import status
@@ -182,6 +182,18 @@ class Job:
             parent: Parent class instance.
         """
         self.parent = parent
+
+    def set_attribute(self, attribute: str, value: Any) -> None:
+        """Set attribute to new value and save if changed.
+
+        Args:
+            attribute: Attribute.
+            value: New value for the attribute.
+        """
+        # Check if value has changed before updating
+        if getattr(self, attribute) != value:
+            setattr(self, attribute, value)
+            self.parent.update()
 
     def set_status(self, status: Status, process: ProcessName | None = None) -> None:
         """Change the status of a job.
@@ -440,7 +452,7 @@ class Job:
             logger.error("Failed to uninstall corpus %s from Korp: %s", self.id, stderr)
             raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stderr}")
 
-        self.installed_korp = False
+        self.set_attribute("installed_korp", False)
 
     def install_strix(self) -> None:
         """Install a corpus in Strix.
@@ -506,7 +518,7 @@ class Job:
             logger.error("Failed to uninstall corpus %s from Strix: %s", self.id, stderr)
             raise exceptions.JobError(f"Failed to uninstall corpus from Strix: {stderr}")
 
-        self.installed_strix = False
+        self.set_attribute("installed_strix", False)
 
     def abort_sparv(self) -> None:
         """Abort running Sparv process.
