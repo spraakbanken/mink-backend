@@ -166,8 +166,8 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
             ) from e
 
     job = info_item.job
-    job.set_sparv_exports(exports)
-    job.set_current_files(files)
+    job.set_attribute("sparv_exports", exports)
+    job.set_attribute("current_files", files)
 
     # Queue job
     try:
@@ -630,7 +630,7 @@ async def install_korp(
 
     # Queue job
     job = info_item.job
-    job.set_install_scrambled(scramble)
+    job.set_attribute("install_scrambled", scramble)
     try:
         job = registry.add_to_queue(job)
     except Exception as e:

@@ -209,42 +209,6 @@ class Job:
                 self.current_process = process_name
             self.parent.update()
 
-    def set_pid(self, pid: int | None) -> None:
-        """Set pid of job and save.
-
-        Args:
-            pid: Process ID.
-        """
-        self.pid = pid
-        self.parent.update()
-
-    def set_install_scrambled(self, scramble: bool) -> None:
-        """Set status of 'install_scrambled' and save.
-
-        Args:
-            scramble: Scramble status.
-        """
-        self.install_scrambled = scramble
-        self.parent.update()
-
-    def set_sparv_exports(self, sparv_exports: list) -> None:
-        """Set the Sparv exports to be created during the next run.
-
-        Args:
-            sparv_exports: List of Sparv exports.
-        """
-        self.sparv_exports = sparv_exports
-        self.parent.update()
-
-    def set_current_files(self, current_files: list) -> None:
-        """Set the input files to be processed during the next run.
-
-        Args:
-            current_files: List of current files.
-        """
-        self.current_files = current_files
-        self.parent.update()
-
     def get_timedelta(self, end_time: str | None = None) -> int:
         """Get the time elapsed in seconds since 'self.started' until 'end_time' (ISO 8601) or now."""
         if end_time is None:
@@ -380,7 +344,7 @@ class Job:
         # Get pid from Sparv process and store job info
         try:
             float(p.stdout.decode())
-            self.set_pid(int(p.stdout.decode()))
+            self.set_attribute("pid", int(p.stdout.decode()))
         except ValueError:
             pass
         self.set_status(Status.running, ProcessName.sparv)
@@ -424,7 +388,7 @@ class Job:
         # Get pid from Sparv process and store job info
         try:
             float(p.stdout.decode())
-            self.set_pid(int(p.stdout.decode()))
+            self.set_attribute("pid", int(p.stdout.decode()))
         except ValueError:
             pass
         self.set_status(Status.running, ProcessName.korp)
@@ -490,7 +454,7 @@ class Job:
         # Get pid from Sparv process and store job info
         try:
             float(p.stdout.decode())
-            self.set_pid(int(p.stdout.decode()))
+            self.set_attribute("pid", int(p.stdout.decode()))
         except ValueError:
             pass
         self.set_status(Status.running, ProcessName.strix)
@@ -542,7 +506,7 @@ class Job:
 
         p = utils.ssh_run(f"kill -SIGTERM {self.pid}")
         if p.returncode == 0:
-            self.set_pid(None)
+            self.pid = None
             self.set_status(Status.aborted)
             self.ended = utils.get_current_time()
             self.update_job_info()
@@ -551,7 +515,7 @@ class Job:
             stderr = p.stderr.decode()
             # Ignore 'no such process' error
             if stderr.endswith(("Processen finns inte\n", "No such process\n")):
-                self.set_pid(None)
+                self.pid = None
                 logger.debug("Resetting time from abort_sparv due to process not running (corpus %s)", self.id)
                 self.reset_time(reset_started=False)
                 self.set_status(Status.aborted)
@@ -575,7 +539,7 @@ class Job:
                 self.id,
                 p.stderr.decode().strip() if p.stderr else "",
             )
-            self.set_pid(None)
+            self.set_attribute("pid", None)
 
         _warnings, errors, misc, _sparv_ended = self.get_output()
         if self.progress_output == PROGRESS_DONE:
