@@ -183,6 +183,35 @@ def resource_processed(resource_with_sources_and_config: str) -> str:
     return resource_with_sources_and_config
 
 
+def test_manage_exports(resource_processed: str) -> None:
+    """Test manage exports routes."""
+    routes = [
+        ("GET", "/list-exports", f"resource_id={resource_processed}"),
+        ("GET", "/download-exports", f"resource_id={resource_processed}"),
+        ("GET", "/download-source-text", f"resource_id={resource_processed}&file=test_source1.txt"),
+        ("DELETE", "/remove-exports", f"resource_id={resource_processed}"),
+    ]
+    for method, path, query in routes:
+        response = call_route(method, path, query, headers=HEADERS)
+        if path == "/list-exports":
+            json_data = response.json()
+            assert isinstance(json_data.get("contents"), list), "Response should be a list of exports"
+        elif path == "/download-exports":
+            assert response.headers.get("Content-Disposition") is not None, (
+                "Download response should have Content-Disposition header"
+            )
+            assert response.headers.get("Content-Type") == "application/zip", "Download response should be a zip file"
+            assert len(response.content) > 0, "Downloaded exports file should not be empty"
+        elif path == "/remove-exports":
+            json_data = response.json()
+            assert json_data.get("return_code") == "removed_exports", f"Exports removal failed: {json_data}"
+        elif path == "/download-source-text":
+            assert response.headers.get("Content-Type", "").startswith("text/"), (
+                "Download source text should return a text content type"
+            )
+            assert len(response.content) > 0, "Downloaded source text should not be empty"
+
+
 def test_processing_corpora(resource_processed: str) -> None:
     """Test processing corpora routes."""
     routes = [
@@ -236,35 +265,6 @@ def test_manage_metadata() -> None:
     if path == "/download-metadata-yaml":
         assert response.headers.get("Content-Type") == "text/yaml", "Download should return YAML"
         assert len(response.content) > 0, "Downloaded metadata YAML should not be empty"
-
-
-def test_manage_exports(resource_processed: str) -> None:
-    """Test manage exports routes."""
-    routes = [
-        ("GET", "/list-exports", f"resource_id={resource_processed}"),
-        ("GET", "/download-exports", f"resource_id={resource_processed}"),
-        ("GET", "/download-source-text", f"resource_id={resource_processed}&file=test_source1.txt"),
-        ("DELETE", "/remove-exports", f"resource_id={resource_processed}"),
-    ]
-    for method, path, query in routes:
-        response = call_route(method, path, query, headers=HEADERS)
-        if path == "/list-exports":
-            json_data = response.json()
-            assert isinstance(json_data.get("contents"), list), "Response should be a list of exports"
-        elif path == "/download-exports":
-            assert response.headers.get("Content-Disposition") is not None, (
-                "Download response should have Content-Disposition header"
-            )
-            assert response.headers.get("Content-Type") == "application/zip", "Download response should be a zip file"
-            assert len(response.content) > 0, "Downloaded exports file should not be empty"
-        elif path == "/remove-exports":
-            json_data = response.json()
-            assert json_data.get("return_code") == "removed_exports", f"Exports removal failed: {json_data}"
-        elif path == "/download-source-text":
-            assert response.headers.get("Content-Type", "").startswith("text/"), (
-                "Download source text should return a text content type"
-            )
-            assert len(response.content) > 0, "Downloaded source text should not be empty"
 
 
 # ------------------------------------------------------------------------------

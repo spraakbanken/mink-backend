@@ -53,7 +53,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest logging."""
-    default_formatter = ColorFormatter("%(name)s: %(levelname)s - %(message)s")
+    default_formatter = ColorFormatter("  %(name)s: %(levelname)s - %(message)s")
 
     # Get custom log level from command line options
     log_level_str = config.getoption("--custom-log-level").upper()
@@ -85,6 +85,16 @@ def pytest_configure(config: pytest.Config) -> None:
         handler.setFormatter(default_formatter)
         mink_logger.addHandler(handler)
         mink_logger.propagate = False  # Prevent propagation to root logger
+
+
+def pytest_runtest_logstart(nodeid: str) -> None:
+    """Print a message at the start of each test.
+
+    Args:
+        nodeid (str): The test node identifier, in the format 'path/to/file.py::test_name'
+    """
+    test_name = nodeid.split("::")[-1]
+    print(f"\n\n{Fore.CYAN}>>> Running {Fore.WHITE}{test_name}{Style.RESET_ALL}")  # noqa: T201
 
 
 class RouteInfo:
