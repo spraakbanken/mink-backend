@@ -9,6 +9,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Fixed bug: `installed_korp` and `installed_strix` were not reset after uninstallation
 - Type issues reported by pylance have been fixed across the codebase.
+- Restore `owner` in resource info
 
 ## [2.0.1] - 2025-11-05
 
