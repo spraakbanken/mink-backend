@@ -70,8 +70,8 @@ fi
 cat output/mink_api.md.tmp >> output/mink_api.md
 rm output/mink_api.md.tmp
 
-# Extract mink version number
-mink_version=$(grep -P '(?<=__version__ = ").+(?=")' -o ../../mink/main.py)
+# Extract mink version number from pyproject.toml
+mink_version=$(grep -Po '(?<=^version = ")[^"]+' ../../pyproject.toml)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Frontend report

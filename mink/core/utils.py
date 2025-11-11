@@ -11,6 +11,7 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
+import tomllib
 import yaml
 from fastapi import status
 from fastapi.responses import JSONResponse
@@ -185,6 +186,22 @@ class LimitRequestSizeMiddleware:
             return {"type": "http.request", "body": b"", "more_body": False}
 
         await self.app(scope, replay_receive, send)
+
+
+def get_version_from_pyproject(path: Path = Path("pyproject.toml")) -> str:
+    """Get the version of the project from the pyproject.toml file.
+
+    Args:
+        path: Path to the pyproject.toml file.
+    """
+    # print absolute path
+    path = path.resolve()
+    if not path.exists() or not path.is_file():
+        logger.error("Could not find pyproject.toml file at %s", path)
+        raise FileNotFoundError(f"Could not find pyproject.toml file at {path}")
+    with path.open("rb") as f:
+        data = tomllib.load(f)
+    return data["project"]["version"]
 
 
 def build_docs() -> None:

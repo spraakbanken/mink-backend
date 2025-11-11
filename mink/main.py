@@ -1,7 +1,5 @@
 """Instantiation of FastAPI app."""
 
-__version__ = "2.1.0.dev"
-
 import shutil
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
@@ -24,6 +22,8 @@ from mink.metadata import routes as metadata_routes
 from mink.sb_auth import routes as login_routes
 from mink.sparv import process_routes, storage_routes
 
+MINK_VERSION = utils.get_version_from_pyproject()
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
@@ -38,7 +38,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     # -------------------------------
     # Startup logic
     # -------------------------------
-    logger.info("Starting Mink version: %s", __version__)
+    logger.info("Starting Mink version: %s", MINK_VERSION)
 
     # Make sure required config variables are set
     if not settings.CACHE_CLIENT:
@@ -77,7 +77,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
 # Deactivate default Redoc, Swagger UI and openapi_url because we use custom routes
 app = FastAPI(
     lifespan=lifespan,
-    version=__version__,
+    version=MINK_VERSION,
     root_path=settings.ROOT_PATH,
     redoc_url=None,
     docs_url=None,
@@ -175,11 +175,11 @@ def custom_openapi() -> dict:
         openapi_info = yaml.safe_load(file)
     openapi_schema = get_openapi(
         title=openapi_info["info"]["title"],
-        version=__version__,
+        version=MINK_VERSION,
         routes=app.routes,
     )
     openapi_schema["info"] = openapi_info["info"]
-    openapi_schema["info"]["version"] = __version__
+    openapi_schema["info"]["version"] = MINK_VERSION  # Need to set version again since it is overridden above
     openapi_schema["tags"] = openapi_info["tags"]
     openapi_schema["servers"] = []
     if settings.ENV in {"development", "testing"}:

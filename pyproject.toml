@@ -1,6 +1,6 @@
 [project]
 name = "mink-backend"
-dynamic = ["version"]
+version = "2.1.0.dev"
 description = ""
 readme = "README.md"
 requires-python = ">=3.10"
@@ -67,9 +67,6 @@ preview = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[tool.hatch]
-version.path = "mink/__init__.py"
 
 [tool.pytest.ini_options]
 addopts = "-s -v --tb=no --custom-log-level=info"
