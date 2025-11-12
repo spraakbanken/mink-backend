@@ -201,6 +201,25 @@ class JobModel(BaseModel):
     }
 
 
+class UserModel(BaseModel):
+    """Model for the user object."""
+    user_id: str = Field(default="", alias="id", description="User ID")
+    name: str = Field(default="", description="Name of the user")
+    email: str = Field(default="", description="Email address of the user")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "id": "user-abc123",
+                    "name": "Anna Andersson",
+                    "email": "anna.andersson@example.com",
+                }
+            ]
+        }
+    }
+
+
 # ----------------------------------------------------
 # Error response models
 # ----------------------------------------------------
