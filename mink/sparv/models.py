@@ -151,43 +151,12 @@ class ExportsResponse(models.BaseResponse):
     }
 
 
-class ResourceModel(BaseModel):
-    """Model for the resource object."""
-    resource_id: str = Field(default="", alias="id", description="Mink resource ID")
-    public_id: str = Field(default="", description="Public resource ID")
-    name: dict[str, str] = Field(
-        default={},
-        description="Name of the resource in different languages",
-    )
-    resource_type: str = Field(
-        default="", alias="type", description="Type of the resource (e.g., 'corpus', 'metadata')"
-    )
-    source_files: list[models.FileModel] = Field(
-        default=[],
-        description="List of source files associated with the resource",
-    )
-
-    model_config: ClassVar[dict] = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "id": "mink-dxh6e6wtff",
-                    "public_id": "mink-dxh6e6wtff",
-                    "name": {"swe": "Min testkorpus", "eng": ""},
-                    "type": "corpus",
-                    "source_files": models.FileModel.model_config["json_schema_extra"]["examples"],
-                }
-            ]
-        }
-    }
-
-
 class ResourceStatusModel(BaseModel):
-    """Model for the status of a resource."""
+    """Model for the status of a resource (used as base for StatusResponse and StatusesResponse)."""
 
     message: str = Field(default="", description="Message describing the status of the resource")
-    resource: ResourceModel = Field(
-        default=ResourceModel(),
+    resource: models.ResourceModel = Field(
+        default=models.ResourceModel(),
         description="Resource object containing information about the corpus",
     )
     owner: models.UserModel = Field(
@@ -203,9 +172,9 @@ class ResourceStatusModel(BaseModel):
             "examples": [
                     {
                 "message": "Job has been queued",
-                "resource": ResourceModel.model_config["json_schema_extra"]["examples"][0],
-                "owner": models.UserModel.model_config["json_schema_extra"]["examples"][0],
-                "job": models.JobModel.model_config["json_schema_extra"]["examples"][0],
+                "resource": models.resource_model_example,
+                "owner": models.user_model_example,
+                "job": models.job_model_examples[0],
             }
             ]
         }
@@ -222,8 +191,8 @@ class StatusResponse(models.BaseResponse, ResourceStatusModel):
                     "status": "success",
                     "message": "Job has been queued",
                     "return_code": "job_queued",
-                    "resource": ResourceModel.model_config["json_schema_extra"]["examples"][0],
-                    "job": models.JobModel.model_config["json_schema_extra"]["examples"],
+                    "resource": models.resource_model_example,
+                    "job": models.job_model_examples[0],
                 }
             ]
         }
@@ -268,7 +237,7 @@ class StatusesResponse(models.BaseResponse):
                                     },
                                 ],
                             },
-                            "job": models.JobModel.model_config["json_schema_extra"]["examples"][0],
+                            "job": models.job_model_examples[0],
                         },
                         {
                             "message": "Job was completed successfully",
@@ -308,7 +277,7 @@ class StatusesResponse(models.BaseResponse):
                                     },
                                 ],
                             },
-                            "job": models.JobModel.model_config["json_schema_extra"]["examples"][1],
+                            "job": models.job_model_examples[1],
                         }
                     ]
                 }

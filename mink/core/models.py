@@ -120,6 +120,60 @@ class StatusModel(BaseModel):
     }
 
 
+job_model_examples = [
+    {
+        "status": {
+            "sync2sparv": "done",
+            "sync2storage": "running",
+            "sparv": "waiting",
+            "korp": "error",
+            "strix": "none",
+        },
+        "current_process": "sparv",
+        "pid": None,
+        "sparv_exports": ["csv_export:csv", "stats_export:freq_list", "xml_export:pretty"],
+        "current_files": ["dokument1", "dokument2"],
+        "install_scrambled": True,
+        "installed_korp": True,
+        "installed_strix": True,
+        "priority": 1,
+        "warnings": "",
+        "errors": "",
+        "sparv_output": "Nothing to be done.",
+        "started": "2024-01-02T14:31:26+01:00",
+        "ended": "",
+        "duration": 10,
+        "progress": "0%",
+    },
+    {
+        "status": {
+            "sync2sparv": "none",
+            "sync2storage": "none",
+            "sparv": "done",
+            "korp": "aborted",
+            "strix": "done",
+        },
+        "current_process": "sparv",
+        "pid": None,
+        "sparv_exports": ["xml_export:pretty", "csv_export:csv", "stats_export:sbx_freq_list"],
+        "current_files": [],
+        "install_scrambled": True,
+        "installed_korp": True,
+        "installed_strix": True,
+        "priority": "",
+        "warnings": "",
+        "errors": "",
+        "sparv_output": "The exported files can be found in the following locations:\n • export"
+        "/csv_export/\n • export/stats_export.frequency_list_sbx/\n • export/"
+        "xml_export.pretty/",
+        "started": "2023-12-11T13:24:09+01:00",
+        "ended": "",
+        "duration": 20,
+        "progress": "100%",
+    },
+]
+
+
 class JobModel(BaseModel):
     """Model for job."""
     status: StatusModel = Field(
@@ -145,59 +199,15 @@ class JobModel(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "examples": [
-                {
-                    "status": {
-                        "sync2sparv": "done",
-                        "sync2storage": "running",
-                        "sparv": "waiting",
-                        "korp": "error",
-                        "strix": "none",
-                    },
-                    "current_process": "sparv",
-                    "pid": None,
-                    "sparv_exports": ["csv_export:csv", "stats_export:freq_list", "xml_export:pretty"],
-                    "current_files": ["dokument1", "dokument2"],
-                    "install_scrambled": True,
-                    "installed_korp": True,
-                    "installed_strix": True,
-                    "priority": 1,
-                    "warnings": "",
-                    "errors": "",
-                    "sparv_output": "Nothing to be done.",
-                    "started": "2024-01-02T14:31:26+01:00",
-                    "ended": "",
-                    "duration": 10,
-                    "progress": "0%",
-                },
-                {
-                    "status": {
-                        "sync2sparv": "none",
-                        "sync2storage": "none",
-                        "sparv": "done",
-                        "korp": "aborted",
-                        "strix": "done",
-                    },
-                    "current_process": "sparv",
-                    "pid": None,
-                    "sparv_exports": ["xml_export:pretty", "csv_export:csv", "stats_export:sbx_freq_list"],
-                    "current_files": [],
-                    "install_scrambled": True,
-                    "installed_korp": True,
-                    "installed_strix": True,
-                    "priority": "",
-                    "warnings": "",
-                    "errors": "",
-                    "sparv_output": "The exported files can be found in the following locations:\n • export"
-                    "/csv_export/\n • export/stats_export.frequency_list_sbx/\n • export/"
-                    "xml_export.pretty/",
-                    "started": "2023-12-11T13:24:09+01:00",
-                    "ended": "",
-                    "duration": 20,
-                    "progress": "100%",
-                },
-            ]
+            "examples": [*job_model_examples]
         }
+    }
+
+
+user_model_example = {
+        "id": "user-abc123",
+        "name": "Anna Andersson",
+        "email": "anna.andersson@example.com",
     }
 
 
@@ -208,16 +218,36 @@ class UserModel(BaseModel):
     email: str = Field(default="", description="Email address of the user")
 
     model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "id": "user-abc123",
-                    "name": "Anna Andersson",
-                    "email": "anna.andersson@example.com",
-                }
-            ]
-        }
+        "json_schema_extra": {"examples": [user_model_example]}  # type: ignore
     }
+
+
+resource_model_example = {
+    "id": "mink-dxh6e6wtff",
+    "public_id": "mink-dxh6e6wtff",
+    "name": {"swe": "Min testkorpus", "eng": ""},
+    "type": "corpus",
+    "source_files": [*file_model_examples],
+}
+
+
+class ResourceModel(BaseModel):
+    """Model for the resource object."""
+    resource_id: str = Field(default="", alias="id", description="Mink resource ID")
+    public_id: str = Field(default="", description="Public resource ID")
+    name: dict[str, str] = Field(
+        default={},
+        description="Name of the resource in different languages",
+    )
+    resource_type: str = Field(
+        default="", alias="type", description="Type of the resource (e.g., 'corpus', 'metadata')"
+    )
+    source_files: list[FileModel] = Field(
+        default=[],
+        description="List of source files associated with the resource",
+    )
+
+    model_config = {"json_schema_extra": {"examples": [resource_model_example]}}
 
 
 # ----------------------------------------------------
