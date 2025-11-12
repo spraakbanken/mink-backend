@@ -190,6 +190,9 @@ class ResourceStatusModel(BaseModel):
         default=ResourceModel(),
         description="Resource object containing information about the corpus",
     )
+    owner: models.UserModel = Field(
+        default=models.UserModel(), description="User object containing information about the resource owner"
+    )
     job: models.JobModel = Field(
         default=models.JobModel(),
         description="Job object containing information about the job status",
@@ -201,6 +204,7 @@ class ResourceStatusModel(BaseModel):
                     {
                 "message": "Job has been queued",
                 "resource": ResourceModel.model_config["json_schema_extra"]["examples"][0],
+                "owner": models.UserModel.model_config["json_schema_extra"]["examples"][0],
                 "job": models.JobModel.model_config["json_schema_extra"]["examples"][0],
             }
             ]
