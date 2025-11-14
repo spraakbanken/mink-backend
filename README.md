@@ -11,7 +11,7 @@ problems or suggestions please contact <sb-mink@svenska.gu.se>.
 
 ## Prerequisites
 
-* [Python 3.10](http://python.org/) or newer
+* [Python 3.11](http://python.org/) or newer
 * [memcached](http://memcached.org/)
 
 ## How to Run a Development Server
