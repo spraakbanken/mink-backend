@@ -301,3 +301,12 @@ Additionally, you can download the OpenAPI Specification from the `/openapi.json
 [Apidog](https://apidog.com/) or [Postman](https://www.postman.com/). When using these tools, you may need to configure
 environment variables like `host` (e.g., `http://localhost:8000`) and set up authentication (using either JWT or API
 key).
+
+## Release
+
+The script `release.sh` in the project root directory automates the release process. For more information, see the
+comments in the script itself and run `./release.sh -h`.
+
+When creating a major release, please follow the [todo for major
+release](https://github.com/spraakbanken/dev-docs/blob/main/projektinformation/Mink.md#todo-for-major-release) (only
+available internally at Språkbanken).
