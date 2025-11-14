@@ -11,7 +11,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Type issues reported by pylance have been fixed across the codebase.
 - Restore `owner` in resource info
 
-## Changed
+### Changed
 
 - Raised minimum Python version to 3.11.
 
