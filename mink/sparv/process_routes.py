@@ -67,7 +67,7 @@ router = APIRouter()
 async def run_sparv(
     exports: list[str] | None = Query(None, description="Sparv exports to produce"),
     files: list[str] | None = Query(None, description="Source files to process"),
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
 ) -> JSONResponse:
     """Add a Sparv annotation job for the corpus to the queue.
 
@@ -414,7 +414,7 @@ async def resource_info(
         },
     },
 )
-async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WRITE"))) -> JSONResponse:
     """Abort the currently running job for the corpus.
 
     If the job is in the queue but not yet running, it will be removed from the queue. If the job is running, it will be
@@ -526,7 +526,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency())) -> JSONRe
         },
     },
 )
-async def clear_annotations(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def clear_annotations(auth_data: dict = Depends(login.AuthDependency(min_level="WRITE"))) -> JSONResponse:
     """Remove all annotation files for the corpus from the Sparv server.
 
     This action cannot be performed while a job is running.
@@ -586,7 +586,7 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency())) -
 )
 async def install_korp(
     scramble: bool = Query(False, description="Indicates whether the corpus should be scrambled in Korp"),
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
 ) -> JSONResponse:
     """Install the corpus in Korp with Sparv.
 
@@ -692,7 +692,7 @@ async def install_korp(
         },
     },
 )
-async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency(min_level="WRITE"))) -> JSONResponse:
     """Uninstall the corpus from Korp with Sparv.
 
     ### Example
@@ -748,7 +748,7 @@ async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency())) -> J
         },
     },
 )
-async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level="WRITE"))) -> JSONResponse:
     """Install the corpus in Strix with Sparv.
 
     ### Example
@@ -850,7 +850,7 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency())) -> JS
         },
     },
 )
-async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency(min_level="WRITE"))) -> JSONResponse:
     """Uninstall the corpus from Strix with Sparv.
 
     ### Example
