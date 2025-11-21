@@ -50,15 +50,15 @@ if __name__ == "__main__":
         host=args.host,
         port=args.port,
         reload=True,
-            reload_includes=["mink/**/*", "templates/**/*", "docs/developers-guide.md", "docs/mkdocs/index.md"],
-            reload_excludes=[
-                "run.py",
-                "queue_manager.py",
-                "tests/*.py",
-                "**/__pycache__/*",
-                "mink/__pycache__",
-                "**/*.pyc",
-                "**/*.pyo",
-            ],
+        reload_includes=["mink/**/*", "templates/**/*", "docs/developers-guide.md", "docs/mkdocs/index.md"],
+        reload_excludes=[
+            "run.py",
+            "queue_manager.py",
+            "tests/*.py",
+            "**/__pycache__/*",
+            "mink/__pycache__",
+            "**/*.pyc",
+            "**/*.pyo",
+        ],
         log_config=None,  # Prevents uvicorn from overriding the above logging config
     )
