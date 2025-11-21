@@ -3,15 +3,16 @@
 import datetime
 import gzip
 import hashlib
+import logging
 import os
 import pickle
 import shutil
 import subprocess
+import tomllib
 import zipfile
 from pathlib import Path
 from typing import Any
 
-import tomllib
 import yaml
 from fastapi import status
 from fastapi.responses import JSONResponse
@@ -210,6 +211,8 @@ def build_docs() -> None:
         # Load the MkDocs configuration and build the documentation
         os.environ["BASE_URL"] = settings.MINK_URL
         config = load_config("docs/mkdocs.yml")
+        # Suppress some chatty logs
+        logging.getLogger("mkdocs.plugins.mkdocs_macros.util").setLevel("WARNING")
         build.build(config)
     except Exception:
         logger.exception("Error building MkDocs documentation.")

@@ -39,6 +39,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     # Startup logic
     # -------------------------------
     logger.info("Starting Mink version: %s", MINK_VERSION)
+    logger.debug("Environment: %s. Log level: %s", settings.ENV, settings.LOG_LEVEL)
 
     # Make sure required config variables are set
     if not settings.CACHE_CLIENT:
@@ -133,7 +134,7 @@ app.add_middleware(utils.LimitRequestSizeMiddleware)
 if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
     logger.info("Enabling tracking to Matomo")
     # # Suppress some chatty logs
-    # logger.getLogger("httpx").setLevel("WARNING")
+    # logging.getLogger("httpx").setLevel("WARNING")
     # Add the Matomo middleware
     app.add_middleware(
         MatomoMiddleware,  # type: ignore

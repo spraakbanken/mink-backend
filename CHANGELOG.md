@@ -5,6 +5,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [unreleased]
 
+### Changed
+
+- Improved logging configuration in development mode (i.e. when running with `run.py`) which makes all logs appear in
+  the console and reduces noise from certain modules.
+
 ## [2.0.2] - 2025-11-14
 
 ### Fixed
