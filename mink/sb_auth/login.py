@@ -31,7 +31,7 @@ async def get_auth_data(
     resource_id: str | None = Query(None, description="Resource ID"),
     jwt_token: str | None = Security(oauth2_scheme),
     api_key: str | None = Security(api_key_scheme),
-    include_read: bool = False,
+    min_level: str = "READ",
     require_resource_id: bool = True,
     require_resource_exists: bool = True,
     require_admin: bool = False,
@@ -45,7 +45,7 @@ async def get_auth_data(
         resource_id: The resource ID from the query parameter.
         jwt_token: The JWT token from the request.
         api_key: The API key from the request.
-        include_read: Include resources that the user has read access to.
+        min_level: Minimum access level to filter user's resources by.
         require_resource_id: The route requires the user to supply a resource ID.
         require_resource_exists: The route requires that the supplied resource ID occurs in the JWT.
         require_admin: The route requires the user to be a mink admin.
@@ -118,7 +118,7 @@ async def get_auth_data(
     # Get user info and which resources the user has access to from SB Auth
     user = auth.get_user()
     is_admin = auth.is_admin()
-    sb_auth_resources = auth.get_resource_ids(include_read)
+    sb_auth_resources = auth.get_resource_ids(min_level)
     all_resources = cache_utils.get_all_resources()
     # Get intersection between resources in SB Auth and resources in Mink-backend
     # (in case SB Auth is used for multiple backends)
@@ -176,13 +176,13 @@ class AuthDependency:
 
     def __init__(
         self,
-        include_read: bool = False,
+        min_level: str = "READ",
         require_resource_id: bool = True,
         require_resource_exists: bool = True,
         require_admin: bool = False,
     ) -> None:
         """Initialize the AuthDependency class."""
-        self.include_read = include_read
+        self.min_level = min_level
         self.require_resource_id = require_resource_id
         self.require_resource_exists = require_resource_exists
         self.require_admin = require_admin
@@ -205,7 +205,7 @@ class AuthDependency:
             resource_id,
             jwt_token,
             api_key,
-            self.include_read,
+            self.min_level,
             self.require_resource_id,
             self.require_resource_exists,
             self.require_admin,
@@ -228,7 +228,7 @@ class AuthDependencyNoResourceId(AuthDependency):
             session_id=session_id,
             jwt_token=jwt_token,
             api_key=api_key,
-            include_read=self.include_read,
+            min_level=self.min_level,
             require_resource_id=False,
             require_resource_exists=False,
             require_admin=self.require_admin,
@@ -269,16 +269,15 @@ class Authentication:
         """Return user."""
         return self.user
 
-    def get_resource_ids(self, include_read: bool = False) -> list[str]:
+    def get_resource_ids(self, min_level: str = "READ") -> list[str]:
         """Get a list of all resource IDs the user has access to.
 
         Args:
-            include_read: Include resources that the user has read access to.
+            min_level: Minimum access level to filter by.
 
         Returns:
             A list of resource IDs.
         """
-        min_level = "READ" if include_read else "WRITE"
 
         def is_relevant(resource_id: str, level: int) -> bool:
             return level >= self.levels[min_level] and resource_id.startswith(settings.RESOURCE_PREFIX)

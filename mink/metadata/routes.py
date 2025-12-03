@@ -223,7 +223,7 @@ async def create_metadata(
         },
     },
 )
-async def remove_metadata(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_level="ADMIN"))) -> JSONResponse:
     """Remove a metadata resource.
 
     ### Example
@@ -326,7 +326,7 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency())) -> 
 async def upload_metadata_yaml(
     metadata_txt: str | None = Query(None, alias="yaml", description="The yaml metadata in plain text"),
     yaml_file: UploadFile = models.upload_file_opt_param,
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
 ) -> JSONResponse:
     """Upload a YAML metadata file or provide metadata as plain text.
 

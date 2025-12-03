@@ -176,7 +176,7 @@ async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceI
     },
 )
 async def list_korp_corpora(
-    auth_data: dict = Depends(login.AuthDependencyNoResourceId(include_read=True)),
+    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
 ) -> JSONResponse:
     """List the IDs of the user's Mink corpora that are installed in Korp.
 
@@ -237,7 +237,7 @@ async def list_korp_corpora(
         },
     },
 )
-async def remove_corpus(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level="ADMIN"))) -> JSONResponse:
     """Remove a corpus from the storage server.
 
     Will attempt to abort any running job for this corpus and also remove it from the Sparv server.
@@ -374,7 +374,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency())) -> JS
 async def upload_sources(
     request: Request,
     files: list[UploadFile] = File(..., description="The files to upload"),
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
 ) -> JSONResponse:
     """Upload the attached files as corpus source files.
 
@@ -631,7 +631,7 @@ async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSO
 )
 async def remove_sources(
     remove: list[str] = Query(..., description="Files to remove, comma-separated"),
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
 ) -> JSONResponse:
     """Remove the source files given in the `remove` parameter from the corpus.
 
@@ -874,7 +874,7 @@ async def download_sources(
 async def upload_config(
     upload_file: UploadFile | None = models.upload_file_opt_param,
     config_txt: str | None = Query(None, alias="config", description="The config file as plain text"),
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
 ) -> JSONResponse:
     """Upload a corpus configuration as file or plain text (using the `config` parameter).
 
@@ -1349,7 +1349,7 @@ async def download_exports(
         },
     },
 )
-async def remove_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_level="WRITE"))) -> JSONResponse:
     """Remove all export files for the corpus from the storage server.
 
     Will attempt to remove exports from the Sparv server, too, but won't crash if this fails.
