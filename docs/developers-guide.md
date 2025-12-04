@@ -280,9 +280,8 @@ the `openapi_info.yaml` file in the `mink` directory.
 
 ## Testing
 
-Automated tests are provided to exercise the Mink backend's API routes and validate a complete resource lifecycle. These
-tests use `pytest`. Ensure all required dependencies are installed (for example, by running `pip install -r
-requirements-dev.txt`), then execute:
+Automated tests are provided to exercise the Mink backend's API routes and validate a complete resource lifecycle. To
+run the tests, use `pytest` (with an activated virtual environment, or prefix the command with `uv run`):
 
 ```bash
 pytest [--custom-log-level=<log_level>] [--mink-log-level=<log_level>] [-k <test_name>]

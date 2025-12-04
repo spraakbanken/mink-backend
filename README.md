@@ -14,23 +14,52 @@ problems or suggestions please contact <sb-mink@svenska.gu.se>.
 * [Python 3.11](http://python.org/) or newer
 * [memcached](http://memcached.org/)
 
+## Installation
+
+To install the dependencies, we recommend using [uv](https://docs.astral.sh/uv/).
+
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if you don't have it already.
+2. While in the mink-backend directory, run:
+
+   ```sh
+   uv sync --no-install-project
+   ```
+
+   This will create a virtual environment in the `.venv` directory and install the dependencies listed in
+   `pyproject.toml`.
+
+Alternatively, you can set up a virtual environment manually using Python's built-in `venv` module and install the
+dependencies using pip:
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
 ## How to Run a Development Server
 
-Install the requirements listed in `requirements-dev.txt` e.g. by using a Python virtual environment. Start the
-development server:
+default when running `uv sync`, unless `--no-dev` is specified). Start the development server (with and activated venv,
+alternatively with the `uv run` prefix, but then you can drop the `python` from the commands) with:
+
+Ensure the dependencies listed in the `[dev]` section of `pyproject.toml` are installed. These are included by default
+when running `uv sync`, unless you specify `--no-dev`.
+
+To start the development server (with an activated virtual environment or with the `uv run` prefix, dropping `python`
+from the commands), run:
 
 ```bash
 python run.py [--host <host>] [--port <port>]
 ```
 
-Start the queue manager:
+To start the queue manager, run:
 
 ```bash
 python queue_manager.py
 ```
 
-Now your development server should be up and running and you should be able to access the documentation pages
-(<http://localhost:8000/docs>).
+Once started, your development server will be running and you can access the API documentation at:
+<http://localhost:8000/docs>
 
 ## Configuration
 
@@ -48,8 +77,7 @@ To enable tracking to Matomo, set the following config variables:
 
 ## Testing
 
-The automatic tests are run with `pytest`. Make sure you have the dev dependencies installed (e.g. by running `pip
-install -r requirements-dev.txt`), and then run:
+To run the automated tests, use `pytest` (with an activated virtual environment, or prefix the command with `uv run`):
 
 ```bash
 pytest [--custom-log-level=<log_level>] [--mink-log-level=<log_level>] [-k <test_name>]
