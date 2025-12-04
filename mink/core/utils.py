@@ -109,7 +109,7 @@ class LimitRequestSizeMiddleware:
         """Send a 413 Payload Too Large response."""
         max_size_mb = int(self.max_body_size / (1024 * 1024))
         resp = response(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             **models.ErrorResponse413(
                 message=f"Request data too large (max {max_size_mb} MB per upload)",
                 return_code="data_too_large",

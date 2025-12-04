@@ -48,7 +48,7 @@ def validation_exception_handler(_request: Request, exc: RequestValidationError)
         errors.append(field_string + f" ({pydantic_error['msg']})")
 
     return utils.response(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, **models.ErrorResponse422(errors=errors).model_dump()
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, **models.ErrorResponse422(errors=errors).model_dump()
     )
 
 

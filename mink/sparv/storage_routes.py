@@ -340,7 +340,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
                 }
             },
         },
-        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE: {
+        status.HTTP_413_CONTENT_TOO_LARGE: {
             "model": models.ErrorResponse413,
             "content": {
                 "application/json": {
@@ -411,7 +411,7 @@ async def upload_sources(
     if not utils.size_ok(source_dir, content_length):
         max_size_mb = int(settings.MAX_CORPUS_LENGTH / (1024 * 1024))
         raise exceptions.MinkHTTPException(
-            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status.HTTP_413_CONTENT_TOO_LARGE,
             message=f"Failed to upload source files to '{resource_id}'. Max corpus size ({max_size_mb} MB) exceeded",
             return_code="failed_uploading_sources_corpus_size",
             info="max corpus size exceeded",
@@ -463,7 +463,7 @@ async def upload_sources(
         file_contents = await f.read()
         if len(file_contents) > settings.MAX_FILE_LENGTH:
             raise exceptions.MinkHTTPException(
-                status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status.HTTP_413_CONTENT_TOO_LARGE,
                 message=(
                     f"Failed to upload some source files to '{resource_id}'. "
                     f"Max file size ({max_file_size_mb} MB) exceeded"

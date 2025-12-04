@@ -394,7 +394,7 @@ class ErrorResponse500(BaseErrorResponse):
 common_auth_error_responses = {
     status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponse401},
     status.HTTP_404_NOT_FOUND: {"model": ErrorResponse404},
-    status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": ErrorResponse422},
+    status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponse422},
     status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": ErrorResponse500}
 }
 

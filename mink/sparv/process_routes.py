@@ -1054,7 +1054,7 @@ async def sparv_languages() -> JSONResponse:
     tags=["Documentation"],
     response_model=sparv_models.ExportsResponse,
     responses={
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": models.ErrorResponse422},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
