@@ -168,7 +168,7 @@ class WriteError(Exception):
 
 class CacheConnectionError(Exception):
     """Exception used for when the cache client could not connect."""
-    def __init__(self, server: str, error: str) -> None:
+    def __init__(self, server: str, error: Exception) -> None:
         """Initialize the exception with a message."""
         super().__init__(f"Could not connect to cache server at {server}: {error}")
 

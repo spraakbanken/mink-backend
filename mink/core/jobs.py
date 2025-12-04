@@ -588,7 +588,7 @@ class Job:
                         errors.append("ERROR " + msg)
                     else:
                         misc.append(msg)
-                except json.JSONDecodeError:  # noqa: PERF203
+                except json.JSONDecodeError:
                     # Catch "real" time output
                     if re.match(r"real \d.+", line):
                         real_seconds = float(line[5:].strip())
@@ -783,7 +783,7 @@ class DefaultJob:
 
     def list_languages(self) -> list:
         """List the languages available in Sparv."""
-        # Create and corpus dir with config file on Sparv server
+        # Create corpus dir with config file on Sparv server
         p = utils.ssh_run(
             f"mkdir -p {self.remote_corpus_dir_esc} && "
             f"echo 'metadata:\n  language: {self.lang}' > "

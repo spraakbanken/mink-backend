@@ -235,7 +235,7 @@ async def advance_queue(
                 except exceptions.ProcessNotRunningError:
                     pass
                 registry.pop_from_queue(job)
-        except Exception:  # noqa: PERF203
+        except Exception:
             logger.exception("Failed to check if process is running for '%s'", job.id)
 
     # Get running jobs again in case jobs were unqueued in the previous step
