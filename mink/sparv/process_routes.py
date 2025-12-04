@@ -958,6 +958,54 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
 
 
 @router.get(
+    "/sparv-schema",
+    tags=["Documentation"],
+    response_model=sparv_models.SchemaResponse,
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": "Failed getting Sparv schema",
+                        "return_code": "failed_getting_sparv_schema",
+                        "info": "BaseException",
+                    },
+                }
+            },
+        }
+    },
+)
+async def sparv_schema(
+    update_cache: bool = Query(
+        False, description="If true, force update the cached Sparv schema", alias="update-cache"
+    ),
+) -> JSONResponse:
+    """Get the JSON schema for the Sparv config format.
+
+    ### Example
+
+    ```bash
+    curl -X GET '{{host}}/sparv-schema'
+    ```
+    """
+    try:
+        job = jobs.DefaultJob()
+        schema = job.get_sparv_schema(update_cache=update_cache)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed getting Sparv schema",
+            return_code="failed_getting_sparv_schema",
+            info=str(e),
+        ) from e
+    return utils.response(
+        message="Getting Sparv config schema", return_code="getting_sparv_schema", sparv_schema=schema
+    )
+
+
+@router.get(
     "/sparv-languages",
     tags=["Documentation"],
     response_model=sparv_models.LanguagesResponse,

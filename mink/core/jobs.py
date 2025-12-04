@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 import dateutil
 from fastapi import status
 
+from mink.cache import cache_utils
 from mink.core import exceptions, registry, utils
 from mink.core.config import settings
 from mink.core.logging import logger
@@ -753,6 +754,32 @@ class DefaultJob:
         self.remote_corpus_dir = sparv_utils.get_corpus_dir(self.lang, default_dir=True)
         self.remote_corpus_dir_esc = shlex.quote(str(self.remote_corpus_dir))
         self.config_file = settings.SPARV_CORPUS_CONFIG
+
+    @staticmethod
+    def get_sparv_schema(update_cache: bool = False) -> dict:
+        """JSON schema for the Sparv config format."""
+        if not update_cache:
+            # Get from cache if available
+            cached_schema = cache_utils.get_sparv_schema()
+            if cached_schema:
+                return cached_schema
+
+        p = utils.ssh_run(f"{settings.SPARV_ENVIRON} {settings.SPARV_COMMAND} schema")
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            raise exceptions.JobError(f"Failed to run Sparv: {stderr}")
+
+        stdout = p.stdout.decode() if p.stdout else ""
+        try:
+            json_data = json.loads(stdout.strip())
+        except json.JSONDecodeError as e:
+            raise exceptions.JobError("Failed to parse Sparv output as JSON") from e
+
+        # Cache json data
+        cache_utils.set_sparv_schema(json_data)
+
+        return json_data
 
     def list_languages(self) -> list:
         """List the languages available in Sparv."""

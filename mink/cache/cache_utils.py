@@ -190,3 +190,23 @@ def remove_cookie_data(cookie: str) -> None:
     """
     with cache.get_client() as client:
         client.delete(f"cookie_data_{cookie}")
+
+
+def set_sparv_schema(schema: dict) -> None:
+    """Store Sparv schema in cache.
+
+    Args:
+        schema: The Sparv schema as a dictionary.
+    """
+    with cache.get_client() as client:
+        client.set("sparv_schema", schema, expire=settings.SPARV_SCHEMA_CACHE_LIFETIME)
+
+
+def get_sparv_schema() -> dict | None:
+    """Get cached Sparv schema.
+
+    Returns:
+        The Sparv schema as a dictionary, or None if not found.
+    """
+    with cache.get_client() as client:
+        return client.get("sparv_schema")

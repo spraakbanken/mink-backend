@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     # Cache settings
     CACHE_CLIENT: str = "127.0.0.1:11211"  # Server address or a path to a socket, e.g. "/var/run/memcached.sock"
     ADMIN_MODE_LIFETIME: int = 60 * 60 * 12  # How long the admin mode is active (in seconds)
+    SPARV_SCHEMA_CACHE_LIFETIME: int = 60 * 60 * 24 * 10  # How long to cache Sparv schema info (in seconds)
 
     # File upload settings
     MAX_CONTENT_LENGTH: int = 1024 * 1024 * 100  # Max size (bytes) for one request

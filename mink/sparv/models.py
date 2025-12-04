@@ -75,6 +75,28 @@ class CheckChangesResponse(models.BaseResponse):
     }
 
 
+class SchemaResponse(models.BaseResponse):
+    """Model for the /sparv-schema response."""
+
+    sparv_schema: dict = Field(
+        default={}, alias="schema", description="The JSON schema for the Sparv configuration format"
+    )
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": "Getting Sparv config schema",
+                    "return_code": "getting_sparv_schema",
+                    "schema": {
+                        "type": "object",
+                    },
+                }
+            ]
+        }
+    }
+
+
 class LanguagesResponse(models.BaseResponse):
     """Model for the /languages response."""
     languages: list[str] = Field(default=[], description="List of supported languages (language names and ISO codes)")
