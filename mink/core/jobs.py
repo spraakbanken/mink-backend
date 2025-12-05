@@ -166,10 +166,11 @@ class Job:
         # This should never happen!
         else:
             logger.error(
-                "Something went wrong while calculating time taken. Job status: %s; "
-                "Current process: %s; Job started: %s; Job ended: %s",
-                self.status,
+                "Something went wrong while calculating time taken for resource '%s'. "
+                "Process: %s; Status: %s; Started: %s; Ended: %s",
+                self.id,
                 self.current_process,
+                self.status[self.current_process],
                 self.started,
                 sparv_ended,
             )
