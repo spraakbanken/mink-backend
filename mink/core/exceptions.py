@@ -180,6 +180,13 @@ class ConfigVariableNotSetError(ValueError):
         super().__init__(f"Config variable '{config_variable}' is not set.")
 
 
+class ConfigurationError(Exception):
+    """Exception used for when there is a configuration error."""
+    def __init__(self, message: str) -> None:
+        """Initialize the exception with a message."""
+        super().__init__(f"Configuration error: {message}")
+
+
 class CorpusExistsError(Exception):
     """Exception used for when a corpus ID already exists."""
     def __init__(self, resource_id: str) -> None:

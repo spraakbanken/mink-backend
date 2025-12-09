@@ -72,6 +72,7 @@ class Settings(BaseSettings):
     }
 
     # Sparv server settings
+    SPARV_ENABLED: bool = True  # Whether Sparv integration is enabled
     SSH_KEY: str = "~/.ssh/id_rsa"  # Path to the SSH key for connecting to Sparv
     SPARV_HOST: str = ""  # Host where Sparv is run
     SPARV_USER: str = ""  # User for running Sparv

@@ -10,6 +10,12 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Improved logging configuration in development mode (i.e. when running with `run.py`) which makes all logs appear in
   the console and reduces noise from certain modules.
 
+### Added
+
+- Added configuration option `SPARV_ENABLED` to enable or disable Sparv integration. If disabled, attempts to start
+  Sparv jobs will raise a `ConfigurationError`. This allows for running the application in development mode with some
+  unset config variables.
+
 ## [2.0.2] - 2025-11-14
 
 ### Fixed

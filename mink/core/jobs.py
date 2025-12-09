@@ -71,6 +71,9 @@ class Job:
             duration: The time elapsed for the current Sparv process (in seconds), until ended or until now.
             **_obsolete: Catch invalid arguments from outdated job items.
         """
+        if not settings.SPARV_ENABLED:
+            raise exceptions.ConfigurationError("Sparv is not enabled in the configuration")
+
         self.id = id
         self.status = JobStatuses(status)
         self.current_process = current_process
@@ -749,6 +752,9 @@ class DefaultJob:
             language: Language code.
         """
         self.lang = language
+
+        if not settings.SPARV_ENABLED:
+            raise exceptions.ConfigurationError("Sparv is not enabled in the configuration")
 
         self.sparv_user = settings.SPARV_USER
         self.sparv_server = settings.SPARV_HOST
