@@ -222,7 +222,10 @@ else
   github_url="$repository_url"
 fi
 
-release_draft_url="${github_url}/releases/new?tag=v${new_version}&title=${project_name}%20${new_version}"
+# Make project human-readable (mink-backend -> Mink Backend)
+readable_project_name=$(echo "$project_name" | sed -E 's/[-_]/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1')
+
+release_draft_url="${github_url}/releases/new?tag=v${new_version}&title=${readable_project_name}%20v${new_version}"
 
 # Create body with latest entries in CHANGELOG.md
 body=$(awk -v ver="$new_version" '
@@ -230,6 +233,37 @@ body=$(awk -v ver="$new_version" '
   found && $0 ~ /^## \[/ {exit}
   found {print}
 ' CHANGELOG.md)
+
+# Flatten wrapped list items into single lines while preserving headings and blank lines
+body=$(echo "$body" | awk '
+function flush_item() {
+  if (item != "") {
+    gsub(/[ \t\r\n]+/, " ", item)
+    sub(/^ /, "", item)
+    sub(/ $/, "", item)
+    print item
+    item=""
+  }
+}
+{
+  if ($0 ~ /^- /) {
+    flush_item()
+    item=$0
+    next
+  }
+
+  if (item != "" && $0 ~ /^[[:space:]]+/ && $0 !~ /^### / && $0 !~ /^## / && $0 !~ /^- /) {
+    line=$0
+    sub(/^[[:space:]]+/, "", line)
+    item=item " " line
+    next
+  }
+
+  flush_item()
+  print
+}
+END { flush_item() }
+')
 
 echo -e "\n${GREEN}Here's a GitHub release draft:${NC}\n"
 if [[ -z "$body" ]]; then
