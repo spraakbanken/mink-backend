@@ -138,6 +138,14 @@ registered with SB Auth, and ownership is assigned to the user who created it. B
 For any operation involving resources, Mink consults SB Auth to verify that the authenticated user has the required
 permissions for the requested action.
 
+### Access levels
+
+Mink defines three resource access levels, as supported by SB Auth:
+
+- `READ`: View the resource (read config, sources, and exports).
+- `WRITE`: Upload config and sources, and run jobs.
+- `ADMIN`: Delete the resource or share it with other users (sharing is not available via the API).
+
 ## Key Concepts
 
 The following sections describe some important concepts and components of the Mink backend. These concepts are essential
