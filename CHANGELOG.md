@@ -7,14 +7,24 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- Changed the preferred installation method to `uv` instead of `pip`.
 - Improved logging configuration in development mode (i.e. when running with `run.py`) which makes all logs appear in
   the console and reduces noise from certain modules.
 
 ### Added
 
+- Added route `/sparv-schema` for retrieving the Sparv config schema.
+- Distinguish between `READ`, `WRITE` and `ADMIN` access levels for resource access. This allows for more fine-grained
+  control over what users can do with each resource.
 - Added configuration option `SPARV_ENABLED` to enable or disable Sparv integration. If disabled, attempts to start
   Sparv jobs will raise a `ConfigurationError`. This allows for running the application in development mode with some
   unset config variables.
+- Added documentation about resource access levels in the developer's guide.
+- Improved error logging for time calculation in the `Job` class.
+
+### Fixed
+
+- Fixed pytest deprecation warnings.
 
 ## [2.0.2] - 2025-11-14
 
