@@ -8,6 +8,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Fixed bug: Matomo tracking did not work because of an incorrect dependency version.
+- Fixed bug: `/advance-queue` requests were still logged despite the intention to not log them.
 
 ## [2.1.0] - 2025-12-10
 

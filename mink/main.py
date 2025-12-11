@@ -125,9 +125,13 @@ app.include_router(metadata_routes.router)
 @app.middleware("http")
 async def log_request(request: Request, call_next: Callable) -> Response:
     """Middleware to log info about each request (except when serving static files)."""
+    # Normalize path to strip any configured root_path
+    root_path = request.scope.get("root_path") or ""
+    path = request.url.path[len(root_path):]
+
     # Log request info, but don't log options and advance-queue requests (too much spam)
-    if request.method != "OPTIONS" and request.url.path != "/advance-queue":
-        logger.info("Request: %s %s?%s", request.method, request.url.path, request.url.query)
+    if request.method != "OPTIONS" and not path.startswith("/advance-queue"):
+        logger.info("Request: %s %s?%s", request.method, path, request.url.query)
 
     # Call the actual route
     return await call_next(request)
@@ -142,8 +146,8 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
     logger.info("Enabling tracking to Matomo")
     if settings.LOG_LEVEL == "DEBUG":
         logging.getLogger("asgi_matomo").setLevel("DEBUG")
-    # # Suppress some chatty logs
-    # logging.getLogger("httpx").setLevel("WARNING")
+    # Suppress some chatty logs
+    logging.getLogger("httpx").setLevel("WARNING")
     # Add the Matomo middleware
     app.add_middleware(
         MatomoMiddleware,
