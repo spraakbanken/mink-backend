@@ -5,6 +5,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [unreleased]
 
+### Fixed
+
+- Fixed bug: Matomo tracking did not work because of an incorrect dependency version.
+
 ## [2.1.0] - 2025-12-10
 
 ### Changed

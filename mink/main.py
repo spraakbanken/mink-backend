@@ -1,5 +1,6 @@
 """Instantiation of FastAPI app."""
 
+import logging
 import shutil
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
@@ -139,17 +140,19 @@ app.add_middleware(utils.LimitRequestSizeMiddleware)
 # Add Matomo middleware for tracking
 if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
     logger.info("Enabling tracking to Matomo")
+    if settings.LOG_LEVEL == "DEBUG":
+        logging.getLogger("asgi_matomo").setLevel("DEBUG")
     # # Suppress some chatty logs
     # logging.getLogger("httpx").setLevel("WARNING")
     # Add the Matomo middleware
     app.add_middleware(
-        MatomoMiddleware,  # type: ignore
+        MatomoMiddleware,
         matomo_url=settings.TRACKING_MATOMO_URL,
         idsite=settings.TRACKING_MATOMO_IDSITE,
         access_token=settings.TRACKING_MATOMO_AUTH_TOKEN,
-        http_timeout=settings.TRACKING_MATOMO_HTTP_TIMEOUT,  # type: ignore
+        http_timeout=settings.TRACKING_MATOMO_HTTP_TIMEOUT,
         exclude_paths=["/advance-queue"],
-        ignored_methods=["OPTIONS"],  # type: ignore
+        ignored_methods=["OPTIONS"],
     )
 elif settings.ENV not in {"testing", "development"}:
     logger.warning("Tracking to Matomo disabled, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE.")

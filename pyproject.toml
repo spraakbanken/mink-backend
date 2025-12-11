@@ -10,7 +10,7 @@ authors = [
 ]
 dependencies = [
     "apscheduler==3.11.1",
-    "asgi-matomo==0.6.0",
+    "asgi-matomo==0.6.1",
     "fastapi==0.121.2",
     "mkdocs-macros-plugin==1.5.0",
     "mkdocs-material==9.7.0",
