@@ -401,8 +401,7 @@ common_auth_error_responses = {
 # ------------------------------------------------------------------------------
 # Reusable query parameters
 # ------------------------------------------------------------------------------
-# Need to use both alias and validation_alias due to a bug: https://github.com/fastapi/fastapi/issues/10286
-upload_file_opt_param = File(None, alias="file", validation_alias="file", description="The file to upload")
+upload_file_opt_param = File(None, alias="file", description="The file to upload")
 
 
 # ------------------------------------------------------------------------------
