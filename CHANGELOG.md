@@ -12,6 +12,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed bug: incorrect calculation of job end time and duration in cases where `/clear-annotations` was called.
 - Fixed bug: `ended` timestamp is now returned in the server's timezone.
 
+### Changed
+
+- The Sparv output (nohupfile) and the Sparv run script are no longer removed when calling `/clear-annotations` which
+  allows for better debugging.
+
 ## [2.1.0] - 2025-12-10
 
 ### Changed
