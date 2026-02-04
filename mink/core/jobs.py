@@ -223,9 +223,8 @@ class Job:
 
     def get_ended_timestamp(self, duration: float | int) -> str:
         """Get the timestamp (ISO 8601) for when the job ended based on 'self.started' and 'duration' (in seconds)."""
-        return (dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=duration)).isoformat(
-            timespec="seconds"
-        )
+        ended = dateutil.parser.isoparse(self.started) + datetime.timedelta(seconds=duration)
+        return ended.astimezone().isoformat(timespec="seconds")
 
     def reset_time(self, reset_started: bool = True) -> None:
         """Reset the processing time for a job (e.g. when queuing a new one)."""
