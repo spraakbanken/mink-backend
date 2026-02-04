@@ -145,12 +145,12 @@ class Job:
         ended = ""
         duration = self.duration or 0
 
-        # Job was aborted successfully ('self.ended' has been set during abort), calculate 'duration'
-        if self.status.is_aborted(self.current_process) and self.ended:
+        # self.ended is set and job was aborted or no Sparv output is available for other reasons, calculate 'duration'
+        if self.ended and (self.status.is_aborted(self.current_process) or not sparv_ended):
             ended = self.ended
             time_elapsed = self.get_timedelta(ended)
             duration = max(self.duration, time_elapsed)
-        # Job has not started, is waiting or has been aborted with some error
+        # Job has not started, is waiting or has been aborted
         elif (
             not self.started
             or self.status.is_none(self.current_process)
@@ -170,12 +170,13 @@ class Job:
         else:
             logger.error(
                 "Something went wrong while calculating time taken for resource '%s'. "
-                "Process: %s; Status: %s; Started: %s; Ended: %s",
+                "Process: %s; Status: %s; Started: %s; Sparv ended: %s; self.ended: %s",
                 self.id,
                 self.current_process,
                 self.status[self.current_process],
                 self.started,
                 sparv_ended,
+                self.ended,
             )
 
         return ended, duration
@@ -216,7 +217,7 @@ class Job:
 
     def get_timedelta(self, end_time: str | None = None) -> int:
         """Get the time elapsed in seconds since 'self.started' until 'end_time' (ISO 8601) or now."""
-        if end_time is None:
+        if not end_time:
             end_time = utils.get_current_time()
         return int((dateutil.parser.isoparse(end_time) - dateutil.parser.isoparse(self.started)).total_seconds())
 
