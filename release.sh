@@ -23,6 +23,8 @@
 #   - Commit changes to development branch
 
 
+human_readable_project_name="Mink Backend"  # Used in GitHub release title
+
 ######################################################
 # Define and parse command line options
 ######################################################
@@ -143,6 +145,27 @@ if [[ "$confirm" != "y" ]]; then
 fi
 
 #####################################################
+# Determine GitHub repository URL
+#####################################################
+
+# Get repository URL and format it into https://github.com/{organization}/{repository}
+repository_url=$(git config --get remote.origin.url)
+# Remove .git suffix if present
+repository_url=${repository_url%.git}
+# Extract organization/repository from SSH or HTTPS remote URL
+if [[ "$repository_url" =~ ^git@github\.com:(.*)/(.*)$ ]]; then
+  org="${BASH_REMATCH[1]}"
+  repo="${BASH_REMATCH[2]}"
+  github_url="https://github.com/${org}/${repo}"
+elif [[ "$repository_url" =~ ^https://github\.com/(.*)/(.*)$ ]]; then
+  org="${BASH_REMATCH[1]}"
+  repo="${BASH_REMATCH[2]}"
+  github_url="https://github.com/${org}/${repo}"
+else
+  github_url="$repository_url"
+fi
+
+#####################################################
 # Perform release
 #####################################################
 
@@ -176,7 +199,7 @@ sed -i "s/^version = \".*\"/version = \"$new_version\"/" pyproject.toml
 echo -e "Updating CHANGELOG.md"
 today=$(date +%Y-%m-%d)
 sed -i "0,/## \[unreleased\]/s/## \[unreleased\]/## [$new_version] - $today/" CHANGELOG.md
-sed -i "/^\[unreleased\]:/c\\[$new_version]: https://github.com/spraakbanken/mink-backend/releases/tag/v$new_version" CHANGELOG.md
+sed -i "/^\[unreleased\]:/c\\[$new_version]: ${github_url}/releases/tag/v$new_version" CHANGELOG.md
 
 # Add and commit changes
 git add pyproject.toml CHANGELOG.md
@@ -200,32 +223,13 @@ fi
 # Create git tag
 git tag "v$new_version"
 
-
 ######################################################
 # Create GitHub release draft
 ######################################################
 
-# Get repository URL and format it into https://github.com/{organization}/{repository}
-repository_url=$(git config --get remote.origin.url)
-# Remove .git suffix if present
-repository_url=${repository_url%.git}
-# Extract organization/repository from SSH or HTTPS remote URL
-if [[ "$repository_url" =~ ^git@github\.com:(.*)/(.*)$ ]]; then
-  org="${BASH_REMATCH[1]}"
-  repo="${BASH_REMATCH[2]}"
-  github_url="https://github.com/${org}/${repo}"
-elif [[ "$repository_url" =~ ^https://github\.com/(.*)/(.*)$ ]]; then
-  org="${BASH_REMATCH[1]}"
-  repo="${BASH_REMATCH[2]}"
-  github_url="https://github.com/${org}/${repo}"
-else
-  github_url="$repository_url"
-fi
-
-# Make project human-readable (mink-backend -> Mink Backend)
-readable_project_name=$(echo "$project_name" | sed -E 's/[-_]/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1')
-
-release_draft_url="${github_url}/releases/new?tag=v${new_version}&title=${readable_project_name}%20v${new_version}"
+# Make project human-readable and URL escape spaces
+url_encoded_project_name=$(echo "$human_readable_project_name" | sed 's/ /%20/g')
+release_draft_url="${github_url}/releases/new?tag=v${new_version}&title=${url_encoded_project_name}%20v${new_version}"
 
 # Create body with latest entries in CHANGELOG.md
 body=$(awk -v ver="$new_version" '
@@ -303,7 +307,8 @@ echo -e "Updating CHANGELOG.md"
 # Add new ## [unreleased] section above the latest version header
 sed -i "/^## \[$new_version\]/i## [unreleased]\n" CHANGELOG.md
 # Add link for new version at the bottom
-sed -i "/^\[$new_version\]:/i\\[unreleased]: https:\/\/github.com\/spraakbanken\/mink-backend\/compare\/v$new_version...dev/" CHANGELOG.md
+escaped_github_url=$(echo "$github_url" | sed 's/\//\\\//g')
+sed -i "/^\[$new_version\]:/i\\[unreleased]: ${escaped_github_url}\/compare\/v$new_version...dev/" CHANGELOG.md
 
 # Show git diff for confirmation
 git add pyproject.toml CHANGELOG.md
