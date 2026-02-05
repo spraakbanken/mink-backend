@@ -11,6 +11,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed bug: `/advance-queue` requests were still logged despite the intention to not log them.
 - Fixed bug: incorrect calculation of job end time and duration in cases where `/clear-annotations` was called.
 - Fixed bug: `ended` timestamp is now returned in the server's timezone.
+- Fixed bug: `/swagger` route was broken.
 
 ### Changed
 
