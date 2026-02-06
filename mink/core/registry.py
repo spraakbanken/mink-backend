@@ -90,7 +90,7 @@ def filter_resources(resource_ids: list[str] | None = None) -> list[info.Info]:
     return filtered_resources
 
 
-def add_to_queue(job: jobs.Job) -> info.Job:
+def add_to_queue(job: jobs.BaseJob) -> jobs.BaseJob:
     """Add a job item to the queue.
 
     Args:
@@ -118,7 +118,7 @@ def add_to_queue(job: jobs.Job) -> info.Job:
     return job
 
 
-def pop_from_queue(job: jobs.Job) -> None:
+def pop_from_queue(job: jobs.BaseJob) -> None:
     """Remove job item from queue (but keep in all jobs), e.g. when a job is aborted.
 
     Args:
@@ -131,7 +131,7 @@ def pop_from_queue(job: jobs.Job) -> None:
         save_priorities()
 
 
-def get_priority(job: jobs.Job) -> int:
+def get_priority(job: jobs.BaseJob) -> int:
     """Get the queue priority of the job.
 
     Args:
@@ -158,7 +158,7 @@ def save_priorities() -> None:
         f.write(json.dumps(queue))
 
 
-def get_running_waiting() -> tuple[list[jobs.Job], list[jobs.Job]]:
+def get_running_waiting() -> tuple[list[jobs.BaseJob], list[jobs.BaseJob]]:
     """Get the running and waiting jobs from the queue.
 
     Returns:

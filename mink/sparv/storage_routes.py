@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.cache import cache_utils
-from mink.core import exceptions, jobs, models, registry, utils
+from mink.core import exceptions, models, registry, utils
 from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.logging import logger
@@ -18,19 +18,20 @@ from mink.core.resource_specs import get_spec
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
 from mink.sparv import storage
+from mink.sparv.jobs import SparvJob
 
 router = APIRouter()
 
 
-def _require_job(job: object) -> jobs.Job:
+def _require_job(job: object) -> SparvJob:
     """Ensure that 'job' is a Sparv job, raise an error if not."""
-    if not isinstance(job, jobs.Job):
+    if not isinstance(job, SparvJob):
         raise exceptions.MinkHTTPException(
             status.HTTP_400_BAD_REQUEST,
             message="Resource is not a corpus",
             return_code="invalid_resource_type",
         )
-    return cast(jobs.Job, job)
+    return cast(SparvJob, job)
 
 
 # ------------------------------------------------------------------------------
@@ -205,7 +206,9 @@ async def list_korp_corpora(
     try:
         # Get resource infos beloning to corpora that the user may edit
         resources = registry.filter_resources(auth_data.get("resources"))
-        installed_corpora = [res.id for res in resources if res.job.installed_korp]
+        installed_corpora = [
+            res.id for res in resources if isinstance(res.job, SparvJob) and res.job.installed_korp
+        ]
     except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,

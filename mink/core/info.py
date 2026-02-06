@@ -6,7 +6,7 @@ from pathlib import Path
 from mink.cache import cache_utils
 from mink.core import exceptions, registry
 from mink.core.config import settings
-from mink.core.jobs import Job, NoopJob
+from mink.core.jobs import BaseJob
 from mink.core.logging import logger
 from mink.core.resource import Resource
 from mink.core.resource_specs import get_spec
@@ -21,7 +21,7 @@ class Info:
         id: str,  # noqa: A002
         owner: User,
         resource: Resource | None = None,
-        job: Job | NoopJob | None = None,
+        job: BaseJob | None = None,
     ) -> None:
         """Create an info instance.
 
@@ -35,7 +35,7 @@ class Info:
         self.owner = owner
         self.resource = resource or Resource(id=self.id)
         spec = get_spec(self.resource.type)
-        self.job = job or spec.job_cls(id=self.id)
+        self.job = job or spec.job_cls(id=self.id, processes=list(spec.process_names))
 
         # Set parent in subclasses
         self.owner.set_parent(self)
@@ -105,19 +105,17 @@ class Info:
         """
         if self.job.status.is_running():
             if abort_job:
-                if isinstance(self.job, Job):
-                    try:
-                        self.job.abort_sparv()
-                    except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
-                        pass
-                    except Exception:
-                        raise
+                try:
+                    self.job.abort()
+                except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
+                    pass
+                except Exception:
+                    raise
             else:
                 raise exceptions.ProcessStillRunningError
 
-        # Remove from queue (only Sparv jobs participate in queue)
-        if isinstance(self.job, Job):
-            registry.pop_from_queue(self.job)
+        # Remove from queue
+        registry.pop_from_queue(self.job)
 
         # Remove from cache
         try:
@@ -153,5 +151,5 @@ def load_from_str(jsonstr: str) -> Info:
         resource_id,
         resource=resource,
         owner=User(**json_info.get("owner")),
-        job=spec.job_cls(resource_id, **json_info.get("job")),
+        job=spec.job_cls(resource_id, processes=list(spec.process_names), **json_info.get("job")),
     )

@@ -49,17 +49,20 @@ class ProcessName(StrEnum):
 class JobStatuses(UserDict):
     """Class for representing the statuses of the different job processes."""
 
-    def __init__(self, status: dict | None = None) -> None:
+    def __init__(self, status: dict | None = None, processes: list[str] | None = None) -> None:
         """Init the status for the different processes, default to none.
 
         Args:
             status: A dictionary containing the status of each process.
+            processes: List of process names to include.
         """
         # Override the old status format
         if not isinstance(status, dict):
             status = {}
 
-        mapping = [(pn.name, getattr(Status, status.get(pn.name, ""), Status.none)) for pn in ProcessName]
+        if processes is None:
+            processes = [pn.name for pn in ProcessName]
+        mapping = [(name, getattr(Status, status.get(name, ""), Status.none)) for name in processes]
         super().__init__(mapping)
 
     def __str__(self) -> str:

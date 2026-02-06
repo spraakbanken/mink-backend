@@ -7,26 +7,27 @@ from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
 from mink.cache import cache_utils
-from mink.core import exceptions, info, jobs, models, registry, utils
+from mink.core import exceptions, info, models, registry, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.status import JobStatuses, ProcessName, Status
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
 from mink.sparv import storage
+from mink.sparv.jobs import SparvDefaultJob, SparvJob
 
 router = APIRouter()
 
 
-def _require_job(job: object) -> jobs.Job:
+def _require_job(job: object) -> SparvJob:
     """Ensure that 'job' is a Sparv job, raise an error if not."""
-    if not isinstance(job, jobs.Job):
+    if not isinstance(job, SparvJob):
         raise exceptions.MinkHTTPException(
             status.HTTP_400_BAD_REQUEST,
             message="Resource is not a corpus",
             return_code="invalid_resource_type",
         )
-    return cast(jobs.Job, job)
+    return cast(SparvJob, job)
 
 
 @router.put(
@@ -194,6 +195,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         ) from e
 
     # Check that all required files are present
+    job = _require_job(job)
     job.check_requirements()
 
     if storage.local:
@@ -242,10 +244,10 @@ async def advance_queue(
     logger.debug("Running jobs: %d  Waiting jobs: %d", len(running_jobs), len(waiting_jobs))
     for job in running_jobs:
         try:
-            if not job.process_running():
+            sparv_job = _require_job(job)
+            if not sparv_job.process_running():
                 try:
-                    sparv_job = _require_job(job)
-                    sparv_job.abort_sparv()
+                    sparv_job.abort()
                 except exceptions.ProcessNotRunningError:
                     pass
                 registry.pop_from_queue(job)
@@ -257,6 +259,7 @@ async def advance_queue(
     # If there are fewer running jobs than allowed, start the next one in the queue
     while waiting_jobs and len(running_jobs) < settings.SPARV_WORKERS:
         job = waiting_jobs.pop(0)
+        job = _require_job(job)
         try:
             if job.status.is_waiting():
                 if job.current_process == ProcessName.sparv.name:
@@ -476,7 +479,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
     # Running job, try to abort
     try:
         job = _require_job(job)
-        job.abort_sparv()
+        job.abort()
     except exceptions.ProcessNotRunningError as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_404_NOT_FOUND,
@@ -1009,7 +1012,7 @@ async def sparv_schema(
     ```
     """
     try:
-        job = jobs.DefaultJob()
+        job = SparvDefaultJob()
         schema = job.get_sparv_schema(update_cache=update_cache)
     except Exception as e:
         raise exceptions.MinkHTTPException(
@@ -1053,7 +1056,7 @@ async def sparv_languages() -> JSONResponse:
     ```
     """
     try:
-        job = jobs.DefaultJob()
+        job = SparvDefaultJob()
         languages = job.list_languages()
     except Exception as e:
         raise exceptions.MinkHTTPException(
@@ -1103,7 +1106,7 @@ async def sparv_exports(
     ```
     """
     try:
-        job = jobs.DefaultJob(language=language)
+        job = SparvDefaultJob(language=language)
         exports = job.list_exports()
     except Exception as e:
         raise exceptions.MinkHTTPException(
