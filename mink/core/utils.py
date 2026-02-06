@@ -9,6 +9,7 @@ import pickle
 import shutil
 import subprocess
 import tomllib
+import unicodedata
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -304,17 +305,15 @@ def create_zip(inpath: Path, outpath: Path, zip_rootdir: str | None = None) -> N
         )
 
 
-def file_ext_valid(filename: Path, valid_extensions: list[str] | None = None) -> bool:
-    """Check if file extension is valid.
+def secure_filename(filename: str) -> Path:
+    """Return a secure version of a filename."""
+    filename = unicodedata.normalize("NFC", filename)
 
-    Args:
-        filename: The filename to check.
-        valid_extensions: List of valid extensions.
+    for sep in os.path.sep, os.path.altsep:
+        if sep:
+            filename = filename.replace(sep, " ")
 
-    Returns:
-        True if the file extension is valid, False otherwise.
-    """
-    return not (valid_extensions and not any(i.lower() == filename.suffix.lower() for i in valid_extensions))
+    return Path(filename.strip())
 
 
 def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, str | None]:

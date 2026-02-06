@@ -1,6 +1,7 @@
 """Routes related to storage on Sparv server."""
 
 from pathlib import Path
+from typing import cast
 from xml.etree import ElementTree
 
 import shortuuid
@@ -8,16 +9,28 @@ from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.cache import cache_utils
-from mink.core import exceptions, models, registry, utils
+from mink.core import exceptions, jobs, models, registry, utils
 from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.logging import logger
+from mink.core.resource import ResourceType
+from mink.core.resource_specs import get_spec
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
 from mink.sparv import storage
-from mink.sparv import utils as sparv_utils
 
 router = APIRouter()
+
+
+def _require_job(job: object) -> jobs.Job:
+    """Ensure that 'job' is a Sparv job, raise an error if not."""
+    if not isinstance(job, jobs.Job):
+        raise exceptions.MinkHTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            message="Resource is not a corpus",
+            return_code="invalid_resource_type",
+        )
+    return cast(jobs.Job, job)
 
 
 # ------------------------------------------------------------------------------
@@ -252,10 +265,11 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
     # Get job
     info_obj = registry.get(resource_id)
 
-    if info_obj.job.installed_korp:
+    job = _require_job(info_obj.job)
+    if job.installed_korp:
         try:
             # Uninstall corpus from Korp using Sparv
-            info_obj.job.uninstall_korp()
+            job.uninstall_korp()
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -263,10 +277,10 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
                 return_code="failed_removing_korp",
                 info=str(e),
             ) from e
-    if info_obj.job.installed_strix:
+    if job.installed_strix:
         try:
             # Uninstall corpus from Strix using Sparv
-            info_obj.job.uninstall_strix()
+            job.uninstall_strix()
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -421,6 +435,8 @@ async def upload_sources(
     existing_files = storage.list_contents(source_dir)
     max_file_size_mb = int(settings.MAX_FILE_LENGTH / (1024 * 1024))
     warnings = []
+    spec = get_spec(ResourceType.corpus)
+
     # Upload data
     for f in files:
         if f.filename is None:
@@ -429,7 +445,7 @@ async def upload_sources(
                 message=f"Failed to upload some source files to '{resource_id}' due to missing filename",
                 return_code="failed_uploading_sources_missing_filename",
             )
-        name = sparv_utils.secure_filename(f.filename)
+        name = utils.secure_filename(f.filename)
         original_name = name
 
         # Make sure the file suffix is lower case (issue warning later if name was changed)
@@ -437,7 +453,7 @@ async def upload_sources(
             name = Path(name.stem + name.suffix.lower())
 
         # Check if file can be processed by Sparv
-        if not utils.file_ext_valid(name, list(settings.SPARV_IMPORTER_MODULES.keys())):
+        if spec.allowed_extensions and not any(name.suffix.lower() == i.lower() for i in spec.allowed_extensions):
             raise exceptions.MinkHTTPException(
                 status.HTTP_400_BAD_REQUEST,
                 message=f"Failed to upload some source files to '{resource_id}' due to invalid file extension",
@@ -893,6 +909,7 @@ async def upload_config(
     ```
     """
     resource_id = auth_data["resource_id"]
+    config_path = storage.get_config_file(resource_id)
 
     def set_corpus_name(corpus_name: str) -> None:
         res = registry.get(resource_id).resource
@@ -934,7 +951,7 @@ async def upload_config(
         try:
             new_config, corpus_name = utils.standardize_config(config_contents, resource_id)
             set_corpus_name(corpus_name)
-            storage.write_file_contents(storage.get_config_file(resource_id), new_config.encode("UTF-8"), resource_id)
+            storage.write_file_contents(config_path, new_config.encode("UTF-8"), resource_id)
             return utils.response(
                 status.HTTP_201_CREATED,
                 message=f"Config file successfully uploaded for '{resource_id}'",
@@ -972,7 +989,7 @@ async def upload_config(
             # Standardize config (e.g. ensure that the resource_id is correct)
             new_config, corpus_name = utils.standardize_config(config_txt, resource_id)
             set_corpus_name(corpus_name)
-            storage.write_file_contents(storage.get_config_file(resource_id), new_config.encode("UTF-8"), resource_id)
+            storage.write_file_contents(config_path, new_config.encode("UTF-8"), resource_id)
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1039,15 +1056,14 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
     ```
     """
     resource_id = auth_data["resource_id"]
+    config_path = storage.get_config_file(resource_id)
     # Create directory for the current resource locally (on Mink backend server)
     utils.get_source_dir(resource_id, mkdir=True)
     local_config_file = utils.get_config_file(resource_id)
 
     try:
         # Get file from storage
-        download_ok = storage.download_file(
-            storage.get_config_file(resource_id), local_config_file, resource_id, ignore_missing=True
-        )
+        download_ok = storage.download_file(config_path, local_config_file, resource_id, ignore_missing=True)
     except Exception as e:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1376,7 +1392,7 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_leve
 
     try:
         # Remove from Sparv server
-        job = registry.get(resource_id).job
+        job = _require_job(registry.get(resource_id).job)
         success, sparv_output = job.clean_export()
     except Exception as e:
         raise exceptions.MinkHTTPException(
@@ -1566,6 +1582,7 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
     try:
         sources_changed, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
         input_changed = sources_changed or sources_deleted or config_changed
+        job = _require_job(info_item.job)
         return utils.response(
             message=f"Your input for the corpus '{resource_id}' has {'not ' if not input_changed else ''}changed since"
             " the last run",
@@ -1574,7 +1591,7 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
             config_changed=config_changed,
             sources_changed=sources_changed,
             sources_deleted=sources_deleted,
-            last_run_started=info_item.job.started,
+            last_run_started=job.started,
         )
 
     except exceptions.JobNotFoundError as e:

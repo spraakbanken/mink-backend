@@ -4,7 +4,6 @@ from enum import Enum
 from typing import Any
 
 from mink.core import exceptions, utils
-from mink.sparv import storage
 
 
 class ResourceType(Enum):
@@ -105,7 +104,10 @@ class Resource:
         Args:
             deleted_sources: Whether source files have been deleted.
         """
-        self.source_files = storage.list_contents(storage.get_source_dir(self.id))
+        from mink.core.resource_specs import get_spec  # noqa: PLC0415, avoid circular import
+
+        spec = get_spec(self.type)
+        self.source_files = spec.storage.list_contents(spec.storage.get_source_dir(self.id))
         if deleted_sources:
             self.sources_deleted = utils.get_current_time()
         self.parent.update()

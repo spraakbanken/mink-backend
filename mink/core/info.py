@@ -6,9 +6,10 @@ from pathlib import Path
 from mink.cache import cache_utils
 from mink.core import exceptions, registry
 from mink.core.config import settings
-from mink.core.jobs import Job
+from mink.core.jobs import Job, NoopJob
 from mink.core.logging import logger
 from mink.core.resource import Resource
+from mink.core.resource_specs import get_spec
 from mink.core.user import User
 
 
@@ -20,7 +21,7 @@ class Info:
         id: str,  # noqa: A002
         owner: User,
         resource: Resource | None = None,
-        job: Job | None = None,
+        job: Job | NoopJob | None = None,
     ) -> None:
         """Create an info instance.
 
@@ -33,7 +34,8 @@ class Info:
         self.id = id
         self.owner = owner
         self.resource = resource or Resource(id=self.id)
-        self.job = job or Job(id=self.id, owner=self.owner)
+        spec = get_spec(self.resource.type)
+        self.job = job or spec.job_cls(id=self.id)
 
         # Set parent in subclasses
         self.owner.set_parent(self)
@@ -103,17 +105,19 @@ class Info:
         """
         if self.job.status.is_running():
             if abort_job:
-                try:
-                    self.job.abort_sparv()
-                except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
-                    pass
-                except Exception:
-                    raise
+                if isinstance(self.job, Job):
+                    try:
+                        self.job.abort_sparv()
+                    except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
+                        pass
+                    except Exception:
+                        raise
             else:
                 raise exceptions.ProcessStillRunningError
 
-        # Remove from queue
-        registry.pop_from_queue(self.job)
+        # Remove from queue (only Sparv jobs participate in queue)
+        if isinstance(self.job, Job):
+            registry.pop_from_queue(self.job)
 
         # Remove from cache
         try:
@@ -143,9 +147,11 @@ def load_from_str(jsonstr: str) -> Info:
     """
     json_info = json.loads(jsonstr)
     resource_id = json_info["resource"]["id"]
+    resource = Resource(**json_info.get("resource"))
+    spec = get_spec(resource.type)
     return Info(
         resource_id,
-        resource=Resource(**json_info.get("resource")),
+        resource=resource,
         owner=User(**json_info.get("owner")),
-        job=Job(resource_id, **json_info.get("job")),
+        job=spec.job_cls(resource_id, **json_info.get("job")),
     )

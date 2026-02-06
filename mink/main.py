@@ -20,8 +20,10 @@ from mink.core import exceptions, registry, routes, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.metadata import routes as metadata_routes
+from mink.metadata import spec as metadata_spec  # noqa: F401
 from mink.sb_auth import routes as login_routes
 from mink.sparv import process_routes, storage_routes
+from mink.sparv import spec as sparv_spec  # noqa: F401
 
 MINK_VERSION = utils.get_version_from_pyproject()
 

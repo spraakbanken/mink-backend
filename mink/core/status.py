@@ -1,10 +1,10 @@
 """Classes defining job statuses."""
 
 from collections import UserDict
-from enum import Enum
+from enum import StrEnum
 
 
-class Status(str, Enum):
+class Status(StrEnum):
     """Class for representing the status of a Sparv job."""
 
     none = "none"
@@ -36,7 +36,7 @@ class Status(str, Enum):
         return self.name
 
 
-class ProcessName(str, Enum):
+class ProcessName(StrEnum):
     """Enum class for process names."""
 
     sync2sparv = "sync2sparv"

@@ -15,14 +15,17 @@ from mink.core import exceptions, registry, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.status import JobStatuses, ProcessName, Status
-from mink.sparv import storage
-from mink.sparv import utils as sparv_utils
 
 if TYPE_CHECKING:
     from mink.core.info import Info
 
-
 PROGRESS_DONE = 100
+
+
+def _sparv_storage() -> Any:
+    from mink.sparv import storage  # noqa: PLC0415, avoid circular spec registration
+
+    return storage
 
 
 class Job:
@@ -94,7 +97,8 @@ class Job:
 
         self.sparv_user = settings.SPARV_USER
         self.sparv_server = settings.SPARV_HOST
-        self.remote_corpus_dir = sparv_utils.get_corpus_dir(self.id)
+        sparv_storage = _sparv_storage()
+        self.remote_corpus_dir = sparv_storage.get_corpus_dir(self.id)
         self.remote_corpus_dir_esc = shlex.quote(str(self.remote_corpus_dir))
         self.nohupfile = shlex.quote(str(self.remote_corpus_dir / settings.SPARV_NOHUP_FILE))
         self.runscript = shlex.quote(str(self.remote_corpus_dir / settings.SPARV_TMP_RUN_SCRIPT))
@@ -241,7 +245,10 @@ class Job:
             exceptions.PrerequisiteError: If no config file or input files are provided.
         """
         exclude = [settings.SPARV_EXPORT_DIR, settings.SPARV_WORK_DIR, settings.SPARV_LOG_DIR]
-        corpus_contents = storage.list_contents(storage.get_corpus_dir(self.id), exclude_dirs=False, blacklist=exclude)
+        sparv_storage = _sparv_storage()
+        corpus_contents = sparv_storage.list_contents(
+            sparv_storage.get_corpus_dir(self.id), exclude_dirs=False, blacklist=exclude
+        )
         if settings.SPARV_CORPUS_CONFIG not in [i.get("name") for i in corpus_contents]:
             self.set_status(Status.error)
             raise exceptions.PrerequisiteError(f"No config file provided for '{self.id}'")
@@ -268,7 +275,8 @@ class Job:
         # TODO: do this async?
         try:
             local_user_dir = utils.get_resources_dir(mkdir=True)
-            storage.download_dir(storage.get_corpus_dir(self.id), local_user_dir, self.id)
+            sparv_storage = _sparv_storage()
+            sparv_storage.download_dir(sparv_storage.get_corpus_dir(self.id), local_user_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
             raise exceptions.ReadError(self.id, "Failed to download corpus") from e
@@ -361,7 +369,8 @@ class Job:
             exceptions.JobError: If installing corpus in Korp fails.
         """
         # Remove install markers
-        sparv_work_dir = shlex.quote(str(sparv_utils.get_work_dir(self.id)))
+        sparv_storage = _sparv_storage()
+        sparv_work_dir = shlex.quote(str(sparv_storage.get_work_dir(self.id)))
         p = utils.ssh_run(f"rm -rf {sparv_work_dir}/korp.install_*_marker")
         if p.returncode != 0:
             logger.error("Failed to remove Korp install markers for corpus %s: %s", self.id, p.stderr.decode())
@@ -430,7 +439,8 @@ class Job:
             exceptions.JobError: If installing corpus in Strix fails.
         """
         # Remove install markers
-        sparv_work_dir = shlex.quote(str(sparv_utils.get_work_dir(self.id)))
+        sparv_storage = _sparv_storage()
+        sparv_work_dir = shlex.quote(str(sparv_storage.get_work_dir(self.id)))
         p = utils.ssh_run(f"rm -rf {sparv_work_dir}/sbx_strix.install_*_marker")
         if p.returncode != 0:
             logger.error("Failed to remove Strix install markers for corpus %s: %s", self.id, p.stderr.decode())
@@ -634,11 +644,13 @@ class Job:
             exceptions.WriteError: If writing to the storage server fails.
         """
         self.set_status(Status.running, ProcessName.sync2storage)
-        remote_corpus_dir = storage.get_corpus_dir(self.id)
+        sparv_storage = _sparv_storage()
+        remote_corpus_dir = sparv_storage.get_corpus_dir(self.id)
         local_corpus_dir = str(utils.get_resource_dir(self.id, mkdir=True))
 
         # Get exports from Sparv
-        remote_export_dir = sparv_utils.get_export_dir(self.id)
+        sparv_storage = _sparv_storage()
+        remote_export_dir = sparv_storage.get_export_dir(self.id)
         p = subprocess.run(
             ["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}", local_corpus_dir],
             capture_output=True,
@@ -654,7 +666,8 @@ class Job:
             )
 
         # Get plain text sources from Sparv
-        remote_work_dir = sparv_utils.get_work_dir(self.id)
+        sparv_storage = _sparv_storage()
+        remote_work_dir = sparv_storage.get_work_dir(self.id)
         p = subprocess.run(
             [
                 "rsync",
@@ -673,7 +686,7 @@ class Job:
         # Transfer exports to the storage server
         local_export_dir = utils.get_export_dir(self.id)
         try:
-            storage.upload_dir(remote_corpus_dir, local_export_dir, self.id)
+            sparv_storage.upload_dir(remote_corpus_dir, local_export_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
             raise exceptions.WriteError(remote_corpus_dir, "Failed to upload exports") from e
@@ -681,7 +694,7 @@ class Job:
         # Transfer plain text sources to the storage server
         local_work_dir = utils.get_work_dir(self.id)
         try:
-            storage.upload_dir(remote_corpus_dir, local_work_dir, self.id)
+            sparv_storage.upload_dir(remote_corpus_dir, local_work_dir, self.id)
         except Exception as e:
             self.set_status(Status.error)
             logger.warning(e)
@@ -742,6 +755,72 @@ class Job:
         return True, sparv_output
 
 
+class NoopJob:
+    """A lightweight job object for resource types without processing."""
+
+    def __init__(
+        self,
+        id: str,  # noqa: A002
+        status: dict | None = None,
+        current_process: str | None = None,
+        pid: int | None = None,
+        priority: int | str = "",
+        warnings: str = "",
+        errors: str = "",
+        started: str = "",
+        ended: str = "",
+        duration: int = 0,
+        progress: str = "",
+        **_obsolete,  # noqa: ANN003
+    ) -> None:
+        """Create a NoopJob instance."""
+        self.id = id
+        self.status = JobStatuses(status)
+        self.current_process = current_process
+        self.pid = pid
+        self.priority = priority
+        self.warnings = warnings
+        self.errors = errors
+        self.sparv_exports = []
+        self.current_files = []
+        self.install_scrambled = False
+        self.installed_korp = False
+        self.installed_strix = False
+        self.sparv_output = ""
+        self.progress_output = int(progress.strip("%")) if progress else 0
+        self.started = started
+        self.ended = ended
+        self.duration = duration
+
+    def __str__(self) -> str:
+        """Return a string representation of the serialized object."""
+        return str(self.serialize())
+
+    def serialize(self) -> dict:
+        """Convert class data into dict."""
+        return {
+            "status": self.status,
+            "current_process": self.current_process,
+            "pid": self.pid,
+            "priority": self.priority,
+            "warnings": self.warnings,
+            "errors": self.errors,
+            "started": self.started,
+            "ended": self.ended,
+            "duration": self.duration,
+            "progress": self.progress,
+        }
+
+    def set_parent(self, parent: Any) -> None:
+        """Save reference to parent class."""
+        self.parent = parent
+
+    @property
+    def progress(self) -> str:
+        """Return progress as percentage string."""
+        return f"{self.progress_output}%"
+
+
 class DefaultJob:
     """A default job item for running generic Sparv commands like `sparv run -l`."""
 
@@ -758,7 +837,8 @@ class DefaultJob:
 
         self.sparv_user = settings.SPARV_USER
         self.sparv_server = settings.SPARV_HOST
-        self.remote_corpus_dir = sparv_utils.get_corpus_dir(self.lang, default_dir=True)
+        sparv_storage = _sparv_storage()
+        self.remote_corpus_dir = sparv_storage.get_corpus_dir(self.lang, default_dir=True)
         self.remote_corpus_dir_esc = shlex.quote(str(self.remote_corpus_dir))
         self.config_file = settings.SPARV_CORPUS_CONFIG
 

@@ -7,8 +7,9 @@ from dateutil.parser import isoparse
 
 from mink.core import exceptions
 from mink.core.config import settings
+from mink.core.resource import ResourceType
+from mink.core.resource_specs import get_spec
 from mink.core.storage_base import BaseStorage
-from mink.sparv import utils as sparv_utils
 
 if TYPE_CHECKING:
     from mink.core.info import Info
@@ -75,38 +76,41 @@ class SparvStorage(BaseStorage):
     # Path getters
     # ------------------------------------------------------------------------------
 
-    def get_corpus_dir(self, resource_id: str, mkdir: bool = False) -> Path:
+    def get_corpus_dir(self, resource_id: str, mkdir: bool = False, default_dir: bool = False) -> Path:
         """Get dir for given corpus."""
-        corpus_dir = sparv_utils.get_corpus_dir(resource_id)
+        if default_dir:
+            corpus_dir = Path(settings.SPARV_DEFAULT_CORPORA_DIR) / resource_id
+        else:
+            corpus_dir = Path(settings.SPARV_CORPORA_DIR) / resource_id[len(settings.RESOURCE_PREFIX)] / resource_id
         if mkdir:
             self.make_dir(corpus_dir)
         return corpus_dir
 
     def get_export_dir(self, resource_id: str, mkdir: bool = False) -> Path:
         """Get export dir for given corpus."""
-        export_dir = sparv_utils.get_export_dir(resource_id)
+        export_dir = self.get_corpus_dir(resource_id) / settings.SPARV_EXPORT_DIR
         if mkdir:
             self.make_dir(export_dir)
         return export_dir
 
     def get_work_dir(self, resource_id: str, mkdir: bool = False) -> Path:
         """Get sparv workdir for given corpus."""
-        work_dir = sparv_utils.get_work_dir(resource_id)
+        work_dir = self.get_corpus_dir(resource_id) / settings.SPARV_WORK_DIR
         if mkdir:
             self.make_dir(work_dir)
         return work_dir
 
     def get_source_dir(self, resource_id: str, mkdir: bool = False) -> Path:
         """Get source dir for given corpus."""
-        source_dir = sparv_utils.get_source_dir(resource_id)
+        source_dir = self.get_corpus_dir(resource_id) / settings.SPARV_SOURCE_DIR
         if mkdir:
             self.make_dir(source_dir)
         return source_dir
 
-    @staticmethod
-    def get_config_file(resource_id: str) -> Path:
+    def get_config_file(self, resource_id: str) -> Path:
         """Get path to corpus config file."""
-        return sparv_utils.get_config_file(resource_id)
+        config_filename = get_spec(ResourceType.corpus).config_filename
+        return self.get_corpus_dir(resource_id) / config_filename
 
 
 storage = SparvStorage()
