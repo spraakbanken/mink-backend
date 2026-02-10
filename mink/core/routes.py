@@ -13,6 +13,7 @@ from jinja2 import Template
 from mink.core import utils
 from mink.core.config import settings
 from mink.core.models import InfoResponse
+from mink.sparv.config import sparv_settings
 
 router = APIRouter(tags=["Documentation"])
 templates = Jinja2Templates(directory="templates")
@@ -61,7 +62,7 @@ async def api_documentation2(request: Request) -> RedirectResponse:
 async def swagger_api_spec(request: Request) -> JSONResponse:
     """Serve a modified OpenAPI schema (OAS) for Swagger."""
     oas = request.app.openapi()
-    # Create a dictionarey with paths as keys and their tag names as values (needed for Swagger links)
+    # Create a dictionary with paths as keys and their tag names as values (needed for Swagger links)
     paths_dict = {
         operation.get("operationId", ""): tag.replace(" ", "%20")
         for operations in oas.get("paths", {}).values()
@@ -176,7 +177,7 @@ async def api_info() -> JSONResponse:
         status_codes["data"].append({"name": s.value, "description": s.description})
 
     importer_modules = {"info": "Sparv importers that need to be used for different file extensions", "data": []}
-    for ext, importer in settings.SPARV_IMPORTER_MODULES.items():
+    for ext, importer in sparv_settings.SPARV_IMPORTER_MODULES.items():
         importer_modules["data"].append({"file_extension": ext, "importer": importer})
 
     file_size_limits = {

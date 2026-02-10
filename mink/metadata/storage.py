@@ -4,13 +4,14 @@ from pathlib import Path
 
 from mink.core import storage_base
 from mink.core.config import settings
+from mink.metadata.config import metadata_settings
 
 
 class MetadataStorage(storage_base.BaseStorage):
     """Storage backend for metadata resources."""
 
-    user = settings.METADATA_USER
-    host = settings.METADATA_HOST
+    user = metadata_settings.METADATA_USER
+    host = metadata_settings.METADATA_HOST
 
     supports_upload = False
     supports_download_dir = False
@@ -27,7 +28,7 @@ class MetadataStorage(storage_base.BaseStorage):
     @staticmethod
     def get_resources_dir() -> Path:
         """Get dir for metadata resources."""
-        return Path(settings.METADATA_DIR)
+        return Path(metadata_settings.METADATA_DIR)
 
     def get_resource_dir(self, resource_id: str, mkdir: bool = False) -> Path:
         """Get dir for given resource."""
@@ -40,7 +41,7 @@ class MetadataStorage(storage_base.BaseStorage):
     def get_source_dir(self, resource_id: str, mkdir: bool = False) -> Path:
         """Get source dir for given resource."""
         resdir = self.get_resource_dir(resource_id)
-        source_dir = resdir / settings.METADATA_SOURCE_DIR
+        source_dir = resdir / metadata_settings.METADATA_SOURCE_DIR
         if mkdir:
             self.make_dir(source_dir)
         return source_dir
@@ -48,6 +49,15 @@ class MetadataStorage(storage_base.BaseStorage):
     def get_yaml_file(self, resource_id: str) -> Path:
         """Get path to metadata yaml file."""
         resdir = self.get_resource_dir(resource_id)
+        return resdir / (resource_id + ".yaml")
+
+    # ------------------------------------------------------------------------------
+    # Local path getters (on Mink server, used for file downloads)
+    # ------------------------------------------------------------------------------
+
+    def get_local_metadata_yaml_file(self, resource_id: str) -> Path:
+        """Get path to local metadata yaml file."""
+        resdir = self.get_local_resource_dir(resource_id)
         return resdir / (resource_id + ".yaml")
 
 

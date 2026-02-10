@@ -11,7 +11,9 @@ from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.logging import logger
 from mink.core.resource import Resource, ResourceType
-from mink.metadata import storage
+from mink.metadata import utils as metadata_utils
+from mink.metadata.config import metadata_settings
+from mink.metadata.storage import storage
 from mink.sb_auth import login
 
 router = APIRouter(tags=["Manage Metadata"])
@@ -70,7 +72,7 @@ async def create_metadata(
     """
     # TODO: better solution for getting user's organization prefix!
     user = auth_data["user"]
-    org_prefix = settings.METADATA_ORG_PREFIXES.get(user.id)
+    org_prefix = metadata_settings.METADATA_ORG_PREFIXES.get(user.id)
     if org_prefix is None:
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -86,7 +88,7 @@ async def create_metadata(
         )
 
     # Check availability of ID in SBX metadata and the Mink backend resource registry
-    check_id_url = settings.METADATA_ID_AVAILABLE_URL + public_id
+    check_id_url = metadata_settings.METADATA_ID_AVAILABLE_URL + public_id
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(check_id_url)
@@ -363,7 +365,7 @@ async def upload_metadata_yaml(
         yaml_contents = await yaml_file.read()
 
         try:
-            new_yaml, resource_name = utils.standardize_metadata_yaml(yaml_contents)
+            new_yaml, resource_name = metadata_utils.standardize_yaml(yaml_contents)
             set_resource_name(resource_name)
             storage.write_file_contents(storage.get_yaml_file(resource_id), new_yaml.encode("UTF-8"), resource_id)
             return utils.response(
@@ -382,7 +384,7 @@ async def upload_metadata_yaml(
     # Process metadata in plain text
     elif metadata_txt:
         try:
-            new_yaml, resource_name = utils.standardize_metadata_yaml(metadata_txt)
+            new_yaml, resource_name = metadata_utils.standardize_yaml(metadata_txt)
             set_resource_name(resource_name)
             storage.write_file_contents(storage.get_yaml_file(resource_id), new_yaml.encode("UTF-8"), resource_id)
             return utils.response(
@@ -451,8 +453,8 @@ async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency(
     """
     resource_id = auth_data["resource_id"]
     # Create directory for the current resource locally (on Mink backend server)
-    utils.get_resource_dir(resource_id, mkdir=True)
-    local_yaml_file = utils.get_metadata_yaml_file(resource_id)
+    storage.get_local_resource_dir(resource_id, mkdir=True)
+    local_yaml_file = storage.get_local_metadata_yaml_file(resource_id)
 
     try:
         # Get file from storage

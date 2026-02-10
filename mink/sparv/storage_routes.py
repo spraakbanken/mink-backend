@@ -17,8 +17,10 @@ from mink.core.resource import ResourceType
 from mink.core.resource_specs import get_spec
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
-from mink.sparv import storage
+from mink.sparv import utils as sparv_utils
+from mink.sparv.config import sparv_settings
 from mink.sparv.jobs import SparvJob
+from mink.sparv.storage import storage
 
 router = APIRouter()
 
@@ -790,8 +792,8 @@ async def download_sources(
             return_code="missing_sources_download",
         )
 
-    local_source_dir = utils.get_source_dir(resource_id, mkdir=True)
-    local_corpus_dir = utils.get_resource_dir(resource_id, mkdir=True)
+    local_source_dir = storage.get_local_source_dir(resource_id, mkdir=True)
+    local_corpus_dir = storage.get_local_resource_dir(resource_id, mkdir=True)
 
     # Download and zip file specified in args
     if download_file:
@@ -941,7 +943,9 @@ async def upload_config(
 
         # Check if config file is compatible with the uploaded source files
         if source_files:
-            compatible, current_importer, expected_importer = utils.config_compatible(config_contents, source_files[0])
+            compatible, current_importer, expected_importer = sparv_utils.config_compatible(
+                config_contents, source_files[0]
+            )
             if not compatible:
                 raise exceptions.MinkHTTPException(
                     status.HTTP_400_BAD_REQUEST,
@@ -952,7 +956,7 @@ async def upload_config(
                 )
 
         try:
-            new_config, corpus_name = utils.standardize_config(config_contents, resource_id)
+            new_config, corpus_name = sparv_utils.standardize_config(config_contents, resource_id)
             set_corpus_name(corpus_name)
             storage.write_file_contents(config_path, new_config.encode("UTF-8"), resource_id)
             return utils.response(
@@ -972,7 +976,9 @@ async def upload_config(
         if source_files:
             try:
                 # Check if config file is compatible with the uploaded source files
-                compatible, current_importer, expected_importer = utils.config_compatible(config_txt, source_files[0])
+                compatible, current_importer, expected_importer = sparv_utils.config_compatible(
+                    config_txt, source_files[0]
+                )
             except Exception as e:
                 raise exceptions.MinkHTTPException(
                     status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -990,7 +996,7 @@ async def upload_config(
                 )
         try:
             # Standardize config (e.g. ensure that the resource_id is correct)
-            new_config, corpus_name = utils.standardize_config(config_txt, resource_id)
+            new_config, corpus_name = sparv_utils.standardize_config(config_txt, resource_id)
             set_corpus_name(corpus_name)
             storage.write_file_contents(config_path, new_config.encode("UTF-8"), resource_id)
         except Exception as e:
@@ -1061,8 +1067,8 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
     resource_id = auth_data["resource_id"]
     config_path = storage.get_config_file(resource_id)
     # Create directory for the current resource locally (on Mink backend server)
-    utils.get_source_dir(resource_id, mkdir=True)
-    local_config_file = utils.get_config_file(resource_id)
+    storage.get_local_source_dir(resource_id, mkdir=True)
+    local_config_file = storage.get_local_config_file(resource_id)
 
     try:
         # Get file from storage
@@ -1147,7 +1153,9 @@ async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSO
     """
     resource_id = auth_data["resource_id"]
     try:
-        objlist = storage.list_contents(storage.get_export_dir(resource_id), blacklist=settings.SPARV_EXPORT_BLACKLIST)
+        objlist = storage.list_contents(
+            storage.get_export_dir(resource_id), blacklist=sparv_settings.SPARV_EXPORT_BLACKLIST
+        )
         return utils.response(
             message=f"Listing current export files for '{resource_id}'", contents=objlist, return_code="listing_exports"
         )
@@ -1238,9 +1246,9 @@ async def download_exports(
 
     resource_id = auth_data["resource_id"]
     storage_export_dir = storage.get_export_dir(resource_id)
-    local_corpus_dir = utils.get_resource_dir(resource_id, mkdir=True)
-    local_export_dir = utils.get_export_dir(resource_id, mkdir=True)
-    blacklist = settings.SPARV_EXPORT_BLACKLIST
+    local_corpus_dir = storage.get_local_resource_dir(resource_id, mkdir=True)
+    local_export_dir = storage.get_local_export_dir(resource_id, mkdir=True)
+    blacklist = sparv_settings.SPARV_EXPORT_BLACKLIST
 
     try:
         export_contents = storage.list_contents(storage_export_dir, exclude_dirs=False, blacklist=blacklist)
@@ -1482,7 +1490,7 @@ async def download_source_text(
     """
     resource_id = auth_data["resource_id"]
     storage_work_dir = storage.get_work_dir(resource_id)
-    local_corpus_dir = utils.get_resource_dir(resource_id, mkdir=True)
+    local_corpus_dir = storage.get_local_resource_dir(resource_id, mkdir=True)
 
     if not download_file:
         raise exceptions.MinkHTTPException(
@@ -1492,7 +1500,9 @@ async def download_source_text(
         )
 
     file_stem = Path(download_file).stem
-    download_file_path = storage_work_dir / Path(download_file).parent / file_stem / settings.SPARV_PLAIN_TEXT_FILE
+    download_file_path = (
+        storage_work_dir / Path(download_file).parent / file_stem / sparv_settings.SPARV_PLAIN_TEXT_FILE
+    )
 
     # Check if file exists
     try:

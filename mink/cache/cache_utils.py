@@ -49,7 +49,7 @@ def get_job_queue() -> list:
     """
     registry.initialize()
     with cache.get_client() as client:
-        return client.get("job_queue")
+        return client.get("job_queue") or []
 
 
 def set_job_queue(value: list) -> None:
@@ -70,7 +70,7 @@ def get_all_resources() -> list:
     """
     registry.initialize()
     with cache.get_client() as client:
-        return client.get("all_resources")
+        return client.get("all_resources") or []
 
 
 def set_all_resources(value: list) -> None:

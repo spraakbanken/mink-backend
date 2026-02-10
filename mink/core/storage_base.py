@@ -11,6 +11,9 @@ from typing import ClassVar
 from dateutil.parser import parse
 
 from mink.core import exceptions, utils
+from mink.core.config import settings
+from mink.core.logging import logger
+from mink.sb_auth.login import request_id_var
 
 
 class BaseStorage:
@@ -51,12 +54,51 @@ class BaseStorage:
             raise exceptions.ParameterError(f"{capability} not supported for this storage")
 
     # ------------------------------------------------------------------------------
+    # Local path getters (on Mink server, used for file downloads)
+    # ------------------------------------------------------------------------------
+    @staticmethod
+    def get_local_resources_dir(mkdir: bool = False) -> Path:
+        """Get user specific dir for resources."""
+        if not request_id_var.get():
+            logger.error("Request ID not set. Cannot get path to local resources dir.")
+            raise exceptions.RequestIDNotSetError
+        resources_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / request_id_var.get()
+        if mkdir:
+            resources_dir.mkdir(parents=True, exist_ok=True)
+        return resources_dir
+
+    def get_local_resource_dir(self, resource_id: str, mkdir: bool = False) -> Path:
+        """Get dir for given resource."""
+        resources_dir = self.get_local_resources_dir(mkdir=mkdir)
+        resdir = resources_dir / resource_id
+        if mkdir:
+            resdir.mkdir(parents=True, exist_ok=True)
+        return resdir
+
+    # ------------------------------------------------------------------------------
     # Shared implementations
     # ------------------------------------------------------------------------------
     @staticmethod
     def relative_path(filepath: Path) -> str:
         """Return a path string for API responses."""
         return str(filepath)
+
+    def ssh_run(self, command: str, ssh_input: bytes | None = None) -> subprocess.CompletedProcess:
+        """Execute 'command' on server and return process.
+
+        Args:
+            command: The command to execute.
+            ssh_input: The input to pass to the command.
+
+        Returns:
+            The completed process.
+        """
+        return subprocess.run(
+            ["ssh", "-i", settings.SSH_KEY, f"{self.user}@{self.host}", command],
+            capture_output=True,
+            input=ssh_input,
+            check=False,
+        )
 
     def list_contents(self, directory: Path, exclude_dirs: bool = True, blacklist: list | None = None) -> list:
         """List files in directory on remote server recursively.
@@ -72,7 +114,7 @@ class BaseStorage:
         self._ensure("list")
         objlist = []
         directory_quoted = shlex.quote(str(directory))
-        p = utils.ssh_run(
+        p = self.ssh_run(
             f"test -d {directory_quoted} && cd {directory_quoted} && "
             f"find . -exec ls -lgGd --time-style=full-iso {{}} \\;"
         )
@@ -114,7 +156,7 @@ class BaseStorage:
             A dictionary containing file information.
         """
         self._ensure("read")
-        p = utils.ssh_run(f"ls -lgGd --time-style=full-iso {shlex.quote(str(filepath))}")
+        p = self.ssh_run(f"ls -lgGd --time-style=full-iso {shlex.quote(str(filepath))}")
         if p.stderr:
             raise exceptions.ReadError(filepath, f"Failed to get file info: {p.stderr.decode()}")
 
@@ -169,7 +211,7 @@ class BaseStorage:
             The contents of the file as string or bytes.
         """
         self._ensure("read")
-        p = utils.ssh_run(f"cat {shlex.quote(str(filepath))}")
+        p = self.ssh_run(f"cat {shlex.quote(str(filepath))}")
         if p.stderr:
             raise exceptions.ReadError(filepath, p.stderr.decode())
         if as_bytes:
@@ -186,7 +228,7 @@ class BaseStorage:
             The size of the file or directory in bytes.
         """
         self._ensure("read")
-        p = utils.ssh_run(f"du -b -s {shlex.quote(str(remote_path))}")
+        p = self.ssh_run(f"du -b -s {shlex.quote(str(remote_path))}")
         if p.stderr:
             raise exceptions.ReadError(remote_path, f"Failed to retrieve size: {p.stderr.decode()}")
         try:
@@ -206,7 +248,7 @@ class BaseStorage:
         if not self.is_valid_path(filepath, resource_id):
             raise exceptions.WriteError(filepath, "You don't have permission to edit this file")
 
-        p = utils.ssh_run(f"cat - > {shlex.quote(str(filepath))}", ssh_input=file_contents)
+        p = self.ssh_run(f"cat - > {shlex.quote(str(filepath))}", ssh_input=file_contents)
         if p.stderr:
             raise exceptions.WriteError(filepath, p.stderr.decode())
 
@@ -291,7 +333,7 @@ class BaseStorage:
         if not self.is_valid_path(path, resource_id):
             raise exceptions.WriteError(path, "You don't have permission to remove this directory")
 
-        p = utils.ssh_run(f"test -d {shlex.quote(str(path))} && rm -r {shlex.quote(str(path))}")
+        p = self.ssh_run(f"test -d {shlex.quote(str(path))} && rm -r {shlex.quote(str(path))}")
         if p.stderr:
             raise exceptions.WriteError(path, f"Cannot remove corpus dir: {p.stderr.decode()}")
 
@@ -306,7 +348,7 @@ class BaseStorage:
         if not self.is_valid_path(path, resource_id):
             raise exceptions.WriteError(path, "You don't have permission to remove this file")
 
-        p = utils.ssh_run(f"test -f {shlex.quote(str(path))} && rm {shlex.quote(str(path))}")
+        p = self.ssh_run(f"test -f {shlex.quote(str(path))} && rm {shlex.quote(str(path))}")
         if p.stderr:
             raise exceptions.WriteError(path, f"Failed to remove file: {p.stderr.decode()}")
 
@@ -317,6 +359,6 @@ class BaseStorage:
             dirpath: The path to the directory to create.
         """
         self._ensure("write")
-        p = utils.ssh_run(f"mkdir -p {shlex.quote(str(dirpath))}")
+        p = self.ssh_run(f"mkdir -p {shlex.quote(str(dirpath))}")
         if p.stderr:
             raise exceptions.WriteError(dirpath, f"Failed to create resource dir: {p.stderr.decode()}")

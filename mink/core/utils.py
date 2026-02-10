@@ -7,14 +7,12 @@ import logging
 import os
 import pickle
 import shutil
-import subprocess
 import tomllib
 import unicodedata
 import zipfile
 from pathlib import Path
 from typing import Any
 
-import yaml
 from fastapi import status
 from fastapi.responses import JSONResponse
 from mkdocs.commands import build
@@ -26,7 +24,7 @@ from mink.core import exceptions, models
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.sb_auth.login import request_id_var
-from mink.sparv import storage
+from mink.sparv.storage import storage
 
 
 def response(
@@ -224,24 +222,6 @@ def get_current_time() -> str:
     return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
 
 
-def ssh_run(command: str, ssh_input: bytes | None = None) -> subprocess.CompletedProcess:
-    """Execute 'command' on server and return process.
-
-    Args:
-        command: The command to execute.
-        ssh_input: The input to pass to the command.
-
-    Returns:
-        The completed process.
-    """
-    return subprocess.run(
-        ["ssh", "-i", settings.SSH_KEY, f"{settings.SPARV_USER}@{settings.SPARV_HOST}", command],
-        capture_output=True,
-        input=ssh_input,
-        check=False,
-    )
-
-
 def uncompress_gzip(inpath: Path, outpath: Path | None = None) -> None:
     """Uncompress file with gzip and save to outpath (or inpath if no outpath is given).
 
@@ -369,167 +349,3 @@ def identical_file_exists(incoming_file_contents: bytes, existing_file: Path) ->
         if incoming_file_hash == remote_file_hash:
             return True
     return False
-
-
-def config_compatible(config: str | bytes, source_file: dict) -> tuple[bool, Any, Any]:
-    """Check if the importer module in the corpus config is compatible with the source files.
-
-    Args:
-        config: The corpus config.
-        source_file: The source file.
-
-    Returns:
-        A tuple containing a boolean indicating compatibility, the current importer, and the expected importer.
-    """
-    file_ext = Path(source_file["name"]).suffix
-    config_yaml = yaml.load(config, Loader=yaml.FullLoader)
-    current_importer = config_yaml.get("import", {}).get("importer", "").split(":")[0] or None
-    importer_dict = settings.SPARV_IMPORTER_MODULES
-
-    # If no importer is specified xml is default
-    if current_importer is None and file_ext == ".xml":
-        return True, None, None
-
-    expected_importer = importer_dict.get(file_ext)
-    if current_importer == expected_importer:
-        return True, current_importer, expected_importer
-    return False, current_importer, expected_importer
-
-
-def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, str]:
-    """Set the correct corpus ID and remove the compression setting in the corpus config.
-
-    Args:
-        config: The corpus config.
-        resource_id: The corpus ID.
-
-    Returns:
-        A tuple containing the standardized config and the corpus name.
-    """
-    config_yaml = yaml.load(config, Loader=yaml.FullLoader)
-
-    # Set correct corpus ID
-    if config_yaml.get("metadata", {}).get("id") != resource_id:
-        if not config_yaml.get("metadata"):
-            config_yaml["metadata"] = {}
-        config_yaml["metadata"]["id"] = resource_id
-
-    # Get corpus name
-    name = config_yaml.get("metadata", {}).get("name", {})
-
-    # Remove the compression setting in order to use the standard one given by the default config
-    if config_yaml.get("sparv", {}).get("compression") is not None:
-        config_yaml["sparv"].pop("compression")
-        # Remove entire Sparv section if empty
-        if not config_yaml.get("sparv", {}):
-            config_yaml.pop("sparv")
-
-    # Remove settings that a Mink user is not allowed to modify
-    protected_options = settings.SPARV_PROTECTED_CONFIG_OPTIONS
-    for value in protected_options:
-        nested_options = value.split(".")
-        current_level = config_yaml
-        for option in nested_options[:-1]:
-            current_level = current_level.get(option, {})
-        current_level.pop(nested_options[-1], None)
-
-    # Remove all install and uninstall targets (this is handled in the installation step instead)
-    config_yaml.pop("install", None)
-    config_yaml.pop("uninstall", None)
-
-    # Add Korp settings
-    korp = config_yaml.setdefault("korp", {})
-    korp["protected"] = True
-    korp.setdefault("context", ["1 sentence", "5 sentence"])
-    korp.setdefault("within", ["sentence", "5 sentence"])
-
-    # Make Strix corpora appear in correct mode
-    strix = config_yaml.setdefault("sbx_strix", {})
-    strix["modes"] = [{"name": "mink"}]
-    # Add '<text>:misc.id as _id' to annotations for Strix' sake
-    export = config_yaml.setdefault("export", {})
-    export.setdefault("annotations", [])
-    if "<text>:misc.id as _id" not in export["annotations"]:
-        export["annotations"].append("<text>:misc.id as _id")
-
-    return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
-
-
-def standardize_metadata_yaml(metadata_yaml: str | bytes) -> tuple[str, str]:
-    """Get resource name from metadata yaml and remove comments etc.
-
-    Args:
-        metadata_yaml: The metadata yaml.
-
-    Returns:
-        A tuple containing the standardized yaml and the resource name.
-    """
-    yaml_contents = yaml.load(metadata_yaml, Loader=yaml.FullLoader)
-
-    # Get resource name
-    name = yaml_contents.get("name", {})
-
-    return yaml.dump(yaml_contents, sort_keys=False, allow_unicode=True), name
-
-
-# ------------------------------------------------------------------------------
-# Get local paths (mostly used for download)
-# ------------------------------------------------------------------------------
-
-def get_resources_dir(mkdir: bool = False) -> Path:
-    """Get user specific dir for corpora."""
-    if not request_id_var.get():
-        logger.error("Resource ID not set. Cannot get path to local corpora dir.")
-        raise exceptions.RequestIDNotSetError
-    resources_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / request_id_var.get()
-    if mkdir:
-        resources_dir.mkdir(parents=True, exist_ok=True)
-    return resources_dir
-
-
-def get_resource_dir(resource_id: str, mkdir: bool = False) -> Path:
-    """Get dir for given resource."""
-    resources_dir = get_resources_dir(mkdir=mkdir)
-    resdir = resources_dir / resource_id
-    if mkdir:
-        resdir.mkdir(parents=True, exist_ok=True)
-    return resdir
-
-
-def get_export_dir(resource_id: str, mkdir: bool = False) -> Path:
-    """Get export dir for given resource."""
-    resdir = get_resource_dir(resource_id, mkdir=mkdir)
-    export_dir = resdir / settings.SPARV_EXPORT_DIR
-    if mkdir:
-        export_dir.mkdir(parents=True, exist_ok=True)
-    return export_dir
-
-
-def get_work_dir(resource_id: str, mkdir: bool = False) -> Path:
-    """Get sparv workdir for given corpus."""
-    resdir = get_resource_dir(resource_id, mkdir=mkdir)
-    work_dir = resdir / settings.SPARV_WORK_DIR
-    if mkdir:
-        work_dir.mkdir(parents=True, exist_ok=True)
-    return work_dir
-
-
-def get_source_dir(resource_id: str, mkdir: bool = False) -> Path:
-    """Get source dir for given corpus."""
-    resdir = get_resource_dir(resource_id, mkdir=mkdir)
-    source_dir = resdir / settings.SPARV_SOURCE_DIR
-    if mkdir:
-        source_dir.mkdir(parents=True, exist_ok=True)
-    return source_dir
-
-
-def get_config_file(resource_id: str) -> Path:
-    """Get path to corpus config file."""
-    resdir = get_resource_dir(resource_id)
-    return resdir / settings.SPARV_CORPUS_CONFIG
-
-
-def get_metadata_yaml_file(resource_id: str) -> Path:
-    """Get path to local metadata yaml file."""
-    resdir = get_resource_dir(resource_id)
-    return resdir / (resource_id + ".yaml")

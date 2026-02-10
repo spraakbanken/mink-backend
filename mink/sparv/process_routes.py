@@ -13,8 +13,10 @@ from mink.core.logging import logger
 from mink.core.status import JobStatuses, ProcessName, Status
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
-from mink.sparv import storage
+from mink.sparv import utils as sparv_utils
+from mink.sparv.config import sparv_settings
 from mink.sparv.jobs import SparvDefaultJob, SparvJob
+from mink.sparv.storage import storage
 
 router = APIRouter()
 
@@ -104,7 +106,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     # Parse requested exports
     if exports is None:
         exports = []
-    exports = [i.strip() for i in exports if i] or settings.SPARV_DEFAULT_EXPORTS
+    exports = [i.strip() for i in exports if i] or sparv_settings.SPARV_DEFAULT_EXPORTS
 
     # Parse list of files to be processed
     if files is None:
@@ -140,7 +142,9 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
             info=str(e),
         ) from e
     if source_files:
-        compatible, current_importer, expected_importer = utils.config_compatible(config_contents, source_files[0])
+        compatible, current_importer, expected_importer = sparv_utils.config_compatible(
+            config_contents, source_files[0]
+        )
         if not compatible:
             raise exceptions.MinkHTTPException(
                 status.HTTP_400_BAD_REQUEST,
@@ -257,7 +261,7 @@ async def advance_queue(
     # Get running jobs again in case jobs were unqueued in the previous step
     running_jobs, waiting_jobs = registry.get_running_waiting()
     # If there are fewer running jobs than allowed, start the next one in the queue
-    while waiting_jobs and len(running_jobs) < settings.SPARV_WORKERS:
+    while waiting_jobs and len(running_jobs) < sparv_settings.SPARV_WORKERS:
         job = waiting_jobs.pop(0)
         job = _require_job(job)
         try:

@@ -3,6 +3,7 @@
 from datetime import datetime
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -17,9 +18,12 @@ class Settings(BaseSettings):
     RESOURCE_PREFIX: str = "mink-"  # Prefix for resource IDs
 
     # CORS settings
-    ALLOW_ORIGINS: list = ["*"]
-    ALLOW_METHODS: list = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    ALLOW_HEADERS: list = ["*"]
+    ALLOW_ORIGINS: list[str] = Field(default_factory=lambda: ["*"])
+    ALLOW_METHODS: list[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    ALLOW_HEADERS: list[str] = Field(default_factory=lambda: ["*"])
+
+    # Path to the SSH key for connecting to external servers
+    SSH_KEY: str = "~/.ssh/id_rsa"
 
     # Local files
     INSTANCE_PATH: str = str(Path(__file__).resolve().parent.parent.parent / "instance")  # Path to the instance dir
@@ -39,7 +43,6 @@ class Settings(BaseSettings):
     # Cache settings
     CACHE_CLIENT: str = "127.0.0.1:11211"  # Server address or a path to a socket, e.g. "/var/run/memcached.sock"
     ADMIN_MODE_LIFETIME: int = 60 * 60 * 12  # How long the admin mode is active (in seconds)
-    SPARV_SCHEMA_CACHE_LIFETIME: int = 60 * 60 * 24 * 10  # How long to cache Sparv schema info (in seconds)
 
     # File upload settings
     MAX_CONTENT_LENGTH: int = 1024 * 1024 * 100  # Max size (bytes) for one request
@@ -56,86 +59,6 @@ class Settings(BaseSettings):
     SBAUTH_CACHE_LIFETIME: int = 10 * 60  # How long to cache fetched permissions (in seconds)
     SBAUTH_PERSONAL_API_KEY: str = ""  # Personal API key for SB Auth (used for testing purposes)
 
-    # Sparv settings
-    SPARV_SOURCE_DIR: str = "source"  # Dir for storing corpus source files
-    SPARV_EXPORT_DIR: str = "export"  # Dir for storing corpus exports
-    SPARV_WORK_DIR: str = "sparv-workdir"  # Dir for Sparv work files
-    SPARV_LOG_DIR: str = "logs"  # Dir for Sparv log files
-    SPARV_CORPUS_CONFIG: str = "config.yaml"  # Name of the corpus config file
-    SPARV_PLAIN_TEXT_FILE: str = "@text"  # Name of the plain text file in Sparv
-    SPARV_IMPORTER_MODULES: dict = {  # File extensions for corpus input and the modules that handle them
-        ".xml": "xml_import",
-        ".txt": "text_import",
-        ".docx": "docx_import",
-        ".odt": "odt_import",
-        ".pdf": "pdf_import",
-    }
-
-    # Sparv server settings
-    SPARV_ENABLED: bool = True  # Whether Sparv integration is enabled
-    SSH_KEY: str = "~/.ssh/id_rsa"  # Path to the SSH key for connecting to Sparv
-    SPARV_HOST: str = ""  # Host where Sparv is run
-    SPARV_USER: str = ""  # User for running Sparv
-    SPARV_WORKERS: int = 1  # Number of available Sparv workers
-    SPARV_DEFAULT_CORPORA_DIR: str = "~/mink-data/corpus/default"  # Dir for running listings like 'sparv run -l'
-    SPARV_CORPORA_DIR: str = "mink-data/corpus"  # Dir where user corpora are stored and run, relative to home dir
-    SPARV_ENVIRON: str = "SPARV_DATADIR=~/sparv-pipeline/data/"  # Environment variables to set when running Sparv
-    SPARV_COMMAND: str = "~/sparv-pipeline/venv/bin/python -u -m sparv"  # Command for calling Sparv
-    SPARV_RUN: str = "run --socket ~/sparv-pipeline/sparv.socket --json-log --log-to-file info"  # Sparv's 'run' command
-    SPARV_INSTALL: str = "install --json-log --log-to-file info"  # Sparv's 'install' command
-    SPARV_UNINSTALL: str = "uninstall --log-to-file info"  # Sparv's 'uninstall' command
-    SPARV_DEFAULT_EXPORTS: list = [  # Default export formats to create if nothing is specified
-        "xml_export:pretty",
-        "csv_export:csv",
-        "stats_export:freq_list",
-    ]
-    SPARV_EXPORT_BLACKLIST: list = [  # Glob patterns for exports that will be excluded from listings and downloads
-        "cwb.*",
-        "korp.*",
-        "sbx_strix.*",
-    ]
-    SPARV_DEFAULT_KORP_INSTALLS: list = [  # Default Korp install targets to create
-        "korp:install_timespan",
-        "korp:install_config",
-        "korp:install_lemgrams",
-    ]
-    SPARV_DEFAULT_KORP_UNINSTALLS: list = [  # Default Korp uninstall targets
-        "cwb:uninstall_corpus",
-        "korp:uninstall_timespan",
-        "korp:uninstall_config",
-        "korp:uninstall_lemgrams",
-    ]
-    SPARV_DEFAULT_STRIX_INSTALLS: list = [  # Default Strix install targets to create
-        "sbx_strix:install_config",
-        "sbx_strix:install_corpus",
-        "sbx_strix:install_xml",
-    ]
-    SPARV_DEFAULT_STRIX_UNINSTALLS: list = [  # Default Strix uninstall targets
-        "sbx_strix:uninstall_config",
-        "sbx_strix:uninstall_corpus",
-        "sbx_strix:uninstall_xml",
-    ]
-    SPARV_PROTECTED_CONFIG_OPTIONS: list = [  # Config options that users are not allowed to set
-        "cwb",
-        "korp.config_dir",
-        "korp.modes",
-        "korp.mysql_dbname",
-        "korp.protected",
-        "korp.remote_host",
-        "korp.wordpicture_table",
-        "sbx_strix",
-    ]
-    SPARV_NOHUP_FILE: str = "mink.out"  # File collecting Sparv output for a job
-    SPARV_TMP_RUN_SCRIPT: str = "run_sparv.sh"  # Temporary Sparv run script created for every job
-
-    # Settings for metadata upload
-    METADATA_HOST: str = ""
-    METADATA_USER: str = ""
-    METADATA_DIR: str = "mink-data/metadata"  # Dir where metadata resources are stored, relative to the user's home dir
-    METADATA_ID_AVAILABLE_URL: str = ""
-    METADATA_SOURCE_DIR: str = "source"  # Dir for storing resource files belonging to a metadata resource
-    METADATA_ORG_PREFIXES: dict = {}  # Mapping from user IDs to organisation prefixes
-
     # Settings for queue manager
     CHECK_QUEUE_FREQUENCY: int = 20  # How often the queue will be checked for new jobs (in seconds)
     MINK_SECRET_KEY: str = ""
@@ -150,7 +73,8 @@ class Settings(BaseSettings):
 
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists
-        "env_file_encoding": "utf-8"
+        "env_file_encoding": "utf-8",
+        "extra": "ignore"  # Ignore extra environment variables from other modules (e.g. SPARV_*)
     }
 
 

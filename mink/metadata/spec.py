@@ -3,7 +3,7 @@
 from mink.core.jobs import BaseJob
 from mink.core.resource import ResourceType
 from mink.core.resource_specs import ResourceSpec, register_spec
-from mink.metadata import storage
+from mink.metadata.storage import storage
 
 register_spec(
     ResourceType.metadata,
