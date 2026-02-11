@@ -11,8 +11,11 @@ from mink.cache import cache_utils
 from mink.core import exceptions, registry, utils
 from mink.core.jobs import BaseJob
 from mink.core.logging import logger
-from mink.core.status import ProcessName, Status
+from mink.core.resource import ResourceType
+from mink.core.resource_specs import get_spec
+from mink.core.status import Status
 from mink.sparv.config import sparv_settings
+from mink.sparv.spec import ProcessName
 from mink.sparv.storage import storage
 
 PROGRESS_DONE = 100
@@ -24,6 +27,7 @@ class SparvJob(BaseJob):
     def __init__(
         self,
         id: str,  # noqa: A002
+        processes: list[str] | None = None,
         status: dict | None = None,
         current_process: str | None = None,
         pid: int | None = None,
@@ -40,13 +44,13 @@ class SparvJob(BaseJob):
         started: str = "",
         ended: str = "",
         duration: int = 0,
-        processes: list[str] | None = None,
-        **_obsolete,  # needed to catch invalid arguments from outdated job items (avoids crashes)  # noqa: ANN003
+        **_obsolete: dict[str, object],  # catch invalid arguments from outdated job items (avoids crashes)
     ) -> None:
         """Initialize job by setting class variables.
 
         Args:
             id: Job ID.
+            processes: List of process names to include in the status.
             status: Job status dictionary.
             current_process: Current process (e.g. 'sparv', 'korp', 'strix').
             pid: Process ID in the Sparv server.
@@ -63,14 +67,18 @@ class SparvJob(BaseJob):
             started: Timestamp of when the current Sparv process started.
             ended: Timestamp of when the current Sparv process ended.
             duration: The time elapsed for the current Sparv process (in seconds), until ended or until now.
-            processes: List of process names to include in the status.
             **_obsolete: Catch invalid arguments from outdated job items.
         """
         if not sparv_settings.SPARV_ENABLED:
             raise exceptions.ConfigurationError("Sparv is not enabled in the configuration")
 
+        # Set processes based on resource spec (used for the JobStatuses mapping and status checks in BaseJob)
+        if processes is None:
+            processes = list(get_spec(ResourceType.corpus).process_names)
+
         super().__init__(
             id=id,
+            processes=processes,
             status=status,
             current_process=current_process,
             pid=pid,
@@ -81,7 +89,6 @@ class SparvJob(BaseJob):
             started=started,
             ended=ended,
             duration=duration,
-            processes=processes,
         )
         self.sparv_exports = sparv_exports or []
         self.current_files = current_files or []
@@ -513,7 +520,7 @@ class SparvJob(BaseJob):
         Returns:
             Tuple of warnings, errors, and miscellaneous output.
         """
-        if not self.status.has_process_output(self.current_process):
+        if not self.status.has_process_output(self.current_process, get_spec(ResourceType.corpus).no_output_processes):
             return "", "", "", ""
 
         p = storage.ssh_run(f"cat {self.nohupfile}")
@@ -564,7 +571,7 @@ class SparvJob(BaseJob):
         Returns:
             Progress percentage as a string.
         """
-        if self.status.has_process_output(self.current_process):
+        if self.status.has_process_output(self.current_process, get_spec(ResourceType.corpus).no_output_processes):
             if self.progress_output == PROGRESS_DONE and not self.status.is_done(self.current_process):
                 return "99%"
             return f"{self.progress_output}%"

@@ -10,12 +10,15 @@ from mink.cache import cache_utils
 from mink.core import exceptions, info, models, registry, utils
 from mink.core.config import settings
 from mink.core.logging import logger
-from mink.core.status import JobStatuses, ProcessName, Status
+from mink.core.resource import ResourceType
+from mink.core.resource_specs import get_spec
+from mink.core.status import JobStatuses, Status
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
 from mink.sparv import utils as sparv_utils
 from mink.sparv.config import sparv_settings
 from mink.sparv.jobs import SparvDefaultJob, SparvJob
+from mink.sparv.spec import ProcessName
 from mink.sparv.storage import storage
 
 router = APIRouter()
@@ -358,7 +361,10 @@ async def resource_info(
             return utils.response(
                 message=f"There is no active job for '{resource_id}'",
                 return_code="no_active_job",
-                job_status=JobStatuses().serialize(),
+                job_status=JobStatuses(
+                    status=None,
+                    processes=list(get_spec(ResourceType.corpus).process_names),
+                ).serialize(),
             )
         return utils.response(**make_status_response(info, admin=admin_status))
 
@@ -450,7 +456,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
     resource_id = auth_data["resource_id"]
     job = _require_job(registry.get(resource_id).job)
     # Syncing
-    if job.status.is_syncing():
+    if job.status.is_syncing(get_spec(ResourceType.corpus).sync_processes):
         raise exceptions.MinkHTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             message="Cannot abort job while syncing files",
@@ -935,7 +941,7 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
     if job_status.is_none():
         return {"message": f"There is no active job for '{info.job.id}'", "return_code": "no_active_job", **info_attrs}
 
-    if job_status.is_syncing():
+    if job_status.is_syncing(get_spec(ResourceType.corpus).sync_processes):
         return {"message": "Files are being synced", "return_code": "syncing_files", **info_attrs}
 
     if job_status.is_waiting():

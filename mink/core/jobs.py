@@ -13,6 +13,7 @@ class BaseJob:
     def __init__(
         self,
         id: str,  # noqa: A002
+        processes: list[str],
         status: dict | None = None,
         current_process: str | None = None,
         pid: int | None = None,
@@ -23,13 +24,13 @@ class BaseJob:
         started: str = "",
         ended: str = "",
         duration: int = 0,
-        processes: list[str] | None = None,
         **_obsolete: Any,
     ) -> None:
         """Initialize job by setting class variables.
 
         Args:
             id: Job ID.
+            processes: List of process names to include in the status.
             status: Job status dictionary.
             current_process: Current process (e.g. 'sparv', 'korp', 'strix').
             pid: Process ID.
@@ -40,7 +41,6 @@ class BaseJob:
             started: Timestamp of when the current process started.
             ended: Timestamp of when the current process ended.
             duration: The time elapsed for the current process (in seconds), until ended or until now.
-            processes: List of process names to include in the status.
             **_obsolete: Catch invalid arguments from outdated job items.
         """
         self.id = id

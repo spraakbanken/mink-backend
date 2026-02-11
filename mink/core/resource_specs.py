@@ -19,6 +19,8 @@ class ResourceSpec:
     max_files: int
     config_filename: str
     process_names: tuple[str, ...]
+    sync_processes: tuple[str, ...] = ()
+    no_output_processes: tuple[str, ...] = ()
     info_builder: Callable[[], dict[str, Any]] | None = None
 
 
@@ -36,8 +38,12 @@ def load_specs() -> None:
 
         from mink.core.config import settings  # noqa: PLC0415
 
+        # Find all modules containing resource specs and call their register function
         for module in settings.SPEC_MODULES:
-            import_module(module)
+            mod = import_module(module)
+            register = getattr(mod, "register", None)
+            if callable(register):
+                register()
         _SPECS_STATE["loaded"] = True
     finally:
         _SPECS_STATE["loading"] = False
