@@ -13,7 +13,7 @@ from jinja2 import Template
 from mink.core import utils
 from mink.core.config import settings
 from mink.core.models import InfoResponse
-from mink.sparv.config import sparv_settings
+from mink.core.resource_specs import get_all_specs
 
 router = APIRouter(tags=["Documentation"])
 templates = Jinja2Templates(directory="templates")
@@ -176,10 +176,6 @@ async def api_info() -> JSONResponse:
     for s in Status:
         status_codes["data"].append({"name": s.value, "description": s.description})
 
-    importer_modules = {"info": "Sparv importers that need to be used for different file extensions", "data": []}
-    for ext, importer in sparv_settings.SPARV_IMPORTER_MODULES.items():
-        importer_modules["data"].append({"file_extension": ext, "importer": importer})
-
     file_size_limits = {
         "info": "size limits (in bytes) for uploaded files",
         "data": [
@@ -190,38 +186,27 @@ async def api_info() -> JSONResponse:
             },
             {
                 "name": "max_file_length",
-                "description": "max size for one corpus source file",
+                "description": "max size for one resource source file",
                 "value": settings.MAX_FILE_LENGTH,
             },
             {
-                "name": "max_corpus_length",
-                "description": "max size for one corpus",
-                "value": settings.MAX_CORPUS_LENGTH,
+                "name": "max_resource_length",
+                "description": "max size for one resource (total of all source files)",
+                "value": settings.MAX_RESOURCE_LENGTH,
             },
         ],
     }
 
-    recommended_file_size = {
-        "info": "approximate recommended file sizes (in bytes) when processing many files with Sparv",
-        "data": [
-            {
-                "name": "max_file_length",
-                "description": "recommended min size for one corpus source file",
-                "value": settings.RECOMMENDED_MIN_FILE_LENGTH,
-            },
-            {
-                "name": "min_file_length",
-                "description": "recommended max size for one corpus source file",
-                "value": settings.RECOMMENDED_MAX_FILE_LENGTH,
-            },
-        ],
-    }
+    resource_info = {}
+    for rtype, spec in get_all_specs().items():
+        payload = spec.info_builder() if spec.info_builder else {}
+        if payload:
+            resource_info[rtype.value] = payload
 
     return utils.response(
         message="Listing information about data processing",
         return_code="listing_info",
         status_codes=status_codes,
-        importer_modules=importer_modules,
         file_size_limits=file_size_limits,
-        recommended_file_size=recommended_file_size,
-    )
+        resource_info=resource_info,
+)

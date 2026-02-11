@@ -5,6 +5,13 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [unreleased]
 
+### Changed
+
+- `/info` response schema has changed: the fields `importer_modules` and `recommended_file_size` have been moved under a
+  new `resource_info` field, which is a dictionary keyed by resource type.
+- The Sparv output (nohupfile) and the Sparv run script are no longer removed when calling `/clear-annotations` which
+  allows for better debugging.
+
 ## [2.1.1] - 2026-02-04
 
 ### Fixed
@@ -14,11 +21,6 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed bug: incorrect calculation of job end time and duration in cases where `/clear-annotations` was called.
 - Fixed bug: `ended` timestamp is now returned in the server's timezone.
 - Fixed bug: `/swagger` route was broken.
-
-### Changed
-
-- The Sparv output (nohupfile) and the Sparv run script are no longer removed when calling `/clear-annotations` which
-  allows for better debugging.
 
 ## [2.1.0] - 2025-12-10
 

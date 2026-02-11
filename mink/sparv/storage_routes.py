@@ -428,7 +428,7 @@ async def upload_sources(
             info=str(e),
         ) from e
     if not utils.size_ok(source_dir, content_length):
-        max_size_mb = int(settings.MAX_CORPUS_LENGTH / (1024 * 1024))
+        max_size_mb = int(settings.MAX_RESOURCE_LENGTH / (1024 * 1024))
         raise exceptions.MinkHTTPException(
             status.HTTP_413_CONTENT_TOO_LARGE,
             message=f"Failed to upload source files to '{resource_id}'. Max corpus size ({max_size_mb} MB) exceeded",

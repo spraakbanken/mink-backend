@@ -315,7 +315,7 @@ def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, st
 
 
 def size_ok(source_dir: Path, incoming_size: int) -> bool:
-    """Check if the size of the incoming files exceeds the max corpus size.
+    """Check if the size of the incoming files exceeds the max resource size.
 
     Args:
         source_dir: The source directory.
@@ -324,10 +324,10 @@ def size_ok(source_dir: Path, incoming_size: int) -> bool:
     Returns:
         True if the size is within the limit, False otherwise.
     """
-    if settings.MAX_CORPUS_LENGTH is not None:
+    if settings.MAX_RESOURCE_LENGTH is not None:
         current_size = storage.get_size(source_dir)
         total_size = current_size + incoming_size
-        if total_size > settings.MAX_CORPUS_LENGTH:
+        if total_size > settings.MAX_RESOURCE_LENGTH:
             return False
     return True
 

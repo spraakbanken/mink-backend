@@ -16,5 +16,29 @@ register_spec(
         max_files=-1,
         config_filename=sparv_settings.SPARV_CORPUS_CONFIG,
         process_names=tuple(p.name for p in ProcessName),
+        info_builder=lambda: {
+            "description": sparv_settings.SPARV_RES_INFO,
+            "importer_modules": {
+                "info": "Sparv importer modules for different file extensions",
+                "data": [
+                    {"file_extension": k, "importer": v} for k, v in sparv_settings.SPARV_IMPORTER_MODULES.items()
+                ],
+            },
+            "recommended_file_size": {
+                "info": "approximate recommended file sizes (in bytes) when processing many files with Sparv",
+                "data": [
+                    {
+                        "name": "recommended_min_file_length",
+                        "description": "recommended min size for one corpus source file",
+                        "value": sparv_settings.SPARV_RECOMMENDED_MIN_FILE_LENGTH,
+                    },
+                    {
+                        "name": "recommended_max_file_length",
+                        "description": "recommended max size for one corpus source file",
+                        "value": sparv_settings.SPARV_RECOMMENDED_MAX_FILE_LENGTH,
+                    },
+                ],
+            },
+        },
     ),
 )

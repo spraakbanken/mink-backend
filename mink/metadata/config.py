@@ -6,6 +6,10 @@ from pydantic_settings import BaseSettings
 
 class MetadataSettings(BaseSettings):
     """Settings for metadata upload."""
+    METADATA_RES_INFO: str = (
+        "This resource type is used to store metadata yaml files to be used for the Språkbanken resource page."
+    )
+
     METADATA_HOST: str = ""
     METADATA_USER: str = ""
 

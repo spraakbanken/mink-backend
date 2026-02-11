@@ -334,12 +334,7 @@ class InfoResponse(BaseResponse):
     class InfoDataModel(BaseModel, Generic[T]):
         """Abstract base model for models with 'info' and 'data' fields."""
         info: str = Field(default="", description="Description of the data")
-        data: list[T] = Field(default=[], description="List of data items")
-
-    class ImporterModule(BaseModel):
-        """Model for importer modules."""
-        file_extension: str = Field(default="", description="File extension for the importer module")
-        importer: str = Field(default="", description="Name of the importer module")
+        data: list[T] = Field(default_factory=list, description="List of data items")
 
     class NameDescriptionValue(BaseModel):
         """Model containing name, description, and value."""
@@ -348,9 +343,11 @@ class InfoResponse(BaseResponse):
         value: int
 
     status_codes: InfoDataModel[StatusCodeModel]
-    importer_modules: InfoDataModel[ImporterModule]
     file_size_limits: InfoDataModel[NameDescriptionValue]
-    recommended_file_size: InfoDataModel[NameDescriptionValue]
+    resource_info: dict[str, dict] = Field(
+        default_factory=dict,
+        description="Resource-type specific information keyed by resource type",
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -369,16 +366,6 @@ class InfoResponse(BaseResponse):
                         {"name": "aborted", "description": "Process was aborted by the user"},
                     ],
                 },
-                "importer_modules": {
-                    "info": "Sparv importers that need to be used for different file extensions",
-                    "data": [
-                        {"file_extension": ".xml", "importer": "xml_import"},
-                        {"file_extension": ".txt", "importer": "text_import"},
-                        {"file_extension": ".docx", "importer": "docx_import"},
-                        {"file_extension": ".odt", "importer": "odt_import"},
-                        {"file_extension": ".pdf", "importer": "pdf_import"},
-                    ],
-                },
                 "file_size_limits": {
                     "info": "size limits (in bytes) for uploaded files",
                     "data": [
@@ -393,27 +380,13 @@ class InfoResponse(BaseResponse):
                             "value": 10485760,
                         },
                         {
-                            "name": "max_corpus_length",
-                            "description": "max size for one corpus",
+                            "name": "max_resource_length",
+                            "description": "max size for one resource (total of all source files)",
                             "value": 524288000,
                         },
                     ],
                 },
-                "recommended_file_size": {
-                    "info": "approximate recommended file sizes (in bytes) when processing many files with Sparv",
-                    "data": [
-                        {
-                            "name": "max_file_length",
-                            "description": "recommended min size for one corpus source file",
-                            "value": 1048576,
-                        },
-                        {
-                            "name": "min_file_length",
-                            "description": "recommended max size for one corpus source file",
-                            "value": 5242880,
-                        },
-                    ],
-                },
+                "resource_info": {"<resource_type>": {"description": "...", "<section>": {"info": "...", "data": []}}},
             },
         }
     }

@@ -7,7 +7,12 @@ from pydantic_settings import BaseSettings
 class SparvSettings(BaseSettings):
     """Settings for the Sparv module."""
     SPARV_ENABLED: bool = True  # Whether Sparv integration is enabled
+    SPARV_RES_INFO: str = "The corpus resource type is used to store corpora that can be processed with Sparv."
+
     SPARV_SCHEMA_CACHE_LIFETIME: int = 60 * 60 * 24 * 10  # How long to cache Sparv schema info (in seconds)
+
+    SPARV_RECOMMENDED_MIN_FILE_LENGTH: int = 1024 * 1024 * 1  # Recommended min size (bytes) for one corpus source file
+    SPARV_RECOMMENDED_MAX_FILE_LENGTH: int = 1024 * 1024 * 5  # Recommended max size (bytes) for one corpus source file
 
     # Sparv server settings
     SPARV_HOST: str = ""  # Host where Sparv is run
