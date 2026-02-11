@@ -12,6 +12,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - The Sparv output (nohupfile) and the Sparv run script are no longer removed when calling `/clear-annotations` which
   allows for better debugging.
 
+### Added
+
+- Added a new script `config_helper.py` for validating and displaying config values from all modules and the .env file.
+
 ## [2.1.1] - 2026-02-04
 
 ### Fixed

@@ -22,6 +22,11 @@ class Settings(BaseSettings):
         default_factory=lambda: ["mink.sparv.spec", "mink.metadata.spec"]
     )
 
+    # Modules that contain config
+    CONFIG_MODULES: list[str] = Field(
+        default_factory=lambda: ["mink.sparv.config", "mink.metadata.config"]
+    )
+
     # CORS settings
     ALLOW_ORIGINS: list[str] = Field(default_factory=lambda: ["*"])
     ALLOW_METHODS: list[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE", "OPTIONS"])
