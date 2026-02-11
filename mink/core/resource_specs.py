@@ -23,6 +23,24 @@ class ResourceSpec:
 
 
 _SPEC_REGISTRY: dict[ResourceType, ResourceSpec] = {}
+_SPECS_STATE = {"loading": False, "loaded": False}
+
+
+def load_specs() -> None:
+    """Import and register specs from configured modules."""
+    if _SPECS_STATE["loaded"] or _SPECS_STATE["loading"]:
+        return
+    _SPECS_STATE["loading"] = True
+    try:
+        from importlib import import_module  # noqa: PLC0415
+
+        from mink.core.config import settings  # noqa: PLC0415
+
+        for module in settings.SPEC_MODULES:
+            import_module(module)
+        _SPECS_STATE["loaded"] = True
+    finally:
+        _SPECS_STATE["loading"] = False
 
 
 def register_spec(resource_type: ResourceType, spec: ResourceSpec) -> None:
@@ -34,9 +52,12 @@ def register_spec(resource_type: ResourceType, spec: ResourceSpec) -> None:
 
 def get_spec(resource_type: ResourceType) -> ResourceSpec:
     """Get a registered spec for a resource type."""
+    if resource_type not in _SPEC_REGISTRY:
+        load_specs()
     return _SPEC_REGISTRY[resource_type]
 
 
 def get_all_specs() -> dict[ResourceType, ResourceSpec]:
     """Get all registered resource specs."""
+    load_specs()
     return _SPEC_REGISTRY

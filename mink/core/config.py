@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     ROOT_PATH: str = ""  # Root path for the API, e.g. "/mink" if served from a subpath
     RESOURCE_PREFIX: str = "mink-"  # Prefix for resource IDs
 
+    # Modules that register resource specs
+    SPEC_MODULES: list[str] = Field(
+        default_factory=lambda: ["mink.sparv.spec", "mink.metadata.spec"]
+    )
+
     # CORS settings
     ALLOW_ORIGINS: list[str] = Field(default_factory=lambda: ["*"])
     ALLOW_METHODS: list[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE", "OPTIONS"])
