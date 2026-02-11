@@ -5,8 +5,6 @@ from typing import Generic, TypeVar
 from fastapi import File, status
 from pydantic import BaseModel, Field
 
-from mink.core.status import Status
-
 # ------------------------------------------------------------------------------
 # Reusable base response models
 # ------------------------------------------------------------------------------
@@ -91,29 +89,6 @@ class FileResponse(BaseModel):
                     "filename": "file1.txt",
                     "content_type": "application/octet-stream",
                     "content": "base64_encoded_content_here",
-                }
-            ]
-        }
-    }
-
-
-class StatusModel(BaseModel):
-    """Dictionary containing the status of the different processes."""
-    sync2sparv: Status = Field(default=Status.none, description="Status of the sync2sparv process")
-    sync2storage: Status = Field(default=Status.none, description="Status of the sync2storage process")
-    sparv: Status = Field(default=Status.none, description="Status of the Sparv process")
-    korp: Status = Field(default=Status.none, description="Status of the Korp process")
-    strix: Status = Field(default=Status.none, description="Status of the Strix process")
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "sync2sparv": "done",
-                    "sync2storage": "running",
-                    "sparv": "waiting",
-                    "korp": "error",
-                    "strix": "none",
                 }
             ]
         }

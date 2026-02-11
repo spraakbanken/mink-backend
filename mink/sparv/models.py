@@ -5,6 +5,7 @@ from typing import ClassVar
 from pydantic import BaseModel, Field
 
 from mink.core import models
+from mink.core.status import Status
 
 
 class CreateCorpusResponse(models.BaseResponse):
@@ -227,10 +228,33 @@ job_model_examples = [
 ]
 
 
+class StatusModel(BaseModel):
+    """Dictionary containing the status of the different processes."""
+    sync2sparv: Status = Field(default=Status.none, description="Status of the sync2sparv process")
+    sync2storage: Status = Field(default=Status.none, description="Status of the sync2storage process")
+    sparv: Status = Field(default=Status.none, description="Status of the Sparv process")
+    korp: Status = Field(default=Status.none, description="Status of the Korp process")
+    strix: Status = Field(default=Status.none, description="Status of the Strix process")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "sync2sparv": "done",
+                    "sync2storage": "running",
+                    "sparv": "waiting",
+                    "korp": "error",
+                    "strix": "none",
+                }
+            ]
+        }
+    }
+
+
 class JobModel(BaseModel):
     """Model for job."""
-    status: models.StatusModel = Field(
-        default=models.StatusModel(), description="Dictionary containing the status of the different processes"
+    status: StatusModel = Field(
+        default=StatusModel(), description="Dictionary containing the status of the different processes"
     )
     current_process: str = Field(default="", description="The current process being executed")
     pid: int | None = Field(default=None, description="The process ID of the current job")
