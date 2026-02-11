@@ -93,7 +93,7 @@ def pytest_runtest_logstart(nodeid: str) -> None:
     Args:
         nodeid (str): The test node identifier, in the format 'path/to/file.py::test_name'
     """
-    test_name = nodeid.split("::")[-1]
+    test_name = nodeid.rsplit("::", maxsplit=1)[-1]
     print(f"\n\n{Fore.CYAN}>>> Running {Fore.WHITE}{test_name}{Style.RESET_ALL}")  # noqa: T201
 
 

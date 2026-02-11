@@ -98,7 +98,7 @@ def internal_server_error_handler(_request: Request, exc: Exception) -> JSONResp
 # Job related exceptions
 
 class JobError(Exception):
-    """Exception used for when something is wrong with a Sparv job."""
+    """Exception used for when something is wrong with a job."""
 
 
 class ProcessStillRunningError(JobError):

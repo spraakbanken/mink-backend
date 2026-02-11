@@ -19,8 +19,8 @@ from mink.sb_auth.login import request_id_var
 class BaseStorage:
     """Base class for storage backends with capability flags and shared helpers.
 
-    Expected usage is via a module-level singleton, e.g. `storage = SparvStorage()`,
-    which keeps call sites simple while preserving object-oriented behavior.
+    Expected usage is to subclass this and implement the required methods, while the capability flags can be set
+    according to what the specific storage backend supports.
     """
     # ------------------------------------------------------------------------------
     # Capability flags
