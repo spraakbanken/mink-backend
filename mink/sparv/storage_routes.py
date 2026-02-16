@@ -427,7 +427,7 @@ async def upload_sources(
             return_code="failed_uploading_sources",
             info=str(e),
         ) from e
-    if not utils.size_ok(source_dir, content_length):
+    if not utils.size_ok(storage, source_dir, content_length):
         max_size_mb = int(settings.MAX_RESOURCE_LENGTH / (1024 * 1024))
         raise exceptions.MinkHTTPException(
             status.HTTP_413_CONTENT_TOO_LARGE,
@@ -468,7 +468,7 @@ async def upload_sources(
             )
 
         # Check if file extension is compatible with existing files
-        compatible, current_ext, existing_ext = utils.file_ext_compatible(name, source_dir)
+        compatible, current_ext, existing_ext = sparv_utils.file_ext_compatible(name, source_dir)
         if not compatible:
             raise exceptions.MinkHTTPException(
                 status.HTTP_400_BAD_REQUEST,
@@ -497,7 +497,7 @@ async def upload_sources(
 
         # Skip uploading existing files (identical in name, size and md5 checksum)
         if str(name) in [i.get("name") for i in existing_files]:
-            if utils.identical_file_exists(file_contents, source_dir / name):
+            if sparv_utils.identical_file_exists(file_contents, source_dir / name):
                 if name == original_name:
                     # File with same name is identical; it will not be replaced during upload
                     warnings.append(
