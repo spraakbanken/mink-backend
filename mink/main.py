@@ -66,7 +66,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
 
     # Initialize the cache client and the resource registry
     cache.initialize(settings.CACHE_CLIENT)
-    registry.initialize()
+    registry.initialize_if_needed()
 
     # Build the MkDocs documentation
     if settings.ENV != "testing":

@@ -5,7 +5,7 @@ import shortuuid
 from fastapi import APIRouter, Depends, Query, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
-from mink.cache import cache_utils
+from mink.cache import jobs_cache
 from mink.core import exceptions, models, registry, utils
 from mink.core.config import settings
 from mink.core.info import Info
@@ -100,7 +100,7 @@ async def create_metadata(
             return_code="failed_creating_resource",
             info=str(e),
         ) from e
-    if not id_available or public_id in cache_utils.get_all_resources():
+    if not id_available or public_id in jobs_cache.get_all_resources():
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Failed to create resource: ID not available",
@@ -122,7 +122,7 @@ async def create_metadata(
             )
         tries += 1
         resource_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
-        if resource_id in cache_utils.get_all_resources():
+        if resource_id in jobs_cache.get_all_resources():
             resource_id = None
         else:
             try:

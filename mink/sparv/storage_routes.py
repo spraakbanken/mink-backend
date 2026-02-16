@@ -8,7 +8,7 @@ import shortuuid
 from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
-from mink.cache import cache_utils
+from mink.cache import jobs_cache
 from mink.core import exceptions, models, registry, utils
 from mink.core.config import settings
 from mink.core.info import Info
@@ -87,7 +87,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
             )
         tries += 1
         resource_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
-        if resource_id in cache_utils.get_all_resources():
+        if resource_id in jobs_cache.get_all_resources():
             resource_id = None
         else:
             try:

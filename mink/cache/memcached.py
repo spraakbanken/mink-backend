@@ -6,6 +6,13 @@ from contextlib import contextmanager
 from pymemcache import serde
 from pymemcache.client.base import Client
 
+from mink.core.config import settings
+
+
+def cache_namespace(key: str) -> str:
+    """Return a namespaced cache key."""
+    return f"{settings.CACHE_NAMESPACE}:{key}"
+
 
 class CacheManager:
     """Manages the cache client instance."""

@@ -10,11 +10,12 @@ import shortuuid
 from fastapi import Cookie, Query, Request, Security, status
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 
-from mink.cache import cache_utils
+from mink.cache import jobs_cache
 from mink.core import exceptions
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.user import User
+from mink.sb_auth import cache as auth_cache
 
 # Setup security schemes
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="", auto_error=False)
@@ -119,16 +120,17 @@ async def get_auth_data(
     user = auth.get_user()
     is_admin = auth.is_admin()
     sb_auth_resources = auth.get_resource_ids(min_level)
-    all_resources = cache_utils.get_all_resources()
+    all_resources = jobs_cache.get_all_resources()
     # Get intersection between resources in SB Auth and resources in Mink-backend
     # (in case SB Auth is used for multiple backends)
     resources = list(set(sb_auth_resources) & set(all_resources))
 
     # Check admin mode in cache with cookie (session_id) and turn it off if user is not admin according to SB Auth
-    admin_mode = cache_utils.get_cookie_data(session_id, {}).get("admin_mode", False)
+    admin_mode = auth_cache.get_cookie_data(session_id, {}).get("admin_mode", False)
     if not is_admin:
+        admin_mode = False
         if session_id is not None:
-            cache_utils.set_cookie_data(session_id, {"admin_mode": False})
+            auth_cache.set_cookie_data(session_id, {"admin_mode": False})
         # Raise exception if admin mode is required by the route
         if require_admin:
             raise exceptions.MinkHTTPException(
@@ -154,6 +156,7 @@ async def get_auth_data(
         "session_id": session_id,
         "resources": resources,
         "resource_id": resource_id,
+        "admin_mode": admin_mode,
     }
 
     # Routes does not require resource ID, so we can skip the last check
@@ -349,10 +352,10 @@ class ApikeyAuthentication(Authentication):
             An instance of ApikeyAuthentication.
         """
         # Get cached API key data if available, otherwise get from SB Auth
-        data = cache_utils.get_apikey_data(apikey)
+        data = auth_cache.get_apikey_data(apikey)
         if not data:
             data = await cls.check_apikey(apikey)
-        cache_utils.set_apikey_data(apikey, data)
+        auth_cache.set_apikey_data(apikey, data)
 
         return cls(user=data["user"], scope=data["scope"], levels=data["levels"])
 
@@ -428,7 +431,7 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
 
     if not is_jwt(auth_token):
         # Remove cached API key data to force refresh next time
-        cache_utils.remove_apikey_data(auth_token)
+        auth_cache.remove_apikey_data(auth_token)
 
 
 async def remove_resource(auth_token: str, resource_id: str) -> bool:
@@ -456,7 +459,7 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
 
         if not is_jwt(auth_token):
             # Remove cached API key data to force refresh next time
-            cache_utils.remove_apikey_data(auth_token)
+            auth_cache.remove_apikey_data(auth_token)
 
         return True
     if response.status_code == status.HTTP_400_BAD_REQUEST:

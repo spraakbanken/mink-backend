@@ -7,13 +7,13 @@ import subprocess
 
 from fastapi import status
 
-from mink.cache import cache_utils
 from mink.core import exceptions, registry, utils
 from mink.core.jobs import BaseJob
 from mink.core.logging import logger
 from mink.core.resource import ResourceType
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
+from mink.sparv import cache
 from mink.sparv.config import sparv_settings
 from mink.sparv.spec import ProcessName
 from mink.sparv.storage import storage
@@ -724,7 +724,7 @@ class SparvDefaultJob:
         """JSON schema for the Sparv config format."""
         if not update_cache:
             # Get from cache if available
-            cached_schema = cache_utils.get_sparv_schema()
+            cached_schema = cache.get_sparv_schema()
             if cached_schema:
                 return cached_schema
 
@@ -741,7 +741,7 @@ class SparvDefaultJob:
             raise exceptions.JobError("Failed to parse Sparv output as JSON") from e
 
         # Cache json data
-        cache_utils.set_sparv_schema(json_data)
+        cache.set_sparv_schema(json_data)
 
         return json_data
 

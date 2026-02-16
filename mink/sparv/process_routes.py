@@ -6,7 +6,6 @@ from typing import cast
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
-from mink.cache import cache_utils
 from mink.core import exceptions, info, models, registry, utils
 from mink.core.config import settings
 from mink.core.logging import logger
@@ -338,8 +337,8 @@ async def resource_info(
     """
     resource_id = auth_data.get("resource_id")
     corpora = auth_data.get("resources", [])
+    admin_mode = auth_data.get("admin_mode", False)
 
-    admin_status = cache_utils.get_cookie_data(auth_data.get("session_id"), {}).get("admin_mode", False)
     if resource_id:
         # Check if corpus exists
         if resource_id not in corpora:
@@ -366,14 +365,14 @@ async def resource_info(
                     processes=list(get_spec(ResourceType.corpus).process_names),
                 ).serialize(),
             )
-        return utils.response(**make_status_response(info, admin=admin_status))
+        return utils.response(**make_status_response(info, admin=admin_mode))
 
     try:
         # Get all job statuses for this user's corpora
         res_list = []
         resources = registry.filter_resources(corpora)
         for res in resources:
-            resp_dict = make_status_response(res, admin=admin_status)
+            resp_dict = make_status_response(res, admin=admin_mode)
             res_list.append(resp_dict)
         return utils.response(message="Listing resource infos", resources=res_list, return_code="listing_jobs")
     except Exception as e:

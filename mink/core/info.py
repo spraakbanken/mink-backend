@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from mink.cache import cache_utils
+from mink.cache import jobs_cache
 from mink.core import exceptions, registry
 from mink.core.config import settings
 from mink.core.jobs import BaseJob
@@ -73,18 +73,18 @@ class Info:
             exceptions.CorpusExistsError: If the resource ID already exists.
         """
         # Save to cache
-        all_resources = cache_utils.get_all_resources()
+        all_resources = jobs_cache.get_all_resources()
         if self.id in all_resources:
             raise exceptions.CorpusExistsError(self.id)
         all_resources.append(self.id)
-        cache_utils.set_all_resources(all_resources)
+        jobs_cache.set_all_resources(all_resources)
         self.update()
 
     def update(self) -> None:
         """Write an info item to the cache and filesystem."""
         dump = json.dumps(self, default=lambda x: x.serialize())
 
-        cache_utils.set_job(self.id, dump)
+        jobs_cache.set_job(self.id, dump)
 
         # Save backup to file system queue
         registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
@@ -119,11 +119,11 @@ class Info:
 
         # Remove from cache
         try:
-            cache_utils.remove_job(self.id)
-            all_resources = cache_utils.get_all_resources()
+            jobs_cache.remove_job(self.id)
+            all_resources = jobs_cache.get_all_resources()
             if self.id in all_resources:
                 all_resources.pop(all_resources.index(self.id))
-                cache_utils.set_all_resources(all_resources)
+                jobs_cache.set_all_resources(all_resources)
         except Exception as e:
             logger.error("Failed to delete job ID from cache client: %s", e)
 
