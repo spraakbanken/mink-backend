@@ -100,8 +100,8 @@ descriptive information about a corpus, lexicon, analysis, or collection. These 
 usage of metadata YAML files, see the [metadata repository](https://github.com/spraakbanken/metadata).
 
 You can create a metadata resource using the `/create-metadata` route and remove it with the `/remove-metadata` route.
-The metadata file itself is uploaded via the `/upload-metadata` route and can be downloaded using the
-`/download-metadata` route.
+The metadata file itself is uploaded via the `/upload-metadata-yaml` route and can be downloaded using the
+`/download-metadata-yaml` route.
 
 Additional features for metadata resources are planned, and support for other resource types may be added in the future.
 
@@ -153,9 +153,10 @@ for understanding how Mink operates and how different parts of the application i
 
 ### Configuration
 
-The default configuration for the Mink backend is defined in the `Settings` class within `mink/core/config.py`. You can
-override these defaults by creating a `.env` file in the project's root directory. The `.env` file should use standard
-environment variable formatting, with each line specifying a key-value pair. For example:
+Core settings are defined in the `Settings` class within `mink/core/config.py`. Module-specific settings live in their
+respective packages (e.g. `mink/sparv/config.py`, `mink/metadata/config.py`). You can override *both* core and module
+defaults by creating a `.env` file in the project root. The `.env` file should use standard environment variable
+formatting, with each line specifying a key-value pair. For example:
 
 ```ini
 LOG_LEVEL=DEBUG
@@ -165,12 +166,29 @@ SPARV_IMPORTER_MODULES={".xml":"xml_import", ".txt":"text_import", ".pdf":"pdf_i
 SPARV_DEFAULT_EXPORTS=["xml_export:pretty", "csv_export:csv", "stats_export:sbx_freq_list"]
 ```
 
-All configuration variables are available via the `mink.core.config.settings` object:
+The `config_helper.py` script can be used to print all available configuration variables and their current values. To
+run the script, use the following command:
+
+```bash
+python config_helper.py
+```
+
+`config_helper.py` discovers module settings via the `CONFIG_MODULES` list in `mink/core/config.py`, so new module
+config files should be added there to appear in the report.
+
+#### Using Configuration Variables in Code
+
+Core configuration variables are available via the `mink.core.config.settings` object, while module settings are
+available via their respective settings instances:
 
 ```python
 from mink.core.config import settings
+from mink.sparv.config import sparv_settings
+from mink.metadata.config import metadata_settings
 
-print(settings.MINK_URL)  # Output: http://localhost:8000
+print(settings.MINK_URL)
+print(sparv_settings.SPARV_IMPORTER_MODULES)
+print(metadata_settings.METADATA_ID_AVAILABLE_URL)
 ```
 
 ### Instance Directory
@@ -250,28 +268,57 @@ The `main.py` file is the entry point for the FastAPI application. It initialize
 registers API routes, and customizes the OpenAPI specification. The application is organized into several packages to
 promote modularity and maintainability.
 
+### Core Package
+
 The `core` package provides essential functionality required for normal operation and is not intended to be replaced. It
 includes the following modules:
 
-- `config.py`: Defines default Mink backend settings.
+- `config.py`: Defines default core settings for the Mink backend.
 - `exceptions.py`: Contains Mink-specific exceptions.
-- `info.py`: Handles creation and management of resource info objects.
-- `jobs.py`: Manages and executes corpus jobs (processing and installation).
+- `info.py`: Handles creation and management of info objects.
+- `jobs.py`: Defines base job classes and shared job lifecycle/status handling (resource-specific jobs live in modules).
 - `logging.py`: Sets up and configures logging.
 - `models.py`: Defines Pydantic models for API requests and responses.
 - `registry.py`: Manages the resource registry and job queue.
+- `resource_specs.py`: Registers and loads resource specs used to configure per-resource behavior.
 - `resource.py`: Provides classes for resource object creation and handling.
+- `route_utils.py`: Contains helper functions for API routes defined in other modules.
 - `routes.py`: Implements general routes independent of non-core functionality (e.g., documentation serving).
 - `status.py`: Handles job status management.
+- `storage_base.py`: Defines a base storage backend class with common file operations, which can be extended by specific
+  resource types.
 - `user.py`: Manages user properties.
 - `utils.py`: Contains general utility functions.
 
-Non-core packages offer additional, more easily replaceable functionality:
+### Resource-specific packages
+
+These packages implement behavior for concrete resource types and register a `spec.py` so core can discover their
+storage, job, and route behavior via the `SPEC_MODULES` setting. When adding a new resource package, register its
+`spec.py`, add its config module to `CONFIG_MODULES` (for `config_helper.py`), and ensure its storage/job classes avoid
+importing core modules that would introduce circular dependencies.
+
+Here are some examples of what you might find in a resource-specific package:
+
+- `cache.py`: Caching logic specific to the resource type.
+- `config.py`: Module-specific settings instance (loaded from `.env`).
+- `jobs.py`: Job classes specific to the resource type, extending the base job class (e.g. SparvJob for corpora).
+- `spec.py`: A resource spec that configures how the resource type integrates with the core system (e.g. which storage
+  backend to use, which job class to use, allowed file extensions, etc.).
+- `*_routes.py`: API routes specific to the resource type.
+- `storage.py`: Storage backend implementation specific to the resource type, extending the base storage backend with
+  resource-specific logic (e.g. rsync/SSH for corpora).
+
+Currently, there are two resource-specific packages:
+
+- `metadata`: Manages metadata resources.
+- `sparv`: Manages corpus resources and processes jobs with Sparv.
+
+### Other Non-core Packages
+
+These packages support shared infrastructure concerns and are not tied to any single resource type.
 
 - `cache`: Implements caching with [Memcached](https://memcached.org/).
-- `metadata`: Manages metadata files (a new resource type in Mink).
 - `sb_auth`: Handles authentication with SB Auth.
-- `sparv`: Manages processing jobs with Sparv and file storage.
 
 ## API Documentation
 

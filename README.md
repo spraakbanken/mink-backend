@@ -63,9 +63,16 @@ Once started, your development server will be running and you can access the API
 
 ## Configuration
 
-The default configuration is defined in `config.py`. To override these settings, create a `.env` file in the project's
-root directory and set the environment variables listed in `config.py`. For examples, see the [developer's
-guide](/docs/developers-guide.md#configuration).
+The default core configuration is defined in `mink/core/config.py` and module-specific settings live in their respective
+packages (e.g. `mink/sparv/config.py`, `mink/metadata/config.py`). Use the `config_helper.py` script to print the
+current configuration values for all modules:
+
+```bash
+python config_helper.py
+```
+
+To override the default settings, create a `.env` file in the project's root directory and set the environment variables
+listed in `config.py`. For examples, see the [developer's guide](/docs/developers-guide.md#configuration).
 
 ## Tracking to Matomo
 
