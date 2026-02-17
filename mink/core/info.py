@@ -75,7 +75,7 @@ class Info:
         # Save to cache
         all_resources = jobs_cache.get_all_resources()
         if self.id in all_resources:
-            raise exceptions.CorpusExistsError(self.id)
+            raise exceptions.ResourceExistsError(self.id)
         all_resources.append(self.id)
         jobs_cache.set_all_resources(all_resources)
         self.update()

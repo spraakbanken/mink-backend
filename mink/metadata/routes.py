@@ -1,15 +1,13 @@
 """Routes related to storing metadata files."""
 
 import httpx
-import shortuuid
 from fastapi import APIRouter, Depends, Query, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.cache import jobs_cache
-from mink.core import exceptions, models, registry, utils
+from mink.core import exceptions, models, registry, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
-from mink.core.logging import logger
 from mink.core.resource import Resource, ResourceType
 from mink.metadata import utils as metadata_utils
 from mink.metadata.config import metadata_settings
@@ -20,7 +18,7 @@ router = APIRouter(tags=["Manage Metadata"])
 
 
 # ------------------------------------------------------------------------------
-# Corpus operations
+# Resource creation and removal
 # ------------------------------------------------------------------------------
 
 
@@ -34,7 +32,7 @@ router = APIRouter(tags=["Manage Metadata"])
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Resource 'mink-dxh6e6wtff' created successfully",
+                        "message": "Resource created successfully",
                         "return_code": "created_resource",
                         "resource_id": "mink-dxh6e6wtff",
                     }
@@ -107,77 +105,42 @@ async def create_metadata(
             return_code="failed_creating_resource",
         )
 
-    # Create internal resource ID
-    resource_id = None
-    prefix = settings.RESOURCE_PREFIX
-    tries = 1
-    max_tries = 3
-    while resource_id is None:
-        # Give up after max_tries tries
-        if tries > max_tries:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to create resource",
-                return_code="failed_creating_resource",
-            )
-        tries += 1
-        resource_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
-        if resource_id in jobs_cache.get_all_resources():
-            resource_id = None
-        else:
-            try:
-                await login.create_resource(auth_data["auth_token"], resource_id, resource_type="metadata")
-            except exceptions.CorpusExistsError:
-                # Resource ID is in use in authentication system, try to create another one
-                resource_id = None
-            except Exception as e:
-                raise exceptions.MinkHTTPException(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    message="Failed to create resource",
-                    return_code="failed_creating_resource",
-                    info=str(e),
-                ) from e
+    resource_id = await route_utils.create_resource_id(
+        auth_token=auth_data["auth_token"],
+        resource_type="metadata",
+        existing_ids_fn=jobs_cache.get_all_resources,
+        resource_prefix=settings.RESOURCE_PREFIX,
+    )
 
     try:
+        # Create info object in registry
         res = Resource(resource_id, type=ResourceType.metadata, public_id=public_id)
         info_obj = Info(resource_id, resource=res, owner=user)
         info_obj.create()
+
+        # Create metadata resource dir with sources subdir
+        resource_dir = storage.get_resource_dir(resource_id, mkdir=True)
+        storage.get_source_dir(resource_id, mkdir=True)
+
+        return utils.response(
+            status.HTTP_201_CREATED,
+            message="Resource created successfully",
+            return_code="created_resource",
+            resource_id=resource_id,
+        )
+
+    # If anything fails, try to remove from storage, auth system, and registry
     except Exception as e:
+        await route_utils.cleanup_partial_resource(
+            resource_id=resource_id,
+            auth_token=auth_data["auth_token"],
+            info_obj=info_obj,
+            remove_from_storage_fn=lambda: storage.remove_dir(resource_dir, resource_id),
+        )
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Failed to create resource",
             return_code="failed_creating_resource",
-            info=str(e),
-        ) from e
-
-    # Create metadata resource dir with sources subdir
-    try:
-        resource_dir = storage.get_resource_dir(resource_id, mkdir=True)
-        storage.get_source_dir(resource_id, mkdir=True)
-        return utils.response(
-            status.HTTP_201_CREATED,
-            message=f"Resource '{resource_id}' created successfully",
-            return_code="created_resource",
-            resource_id=resource_id,
-        )
-    except Exception as e:
-        try:
-            # Try to remove partially uploaded resource data
-            storage.remove_dir(resource_dir, resource_id)
-        except Exception:
-            logger.exception("Failed to remove partially uploaded corpus data for '%s'.", resource_id)
-        try:
-            await login.remove_resource(auth_data["auth_token"], resource_id)
-        except Exception:
-            logger.exception("Failed to remove corpus '%s' from auth system.", resource_id)
-        try:
-            info_obj.remove()
-        except Exception:
-            logger.exception("Failed to remove object '%s' from registry.", resource_id)
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to create resource dir",
-            return_code="failed_creating_resource_dir",
             info=str(e),
         ) from e
 
@@ -191,7 +154,7 @@ async def create_metadata(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Resource 'mink-dxh6e6wtff' successfully removed",
+                        "message": "Resource successfully removed",
                         "return_code": "removed_resource",
                     }
                 }
@@ -216,7 +179,7 @@ async def create_metadata(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to remove resource 'mink-dxh6e6wtff' from storage",
+                        "message": "Failed to remove resource from storage",
                         "return_code": "failed_removing_storage",
                         "info": "BaseException",
                     }
@@ -246,34 +209,12 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
             return_code="wrong_resource_type",
         )
 
-    try:
-        # Remove from storage
-        storage.remove_dir(storage.get_resource_dir(resource_id), resource_id)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to remove resource '{resource_id}' from storage",
-            return_code="failed_removing_storage",
-            info=str(e),
-        ) from e
-
-    try:
-        # Remove from auth system
-        await login.remove_resource(auth_data["auth_token"], resource_id)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to remove resource '{resource_id}' from authentication system",
-            return_code="failed_removing_auth",
-            info=str(e),
-        ) from e
-
-    try:
-        # Remove from Mink registry
-        info_obj.remove()
-    except Exception:
-        logger.exception("Failed to remove job '%s'.", resource_id)
-    return utils.response(message=f"Resource '{resource_id}' successfully removed", return_code="removed_resource")
+    return await route_utils.remove_resource(
+        resource_id=resource_id,
+        auth_token=auth_data["auth_token"],
+        info_obj=info_obj,
+        remove_from_storage_fn=lambda: storage.remove_dir(storage.get_resource_dir(resource_id), resource_id),
+    )
 
 
 # ------------------------------------------------------------------------------
@@ -291,8 +232,8 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Metadata file successfully uploaded for 'mink-dxh6e6wtff'",
-                        "return_code": "uploaded_yaml",
+                        "message": "File successfully uploaded",
+                        "return_code": "uploaded_file",
                     }
                 }
             }
@@ -304,8 +245,8 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Metadata file needs to be YAML",
-                        "return_code": "wrong_metadata_format",
+                        "message": "File needs to be YAML",
+                        "return_code": "wrong_format",
                     }
                 }
             },
@@ -316,8 +257,8 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to upload metadata file for 'mink-dxh6e6wtff",
-                        "return_code": "failed_uploading_metadata",
+                        "message": "Failed to upload file",
+                        "return_code": "failed_uploading_file",
                         "info": "BaseException",
                     }
                 }
@@ -326,8 +267,8 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
     },
 )
 async def upload_metadata_yaml(
-    metadata_txt: str | None = Query(None, alias="yaml", description="The yaml metadata in plain text"),
     yaml_file: UploadFile = models.upload_file_opt_param,
+    yaml_txt: str | None = Query(None, alias="yaml", description="The yaml metadata in plain text"),
     auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
 ) -> JSONResponse:
     """Upload a YAML metadata file or provide metadata as plain text.
@@ -340,72 +281,15 @@ async def upload_metadata_yaml(
     ```
     """
     resource_id = auth_data["resource_id"]
+    yaml_path = storage.get_yaml_file(resource_id)
 
-    def set_resource_name(resource_name: str) -> None:
-        res = registry.get(resource_id).resource
-        res.set_resource_name(resource_name)
-
-    if yaml_file and metadata_txt:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="Found both a file and metadata in plain text but can only process one of these",
-            return_code="too_many_params_upload_metadata",
-        )
-
-    # Process uploaded metadata file
-    if yaml_file:
-        # Check if metadata file is YAML
-        if yaml_file.content_type not in {"application/yaml", "application/x-yaml", "text/yaml"}:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                message="Metadata file needs to be YAML",
-                return_code="wrong_metadata_format",
-            )
-
-        yaml_contents = await yaml_file.read()
-
-        try:
-            new_yaml, resource_name = metadata_utils.standardize_yaml(yaml_contents)
-            set_resource_name(resource_name)
-            storage.write_file_contents(storage.get_yaml_file(resource_id), new_yaml.encode("UTF-8"), resource_id)
-            return utils.response(
-                status.HTTP_201_CREATED,
-                message=f"Metadata file successfully uploaded for '{resource_id}'",
-                return_code="uploaded_yaml",
-            )
-        except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to upload metadata file for '{resource_id}'",
-                return_code="failed_uploading_metadata",
-                info=str(e),
-            ) from e
-
-    # Process metadata in plain text
-    elif metadata_txt:
-        try:
-            new_yaml, resource_name = metadata_utils.standardize_yaml(metadata_txt)
-            set_resource_name(resource_name)
-            storage.write_file_contents(storage.get_yaml_file(resource_id), new_yaml.encode("UTF-8"), resource_id)
-            return utils.response(
-                status.HTTP_201_CREATED,
-                message=f"Metadata file successfully uploaded for '{resource_id}'",
-                return_code="uploaded_metadata",
-            )
-        except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to upload metadata file for '{resource_id}'",
-                return_code="failed_uploading_metadata",
-                info=str(e),
-            ) from e
-
-    else:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="No metadata file provided for upload",
-            return_code="missing_metadata_upload",
-        )
+    return await route_utils.upload_yaml_file(
+        yaml_file=yaml_file,
+        yaml_txt=yaml_txt,
+        res_obj=registry.get(resource_id).resource,
+        standardize_fn=metadata_utils.standardize_yaml,
+        write_fn=lambda data: storage.write_file_contents(yaml_path, data, resource_id),
+    )
 
 
 @router.get(
@@ -421,8 +305,8 @@ async def upload_metadata_yaml(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Metadata file not found for resource 'mink-dxh6e6wtff'",
-                        "return_code": "metadata_not_found",
+                        "message": "File not found",
+                        "return_code": "file_not_found",
                     }
                 }
             },
@@ -433,8 +317,8 @@ async def upload_metadata_yaml(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to download metadata file for resource 'mink-dxh6e6wtff'",
-                        "return_code": "failed_downloading_metadata",
+                        "message": "Failed to download file",
+                        "return_code": "failed_downloading_file",
                         "info": "BaseException",
                     }
                 }
@@ -452,28 +336,13 @@ async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency(
     ```
     """
     resource_id = auth_data["resource_id"]
-    # Create directory for the current resource locally (on Mink backend server)
-    storage.get_local_resource_dir(resource_id, mkdir=True)
+    remote_yaml_file = storage.get_yaml_file(resource_id)
     local_yaml_file = storage.get_local_metadata_yaml_file(resource_id)
-
-    try:
-        # Get file from storage
-        download_ok = storage.download_file(
-            storage.get_yaml_file(resource_id), local_yaml_file, resource_id, ignore_missing=True
-        )
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to download metadata file for resource '{resource_id}'",
-            return_code="failed_downloading_metadata",
-            info=str(e),
-        ) from e
-    if download_ok:
-        return FileResponse(local_yaml_file, media_type="text/yaml", filename=local_yaml_file.name)
-    raise exceptions.MinkHTTPException(
-        status.HTTP_404_NOT_FOUND,
-        message=f"Metadata file not found for resource '{resource_id}'",
-        return_code="metadata_not_found",
+    return route_utils.download_file_response(
+        local_path=local_yaml_file,
+        ensure_local_dir_fn=lambda: storage.get_local_resource_dir(resource_id, mkdir=True),
+        download_fn=lambda: storage.download_file(remote_yaml_file, local_yaml_file, resource_id, ignore_missing=True),
+        media_type="text/yaml",
     )
 
 

@@ -4,16 +4,15 @@ from pathlib import Path
 from typing import cast
 from xml.etree import ElementTree
 
-import shortuuid
 from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.cache import jobs_cache
-from mink.core import exceptions, models, registry, utils
+from mink.core import exceptions, models, registry, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.logging import logger
-from mink.core.resource import ResourceType
+from mink.core.resource import Resource, ResourceType
 from mink.core.resource_specs import get_spec
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
@@ -53,9 +52,9 @@ def _require_job(job: object) -> SparvJob:
             "content": {
                 "application/json": {
                     "example": {
-                        "status": "success",
-                        "message": "Failed to create corpus",
-                        "return_code": "failed_creating_corpus",
+                        "status": "error",
+                        "message": "Failed to create resource",
+                        "return_code": "failed_creating_resource",
                         "info": "BaseException",
                     }
                 }
@@ -72,68 +71,42 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
     curl -X POST '{{host}}/create-corpus' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    # Create corpus ID
-    resource_id = None
-    prefix = settings.RESOURCE_PREFIX
-    tries = 1
-    max_tries = 3
-    while resource_id is None:
-        # Give up after max_tries tries
-        if tries > max_tries:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to create corpus",
-                return_code="failed_creating_corpus",
-            )
-        tries += 1
-        resource_id = f"{prefix}{shortuuid.uuid()[:10]}".lower()
-        if resource_id in jobs_cache.get_all_resources():
-            resource_id = None
-        else:
-            try:
-                await login.create_resource(auth_data["auth_token"], resource_id, resource_type="corpora")
-            except exceptions.CorpusExistsError:
-                # Corpus ID is in use in authentication system, try to create another one
-                resource_id = None
-            except Exception as e:
-                raise exceptions.MinkHTTPException(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    message="Failed to create corpus",
-                    return_code="failed_creating_corpus",
-                    info=str(e),
-                ) from e
+    resource_id = await route_utils.create_resource_id(
+        auth_token=auth_data["auth_token"],
+        resource_type="corpora",
+        existing_ids_fn=jobs_cache.get_all_resources,
+        resource_prefix=settings.RESOURCE_PREFIX,
+    )
 
-    info_obj = Info(resource_id, owner=auth_data["user"])
-    info_obj.create()
-
-    # Create corpus dir with subdirs
     try:
+        # Create info object in registry
+        res = Resource(resource_id, type=ResourceType.corpus)
+        info_obj = Info(resource_id, resource=res, owner=auth_data["user"])
+        info_obj.create()
+
+        # Create corpus dir with subdirs
         corpus_dir = storage.get_corpus_dir(resource_id, mkdir=True)
         storage.get_source_dir(resource_id, mkdir=True)
+
         return utils.response(
             status.HTTP_201_CREATED,
-            message=f"Corpus '{resource_id}' created successfully",
-            return_code="created_corpus",
+            message="Resource created successfully",
+            return_code="created_resource",
             resource_id=resource_id,
         )
+
+    # If anything fails, try to remove from storage, auth system, and registry
     except Exception as e:
-        try:
-            # Try to remove partially uploaded corpus data
-            storage.remove_dir(corpus_dir, resource_id)
-        except Exception:
-            logger.exception("Failed to remove partially uploaded corpus data for '%s'.", resource_id)
-        try:
-            await login.remove_resource(auth_data["auth_token"], resource_id)
-        except Exception:
-            logger.exception("Failed to remove corpus '%s' from auth system.", resource_id)
-        try:
-            info_obj.remove()
-        except Exception:
-            logger.exception("Failed to remove job '%s'.", resource_id)
+        await route_utils.cleanup_partial_resource(
+            resource_id=resource_id,
+            auth_token=auth_data["auth_token"],
+            info_obj=info_obj,
+            remove_from_storage_fn=lambda: storage.remove_dir(corpus_dir, resource_id),
+        )
         raise exceptions.MinkHTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to create corpus dir",
-            return_code="failed_creating_corpus_dir",
+            message="Failed to create resource",
+            return_code="failed_creating_resource",
             info=str(e),
         ) from e
 
@@ -206,7 +179,7 @@ async def list_korp_corpora(
     """
     installed_corpora = []
     try:
-        # Get resource infos beloning to corpora that the user may edit
+        # Get resource infos belonging to corpora that the user may edit
         resources = registry.filter_resources(auth_data.get("resources"))
         installed_corpora = [
             res.id for res in resources if isinstance(res.job, SparvJob) and res.job.installed_korp
@@ -233,8 +206,8 @@ async def list_korp_corpora(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Corpus removed successfully",
-                        "return_code": "removing_corpora",
+                        "message": "Resource removed successfully",
+                        "return_code": "removed_resource",
                     }
                 }
             }
@@ -246,7 +219,7 @@ async def list_korp_corpora(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to remove corpus 'mink-dxh6e6wtff' from Korp",
+                        "message": "Failed to remove resource from Korp",
                         "return_code": "failed_removing_korp",
                         "info": "BaseException",
                     }
@@ -267,61 +240,40 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
     ```
     """
     resource_id = auth_data["resource_id"]
-    # Get job
     info_obj = registry.get(resource_id)
-
     job = _require_job(info_obj.job)
+
+    # Uninstall corpus from Korp using Sparv
     if job.installed_korp:
         try:
-            # Uninstall corpus from Korp using Sparv
             job.uninstall_korp()
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to remove corpus '{resource_id}' from Korp",
+                message="Failed to remove resource from Korp",
                 return_code="failed_removing_korp",
                 info=str(e),
             ) from e
+
+    # Uninstall corpus from Strix using Sparv
     if job.installed_strix:
         try:
-            # Uninstall corpus from Strix using Sparv
             job.uninstall_strix()
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to remove corpus '{resource_id}' from Strix",
+                message="Failed to remove resource from Strix",
                 return_code="failed_removing_strix",
                 info=str(e),
             ) from e
 
-    try:
-        # Remove from storage
-        storage.remove_dir(storage.get_corpus_dir(resource_id), resource_id)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to remove corpus '{resource_id}' from storage",
-            return_code="failed_removing_storage",
-            info=str(e),
-        ) from e
-
-    try:
-        # Remove from auth system
-        await login.remove_resource(auth_data["auth_token"], resource_id)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to remove corpus '{resource_id}' from authentication system",
-            return_code="failed_removing_auth",
-            info=str(e),
-        ) from e
-
-    # Remove from Mink registry
-    try:
-        info_obj.remove(abort_job=True)
-    except Exception:
-        logger.exception("Failed to remove job '%s'.", resource_id)
-    return utils.response(message=f"Corpus '{resource_id}' successfully removed", return_code="removed_corpus")
+    return await route_utils.remove_resource(
+        resource_id=resource_id,
+        auth_token=auth_data["auth_token"],
+        info_obj=info_obj,
+        remove_from_storage_fn=lambda: storage.remove_dir(storage.get_corpus_dir(resource_id), resource_id),
+        abort_job=True,
+    )
 
 
 # ------------------------------------------------------------------------------
@@ -858,8 +810,8 @@ async def download_sources(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Config file successfully uploaded for 'mink-dxh6e6wtff'",
-                        "return_code": "uploaded_config",
+                        "message": "File successfully uploaded",
+                        "return_code": "uploaded_file",
                     }
                 }
             }
@@ -872,7 +824,7 @@ async def download_sources(
                     "example": {
                         "status": "error",
                         "message": "Found both a config file and a plain text config but can only process one of these",
-                        "return_code": "too_many_params_upload_config",
+                        "return_code": "too_many_params",
                     }
                 }
             },
@@ -883,8 +835,8 @@ async def download_sources(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to upload config file for 'mink-dxh6e6wtff'",
-                        "return_code": "failed_uploading_config",
+                        "message": "Failed to upload file",
+                        "return_code": "failed_uploading_file",
                         "info": "BaseException",
                     }
                 }
@@ -893,8 +845,8 @@ async def download_sources(
     },
 )
 async def upload_config(
-    upload_file: UploadFile | None = models.upload_file_opt_param,
-    config_txt: str | None = Query(None, alias="config", description="The config file as plain text"),
+    yaml_file: UploadFile | None = models.upload_file_opt_param,
+    yaml_txt: str | None = Query(None, alias="config", description="The config file as plain text"),
     auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
 ) -> JSONResponse:
     """Upload a corpus configuration as file or plain text (using the `config` parameter).
@@ -915,109 +867,16 @@ async def upload_config(
     """
     resource_id = auth_data["resource_id"]
     config_path = storage.get_config_file(resource_id)
-
-    def set_corpus_name(corpus_name: str) -> None:
-        res = registry.get(resource_id).resource
-        res.set_resource_name(corpus_name)
-
-    if upload_file and config_txt:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="Found both a config file and a plain text config but can only process one of these",
-            return_code="too_many_params_upload_config",
-        )
-
     source_files = storage.list_contents(storage.get_source_dir(resource_id))
 
-    # Process uploaded config file
-    if upload_file:
-        # Check if config file is YAML
-        if upload_file.content_type not in {"application/yaml", "application/x-yaml", "text/yaml"}:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                message="Config file needs to be YAML",
-                return_code="wrong_config_format",
-            )
-
-        config_contents = await upload_file.read()
-
-        # Check if config file is compatible with the uploaded source files
-        if source_files:
-            compatible, current_importer, expected_importer = sparv_utils.config_compatible(
-                config_contents, source_files[0]
-            )
-            if not compatible:
-                raise exceptions.MinkHTTPException(
-                    status.HTTP_400_BAD_REQUEST,
-                    message="The importer in your config file is incompatible with your source files",
-                    return_code="incompatible_config_importer",
-                    current_importer=current_importer,
-                    expected_importer=expected_importer,
-                )
-
-        try:
-            new_config, corpus_name = sparv_utils.standardize_config(config_contents, resource_id)
-            set_corpus_name(corpus_name)
-            storage.write_file_contents(config_path, new_config.encode("UTF-8"), resource_id)
-            return utils.response(
-                status.HTTP_201_CREATED,
-                message=f"Config file successfully uploaded for '{resource_id}'",
-                return_code="uploaded_config",
-            )
-        except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to upload config file for '{resource_id}'",
-                return_code="failed_uploading_config",
-                info=str(e),
-            ) from e
-
-    elif config_txt:
-        if source_files:
-            try:
-                # Check if config file is compatible with the uploaded source files
-                compatible, current_importer, expected_importer = sparv_utils.config_compatible(
-                    config_txt, source_files[0]
-                )
-            except Exception as e:
-                raise exceptions.MinkHTTPException(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    message=f"Failed to upload config file for '{resource_id}'",
-                    return_code="failed_uploading_config",
-                    info=str(e),
-                ) from e
-            if not compatible:
-                raise exceptions.MinkHTTPException(
-                    status.HTTP_400_BAD_REQUEST,
-                    message="The importer in your config file is incompatible with your source files",
-                    return_code="incompatible_config_importer",
-                    current_importer=current_importer,
-                    expected_importer=expected_importer,
-                )
-        try:
-            # Standardize config (e.g. ensure that the resource_id is correct)
-            new_config, corpus_name = sparv_utils.standardize_config(config_txt, resource_id)
-            set_corpus_name(corpus_name)
-            storage.write_file_contents(config_path, new_config.encode("UTF-8"), resource_id)
-        except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to upload config file for '{resource_id}'",
-                return_code="failed_uploading_config",
-                info=str(e),
-            ) from e
-        return utils.response(
-            status.HTTP_201_CREATED,
-            message=f"Config file successfully uploaded for '{resource_id}'",
-            return_code="uploaded_config",
-        )
-
-    else:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="No config file provided for upload",
-            return_code="missing_config_upload",
-        )
+    return await route_utils.upload_yaml_file(
+        yaml_file=yaml_file,
+        yaml_txt=yaml_txt,
+        res_obj=registry.get(resource_id).resource,
+        standardize_fn=lambda contents: sparv_utils.standardize_config(contents, resource_id),
+        write_fn=lambda data: storage.write_file_contents(config_path, data, resource_id),
+        validate_fn=lambda contents: sparv_utils.require_compatible_config(contents, source_files),
+    )
 
 
 @router.get(
@@ -1034,8 +893,8 @@ async def upload_config(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "No config file found for corpus 'mink-dxh6e6wtff'",
-                        "return_code": "config_not_found",
+                        "message": "File not found",
+                        "return_code": "file_not_found",
                     }
                 }
             },
@@ -1046,8 +905,8 @@ async def upload_config(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to download config file for 'mink-dxh6e6wtff'",
-                        "return_code": "failed_downloading_config",
+                        "message": "Failed to download file",
+                        "return_code": "failed_downloading_file",
                         "info": "BaseException",
                     }
                 }
@@ -1065,28 +924,14 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
     ```
     """
     resource_id = auth_data["resource_id"]
-    config_path = storage.get_config_file(resource_id)
-    # Create directory for the current resource locally (on Mink backend server)
-    storage.get_local_source_dir(resource_id, mkdir=True)
-    local_config_file = storage.get_local_config_file(resource_id)
-
-    try:
-        # Get file from storage
-        download_ok = storage.download_file(config_path, local_config_file, resource_id, ignore_missing=True)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to download config file for '{resource_id}'",
-            return_code="failed_downloading_config",
-            info=str(e),
-        ) from e
-    if not download_ok:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"No config file found for corpus '{resource_id}'",
-            return_code="config_not_found",
-        )
-    return FileResponse(local_config_file, media_type="text/yaml", filename=local_config_file.name)
+    storage_yaml_file = storage.get_config_file(resource_id)
+    local_yaml_file = storage.get_local_config_file(resource_id)
+    return route_utils.download_file_response(
+        local_path=local_yaml_file,
+        ensure_local_dir_fn=lambda: storage.get_local_source_dir(resource_id, mkdir=True),
+        download_fn=lambda: storage.download_file(storage_yaml_file, local_yaml_file, resource_id, ignore_missing=True),
+        media_type="text/yaml",
+    )
 
 
 # ------------------------------------------------------------------------------
@@ -1241,7 +1086,7 @@ async def download_exports(
         raise exceptions.MinkHTTPException(
             status.HTTP_400_BAD_REQUEST,
             message="The parameters 'dir' and 'file' must not be supplied simultaneously",
-            return_code="too_many_params_download_exports",
+            return_code="too_many_params",
         )
 
     resource_id = auth_data["resource_id"]

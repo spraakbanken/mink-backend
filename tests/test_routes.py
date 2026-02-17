@@ -83,7 +83,7 @@ def resource() -> typing.Generator[str, None, None]:
     """Test creating a resource."""
     response = call_route("POST", "/create-corpus", status_code=status.HTTP_201_CREATED, headers=HEADERS)
     json_data = response.json()
-    assert json_data.get("return_code") == "created_corpus", f"Resource creation failed: {json_data}"
+    assert json_data.get("return_code") == "created_resource", f"Resource creation failed: {json_data}"
     resource_id = json_data.get("resource_id")
     assert json_data.get("resource_id") is not None, "Resource ID should not be None"
     yield resource_id
@@ -92,7 +92,7 @@ def resource() -> typing.Generator[str, None, None]:
     call_route("POST", "/abort-job", f"resource_id={resource_id}", headers=HEADERS, fail_ok=True)
     response = call_route("DELETE", "/remove-corpus", f"resource_id={resource_id}", headers=HEADERS)
     json_data = response.json()
-    assert json_data.get("return_code") == "removed_corpus", f"Resource removal failed: {json_data}"
+    assert json_data.get("return_code") == "removed_resource", f"Resource removal failed: {json_data}"
 
 
 def test_list_resources(resource: str) -> None:

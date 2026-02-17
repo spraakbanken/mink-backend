@@ -423,7 +423,7 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
             raise
 
     if response.status_code == status.HTTP_400_BAD_REQUEST:
-        raise exceptions.CorpusExistsError(resource_id)
+        raise exceptions.ResourceExistsError(resource_id)
     if response.status_code != status.HTTP_201_CREATED:
         message = str(response.content)
         logger.error("Could not create resource, SB Auth returned status %s: %s", response.status_code, message)

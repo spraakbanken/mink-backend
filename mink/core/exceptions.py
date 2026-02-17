@@ -187,8 +187,8 @@ class ConfigurationError(Exception):
         super().__init__(f"Configuration error: {message}")
 
 
-class CorpusExistsError(Exception):
-    """Exception used for when a corpus ID already exists."""
+class ResourceExistsError(Exception):
+    """Exception used for when a resource ID already exists."""
     def __init__(self, resource_id: str) -> None:
         """Initialize the exception with the resource ID."""
         super().__init__(f"Resource {resource_id} already exists")

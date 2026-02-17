@@ -5,9 +5,44 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from fastapi import status
 
+from mink.core import exceptions
 from mink.sparv.config import sparv_settings
 from mink.sparv.storage import storage
+
+
+def require_compatible_config(config: str | bytes, source_files: list[dict]) -> None:
+    """Raise an error if the importer module in the corpus config is incompatible with source files.
+
+    Args:
+        config: The corpus config.
+        source_files: The source files.
+    """
+    if not source_files:
+        return
+
+    file_ext = Path(source_files[0]["name"]).suffix
+    config_yaml = yaml.load(config, Loader=yaml.FullLoader)
+    current_importer = config_yaml.get("import", {}).get("importer", "").split(":")[0] or None
+    importer_dict = sparv_settings.SPARV_IMPORTER_MODULES
+
+    # If no importer is specified xml is default
+    if current_importer is None and file_ext == ".xml":
+        return
+
+    expected_importer = importer_dict.get(file_ext)
+
+    if current_importer == expected_importer:
+        return
+
+    raise exceptions.MinkHTTPException(
+        status.HTTP_400_BAD_REQUEST,
+        message="The importer in your config file is incompatible with your source files",
+        return_code="incompatible_config_importer",
+        current_importer=current_importer,
+        expected_importer=expected_importer,
+    )
 
 
 def config_compatible(config: str | bytes, source_file: dict) -> tuple[bool, Any, Any]:

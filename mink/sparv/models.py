@@ -16,7 +16,7 @@ class CreateCorpusResponse(models.BaseResponse):
             "examples": [
                 {
                     "status": "success",
-                    "message": "Corpus 'mink-dxh6e6wtff' created successfully",
+                    "message": "Corpus created successfully",
                     "return_code": "created_corpus",
                     "resource_id": "mink-dxh6e6wtff",
                 }

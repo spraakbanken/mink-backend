@@ -1,0 +1,262 @@
+"""Shared helpers for route handlers."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
+
+import shortuuid
+from fastapi import UploadFile, status
+from fastapi.responses import FileResponse, JSONResponse
+
+from mink.core import exceptions, utils
+from mink.core.logging import logger
+from mink.sb_auth import login
+
+
+async def create_resource_id(
+    *,
+    auth_token: str,
+    resource_type: str,
+    existing_ids_fn: Callable[[], list[str]],
+    resource_prefix: str,
+    max_tries: int = 3,
+) -> str:
+    """Create a unique resource ID and register it with the auth system.
+
+    Args:
+        auth_token: Auth token used for creating the resource in the auth system.
+        resource_type: Auth system resource type (e.g. "corpora", "metadata").
+        existing_ids_fn: Callable returning currently known resource IDs.
+        resource_prefix: Prefix to use for generated resource IDs.
+        max_tries: Max number of attempts for generating a unique ID.
+
+    Returns:
+        The newly created resource ID.
+    """
+    # Create a new resource ID
+    resource_id: str | None = None
+    tries = 1
+    while resource_id is None:
+        # Give up after max_tries tries
+        if tries > max_tries:
+            raise exceptions.MinkHTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message="Failed to create resource",
+                return_code="failed_creating_resource",
+            )
+        tries += 1
+        candidate = f"{resource_prefix}{shortuuid.uuid()[:10]}".lower()
+        if candidate in set(existing_ids_fn()):
+            continue
+        try:
+            await login.create_resource(auth_token, candidate, resource_type=resource_type)
+        except exceptions.ResourceExistsError:
+            # Resource ID is in use in authentication system, try to create another one
+            continue
+        except Exception as e:
+            raise exceptions.MinkHTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message="Failed to create resource",
+                return_code="failed_creating_resource",
+                info=str(e),
+            ) from e
+        resource_id = candidate
+    return resource_id
+
+
+async def remove_resource(
+    *,
+    resource_id: str,
+    auth_token: str,
+    info_obj: Any,
+    remove_from_storage_fn: Callable[[], None],
+    abort_job: bool = False,
+) -> JSONResponse:
+    """Remove a resource from storage, auth, and registry.
+
+    Args:
+        resource_id: Resource ID to remove.
+        auth_token: Auth token used for removing the resource from the auth system.
+        info_obj: Resource info object (for registry removal).
+        remove_from_storage_fn: Callback that removes the resource from storage.
+        abort_job: Whether to abort any running job before removing from registry.
+
+    Returns:
+        JSONResponse indicating success.
+    """
+    try:
+        remove_from_storage_fn()
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed to remove resource from storage",
+            return_code="failed_removing_storage",
+            info=str(e),
+        ) from e
+
+    try:
+        await login.remove_resource(auth_token, resource_id)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed to remove resource from authentication system",
+            return_code="failed_removing_auth",
+            info=str(e),
+        ) from e
+
+    try:
+        info_obj.remove(abort_job=abort_job)
+    except Exception:
+        logger.exception("Failed to remove resource '%s' from registry.", resource_id)
+
+    return utils.response(message="Resource successfully removed", return_code="removed_resource")
+
+
+async def cleanup_partial_resource(
+    *,
+    resource_id: str,
+    auth_token: str,
+    info_obj: Any,
+    remove_from_storage_fn: Callable[[], None],
+) -> None:
+    """Attempt to clean up partially created resource data from storage, auth system, and registry.
+
+    Args:
+        resource_id: Resource ID to clean up.
+        auth_token: Auth token used for removing the resource from the auth system.
+        info_obj: Resource info object (for registry removal).
+        remove_from_storage_fn: Callback that removes the resource from storage.
+    """
+    try:
+        remove_from_storage_fn()
+    except Exception:
+        logger.exception("Failed to remove partially uploaded data for resource '%s'.", resource_id)
+    try:
+        await login.remove_resource(auth_token, resource_id)
+    except Exception:
+        logger.exception("Failed to remove resource '%s' from auth system.", resource_id)
+    try:
+        info_obj.remove()
+    except Exception:
+        logger.exception("Failed to remove resource '%s' from registry.", resource_id)
+
+
+async def get_yaml_payload(*, yaml_file: UploadFile | None, yaml_txt: str | None) -> str | bytes:
+    """Return YAML payload from file or plain text.
+
+    Args:
+        yaml_file: Uploaded YAML file, if provided.
+        yaml_txt: YAML content as plain text, if provided.
+
+    Returns:
+        YAML payload as bytes (from file) or string (from text).
+    """
+    if yaml_file and yaml_txt:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            message="Found YAML as file and as plain text but can only process one of these",
+            return_code="too_many_params",
+        )
+
+    if yaml_file:
+        if yaml_file.content_type not in {"application/yaml", "application/x-yaml", "text/yaml"}:
+            raise exceptions.MinkHTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                message="File needs to be YAML",
+                return_code="wrong_format",
+            )
+        return await yaml_file.read()
+
+    if yaml_txt:
+        return yaml_txt
+
+    raise exceptions.MinkHTTPException(
+        status.HTTP_400_BAD_REQUEST,
+        message="No YAML file provided for upload",
+        return_code="missing_yaml_upload",
+    )
+
+
+async def upload_yaml_file(
+    *,
+    yaml_file: UploadFile | None,
+    yaml_txt: str | None,
+    res_obj: Any,
+    write_fn: Callable[[bytes], None],
+    standardize_fn: Callable[[str | bytes], tuple[str, str]] | None = None,
+    validate_fn: Callable[[str | bytes], None] | None = None,
+) -> JSONResponse:
+    """Upload YAML from file or plain text, then write standardized output.
+
+    Args:
+        yaml_file: Uploaded YAML file, if provided.
+        yaml_txt: YAML content as plain text, if provided.
+        res_obj: Resource info object (for setting resource name).
+        write_fn: Callback for writing the standardized yaml bytes.
+        standardize_fn: Optional function returning standardized yaml and resource name.
+        validate_fn: Optional validation callback for the raw yaml payload.
+
+    Returns:
+        JSONResponse indicating success.
+    """
+    yaml_contents = await get_yaml_payload(yaml_file=yaml_file, yaml_txt=yaml_txt)
+
+    try:
+        if validate_fn is not None:
+            validate_fn(yaml_contents)
+        if standardize_fn is not None:
+            new_yaml, resource_name = standardize_fn(yaml_contents)
+            res_obj.set_resource_name(resource_name)
+        else:
+            new_yaml = str(yaml_contents)
+        write_fn(new_yaml.encode("UTF-8"))
+    except exceptions.MinkHTTPException:
+        raise
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed to upload file",
+            return_code="failed_uploading_file",
+            info=str(e),
+        ) from e
+
+    return utils.response(status.HTTP_201_CREATED, message="File successfully uploaded", return_code="uploaded_file")
+
+
+def download_file_response(
+    *,
+    local_path: Path,
+    ensure_local_dir_fn: Callable[[], object],
+    download_fn: Callable[[], bool],
+    media_type: str,
+) -> FileResponse:
+    """Download a file and return a file response, or raise a MinkHTTPException.
+
+    Args:
+        local_path: Local path where the file will be stored.
+        ensure_local_dir_fn: Callable that ensures local directory exists.
+        download_fn: Callable that downloads the file and returns True if found.
+        media_type: Response media type.
+
+    Returns:
+        FileResponse for the downloaded file.
+    """
+    ensure_local_dir_fn()
+    try:
+        download_ok = download_fn()
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed to download file",
+            return_code="failed_downloading_file",
+            info=str(e),
+        ) from e
+    if download_ok:
+        return FileResponse(local_path, media_type=media_type, filename=local_path.name)
+    raise exceptions.MinkHTTPException(
+        status.HTTP_404_NOT_FOUND,
+        message="File not found",
+        return_code="file_not_found",
+    )
