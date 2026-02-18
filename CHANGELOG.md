@@ -11,6 +11,15 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
   new `resource_info` field, which is a dictionary keyed by resource type.
 - The Sparv output (nohupfile) and the Sparv run script are no longer removed when calling `/clear-annotations` which
   allows for better debugging.
+- Core resource handling is now spec-driven: resource packages (like `sparv` and `metadata`) register their behavior via
+  the `SPEC_MODULES` setting, and module settings are loaded from `CONFIG_MODULES` (no longer hard-coded in core).
+- Introduced a base job class (`BaseJob`) with resource-specific job subclasses. Job status/process handling is no
+  longer Sparv-specific in core and process lists are provided by resource specs.
+- Storage backends were reorganized under a shared base class, with resource-specific storage implementations per module.
+- Common route helpers for resource creation/removal and file upload were extracted into `mink/core/route_helpers.py` to
+  reduce code duplication between modules.
+- Cache utilities were split by domain (jobs/auth/schema) and cache keys are now namespaced.
+- The documentation was updated to reflect the new project structure.
 
 ### Added
 
