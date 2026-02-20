@@ -21,6 +21,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Cache utilities were split by domain (jobs/auth/schema) and cache keys are now namespaced.
 - Router modules from resource packages are now loaded dynamically based on the resource spec instead of being
   hard-coded in core routes.
+- The config setting "SPARV_WORKERS" has been renamed to "MAX_WORKERS" since it is now used by all resource types
+  instead of just Sparv.
 - The documentation was updated to reflect the new project structure.
 
 ### Added

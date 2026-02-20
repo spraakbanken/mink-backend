@@ -24,6 +24,18 @@ def register() -> None:
     from mink.sparv.jobs import SparvJob  # noqa: PLC0415, avoids circular import
     from mink.sparv.storage import storage  # noqa: PLC0415, avoids circular import
 
+    def process_running(job: Any) -> bool:
+        return cast(SparvJob, job).process_running()
+
+    def run_sparv(job: Any) -> None:
+        cast(SparvJob, job).run_sparv()
+
+    def install_korp(job: Any) -> None:
+        cast(SparvJob, job).install_korp()
+
+    def install_strix(job: Any) -> None:
+        cast(SparvJob, job).install_strix()
+
     def on_done_sync(info_obj: Any, admin: bool) -> dict[str, Any] | None:
         if admin or storage.local:
             return None
@@ -51,6 +63,12 @@ def register() -> None:
             config_filename=sparv_settings.SPARV_CORPUS_CONFIG,
             process_names=tuple(p.name for p in ProcessName),
             router_modules=("mink.sparv.storage_routes", "mink.sparv.process_routes"),
+            process_running=process_running,
+            queue_handlers={
+                ProcessName.sparv.name: run_sparv,
+                ProcessName.korp.name: install_korp,
+                ProcessName.strix.name: install_strix,
+            },
             sync_processes=(ProcessName.sync2sparv.name, ProcessName.sync2storage.name),
             no_output_processes=(ProcessName.sync2sparv.name, ProcessName.sync2storage.name),
             on_done_sync=on_done_sync,

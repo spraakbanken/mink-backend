@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     SBAUTH_PERSONAL_API_KEY: str = ""  # Personal API key for SB Auth (used for testing purposes)
 
     # Settings for queue manager
+    MAX_WORKERS: int = 1  # Number of jobs that can be run simultaneously
     CHECK_QUEUE_FREQUENCY: int = 20  # How often the queue will be checked for new jobs (in seconds)
     MINK_SECRET_KEY: str = ""
     HEALTHCHECKS_URL: str = ""

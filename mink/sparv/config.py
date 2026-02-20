@@ -17,7 +17,6 @@ class SparvSettings(BaseSettings):
     # Sparv server settings
     SPARV_HOST: str = ""  # Host where Sparv is run
     SPARV_USER: str = ""  # User for running Sparv
-    SPARV_WORKERS: int = 1  # Number of available Sparv workers
     SPARV_DEFAULT_CORPORA_DIR: str = "~/mink-data/corpus/default"  # Dir for running listings like 'sparv run -l'
     SPARV_CORPORA_DIR: str = "mink-data/corpus"  # Dir where user corpora are stored and run, relative to home dir
     SPARV_ENVIRON: str = "SPARV_DATADIR=~/sparv-pipeline/data/"  # Environment variables to set when running Sparv

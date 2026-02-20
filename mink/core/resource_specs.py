@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from mink.core.resource import ResourceType
@@ -20,6 +20,8 @@ class ResourceSpec:
     config_filename: str
     process_names: tuple[str, ...]
     router_modules: tuple[str, ...] = ()
+    queue_handlers: dict[str, Callable[[Any], None]] = field(default_factory=dict)
+    process_running: Callable[[Any], bool] | None = None
     sync_processes: tuple[str, ...] = ()
     # Processes for which no output is expected
     no_output_processes: tuple[str, ...] = ()

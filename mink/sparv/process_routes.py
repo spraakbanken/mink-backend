@@ -7,8 +7,6 @@ from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
 from mink.core import exceptions, models, registry, route_utils, utils
-from mink.core.config import settings
-from mink.core.logging import logger
 from mink.core.resource import ResourceType
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
@@ -221,67 +219,6 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
     return utils.response(**route_utils.make_status_response(info_item))
-
-
-@router.put("/advance-queue", tags=["Process Corpus"], response_model=models.BaseResponse, include_in_schema=False)
-async def advance_queue(
-    secret_key: str = Query(..., alias="secret_key", description="Secret key for authentication"),
-) -> JSONResponse:
-    """Check the job queue and attempt to advance it.
-
-    1. Unqueue jobs that are done, aborted or erroneous
-    2. For running jobs, check if process is still running
-    3. Run the next job in the queue if there are fewer running jobs than allowed
-
-    For Mink internal use only!
-    """
-    if secret_key != settings.MINK_SECRET_KEY:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_401_UNAUTHORIZED,
-            message="Failed to confirm secret key for protected route",
-            return_code="failed_confirming_secret_key",
-        )
-
-    # Unqueue jobs that are done, aborted or erroneous
-    registry.unqueue_inactive()
-
-    # For running jobs, check if process is still running
-    running_jobs, waiting_jobs = registry.get_running_waiting()
-    logger.debug("Running jobs: %d  Waiting jobs: %d", len(running_jobs), len(waiting_jobs))
-    for job in running_jobs:
-        try:
-            sparv_job = _require_job(job)
-            if not sparv_job.process_running():
-                try:
-                    sparv_job.abort()
-                except exceptions.ProcessNotRunningError:
-                    pass
-                registry.pop_from_queue(job)
-        except Exception:
-            logger.exception("Failed to check if process is running for '%s'", job.id)
-
-    # Get running jobs again in case jobs were unqueued in the previous step
-    running_jobs, waiting_jobs = registry.get_running_waiting()
-    # If there are fewer running jobs than allowed, start the next one in the queue
-    while waiting_jobs and len(running_jobs) < sparv_settings.SPARV_WORKERS:
-        job = waiting_jobs.pop(0)
-        job = _require_job(job)
-        try:
-            if job.status.is_waiting():
-                if job.current_process == ProcessName.sparv.name:
-                    job.run_sparv()
-                    logger.info("Started annotation process for '%s'", job.id)
-                elif job.current_process == ProcessName.korp.name:
-                    job.install_korp()
-                    logger.info("Started Korp installation process for '%s'", job.id)
-                elif job.current_process == ProcessName.strix.name:
-                    job.install_strix()
-                    logger.info("Started Strix installation process for '%s'", job.id)
-            running_jobs.append(job)
-        except Exception:
-            logger.exception("Failed to run Sparv on '%s'", job.id)
-
-    return utils.response(message="Queue advancing completed", return_code="advanced_queue")
 
 
 @router.post(
