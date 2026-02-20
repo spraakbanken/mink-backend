@@ -40,7 +40,9 @@ class CacheManager:
         """Retrieve a connected Memcached client."""
         if self.server is None:
             raise RuntimeError("Cache client not initialized. Call 'initialize' first.")
-        client = Client(self.server, serde=serde.pickle_serde)
+        # Set default_noreply to False to avoid strange behaviour during registry initialization
+        # (e.g. missing resources in cache and queue)
+        client = Client(self.server, serde=serde.pickle_serde, default_noreply=False)
         try:
             yield client
         finally:

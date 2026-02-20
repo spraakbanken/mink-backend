@@ -64,7 +64,7 @@ def initialize() -> None:
                 infoobj = info.load_from_str(fobj.read())
                 infoobj.update()  # Update resource in file system and add to cache
                 all_resources.append(infoobj.id)
-                logger.debug("Job in cache: '%s'", jobs_cache.get_job(infoobj.id))
+                logger.debug("Job '%s' in cache: '%s...'", f.name, str(jobs_cache.get_job(infoobj.id))[:50])
             # Queue job unless it is done, aborted or erroneous
             if infoobj.id not in queue and (
                 not (infoobj.job.status.is_done(infoobj.job.current_process) or infoobj.job.status.is_inactive())
