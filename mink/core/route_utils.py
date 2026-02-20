@@ -10,8 +10,9 @@ import shortuuid
 from fastapi import UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
-from mink.core import exceptions, utils
+from mink.core import exceptions, info, utils
 from mink.core.logging import logger
+from mink.core.resource_specs import get_spec
 from mink.sb_auth import login
 
 
@@ -259,4 +260,64 @@ def download_file_response(
         status.HTTP_404_NOT_FOUND,
         message="File not found",
         return_code="file_not_found",
+    )
+
+
+def make_status_response(info: info.Info, admin: bool = False) -> dict:
+    """Check the annotation status for a given corpus and return a dict that can be used to make a response.
+
+    Args:
+        info: The info object.
+        admin: Whether the user is an admin.
+    """
+    job = info.job
+    job.update_job_info()
+    info_attrs = info.to_dict()
+
+    if not admin:
+        # Only keep essential information, as this can be shown to other resource users than the owner
+        info_attrs["owner"] = {
+            "id": info_attrs["owner"]["id"],
+            "name": info_attrs["owner"]["name"],
+            "email": info_attrs["owner"]["email"],
+        }
+
+    job_status = job.status
+    spec = get_spec(info.resource.type)
+
+    if job_status.is_none():
+        return {"message": f"There is no active job for '{job.id}'", "return_code": "no_active_job", **info_attrs}
+
+    if job_status.is_syncing(spec.sync_processes):
+        return {"message": "Files are being synced", "return_code": "syncing_files", **info_attrs}
+
+    if job_status.is_waiting():
+        return {"message": "Job has been queued", "return_code": "job_queued", **info_attrs}
+
+    if job_status.is_aborted(job.current_process):
+        return {"message": "Job was aborted by the user", "return_code": "job_aborted_by_user", **info_attrs}
+
+    if job_status.is_running():
+        return {"message": "Job is running", "return_code": "job_running", **info_attrs}
+
+    if spec.on_done_sync and job_status.is_done(job.current_process):
+        result = spec.on_done_sync(info, admin)
+        if result:
+            return {**result, **info_attrs}
+
+    if job_status.is_done(job.current_process):
+        return {"message": "Job was completed successfully", "return_code": "job_completed", **info_attrs}
+
+    if job_status.is_error(job.current_process):
+        logger.error(
+            "An error occurred during processing, warnings: %s, errors: %s, sparv_output: %s, job_attrs: %s",
+            info_attrs["job"]["warnings"],
+            info_attrs["job"]["errors"],
+            info_attrs["job"]["sparv_output"],
+            info_attrs,
+        )
+        return {"message": "An error occurred during processing", "return_code": "processing_error", **info_attrs}
+
+    raise exceptions.MinkHTTPException(
+        status.HTTP_501_NOT_IMPLEMENTED, message="Unknown job status", return_code="unknown_job_status", **info_attrs
     )

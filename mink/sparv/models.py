@@ -2,10 +2,9 @@
 
 from typing import ClassVar
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from mink.core import models
-from mink.core.status import Status
 
 
 class CreateCorpusResponse(models.BaseResponse):
@@ -227,190 +226,97 @@ job_model_examples = [
     },
 ]
 
-
-class StatusModel(BaseModel):
-    """Dictionary containing the status of the different processes."""
-    sync2sparv: Status = Field(default=Status.none, description="Status of the sync2sparv process")
-    sync2storage: Status = Field(default=Status.none, description="Status of the sync2storage process")
-    sparv: Status = Field(default=Status.none, description="Status of the Sparv process")
-    korp: Status = Field(default=Status.none, description="Status of the Korp process")
-    strix: Status = Field(default=Status.none, description="Status of the Strix process")
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "sync2sparv": "done",
-                    "sync2storage": "running",
-                    "sparv": "waiting",
-                    "korp": "error",
-                    "strix": "none",
-                }
-            ]
-        }
+resource_status_examples = [
+    {
+        "message": "Job has been queued",
+        "resource": models.resource_model_example,
+        "owner": models.user_model_example,
+        "job": job_model_examples[0],
     }
+]
 
-
-class JobModel(BaseModel):
-    """Model for job."""
-    status: StatusModel = Field(
-        default=StatusModel(), description="Dictionary containing the status of the different processes"
-    )
-    current_process: str = Field(default="", description="The current process being executed")
-    pid: int | None = Field(default=None, description="The process ID of the current job")
-    sparv_exports: list[str] = Field(default=[], description="List of the Sparv export formats requested in the job")
-    current_files: list[str] = Field(default=[], description="List of the files currently being processed")
-    install_scrambled: bool = Field(default=False, description="Indicates if the installation is scrambled")
-    installed_korp: bool = Field(default=False, description="Indicates if the resource is installed in Korp")
-    installed_strix: bool = Field(default=False, description="Indicates if the resource is installed in Strix")
-    priority: int = Field(default=0, description="The priority of the job in the queue")
-    warnings: str = Field(default="", description="Warnings generated during the job")
-    errors: str = Field(default="", description="Errors generated during the job")
-    sparv_output: str = Field(default="", description="Output from the Sparv process")
-    started: str = Field(default="", description="Timestamp of when the current Sparv process started")
-    ended: str = Field(default="", description="Timestamp of when the current Sparv process ended")
-    duration: int = Field(
-        default=0, description="The time elapsed for the current Sparv process (in seconds), until ended or until now."
-    )
-    progress: str = Field(default="0%", description="Progress of the job in percentage")
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [*job_model_examples]
-        }
+status_response_examples = [
+    {
+        "status": "success",
+        "message": "Job has been queued",
+        "return_code": "job_queued",
+        "resource": models.resource_model_example,
+        "job": job_model_examples[0],
     }
+]
 
-
-class ResourceStatusModel(BaseModel):
-    """Model for the status of a resource (used as base for StatusResponse and StatusesResponse)."""
-
-    message: str = Field(default="", description="Message describing the status of the resource")
-    resource: models.ResourceModel = Field(
-        default=models.ResourceModel(),
-        description="Resource object containing information about the corpus",
-    )
-    owner: models.UserModel = Field(
-        default=models.UserModel(), description="User object containing information about the resource owner"
-    )
-    job: JobModel = Field(
-        default=JobModel(),
-        description="Job object containing information about the job status",
-    )
-
-    model_config: ClassVar[dict] = {
-        "json_schema_extra": {
-            "examples": [
-                    {
-                "message": "Job has been queued",
-                "resource": models.resource_model_example,
-                "owner": models.user_model_example,
-                "job": job_model_examples[0],
-            }
-            ]
-        }
-    }
-
-
-class StatusResponse(models.BaseResponse, ResourceStatusModel):
-    """Model for Sparv job status responses."""
-
-    model_config: ClassVar[dict] = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "status": "success",
-                    "message": "Job has been queued",
-                    "return_code": "job_queued",
-                    "resource": models.resource_model_example,
-                    "job": job_model_examples[0],
-                }
-            ]
-        }
-    }
-
-
-class StatusesResponse(models.BaseResponse):
-    """Model for multiple Sparv job statuses responses."""
-    resources: list[ResourceStatusModel] = Field(
-        default=[], description="List of resource objects containing information about the corpus"
-    )
-
-    model_config: ClassVar[dict] = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "status": "success",
-                    "message": "Listing resource infos",
-                    "return_code": "listing_jobs",
-                    "resources": [
+statuses_response_examples = [
+    {
+        "status": "success",
+        "message": "Listing resource infos",
+        "return_code": "listing_jobs",
+        "resources": [
+            {
+                "message": "Job was completed successfully",
+                "return_code": "job_completed",
+                "resource": {
+                    "id": "mink-ezodmp4wxm",
+                    "name": {"swe": "txt-korpus", "eng": "txt-korpus"},
+                    "type": "corpus",
+                    "source_files": [
                         {
-                            "message": "Job was completed successfully",
-                            "return_code": "job_completed",
-                            "resource": {
-                                "id": "mink-ezodmp4wxm",
-                                "name": {"swe": "txt-korpus", "eng": "txt-korpus"},
-                                "type": "corpus",
-                                "source_files": [
-                                    {
-                                        "name": "text1.txt",
-                                        "type": "text/plain",
-                                        "last_modified": "2023-05-15T10:40:44+02:00",
-                                        "size": 825,
-                                        "path": "text1.txt",
-                                    },
-                                    {
-                                        "name": "text2.txt",
-                                        "type": "text/plain",
-                                        "last_modified": "2023-05-15T10:40:45+02:00",
-                                        "size": 1169,
-                                        "path": "text2.txt",
-                                    },
-                                ],
-                            },
-                            "job": job_model_examples[0],
+                            "name": "text1.txt",
+                            "type": "text/plain",
+                            "last_modified": "2023-05-15T10:40:44+02:00",
+                            "size": 825,
+                            "path": "text1.txt",
                         },
                         {
-                            "message": "Job was completed successfully",
-                            "return_code": "job_completed",
-                            "resource": {
-                                "id": "mink-dxh6e6wtff",
-                                "name": {"swe": "Annes och Martins testkorpus", "eng": ""},
-                                "type": "corpus",
-                                "source_files": [
-                                    {
-                                        "name": "dokument2.xml",
-                                        "type": "text/xml",
-                                        "last_modified": "2022-12-22T11:25:25+01:00",
-                                        "size": 115,
-                                        "path": "dokument2.xml",
-                                    },
-                                    {
-                                        "name": "dokument3.xml",
-                                        "type": "text/xml",
-                                        "last_modified": "2023-06-13T13:26:44+02:00",
-                                        "size": 41,
-                                        "path": "dokument3.xml",
-                                    },
-                                    {
-                                        "name": "dokument4.xml",
-                                        "type": "text/xml",
-                                        "last_modified": "2023-06-13T13:26:44+02:00",
-                                        "size": 461,
-                                        "path": "dokument4.xml",
-                                    },
-                                    {
-                                        "name": "dokument1.xml",
-                                        "type": "text/xml",
-                                        "last_modified": "2023-06-13T13:26:49+02:00",
-                                        "size": 1394,
-                                        "path": "dokument1.xml",
-                                    },
-                                ],
-                            },
-                            "job": job_model_examples[1],
-                        }
-                    ]
-                }
-            ]
-        }
+                            "name": "text2.txt",
+                            "type": "text/plain",
+                            "last_modified": "2023-05-15T10:40:45+02:00",
+                            "size": 1169,
+                            "path": "text2.txt",
+                        },
+                    ],
+                },
+                "job": job_model_examples[0],
+            },
+            {
+                "message": "Job was completed successfully",
+                "return_code": "job_completed",
+                "resource": {
+                    "id": "mink-dxh6e6wtff",
+                    "name": {"swe": "Annes och Martins testkorpus", "eng": ""},
+                    "type": "corpus",
+                    "source_files": [
+                        {
+                            "name": "dokument2.xml",
+                            "type": "text/xml",
+                            "last_modified": "2022-12-22T11:25:25+01:00",
+                            "size": 115,
+                            "path": "dokument2.xml",
+                        },
+                        {
+                            "name": "dokument3.xml",
+                            "type": "text/xml",
+                            "last_modified": "2023-06-13T13:26:44+02:00",
+                            "size": 41,
+                            "path": "dokument3.xml",
+                        },
+                        {
+                            "name": "dokument4.xml",
+                            "type": "text/xml",
+                            "last_modified": "2023-06-13T13:26:44+02:00",
+                            "size": 461,
+                            "path": "dokument4.xml",
+                        },
+                        {
+                            "name": "dokument1.xml",
+                            "type": "text/xml",
+                            "last_modified": "2023-06-13T13:26:49+02:00",
+                            "size": 1394,
+                            "path": "dokument1.xml",
+                        },
+                    ],
+                },
+                "job": job_model_examples[1],
+            },
+        ],
     }
+]

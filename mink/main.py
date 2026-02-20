@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from mink.cache.memcached import cache
-from mink.core import exceptions, registry, routes, utils
+from mink.core import exceptions, job_routes, registry, routes, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.metadata import routes as metadata_routes
@@ -114,6 +114,7 @@ app.add_exception_handler(Exception, exceptions.internal_server_error_handler)
 # Include routes
 # ------------------------------------------------------------------------------
 app.include_router(routes.router)
+app.include_router(job_routes.router)
 app.include_router(login_routes.router)
 app.include_router(storage_routes.router)
 app.include_router(process_routes.router)
@@ -238,6 +239,16 @@ def custom_openapi() -> dict:
 
             # Replace {{host}} in descriptions with actual backend URL
             operation["description"] = operation.get("description", "").replace("{{host}}", host)
+
+    # Inject resource-specific OpenAPI examples
+    from mink.core.resource_specs import get_all_specs  # noqa: PLC0415
+    for spec in get_all_specs().values():
+        if not spec.openapi_examples:
+            continue
+        for schema_name, examples in spec.openapi_examples.items():
+            schema = openapi_schema.get("components", {}).get("schemas", {}).get(schema_name)
+            if schema is not None:
+                schema["examples"] = examples
 
     # Cache the modified OpenAPI schema
     app.openapi_schema = openapi_schema

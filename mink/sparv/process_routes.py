@@ -6,12 +6,12 @@ from typing import cast
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
-from mink.core import exceptions, info, models, registry, utils
+from mink.core import exceptions, models, registry, route_utils, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.resource import ResourceType
 from mink.core.resource_specs import get_spec
-from mink.core.status import JobStatuses, Status
+from mink.core.status import Status
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
 from mink.sparv import utils as sparv_utils
@@ -37,7 +37,7 @@ def _require_job(job: object) -> SparvJob:
 @router.put(
     "/run-sparv",
     tags=["Process Corpus"],
-    response_model=sparv_models.StatusResponse,
+    response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
         status.HTTP_400_BAD_REQUEST: {
@@ -220,7 +220,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**make_status_response(info_item))
+    return utils.response(**route_utils.make_status_response(info_item))
 
 
 @router.put("/advance-queue", tags=["Process Corpus"], response_model=models.BaseResponse, include_in_schema=False)
@@ -282,106 +282,6 @@ async def advance_queue(
             logger.exception("Failed to run Sparv on '%s'", job.id)
 
     return utils.response(message="Queue advancing completed", return_code="advanced_queue")
-
-
-@router.get(
-    "/resource-info",
-    tags=["Process Corpus"],
-    response_model=sparv_models.StatusResponse | sparv_models.StatusesResponse,
-    responses={
-        **models.common_auth_error_responses,
-        status.HTTP_404_NOT_FOUND: {
-            "model": models.ErrorResponse404,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "Corpus 'mink-dxh6e6wtff' does not exist or you do not have access to it",
-                        "return_code": "corpus_not_found",
-                    }
-                }
-            },
-        },
-        status.HTTP_500_INTERNAL_SERVER_ERROR: {
-            "model": models.ErrorResponse500,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "Failed to get job status for 'mink-dxh6e6wtff'",
-                        "return_code": "failed_getting_job_status",
-                        "info": "BaseException",
-                    }
-                }
-            },
-        },
-    },
-)
-async def resource_info(
-    # Parameter is defined again here to allow for None (since it is optional in this route)
-    resource_id: str | None = Query(None, description="Resource ID"),
-    auth_data: dict = Depends(login.AuthDependency(require_resource_id=False)),
-) -> JSONResponse:
-    """Return the status of the current job for a corpus or all corpora belonging to the user.
-
-    If the resource ID is provided, the status of the specific resource is returned. Otherwise, the statuses of all
-    resources are returned.
-
-    If admin mode is turned on, the owner information is included for each resource.
-
-    ### Example
-
-    ```bash
-    curl -X GET '{{host}}/resource-info?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
-    ```
-    """
-    resource_id = auth_data.get("resource_id")
-    corpora = auth_data.get("resources", [])
-    admin_mode = auth_data.get("admin_mode", False)
-
-    if resource_id:
-        # Check if corpus exists
-        if resource_id not in corpora:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_404_NOT_FOUND,
-                message=f"Corpus '{resource_id}' does not exist or you do not have access to it",
-                return_code="corpus_not_found",
-            )
-        try:
-            info = registry.get(resource_id)
-        except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to get job status for '{resource_id}'",
-                return_code="failed_getting_job_status",
-                info=str(e),
-            ) from e
-        if not info:
-            return utils.response(
-                message=f"There is no active job for '{resource_id}'",
-                return_code="no_active_job",
-                job_status=JobStatuses(
-                    status=None,
-                    processes=list(get_spec(ResourceType.corpus).process_names),
-                ).serialize(),
-            )
-        return utils.response(**make_status_response(info, admin=admin_mode))
-
-    try:
-        # Get all job statuses for this user's corpora
-        res_list = []
-        resources = registry.filter_resources(corpora)
-        for res in resources:
-            resp_dict = make_status_response(res, admin=admin_mode)
-            res_list.append(resp_dict)
-        return utils.response(message="Listing resource infos", resources=res_list, return_code="listing_jobs")
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to get job statuses",
-            return_code="failed_getting_job_statuses",
-            info=str(e),
-        ) from e
 
 
 @router.post(
@@ -593,7 +493,7 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency(min_l
 @router.put(
     "/install-korp",
     tags=["Process Corpus"],
-    response_model=sparv_models.StatusResponse,
+    response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
@@ -673,7 +573,7 @@ async def install_korp(
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**make_status_response(info_item))
+    return utils.response(**route_utils.make_status_response(info_item))
 
 
 @router.delete(
@@ -759,7 +659,7 @@ async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency(min_leve
 @router.put(
     "/install-strix",
     tags=["Process Corpus"],
-    response_model=sparv_models.StatusResponse,
+    response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
@@ -833,7 +733,7 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**make_status_response(info_item))
+    return utils.response(**route_utils.make_status_response(info_item))
 
 
 @router.delete(
@@ -914,77 +814,6 @@ async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency(min_lev
             return_code="failed_uninstalling_strix",
             info=str(e),
         ) from e
-
-
-def make_status_response(info: info.Info, admin: bool = False) -> dict:
-    """Check the annotation status for a given corpus and return a dict that can be used to make a response.
-
-    Args:
-        info: The info object.
-        admin: Whether the user is an admin.
-    """
-    job = _require_job(info.job)
-    job.update_job_info()
-    info_attrs = info.to_dict()
-
-    if not admin:
-        # Only keep essential information, as this can be shown to other resource users than the owner
-        info_attrs["owner"] = {
-            "id": info_attrs["owner"]["id"],
-            "name": info_attrs["owner"]["name"],
-            "email": info_attrs["owner"]["email"],
-        }
-
-    job_status = info.job.status
-
-    if job_status.is_none():
-        return {"message": f"There is no active job for '{info.job.id}'", "return_code": "no_active_job", **info_attrs}
-
-    if job_status.is_syncing(get_spec(ResourceType.corpus).sync_processes):
-        return {"message": "Files are being synced", "return_code": "syncing_files", **info_attrs}
-
-    if job_status.is_waiting():
-        return {"message": "Job has been queued", "return_code": "job_queued", **info_attrs}
-
-    if job_status.is_aborted(info.job.current_process):
-        return {"message": "Job was aborted by the user", "return_code": "job_aborted_by_user", **info_attrs}
-
-    if job_status.is_running():
-        return {"message": "Job is running", "return_code": "job_running", **info_attrs}
-
-    # If done annotating, sync exports from Sparv to storage server (don't do this in admin mode)
-    if job_status.is_done(ProcessName.sparv) and not storage.local and not admin:
-        try:
-            job = _require_job(info.job)
-            job.sync_results()
-        except Exception as e:
-            return {
-                "message": "Sparv was run successfully but exports failed to upload to the storage server",
-                "return_code": "sparv_success_export_upload_fail",
-                "info": str(e),
-            }
-        return {
-            "message": "Sparv was run successfully. Starting to sync results",
-            "return_code": "sparv_success_start_sync",
-            **info_attrs,
-        }
-
-    if job_status.is_done(info.job.current_process):
-        return {"message": "Job was completed successfully", "return_code": "job_completed", **info_attrs}
-
-    if job_status.is_error(info.job.current_process):
-        logger.error(
-            "An error occurred during processing, warnings: %s, errors: %s, sparv_output: %s, job_attrs: %s",
-            info_attrs["job"]["warnings"],
-            info_attrs["job"]["errors"],
-            info_attrs["job"]["sparv_output"],
-            info_attrs,
-        )
-        return {"message": "An error occurred during processing", "return_code": "processing_error", **info_attrs}
-
-    raise exceptions.MinkHTTPException(
-        status.HTTP_501_NOT_IMPLEMENTED, message="Unknown job status", return_code="unknown_job_status", **info_attrs
-    )
 
 
 @router.get(

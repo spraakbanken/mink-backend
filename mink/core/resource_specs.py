@@ -20,7 +20,13 @@ class ResourceSpec:
     config_filename: str
     process_names: tuple[str, ...]
     sync_processes: tuple[str, ...] = ()
+    # Processes for which no output is expected
     no_output_processes: tuple[str, ...] = ()
+    # Function to call when a job is done, for syncing results
+    on_done_sync: Callable[[Any, bool], dict[str, Any] | None] | None = None
+    # OpenAPI examples to inject into the schema for this resource type
+    openapi_examples: dict[str, list[dict[str, Any]]] | None = None
+    # Function to build resource-type-specific info dict for `/info` route
     info_builder: Callable[[], dict[str, Any]] | None = None
 
 

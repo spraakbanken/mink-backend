@@ -84,6 +84,9 @@ class BaseJob:
         if self.status.is_running():
             self.set_status(Status.aborted)
 
+    def update_job_info(self) -> None:
+        """Refresh job-specific info (not needed for base jobs)."""
+
     # ------------------------------------------------------------------------------
     # Setters and getters
     # ------------------------------------------------------------------------------

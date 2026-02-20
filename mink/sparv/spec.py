@@ -1,6 +1,7 @@
 """Sparv resource spec registration."""
 
 from enum import StrEnum
+from typing import Any, cast
 
 from mink.core.resource import ResourceType
 from mink.sparv.config import sparv_settings
@@ -19,8 +20,26 @@ class ProcessName(StrEnum):
 def register() -> None:
     """Register the Sparv resource spec."""
     from mink.core.resource_specs import ResourceSpec, register_spec  # noqa: PLC0415, avoids circular import
+    from mink.sparv import models as sparv_models  # noqa: PLC0415, avoids circular import
     from mink.sparv.jobs import SparvJob  # noqa: PLC0415, avoids circular import
     from mink.sparv.storage import storage  # noqa: PLC0415, avoids circular import
+
+    def on_done_sync(info_obj: Any, admin: bool) -> dict[str, Any] | None:
+        if admin or storage.local:
+            return None
+        job = cast(SparvJob, info_obj.job)
+        try:
+            job.sync_results()
+        except Exception as e:
+            return {
+                "message": "Job was run successfully but syncing to storage server failed",
+                "return_code": "job_success_export_upload_fail",
+                "info": str(e),
+            }
+        return {
+            "message": "Job was run successfully. Starting to sync results",
+            "return_code": "job_success_start_sync",
+        }
 
     register_spec(
         ResourceType.corpus,
@@ -33,6 +52,13 @@ def register() -> None:
             process_names=tuple(p.name for p in ProcessName),
             sync_processes=(ProcessName.sync2sparv.name, ProcessName.sync2storage.name),
             no_output_processes=(ProcessName.sync2sparv.name, ProcessName.sync2storage.name),
+            on_done_sync=on_done_sync,
+            openapi_examples={
+                "JobModel": sparv_models.job_model_examples,
+                "ResourceStatusModel": sparv_models.resource_status_examples,
+                "StatusResponse": sparv_models.status_response_examples,
+                "StatusesResponse": sparv_models.statuses_response_examples,
+            },
             info_builder=lambda: {
                 "description": sparv_settings.SPARV_RES_INFO,
                 "importer_modules": {

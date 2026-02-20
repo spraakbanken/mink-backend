@@ -1,6 +1,6 @@
 """Response data models for the Mink API core (used for documentation purposes and data validation)."""
 
-from typing import Generic, TypeVar
+from typing import ClassVar, Generic, TypeVar
 
 from fastapi import File, status
 from pydantic import BaseModel, Field
@@ -120,6 +120,38 @@ resource_model_example = {
     "type": "corpus",
     "source_files": [*file_model_examples],
 }
+
+job_model_example = {
+    "status": {},
+    "current_process": "",
+    "pid": None,
+    "priority": "",
+    "warnings": "",
+    "errors": "",
+    "started": "",
+    "ended": "",
+    "duration": 0,
+    "progress": "0%",
+}
+
+
+class JobModel(BaseModel):
+    """Model for a generic job."""
+
+    status: dict[str, str] = Field(default_factory=dict, description="Statuses for the job's processes")
+    current_process: str | None = Field(default=None, description="The current process being executed")
+    pid: int | None = Field(default=None, description="The process ID of the current job")
+    priority: int | str = Field(default="", description="Queue priority")
+    warnings: str = Field(default="", description="Warnings from the job")
+    errors: str = Field(default="", description="Errors from the job")
+    started: str = Field(default="", description="Timestamp of when the job started")
+    ended: str = Field(default="", description="Timestamp of when the job ended")
+    duration: int = Field(default=0, description="Duration of the job in seconds")
+    progress: str = Field(default="0%", description="Progress percentage as a string")
+
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {"examples": [job_model_example]}
+    }
 
 
 class ResourceModel(BaseModel):
@@ -363,5 +395,140 @@ class InfoResponse(BaseResponse):
                 },
                 "resource_info": {"<resource_type>": {"description": "...", "<section>": {"info": "...", "data": []}}},
             },
+        }
+    }
+
+
+class ResourceStatusModel(BaseModel):
+    """Model for the status of a resource (used as base for StatusResponse and StatusesResponse)."""
+
+    message: str = Field(default="", description="Message describing the status of the resource")
+    resource: ResourceModel = Field(
+        default=ResourceModel(),
+        description="Object containing information about the resource",
+    )
+    owner: UserModel = Field(
+        default=UserModel(), description="User object containing information about the resource owner"
+    )
+    job: JobModel = Field(
+        default_factory=JobModel,
+        description="Job object containing information about the job status",
+    )
+
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {
+            "examples": [
+                    {
+                "message": "Job has been queued",
+                "resource": resource_model_example,
+                "owner": user_model_example,
+                "job": job_model_example,
+            }
+            ]
+        }
+    }
+
+
+class StatusResponse(BaseResponse, ResourceStatusModel):
+    """Model for job status responses."""
+
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": "Job has been queued",
+                    "return_code": "job_queued",
+                    "resource": resource_model_example,
+                    "job": job_model_example,
+                }
+            ]
+        }
+    }
+
+
+class StatusesResponse(BaseResponse):
+    """Model for multiple job statuses responses."""
+    resources: list[ResourceStatusModel] = Field(
+        default=[], description="List of resource objects containing information about the corpus"
+    )
+
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": "Listing resource infos",
+                    "return_code": "listing_jobs",
+                    "resources": [
+                        {
+                            "message": "Job was completed successfully",
+                            "return_code": "job_completed",
+                            "resource": {
+                                "id": "mink-ezodmp4wxm",
+                                "name": {"swe": "txt-korpus", "eng": "txt-korpus"},
+                                "type": "corpus",
+                                "source_files": [
+                                    {
+                                        "name": "text1.txt",
+                                        "type": "text/plain",
+                                        "last_modified": "2023-05-15T10:40:44+02:00",
+                                        "size": 825,
+                                        "path": "text1.txt",
+                                    },
+                                    {
+                                        "name": "text2.txt",
+                                        "type": "text/plain",
+                                        "last_modified": "2023-05-15T10:40:45+02:00",
+                                        "size": 1169,
+                                        "path": "text2.txt",
+                                    },
+                                ],
+                            },
+                            "job": job_model_example,
+                        },
+                        {
+                            "message": "Job was completed successfully",
+                            "return_code": "job_completed",
+                            "resource": {
+                                "id": "mink-dxh6e6wtff",
+                                "name": {"swe": "Annes och Martins testkorpus", "eng": ""},
+                                "type": "corpus",
+                                "source_files": [
+                                    {
+                                        "name": "dokument2.xml",
+                                        "type": "text/xml",
+                                        "last_modified": "2022-12-22T11:25:25+01:00",
+                                        "size": 115,
+                                        "path": "dokument2.xml",
+                                    },
+                                    {
+                                        "name": "dokument3.xml",
+                                        "type": "text/xml",
+                                        "last_modified": "2023-06-13T13:26:44+02:00",
+                                        "size": 41,
+                                        "path": "dokument3.xml",
+                                    },
+                                    {
+                                        "name": "dokument4.xml",
+                                        "type": "text/xml",
+                                        "last_modified": "2023-06-13T13:26:44+02:00",
+                                        "size": 461,
+                                        "path": "dokument4.xml",
+                                    },
+                                    {
+                                        "name": "dokument1.xml",
+                                        "type": "text/xml",
+                                        "last_modified": "2023-06-13T13:26:49+02:00",
+                                        "size": 1394,
+                                        "path": "dokument1.xml",
+                                    },
+                                ],
+                            },
+                            "job": job_model_example,
+                        }
+                    ]
+                }
+            ]
         }
     }
