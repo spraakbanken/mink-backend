@@ -19,9 +19,8 @@ from mink.cache.memcached import cache
 from mink.core import exceptions, job_routes, registry, routes, utils
 from mink.core.config import settings
 from mink.core.logging import logger
-from mink.metadata import routes as metadata_routes
+from mink.core.resource_specs import get_resource_routers
 from mink.sb_auth import routes as login_routes
-from mink.sparv import process_routes, storage_routes
 from mink.sparv.config import sparv_settings
 
 MINK_VERSION = utils.get_version_from_pyproject()
@@ -116,9 +115,8 @@ app.add_exception_handler(Exception, exceptions.internal_server_error_handler)
 app.include_router(routes.router)
 app.include_router(job_routes.router)
 app.include_router(login_routes.router)
-app.include_router(storage_routes.router)
-app.include_router(process_routes.router)
-app.include_router(metadata_routes.router)
+for router in get_resource_routers():
+    app.include_router(router)
 
 
 # ------------------------------------------------------------------------------

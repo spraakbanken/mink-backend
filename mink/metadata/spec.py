@@ -19,6 +19,7 @@ def register() -> None:
             max_files=1,
             config_filename="",
             process_names=(),
+            router_modules=("mink.metadata.routes",),
             info_builder=lambda: {
                 "description": metadata_settings.METADATA_RES_INFO,
             },

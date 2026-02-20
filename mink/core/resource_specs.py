@@ -19,6 +19,7 @@ class ResourceSpec:
     max_files: int
     config_filename: str
     process_names: tuple[str, ...]
+    router_modules: tuple[str, ...] = ()
     sync_processes: tuple[str, ...] = ()
     # Processes for which no output is expected
     no_output_processes: tuple[str, ...] = ()
@@ -73,3 +74,23 @@ def get_all_specs() -> dict[ResourceType, ResourceSpec]:
     """Get all registered resource specs."""
     load_specs()
     return _SPEC_REGISTRY
+
+
+def get_resource_routers() -> list[Any]:
+    """Load and return APIRouter instances from registered resource specs."""
+    load_specs()
+    from importlib import import_module  # noqa: PLC0415
+
+    routers: list[Any] = []
+    seen_modules: set[str] = set()
+    for spec in _SPEC_REGISTRY.values():
+        for module_path in spec.router_modules:
+            if module_path in seen_modules:
+                continue
+            seen_modules.add(module_path)
+            mod = import_module(module_path)
+            router = getattr(mod, "router", None)
+            if router is None:
+                raise ValueError(f"Router not found in module '{module_path}'")
+            routers.append(router)
+    return routers

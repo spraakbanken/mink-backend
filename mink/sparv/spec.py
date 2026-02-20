@@ -50,6 +50,7 @@ def register() -> None:
             max_files=-1,
             config_filename=sparv_settings.SPARV_CORPUS_CONFIG,
             process_names=tuple(p.name for p in ProcessName),
+            router_modules=("mink.sparv.storage_routes", "mink.sparv.process_routes"),
             sync_processes=(ProcessName.sync2sparv.name, ProcessName.sync2storage.name),
             no_output_processes=(ProcessName.sync2sparv.name, ProcessName.sync2storage.name),
             on_done_sync=on_done_sync,

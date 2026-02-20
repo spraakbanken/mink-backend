@@ -297,6 +297,9 @@ storage, job, and route behavior via the `SPEC_MODULES` setting. When adding a n
 `spec.py`, add its config module to `CONFIG_MODULES` (for `config_helper.py`), and ensure its storage/job classes avoid
 importing core modules that would introduce circular dependencies.
 
+When adding routes within a resource package, the router modules should be listed in the resource spec so they can be
+loaded dynamically by core.
+
 Here are some examples of what you might find in a resource-specific package:
 
 - `cache.py`: Caching logic specific to the resource type.

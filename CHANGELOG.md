@@ -19,6 +19,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Common route helpers for resource creation/removal and file upload were extracted into `mink/core/route_helpers.py` to
   reduce code duplication between modules.
 - Cache utilities were split by domain (jobs/auth/schema) and cache keys are now namespaced.
+- Router modules from resource packages are now loaded dynamically based on the resource spec instead of being
+  hard-coded in core routes.
 - The documentation was updated to reflect the new project structure.
 
 ### Added
