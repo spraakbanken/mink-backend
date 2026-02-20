@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from mink.cache import jobs_cache
-from mink.core import exceptions, registry
+from mink.core import exceptions, registry, utils
 from mink.core.config import settings
 from mink.core.jobs import BaseJob
 from mink.core.logging import logger
@@ -43,28 +43,13 @@ class Info:
         self.job.set_parent(self)
 
     def __str__(self) -> str:
-        """Convert the info instance to a string.
+        """Return a string representation of the info instance."""
+        return f"Info(id={self.id}, resource={self.resource.id}, owner={self.owner.id})"
 
-        Returns:
-            A string representation of the info instance.
-        """
-        return str(self.serialize())
-
-    def serialize(self) -> dict:
-        """Convert class data into dict.
-
-        Returns:
-            A dictionary representation of the info instance.
-        """
-        return {"resource": self.resource, "owner": self.owner, "job": self.job}
-
-    def to_dict(self) -> dict:
-        """Recursively transform class data into dict (also transforming the data of its children).
-
-        Returns:
-            A dictionary representation of the info instance and its children.
-        """
-        return json.loads(json.dumps(self, default=lambda x: x.serialize()))
+    def serialize(self, depth: int | None = None) -> dict:
+        """Return a serialized dict representation of the info instance."""
+        raw = {"resource": self.resource, "owner": self.owner, "job": self.job}
+        return utils.serialize_obj(raw, depth=depth)
 
     def create(self) -> None:
         """Create new info object in cache and filesystem.

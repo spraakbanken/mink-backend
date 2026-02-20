@@ -13,11 +13,7 @@ class ResourceType(Enum):
     metadata = "metadata"
 
     def serialize(self) -> str:
-        """Convert class data into a string.
-
-        Returns:
-            The serialized resource type as a string.
-        """
+        """Return a serialized representation of the ResourceType instance."""
         return self.name
 
 
@@ -59,20 +55,12 @@ class Resource:
         self.sources_deleted = sources_deleted or ""
 
     def __str__(self) -> str:
-        """Return a string representation of the object by serializing it.
+        """Return a string representation of the resource instance."""
+        return f"Resource(id={self.id}, type={self.type}, public_id={self.public_id})"
 
-        Returns:
-            str: The serialized representation of the object as a string.
-        """
-        return str(self.serialize())
-
-    def serialize(self) -> dict:
-        """Convert class data into dict.
-
-        Returns:
-            The serialized resource as a dictionary.
-        """
-        return {
+    def serialize(self, depth: int | None = None) -> dict:
+        """Return a serialized dict representation of the resource instance."""
+        raw = {
             "id": self.id,
             "public_id": self.public_id,
             "name": self.name,
@@ -80,6 +68,7 @@ class Resource:
             "source_files": self.source_files,
             "sources_deleted": self.sources_deleted,
         }
+        return utils.serialize_obj(raw, depth=depth)
 
     def set_parent(self, parent: Any) -> None:
         """Save reference to parent class.

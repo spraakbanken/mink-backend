@@ -105,16 +105,12 @@ class SparvJob(BaseJob):
         self.runscript = shlex.quote(str(self.remote_corpus_dir / sparv_settings.SPARV_TMP_RUN_SCRIPT))
 
     def __str__(self) -> str:
-        """Return a string representation of the serialized object."""
-        return str(self.serialize())
+        """Return a string representation of the job instance."""
+        return f"Job(status={self.status}, current_process={self.current_process}, progress={self.progress}%)"
 
-    def serialize(self) -> dict:
-        """Convert class data into dict.
-
-        Returns:
-            Dictionary representation of the job.
-        """
-        return {
+    def serialize(self, depth: int | None = None) -> dict:
+        """Return a serialized dict representation of the job instance."""
+        raw = {
             "status": self.status,
             "current_process": self.current_process,
             "pid": self.pid,
@@ -132,6 +128,7 @@ class SparvJob(BaseJob):
             "duration": self.duration,
             "progress": self.progress,
         }
+        return utils.serialize_obj(raw, depth=depth)
 
     def update_job_info(self) -> None:
         """Update job info: queue priority, Sparv output and process time taken."""

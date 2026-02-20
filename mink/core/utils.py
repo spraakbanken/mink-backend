@@ -1,5 +1,7 @@
 """General utility functions."""
 
+from __future__ import annotations
+
 import datetime
 import gzip
 import logging
@@ -9,6 +11,7 @@ import shutil
 import tomllib
 import unicodedata
 import zipfile
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -218,6 +221,39 @@ def build_docs() -> None:
         logger.exception("Error building MkDocs documentation.")
 
 
+def serialize_obj(obj: Any, *, depth: int | None = None, seen: set[int] | None = None) -> Any:
+    """Recursively serialize objects while avoiding cycles and keeping depth limits."""
+    if seen is None:
+        seen = set()
+
+    # Primitives stay as-is
+    if obj is None or isinstance(obj, (str, int, float, bool)):
+        return obj
+
+    # Stop conditions
+    obj_id = id(obj)
+    if obj_id in seen:
+        return "<cycle>"
+    if depth is not None and depth < 0:
+        return "<max-depth>"
+
+    # Containers
+    if isinstance(obj, Mapping):
+        return {k: serialize_obj(v, depth=None if depth is None else depth - 1, seen=seen) for k, v in obj.items()}
+    if isinstance(obj, Sequence) and not isinstance(obj, (str, bytes, bytearray)):
+        return [serialize_obj(v, depth=None if depth is None else depth - 1, seen=seen) for v in obj]
+
+    # Objects with serialize() method
+    serialize = getattr(obj, "serialize", None)
+    if callable(serialize):
+        seen.add(obj_id)
+        data = serialize()
+        return serialize_obj(data, depth=None if depth is None else depth - 1, seen=seen)
+
+    # Fallback
+    return str(obj)
+
+
 def get_current_time() -> str:
     """Get the current timestamp as an ISO 8601 string."""
     return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
@@ -297,7 +333,7 @@ def secure_filename(filename: str) -> Path:
     return Path(filename.strip())
 
 
-def size_ok(storage: "BaseStorage", source_dir: Path, incoming_size: int) -> bool:
+def size_ok(storage: BaseStorage, source_dir: Path, incoming_size: int) -> bool:
     """Check if the size of the incoming files exceeds the max resource size.
 
     Args:

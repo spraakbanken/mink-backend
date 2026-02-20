@@ -272,7 +272,7 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
     """
     job = info.job
     job.update_job_info()
-    info_attrs = info.to_dict()
+    info_attrs = info.serialize()
 
     if not admin:
         # Only keep essential information, as this can be shown to other resource users than the owner

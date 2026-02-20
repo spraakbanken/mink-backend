@@ -56,12 +56,12 @@ class BaseJob:
         self.duration = duration
 
     def __str__(self) -> str:
-        """Return a string representation of the serialized object."""
-        return str(self.serialize())
+        """Return a string representation of the job instance."""
+        return f"Job(status={self.status}, current_process={self.current_process}, progress={self.progress}%)"
 
-    def serialize(self) -> dict:
-        """Convert class data into dict."""
-        return {
+    def serialize(self, depth: int | None = None) -> dict:
+        """Return a serialized dict representation of the job instance."""
+        raw = {
             "status": self.status,
             "current_process": self.current_process,
             "pid": self.pid,
@@ -73,6 +73,7 @@ class BaseJob:
             "duration": self.duration,
             "progress": self.progress,
         }
+        return utils.serialize_obj(raw, depth=depth)
 
     @property
     def progress(self) -> str:

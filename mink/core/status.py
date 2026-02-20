@@ -28,14 +28,6 @@ class Status(StrEnum):
         }
         return docs[self.value]
 
-    def __str__(self) -> str:
-        """Convert class data into a string."""
-        return self.name
-
-    def serialize(self) -> str:
-        """Convert class data into a string."""
-        return self.name
-
 
 class JobStatuses(UserDict):
     """Class for representing the statuses of the different job processes.
@@ -60,11 +52,11 @@ class JobStatuses(UserDict):
         super().__init__(mapping)
 
     def __str__(self) -> str:
-        """Return a string representation of the serialized object."""
+        """Return a string representation of the JobStatuses instance."""
         return str(self.serialize())
 
     def serialize(self) -> dict:
-        """Convert class data into dict."""
+        """Return a serialized dict representation of the JobStatuses instance."""
         return {k: v.name for k, v in self.items()}
 
     def is_active(self, process_name: str | None = None) -> bool:
