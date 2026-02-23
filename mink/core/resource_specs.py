@@ -14,24 +14,46 @@ class ResourceSpec:
     """Configuration for a resource type."""
 
     storage: Any
+    """Storage class for this resource type, must implement the BaseStorage interface"""
+
     job_cls: type[Any]
+    """Job class for this resource type, must implement the BaseJob interface"""
+
     allowed_extensions: tuple[str, ...]
     """File extensions allowed for upload, e.g. ('.txt', '.xml')"""
 
     config_filename: str
+    """Name of the config file for this resource type"""
+
     process_names: tuple[str, ...]
+    """Process names for this resource type"""
+
     router_modules: tuple[str, ...] = ()
+    """Modules to import routers from for this resource type"""
+
     queue_handlers: dict[str, Callable[[Any], None]] = field(default_factory=dict)
+    """Functions to call to advance the job queue for this resource type, keyed by process name"""
+
     process_running: Callable[[Any], bool] | None = None
+    """Function to check if a process is still running (e.g. for advance-queue)"""
+
     sync_processes: tuple[str, ...] = ()
-    # Processes for which no output is expected
+    """Processes which handle file syncing"""
+
     no_output_processes: tuple[str, ...] = ()
-    # Function to call when a job is done, for syncing results
+    """Processes for which no output is expected"""
+
     on_done_sync: Callable[[Any, bool], dict[str, Any] | None] | None = None
-    # OpenAPI examples to inject into the schema for this resource type
+    """Function to call when a job is done, for syncing results"""
+
+    startup_check: Callable[[], None] | None = None
+    """Startup check hook (e.g. validate module-specific settings)"""
+
     openapi_examples: dict[str, list[dict[str, Any]]] | None = None
-    # Function to build resource-type-specific info dict for `/info` route
+    """OpenAPI examples to inject into the schema for this resource type"""
+
     info_builder: Callable[[], dict[str, Any]] | None = None
+    """Function to build resource-type-specific info dict for `/info` route"""
 
 
 _SPEC_REGISTRY: dict[ResourceType, ResourceSpec] = {}
