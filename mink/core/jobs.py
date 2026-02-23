@@ -20,6 +20,7 @@ class BaseJob:
         priority: int | str = "",
         warnings: str = "",
         errors: str = "",
+        output: str = "",
         progress: str = "",
         started: str = "",
         ended: str = "",
@@ -37,6 +38,7 @@ class BaseJob:
             priority: Number in queue.
             warnings: Latest warnings.
             errors: Latest errors.
+            output: Latest misc output.
             progress: Progress percentage as a string (e.g. '45%').
             started: Timestamp of when the current process started.
             ended: Timestamp of when the current process ended.
@@ -50,6 +52,7 @@ class BaseJob:
         self.priority = priority
         self.warnings = warnings
         self.errors = errors
+        self.output = output
         self.progress_output = int(progress.strip("%")) if progress else 0
         self.started = started
         self.ended = ended
@@ -68,6 +71,7 @@ class BaseJob:
             "priority": self.priority,
             "warnings": self.warnings,
             "errors": self.errors,
+            "output": self.output,
             "started": self.started,
             "ended": self.ended,
             "duration": self.duration,

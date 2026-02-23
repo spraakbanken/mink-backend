@@ -39,7 +39,7 @@ class SparvJob(BaseJob):
         priority: int | str = "",
         warnings: str = "",
         errors: str = "",
-        sparv_output: str = "",
+        output: str = "",
         progress: str = "",
         started: str = "",
         ended: str = "",
@@ -62,7 +62,7 @@ class SparvJob(BaseJob):
             priority: Number in queue.
             warnings: Latest Sparv warnings.
             errors: Latest Sparv errors.
-            sparv_output: Latest Sparv misc output.
+            output: Latest Sparv misc output.
             progress: Progress percentage as a string (e.g. '45%').
             started: Timestamp of when the current Sparv process started.
             ended: Timestamp of when the current Sparv process ended.
@@ -95,7 +95,7 @@ class SparvJob(BaseJob):
         self.install_scrambled = install_scrambled
         self.installed_korp = installed_korp
         self.installed_strix = installed_strix
-        self.sparv_output = sparv_output
+        self.output = output
 
         self.sparv_user = sparv_settings.SPARV_USER
         self.sparv_server = sparv_settings.SPARV_HOST
@@ -122,7 +122,7 @@ class SparvJob(BaseJob):
             "priority": self.priority,
             "warnings": self.warnings,
             "errors": self.errors,
-            "sparv_output": self.sparv_output,
+            "output": self.output,
             "started": self.started,
             "ended": self.ended,
             "duration": self.duration,
@@ -133,7 +133,7 @@ class SparvJob(BaseJob):
     def update_job_info(self) -> None:
         """Update job info: queue priority, Sparv output and process time taken."""
         self.priority = registry.get_priority(self) if registry.get_priority(self) != -1 else ""
-        self.warnings, self.errors, self.sparv_output, sparv_ended = self.get_output()
+        self.warnings, self.errors, self.output, sparv_ended = self.get_output()
         self.ended, self.duration = self.calculate_ended_timeinfo(sparv_ended)
         self.parent.update()
 
