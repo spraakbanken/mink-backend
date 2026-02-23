@@ -19,9 +19,8 @@ from mink.cache.memcached import cache
 from mink.core import exceptions, job_routes, registry, routes, utils
 from mink.core.config import settings
 from mink.core.logging import logger
-from mink.core.resource_specs import get_resource_routers
+from mink.core.resource_specs import get_resource_routers, run_startup_checks
 from mink.sb_auth import routes as login_routes
-from mink.sparv.config import sparv_settings
 
 MINK_VERSION = utils.get_version_from_pyproject()
 
@@ -49,16 +48,9 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
         raise exceptions.ConfigVariableNotSetError("INSTANCE_PATH")
     if not settings.SBAUTH_PUBKEY_FILE:
         raise exceptions.ConfigVariableNotSetError("SBAUTH_PUBKEY_FILE")
-    if not sparv_settings.SPARV_HOST:
-        if settings.ENV != "development":
-            raise exceptions.ConfigVariableNotSetError("SPARV_HOST")
-        logger.warning("'SPARV_HOST' not set, Sparv will not be available!")
-        sparv_settings.SPARV_ENABLED = False
-    if not sparv_settings.SPARV_USER:
-        if settings.ENV != "development":
-            raise exceptions.ConfigVariableNotSetError("SPARV_USER")
-        logger.warning("'SPARV_USER' not set, Sparv will not be available!")
-        sparv_settings.SPARV_ENABLED = False
+
+    # Run any registered startup checks from resource specs
+    run_startup_checks()
 
     # Create instance directory if it does not exist
     Path(settings.INSTANCE_PATH).mkdir(exist_ok=True)

@@ -19,10 +19,25 @@ class ProcessName(StrEnum):
 
 def register() -> None:
     """Register the Sparv resource spec."""
+    from mink.core import exceptions  # noqa: PLC0415, avoids circular import
+    from mink.core.config import settings  # noqa: PLC0415, avoids circular import
+    from mink.core.logging import logger  # noqa: PLC0415, avoids circular import
     from mink.core.resource_specs import ResourceSpec, register_spec  # noqa: PLC0415, avoids circular import
     from mink.sparv import models as sparv_models  # noqa: PLC0415, avoids circular import
     from mink.sparv.jobs import SparvJob  # noqa: PLC0415, avoids circular import
     from mink.sparv.storage import storage  # noqa: PLC0415, avoids circular import
+
+    def startup_check() -> None:
+        if not sparv_settings.SPARV_HOST:
+            if settings.ENV != "development":
+                raise exceptions.ConfigVariableNotSetError("SPARV_HOST")
+            logger.warning("'SPARV_HOST' not set, Sparv will not be available!")
+            sparv_settings.SPARV_ENABLED = False
+        if not sparv_settings.SPARV_USER:
+            if settings.ENV != "development":
+                raise exceptions.ConfigVariableNotSetError("SPARV_USER")
+            logger.warning("'SPARV_USER' not set, Sparv will not be available!")
+            sparv_settings.SPARV_ENABLED = False
 
     def process_running(job: Any) -> bool:
         return cast(SparvJob, job).process_running()
@@ -72,6 +87,7 @@ def register() -> None:
             sync_processes=(ProcessName.sync2sparv.name, ProcessName.sync2storage.name),
             no_output_processes=(ProcessName.sync2sparv.name, ProcessName.sync2storage.name),
             on_done_sync=on_done_sync,
+            startup_check=startup_check,
             openapi_examples={
                 "JobModel": sparv_models.job_model_examples,
                 "ResourceStatusModel": sparv_models.resource_status_examples,

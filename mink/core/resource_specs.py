@@ -96,3 +96,11 @@ def get_resource_routers() -> list[Any]:
                 raise ValueError(f"Router not found in module '{module_path}'")
             routers.append(router)
     return routers
+
+
+def run_startup_checks() -> None:
+    """Run startup checks for all registered resource specs."""
+    load_specs()
+    for spec in _SPEC_REGISTRY.values():
+        if spec.startup_check:
+            spec.startup_check()
