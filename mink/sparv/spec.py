@@ -74,7 +74,6 @@ def register() -> None:
             storage=storage,
             job_cls=SparvJob,
             allowed_extensions=tuple(sparv_settings.SPARV_IMPORTER_MODULES.keys()),
-            max_files=-1,
             config_filename=sparv_settings.SPARV_CORPUS_CONFIG,
             process_names=tuple(p.name for p in ProcessName),
             router_modules=("mink.sparv.storage_routes", "mink.sparv.process_routes"),

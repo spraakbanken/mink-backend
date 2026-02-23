@@ -16,7 +16,8 @@ class ResourceSpec:
     storage: Any
     job_cls: type[Any]
     allowed_extensions: tuple[str, ...]
-    max_files: int
+    """File extensions allowed for upload, e.g. ('.txt', '.xml')"""
+
     config_filename: str
     process_names: tuple[str, ...]
     router_modules: tuple[str, ...] = ()

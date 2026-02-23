@@ -16,7 +16,6 @@ def register() -> None:
             storage=storage,
             job_cls=BaseJob,
             allowed_extensions=(".yaml", ".yml"),
-            max_files=1,
             config_filename="",
             process_names=(),
             router_modules=("mink.metadata.routes",),
