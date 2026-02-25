@@ -7,12 +7,13 @@ from pathlib import Path
 from typing import Any
 
 import shortuuid
-from fastapi import UploadFile, status
+from fastapi import UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
-from mink.core import exceptions, info, utils
+from mink.core import exceptions, info, return_codes, utils
 from mink.core.logging import logger
 from mink.core.resource_specs import get_spec
+from mink.core.status import Status
 from mink.sb_auth import login
 
 
@@ -42,11 +43,7 @@ async def create_resource_id(
     while resource_id is None:
         # Give up after max_tries tries
         if tries > max_tries:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to create resource",
-                return_code="failed_creating_resource",
-            )
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_CREATING_RESOURCE)
         tries += 1
         candidate = f"{resource_prefix}{shortuuid.uuid()[:10]}".lower()
         if candidate in set(existing_ids_fn()):
@@ -57,12 +54,7 @@ async def create_resource_id(
             # Resource ID is in use in authentication system, try to create another one
             continue
         except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to create resource",
-                return_code="failed_creating_resource",
-                info=str(e),
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_CREATING_RESOURCE, info=str(e)) from e
         resource_id = candidate
     return resource_id
 
@@ -91,20 +83,16 @@ async def remove_resource(
         remove_from_storage_fn()
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to remove resource from storage",
-            return_code="failed_removing_storage",
-            info=str(e),
+            return_code=return_codes.FAILED_REMOVING_CONTENT,
+            info=f"Failed to remove resource from storage: {e}",
         ) from e
 
     try:
         await login.remove_resource(auth_token, resource_id)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to remove resource from authentication system",
-            return_code="failed_removing_auth",
-            info=str(e),
+            return_code=return_codes.FAILED_REMOVING_CONTENT,
+            info=f"Failed to remove resource from authentication system: {e}",
         ) from e
 
     try:
@@ -112,7 +100,7 @@ async def remove_resource(
     except Exception:
         logger.exception("Failed to remove resource '%s' from registry.", resource_id)
 
-    return utils.response(message="Resource successfully removed", return_code="removed_resource")
+    return utils.response(return_code=return_codes.REMOVED_RESOURCE)
 
 
 async def cleanup_partial_resource(
@@ -156,28 +144,21 @@ async def get_yaml_payload(*, yaml_file: UploadFile | None, yaml_txt: str | None
     """
     if yaml_file and yaml_txt:
         raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="Found YAML as file and as plain text but can only process one of these",
-            return_code="too_many_params",
+            return_code=return_codes.VALIDATION_ERROR,
+            info="Both a file and plain text config were provided"
         )
 
     if yaml_file:
         if yaml_file.content_type not in {"application/yaml", "application/x-yaml", "text/yaml"}:
             raise exceptions.MinkHTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                message="File needs to be YAML",
-                return_code="wrong_format",
+                return_code=return_codes.INVALID_FILE, info="File format needs to be YAML"
             )
         return await yaml_file.read()
 
     if yaml_txt:
         return yaml_txt
 
-    raise exceptions.MinkHTTPException(
-        status.HTTP_400_BAD_REQUEST,
-        message="No YAML file provided for upload",
-        return_code="missing_yaml_upload",
-    )
+    raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_FILE_UPLOAD)
 
 
 async def upload_yaml_file(
@@ -216,22 +197,13 @@ async def upload_yaml_file(
     except exceptions.MinkHTTPException:
         raise
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to upload file",
-            return_code="failed_uploading_file",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_UPLOADING, info=str(e)) from e
 
-    return utils.response(status.HTTP_201_CREATED, message="File successfully uploaded", return_code="uploaded_file")
+    return utils.response(return_code=return_codes.FILE_UPLOADED)
 
 
 def download_file_response(
-    *,
-    local_path: Path,
-    ensure_local_dir_fn: Callable[[], object],
-    download_fn: Callable[[], bool],
-    media_type: str,
+    *, local_path: Path, ensure_local_dir_fn: Callable[[], object], download_fn: Callable[[], bool], media_type: str
 ) -> FileResponse:
     """Download a file and return a file response, or raise a MinkHTTPException.
 
@@ -248,19 +220,10 @@ def download_file_response(
     try:
         download_ok = download_fn()
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to download file",
-            return_code="failed_downloading_file",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
     if download_ok:
         return FileResponse(local_path, media_type=media_type, filename=local_path.name)
-    raise exceptions.MinkHTTPException(
-        status.HTTP_404_NOT_FOUND,
-        message="File not found",
-        return_code="file_not_found",
-    )
+    raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
 
 
 def make_status_response(info: info.Info, admin: bool = False) -> dict:
@@ -286,19 +249,19 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
     spec = get_spec(info.resource.type)
 
     if job_status.is_none():
-        return {"message": f"There is no active job for '{job.id}'", "return_code": "no_active_job", **info_attrs}
+        return {"job_status": Status.none, "info": "There is no active job for this resource", **info_attrs}
 
     if job_status.is_syncing(spec.sync_processes):
-        return {"message": "Files are being synced", "return_code": "syncing_files", **info_attrs}
+        return {"job_status": Status.running, "info": "Files are being synced", **info_attrs}
 
     if job_status.is_waiting():
-        return {"message": "Job has been queued", "return_code": "job_queued", **info_attrs}
+        return {"job_status": Status.waiting, "info": "Job has been queued", **info_attrs}
 
     if job_status.is_aborted(job.current_process):
-        return {"message": "Job was aborted by the user", "return_code": "job_aborted_by_user", **info_attrs}
+        return {"job_status": Status.aborted, "info": "Job was aborted by the user", **info_attrs}
 
     if job_status.is_running():
-        return {"message": "Job is running", "return_code": "job_running", **info_attrs}
+        return {"job_status": Status.running, "info": "Job is running", **info_attrs}
 
     if spec.on_done_sync and job_status.is_done(job.current_process):
         result = spec.on_done_sync(info, admin)
@@ -306,7 +269,7 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
             return {**result, **info_attrs}
 
     if job_status.is_done(job.current_process):
-        return {"message": "Job was completed successfully", "return_code": "job_completed", **info_attrs}
+        return {"job_status": Status.done, "info": "Job was completed successfully", **info_attrs}
 
     if job_status.is_error(job.current_process):
         logger.error(
@@ -316,8 +279,8 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
             info_attrs["job"]["output"],
             info_attrs,
         )
-        return {"message": "An error occurred during processing", "return_code": "processing_error", **info_attrs}
+        return {"job_status": Status.error, "info": "An error occurred during processing", **info_attrs}
 
     raise exceptions.MinkHTTPException(
-        status.HTTP_501_NOT_IMPLEMENTED, message="Unknown job status", return_code="unknown_job_status", **info_attrs
+        return_code=return_codes.INTERNAL_SERVER_ERROR, info=f"Unknown job status: {job_status}", **info_attrs
     )

@@ -4,7 +4,7 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
-from mink.core import exceptions, models, utils
+from mink.core import exceptions, models, return_codes, utils
 from mink.sb_auth import cache
 from mink.sb_auth.login import AuthDependencyNoResourceId
 
@@ -18,11 +18,26 @@ router = APIRouter(tags=["Admin Mode"])
         status.HTTP_200_OK: {
             "content": {
                 "application/json": {
-                    "example": {"status": "success", "message": "Admin mode turned on", "return_code": "admin_on"}
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.ADMIN_ON.message,
+                        "return_code": return_codes.ADMIN_ON.code,
+                    }
                 }
             },
         },
-        **models.common_auth_error_responses
+        status.HTTP_400_BAD_REQUEST: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.MISSING_SESSION_ID.message,
+                        "return_code": return_codes.MISSING_SESSION_ID.code,
+                    }
+                }
+            }
+        },
+        **models.common_auth_error_responses,
     },
 )
 async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(require_admin=True))) -> JSONResponse:
@@ -40,14 +55,10 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
     """
     session_id = auth_data["session_id"]
     if session_id is None:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="Failed to set admin mode: no session ID found in authentication data",
-            return_code="no_session_id",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_SESSION_ID)
     cache.set_cookie_data(session_id, {"admin_mode": True})
     return utils.response(
-        message="Admin mode turned on", return_code="admin_on", cookie=(True, "session_id", session_id)
+        return_code=return_codes.ADMIN_ON, cookie=(True, "session_id", session_id)
     )
 
 
@@ -58,7 +69,22 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
         status.HTTP_200_OK: {
             "content": {
                 "application/json": {
-                    "example": {"status": "success", "message": "Admin mode turned off", "return_code": "admin_off"}
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.ADMIN_OFF.message,
+                        "return_code": return_codes.ADMIN_OFF.code,
+                    }
+                }
+            }
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.MISSING_SESSION_ID.message,
+                        "return_code": return_codes.MISSING_SESSION_ID.code,
+                    }
                 }
             }
         },
@@ -77,14 +103,10 @@ async def admin_mode_off(
     """
     session_id = auth_data["session_id"]
     if session_id is None:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="Failed to set admin mode: no session ID found in authentication data",
-            return_code="no_session_id",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_SESSION_ID)
     # For now we can remove the cookie data because admin mode is the only data stored in the session
     cache.remove_cookie_data(session_id)
-    return utils.response(message="Admin mode turned off", return_code="admin_off", cookie=(False, "session_id", ""))
+    return utils.response(return_code=return_codes.ADMIN_OFF, cookie=(False, "session_id", ""))
 
 
 @router.get(
@@ -96,8 +118,8 @@ async def admin_mode_off(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Returning status of admin mode",
-                        "return_code": "returning_admin_status",
+                        "message": return_codes.ADMIN_STATUS.message,
+                        "return_code": return_codes.ADMIN_STATUS.code,
                         "admin_mode_status": True,
                     }
                 }
@@ -106,8 +128,7 @@ async def admin_mode_off(
         **models.common_auth_error_responses,
     },
 )
-async def admin_mode_status(
-    auth_data: dict = Depends(AuthDependencyNoResourceId())) -> JSONResponse:
+async def admin_mode_status(auth_data: dict = Depends(AuthDependencyNoResourceId())) -> JSONResponse:
     """Check whether admin mode is turned on or off.
 
     ### Example
@@ -117,6 +138,4 @@ async def admin_mode_status(
     ```
     """
     admin_status = cache.get_cookie_data(auth_data["session_id"], {}).get("admin_mode", False)
-    return utils.response(
-        message="Returning status of admin mode", return_code="returning_admin_status", admin_mode_status=admin_status
-    )
+    return utils.response(return_code=return_codes.ADMIN_STATUS, admin_mode_status=admin_status)

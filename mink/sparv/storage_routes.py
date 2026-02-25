@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.cache import jobs_cache
-from mink.core import exceptions, models, registry, route_utils, utils
+from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.logging import logger
@@ -28,9 +28,7 @@ def _require_job(job: object) -> SparvJob:
     """Ensure that 'job' is a Sparv job, raise an error if not."""
     if not isinstance(job, SparvJob):
         raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="Resource is not a corpus",
-            return_code="invalid_resource_type",
+            return_code=return_codes.INVALID_RESOURCE_TYPE, info="Expected a corpus resource"
         )
     return cast(SparvJob, job)
 
@@ -44,7 +42,7 @@ def _require_job(job: object) -> SparvJob:
     "/create-corpus",
     tags=["Manage Corpora"],
     status_code=status.HTTP_201_CREATED,
-    response_model=sparv_models.CreateCorpusResponse,
+    response_model=models.CreateResourceResponse,
     responses={
         **models.common_auth_error_responses,
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
@@ -53,8 +51,8 @@ def _require_job(job: object) -> SparvJob:
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to create resource",
-                        "return_code": "failed_creating_resource",
+                        "message": return_codes.FAILED_CREATING_RESOURCE.message,
+                        "return_code": return_codes.FAILED_CREATING_RESOURCE.code,
                         "info": "BaseException",
                     }
                 }
@@ -88,12 +86,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
         corpus_dir = storage.get_corpus_dir(resource_id, mkdir=True)
         storage.get_source_dir(resource_id, mkdir=True)
 
-        return utils.response(
-            status.HTTP_201_CREATED,
-            message="Resource created successfully",
-            return_code="created_resource",
-            resource_id=resource_id,
-        )
+        return utils.response(return_code=return_codes.CREATED_RESOURCE, resource_id=resource_id)
 
     # If anything fails, try to remove from storage, auth system, and registry
     except Exception as e:
@@ -103,12 +96,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
             info_obj=info_obj,
             remove_from_storage_fn=lambda: storage.remove_dir(corpus_dir, resource_id),
         )
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to create resource",
-            return_code="failed_creating_resource",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_CREATING_RESOURCE, info=str(e)) from e
 
 
 @router.get(
@@ -127,7 +115,7 @@ async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceI
     ```
     """
     return utils.response(
-        message="Listing available corpora", return_code="listing_corpora", corpora=auth_data.get("resources")
+        return_code=return_codes.LISTING_CONTENT, info="Listing available corpora", corpora=auth_data.get("resources")
     )
 
 
@@ -141,8 +129,9 @@ async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceI
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Listing corpora installed in Korp",
-                        "return_code": "listing_korp_corpora",
+                        "message": return_codes.LISTING_CONTENT.message,
+                        "return_code": return_codes.LISTING_CONTENT.code,
+                        "info": "Listing corpora installed in Korp",
                         "corpora": ["mink-dxh6e6wtff", "mink-j86tfreaf9"],
                     }
                 }
@@ -155,18 +144,16 @@ async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceI
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to list corpora installed in Korp",
-                        "return_code": "failed_listing_korp_corpora",
-                        "info": "Internal server error",
+                        "message": return_codes.FAILED_LISTING_CONTENT.message,
+                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
+                        "info": "Failed to list corpora installed in Korp",
                     }
                 }
             },
         },
     },
 )
-async def list_korp_corpora(
-    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
-) -> JSONResponse:
+async def list_korp_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
     """List the IDs of the user's Mink corpora that are installed in Korp.
 
     This route is deprecated and will be removed in future versions.
@@ -181,18 +168,13 @@ async def list_korp_corpora(
     try:
         # Get resource infos belonging to corpora that the user may edit
         resources = registry.filter_resources(auth_data.get("resources"))
-        installed_corpora = [
-            res.id for res in resources if isinstance(res.job, SparvJob) and res.job.installed_korp
-        ]
+        installed_corpora = [res.id for res in resources if isinstance(res.job, SparvJob) and res.job.installed_korp]
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to list corpora installed in Korp",
-            return_code="failed_listing_korp_corpora",
-            info=str(e),
+            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed to list corpora installed in Korp: {e}"
         ) from e
     return utils.response(
-        message="Listing corpora installed in Korp", return_code="listing_korp_corpora", corpora=installed_corpora
+        return_code=return_codes.LISTING_CONTENT, info="Listing corpora installed in Korp", corpora=installed_corpora
     )
 
 
@@ -206,8 +188,8 @@ async def list_korp_corpora(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Resource removed successfully",
-                        "return_code": "removed_resource",
+                        "message": return_codes.REMOVED_RESOURCE.message,
+                        "return_code": return_codes.REMOVED_RESOURCE.code,
                     }
                 }
             }
@@ -219,9 +201,9 @@ async def list_korp_corpora(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to remove resource from Korp",
-                        "return_code": "failed_removing_korp",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                        "info": "Failed to remove resource from Korp",
                     }
                 }
             },
@@ -249,10 +231,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
             job.uninstall_korp()
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to remove resource from Korp",
-                return_code="failed_removing_korp",
-                info=str(e),
+                return_code=return_codes.FAILED_REMOVING_CONTENT, info=f"Failed to remove resource from Korp: {e}"
             ) from e
 
     # Uninstall corpus from Strix using Sparv
@@ -261,10 +240,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
             job.uninstall_strix()
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to remove resource from Strix",
-                return_code="failed_removing_strix",
-                info=str(e),
+                return_code=return_codes.FAILED_REMOVING_CONTENT, info=f"Failed to remove resource from Strix: {e}"
             ) from e
 
     return await route_utils.remove_resource(
@@ -284,15 +260,15 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
 @router.put(
     "/upload-sources",
     tags=["Manage Sources"],
-    response_model=models.BaseResponseWithWarnings,
+    response_model=models.BaseResponse,
     responses={
-        status.HTTP_200_OK: {
+        status.HTTP_201_CREATED: {
             "content": {
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Source files successfully added to 'mink-dxh6e6wtff'",
-                        "return_code": "uploaded_sources",
+                        "message": return_codes.FILE_UPLOADED.message,
+                        "return_code": return_codes.FILE_UPLOADED.code,
                         "warnings": ["File 'example.txt' already existed and was replaced during upload."],
                     }
                 }
@@ -300,13 +276,13 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
         },
         **models.common_auth_error_responses,
         status.HTTP_400_BAD_REQUEST: {
-            "model": models.BaseResponseWithInfo,
+            "model": models.BaseErrorResponse,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "No corpus files provided for upload",
-                        "return_code": "missing_sources_upload",
+                        "message": return_codes.MISSING_FILE_UPLOAD.message,
+                        "return_code": return_codes.MISSING_FILE_UPLOAD.code,
                     }
                 }
             },
@@ -317,9 +293,8 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to upload some source files to 'mink-dxh6e6wtff'. Max file size (10 MB) "
-                        "exceeded",
-                        "return_code": "failed_uploading_sources_file_size",
+                        "message": return_codes.CONTENT_TOO_LARGE.message,
+                        "return_code": return_codes.CONTENT_TOO_LARGE.code,
                         "file": "example.txt",
                         "info": "max file size exceeded",
                         "max_size_mb": 10,
@@ -333,8 +308,8 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to upload some source files to 'mink-dxh6e6wtff'",
-                        "return_code": "failed_uploading_sources",
+                        "message": return_codes.FAILED_UPLOADING.message,
+                        "return_code": return_codes.FAILED_UPLOADING.code,
                         "info": "BaseException",
                     }
                 }
@@ -362,29 +337,18 @@ async def upload_sources(
     resource_id = auth_data["resource_id"]
     # Check if corpus files were provided
     if not files:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="No corpus files provided for upload",
-            return_code="missing_sources_upload",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_FILE_UPLOAD)
 
     # Check request size constraint
     try:
         content_length = int(request.headers.get("content-length", "0"))
         source_dir = storage.get_source_dir(resource_id)
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to upload source files to '{resource_id}'",
-            return_code="failed_uploading_sources",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_UPLOADING, info=str(e)) from e
     if not utils.size_ok(storage, source_dir, content_length):
         max_size_mb = int(settings.MAX_RESOURCE_LENGTH / (1024 * 1024))
         raise exceptions.MinkHTTPException(
-            status.HTTP_413_CONTENT_TOO_LARGE,
-            message=f"Failed to upload source files to '{resource_id}'. Max corpus size ({max_size_mb} MB) exceeded",
-            return_code="failed_uploading_sources_corpus_size",
+            return_code=return_codes.CONTENT_TOO_LARGE,
             info="max corpus size exceeded",
             max_size_mb=max_size_mb,
         )
@@ -397,11 +361,7 @@ async def upload_sources(
     # Upload data
     for f in files:
         if f.filename is None:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                message=f"Failed to upload some source files to '{resource_id}' due to missing filename",
-                return_code="failed_uploading_sources_missing_filename",
-            )
+            raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_FILE, info="missing filename")
         name = utils.secure_filename(f.filename)
         original_name = name
 
@@ -412,20 +372,14 @@ async def upload_sources(
         # Check if file can be processed by Sparv
         if spec.allowed_extensions and not any(name.suffix.lower() == i.lower() for i in spec.allowed_extensions):
             raise exceptions.MinkHTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                message=f"Failed to upload some source files to '{resource_id}' due to invalid file extension",
-                return_code="failed_uploading_sources_invalid_file_extension",
-                file=f.filename,
-                info="invalid file extension",
+                return_code=return_codes.INVALID_FILE, file=f.filename, info="invalid file extension"
             )
 
         # Check if file extension is compatible with existing files
         compatible, current_ext, existing_ext = sparv_utils.file_ext_compatible(name, source_dir)
         if not compatible:
             raise exceptions.MinkHTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                message=(f"Failed to upload some source files to '{resource_id}' due to incompatible file extensions"),
-                return_code="failed_uploading_sources_incompatible_file_extension",
+                return_code=return_codes.INVALID_FILE,
                 file=f.filename,
                 info="incompatible file extensions",
                 current_file_extension=current_ext,
@@ -436,12 +390,7 @@ async def upload_sources(
         file_contents = await f.read()
         if len(file_contents) > settings.MAX_FILE_LENGTH:
             raise exceptions.MinkHTTPException(
-                status.HTTP_413_CONTENT_TOO_LARGE,
-                message=(
-                    f"Failed to upload some source files to '{resource_id}'. "
-                    f"Max file size ({max_file_size_mb} MB) exceeded"
-                ),
-                return_code="failed_uploading_sources_file_size",
+                return_code=return_codes.CONTENT_TOO_LARGE,
                 file=f.filename,
                 info="max file size exceeded",
                 max_size_mb=max_file_size_mb,
@@ -479,9 +428,7 @@ async def upload_sources(
                 ElementTree.fromstring(file_contents)
             except ElementTree.ParseError as e:
                 raise exceptions.MinkHTTPException(
-                    status.HTTP_400_BAD_REQUEST,
-                    message=f"Failed to upload some source files to '{resource_id}' due to invalid XML",
-                    return_code="failed_uploading_sources_invalid_xml",
+                    return_code=return_codes.INVALID_FILE,
                     file=f.filename,
                     info=f"invalid XML: {e}",
                 ) from e
@@ -493,25 +440,22 @@ async def upload_sources(
     # Check if file extensions were changed during the upload process and produce a warning
     if warnings:
         logger.warning("Warnings occurred during upload:\n%s", "\n".join(warnings))
-    return utils.response(
-        message=f"Source files successfully added to '{resource_id}'",
-        return_code="uploaded_sources",
-        warnings=warnings,
-    )
+    return utils.response(return_code=return_codes.FILE_UPLOADED, warnings=warnings)
 
 
 @router.get(
     "/list-sources",
     tags=["Manage Sources"],
-    response_model=models.BaseResponseWithContents,
+    response_model=models.ListingFilesResponse,
     responses={
         status.HTTP_200_OK: {
             "content": {
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Current source files for 'mink-dxh6e6wtff'",
-                        "return_code": "listing_sources",
+                        "message": return_codes.LISTING_CONTENT.message,
+                        "return_code": return_codes.LISTING_CONTENT.code,
+                        "info": "Listing source files",
                         "contents": models.file_model_examples,
                     }
                 }
@@ -524,9 +468,9 @@ async def upload_sources(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to list source files in 'mink-dxh6e6wtff'",
-                        "return_code": "failed_listing_sources",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_LISTING_CONTENT.message,
+                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
+                        "info": "Failed to list source files",
                     }
                 }
             },
@@ -546,14 +490,13 @@ async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSO
     try:
         objlist = storage.list_contents(storage.get_source_dir(resource_id))
         return utils.response(
-            message=f"Listing current source files for '{resource_id}'", contents=objlist, return_code="listing_sources"
+            return_code=return_codes.LISTING_CONTENT,
+            info="Listing source files",
+            contents=objlist,
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to list source files in '{resource_id}'",
-            return_code="failed_listing_sources",
-            info=str(e),
+            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed to list source files: {e}"
         ) from e
 
 
@@ -567,21 +510,23 @@ async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSO
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Source files for 'mink-dxh6e6wtff' successfully removed",
-                        "return_code": "removed_sources",
+                        "message": return_codes.REMOVED_CONTENT.message,
+                        "return_code": return_codes.REMOVED_CONTENT.code,
+                        "info": "Removed source files",
                     }
                 }
             }
         },
         **models.common_auth_error_responses,
-        status.HTTP_400_BAD_REQUEST: {
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "model": models.BaseErrorResponse,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "No files provided for removal",
-                        "return_code": "missing_sources_remove",
+                        "message": return_codes.VALIDATION_ERROR.message,
+                        "return_code": return_codes.VALIDATION_ERROR.code,
+                        "info": "Missing required query parameter 'remove'",
                     }
                 }
             },
@@ -592,8 +537,9 @@ async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSO
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to remove some source files from 'mink-dxh6e6wtff'",
-                        "return_code": "failed_removing_some_sources",
+                        "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                        "info": "Failed to remove some source files",
                         "failed": ["file1.xml", "file2.xml"],
                         "succeeded": ["file3.xml"],
                     }
@@ -620,9 +566,7 @@ async def remove_sources(
     """
     if not remove:
         raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="No files provided for removal",
-            return_code="missing_sources_remove",
+            return_code=return_codes.VALIDATION_ERROR, info="Missing required query parameter 'remove'"
         )
 
     # Remove files
@@ -639,25 +583,20 @@ async def remove_sources(
 
     if fails and successes:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to remove some source files from '{resource_id}'",
-            return_code="failed_removing_some_sources",
+            return_code=return_codes.FAILED_REMOVING_CONTENT,
+            info="Failed to remove some source files",
             failed=fails,
             succeeded=successes,
         )
     if fails:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to remove source files from '{resource_id}'",
-            return_code="failed_removing_sources",
+            return_code=return_codes.FAILED_REMOVING_CONTENT, info="Failed to remove source files"
         )
 
     res = registry.get(resource_id).resource
     res.set_source_files(deleted_sources=True)
 
-    return utils.response(
-        message=f"Source files for '{resource_id}' successfully removed", return_code="removed_sources"
-    )
+    return utils.response(return_code=return_codes.REMOVED_CONTENT, info="Removed source files")
 
 
 @router.get(
@@ -668,38 +607,15 @@ async def remove_sources(
     responses={
         status.HTTP_200_OK: {"content": {"application/octet-stream": {}}, "description": "A file download response"},
         **models.common_auth_error_responses,
-        status.HTTP_400_BAD_REQUEST: {
-            "model": models.BaseErrorResponse,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "The source file you are trying to download does not exist",
-                        "return_code": "source_not_found",
-                    }
-                }
-            },
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": models.BaseErrorResponse,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "You have not uploaded any source files for corpus 'mink-dxh6e6wtff'",
-                        "return_code": "missing_sources_download",
-                    }
-                }
-            },
-        },
+        status.HTTP_404_NOT_FOUND: {"model": models.ErrorResponse404File},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to download source files for corpus 'mink-dxh6e6wtff'",
-                        "return_code": "failed_downloading_sources",
+                        "message": return_codes.FAILED_DOWNLOADING.message,
+                        "return_code": return_codes.FAILED_DOWNLOADING.code,
                         "info": "BaseException",
                     }
                 }
@@ -732,17 +648,10 @@ async def download_sources(
         source_contents = storage.list_contents(storage_source_dir, exclude_dirs=False)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to list source files in '{resource_id}'",
-            return_code="failed_listing_sources",
-            info=str(e),
+            return_code=return_codes.FAILED_DOWNLOADING, info=f"Failed to list source files: {e}"
         ) from e
     if source_contents == []:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"You have not uploaded any source files for corpus '{resource_id}'",
-            return_code="missing_sources_download",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
 
     local_source_dir = storage.get_local_source_dir(resource_id, mkdir=True)
     local_corpus_dir = storage.get_local_resource_dir(resource_id, mkdir=True)
@@ -752,11 +661,7 @@ async def download_sources(
         download_file_name = Path(download_file).name
         download_file_path = storage_source_dir / download_file
         if download_file not in [i.get("path") for i in source_contents]:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_404_NOT_FOUND,
-                message="The source file you are trying to download does not exist",
-                return_code="source_not_found",
-            )
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
         try:
             local_path = local_source_dir / download_file_name
             storage.download_file(download_file_path, local_path, resource_id)
@@ -772,12 +677,7 @@ async def download_sources(
                     break
             return FileResponse(local_path, media_type=content_type, filename=local_path.name)
         except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to download file",
-                return_code="failed_downloading_file",
-                info=str(e),
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
     # Download all files as zip archive
     try:
@@ -786,12 +686,7 @@ async def download_sources(
         storage.download_dir(storage_source_dir, local_source_dir, resource_id, zipped=True, zippath=zip_out)
         return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to download source files for corpus '{resource_id}'",
-            return_code="failed_downloading_sources",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
 
 # ------------------------------------------------------------------------------
@@ -810,21 +705,22 @@ async def download_sources(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "File successfully uploaded",
-                        "return_code": "uploaded_file",
+                        "message": return_codes.FILE_UPLOADED.message,
+                        "return_code": return_codes.FILE_UPLOADED.code,
                     }
                 }
             }
         },
         **models.common_auth_error_responses,
-        status.HTTP_400_BAD_REQUEST: {
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "model": models.BaseErrorResponse,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Found both a config file and a plain text config but can only process one of these",
-                        "return_code": "too_many_params",
+                        "message": return_codes.VALIDATION_ERROR.message,
+                        "return_code": return_codes.VALIDATION_ERROR.code,
+                        "info": "Both a file and plain text config were provided"
                     }
                 }
             },
@@ -835,8 +731,8 @@ async def download_sources(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to upload file",
-                        "return_code": "failed_uploading_file",
+                        "message": return_codes.FAILED_UPLOADING.message,
+                        "return_code": return_codes.FAILED_UPLOADING.code,
                         "info": "BaseException",
                     }
                 }
@@ -887,26 +783,15 @@ async def upload_config(
     responses={
         status.HTTP_200_OK: {"content": {"application/octet-stream": {}}, "description": "A file download response"},
         **models.common_auth_error_responses,
-        status.HTTP_404_NOT_FOUND: {
-            "model": models.ErrorResponse404,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "File not found",
-                        "return_code": "file_not_found",
-                    }
-                }
-            },
-        },
+        status.HTTP_404_NOT_FOUND: {"model": models.ErrorResponse404File},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to download file",
-                        "return_code": "failed_downloading_file",
+                        "message": return_codes.FAILED_DOWNLOADING.message,
+                        "return_code": return_codes.FAILED_DOWNLOADING.code,
                         "info": "BaseException",
                     }
                 }
@@ -942,14 +827,16 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
 @router.get(
     "/list-exports",
     tags=["Manage Exports"],
-    response_model=models.BaseResponseWithContents,
+    response_model=models.ListingFilesResponse,
     responses={
         status.HTTP_200_OK: {
             "content": {
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Current export files for 'mink-dxh6e6wtff'",
+                        "message": return_codes.LISTING_CONTENT.message,
+                        "return_code": return_codes.LISTING_CONTENT.code,
+                        "info": "Listing export files",
                         "contents": [
                             {
                                 "name": "dokument1.csv",
@@ -966,7 +853,6 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
                                 "path": "xml_export.pretty/dokument1_export.xml",
                             },
                         ],
-                        "return_code": "listing_exports",
                     }
                 }
             },
@@ -978,9 +864,9 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to list export files in 'mink-dxh6e6wtff'",
-                        "return_code": "failed_listing_exports",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_LISTING_CONTENT.message,
+                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
+                        "info": "Failed to list export files",
                     }
                 }
             },
@@ -1001,15 +887,10 @@ async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSO
         objlist = storage.list_contents(
             storage.get_export_dir(resource_id), blacklist=sparv_settings.SPARV_EXPORT_BLACKLIST
         )
-        return utils.response(
-            message=f"Listing current export files for '{resource_id}'", contents=objlist, return_code="listing_exports"
-        )
+        return utils.response(return_code=return_codes.LISTING_CONTENT, info="Listing export files", contents=objlist)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to list export files in '{resource_id}'",
-            return_code="failed_listing_exports",
-            info=str(e),
+            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed to list export files: {e}"
         ) from e
 
 
@@ -1021,26 +902,16 @@ async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSO
     responses={
         status.HTTP_200_OK: {"content": {"application/octet-stream": {}}, "description": "A file download response"},
         **models.common_auth_error_responses,
-        status.HTTP_400_BAD_REQUEST: {
+        status.HTTP_404_NOT_FOUND: {"model": models.ErrorResponse404File},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "model": models.BaseErrorResponse,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "The parameters 'dir' and 'file' must not be supplied simultaneously",
-                        "return_code": "too_many_params_download_exports",
-                    }
-                }
-            },
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": models.ErrorResponse404,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "The export folder you are trying to download does not exist",
-                        "return_code": "export_folder_not_found",
+                        "message": return_codes.VALIDATION_ERROR.message,
+                        "return_code": return_codes.VALIDATION_ERROR.code,
+                        "info": "Both 'file' and 'dir' parameters were provided"
                     }
                 }
             },
@@ -1051,8 +922,8 @@ async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSO
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to download exports for corpus 'mink-dxh6e6wtff'",
-                        "return_code": "failed_downloading_exports",
+                        "message": return_codes.FAILED_DOWNLOADING.message,
+                        "return_code": return_codes.FAILED_DOWNLOADING.code,
                         "info": "BaseException",
                     }
                 }
@@ -1084,9 +955,7 @@ async def download_exports(
     """
     if download_file and download_folder:
         raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="The parameters 'dir' and 'file' must not be supplied simultaneously",
-            return_code="too_many_params",
+            return_code=return_codes.VALIDATION_ERROR, info="Both 'file' and 'dir' parameters were provided"
         )
 
     resource_id = auth_data["resource_id"]
@@ -1098,17 +967,10 @@ async def download_exports(
     try:
         export_contents = storage.list_contents(storage_export_dir, exclude_dirs=False, blacklist=blacklist)
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to download exports for corpus '{resource_id}'",
-            return_code="failed_downloading_exports",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
     if export_contents == []:
         raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"There are currently no exports available for corpus '{resource_id}'",
-            return_code="no_exports_available",
+            return_code=return_codes.FILE_NOT_FOUND, info="No exports available for corpus"
         )
 
     # Download and zip folder specified in args
@@ -1116,11 +978,12 @@ async def download_exports(
         download_folder_name = "_".join(Path(download_folder).parts)
         full_download_folder = storage_export_dir / download_folder
         if download_folder not in [i.get("path") for i in export_contents]:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_404_NOT_FOUND,
-                message="The export folder you are trying to download does not exist",
-                return_code="export_folder_not_found",
+            logger.error(
+                "Requested download folder '%s' not found in export contents for corpus '%s'",
+                download_folder,
+                resource_id,
             )
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
         try:
             zip_out = local_corpus_dir / f"{resource_id}_{download_folder_name}.zip"
             (local_export_dir / download_folder).mkdir(exist_ok=True)
@@ -1129,24 +992,14 @@ async def download_exports(
             )
             return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
         except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to download export folder",
-                return_code="failed_downloading_export_folder",
-                info=str(e),
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
     # Download and zip file specified in args
     if download_file:
         download_file_name = Path(download_file).name
         download_file_path = storage_export_dir / download_file
         if download_file not in [i.get("path") for i in export_contents]:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_404_NOT_FOUND,
-                message=f"The file '{download_file}' you are trying to download does not exist",
-                return_code="export_not_found",
-                file=download_file,
-            )
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, file=download_file)
         try:
             local_path = local_export_dir / download_file
             (local_export_dir / download_file).parent.mkdir(exist_ok=True)
@@ -1164,12 +1017,7 @@ async def download_exports(
                     break
             return FileResponse(local_path, media_type=content_type, filename=local_path.name)
         except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to download file",
-                return_code="failed_downloading_file",
-                info=str(e),
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
     # Download all export files (if not (download_file or download_folder))
     else:
@@ -1181,12 +1029,7 @@ async def download_exports(
             )
             return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
         except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to download exports for corpus '{resource_id}'",
-                return_code="failed_downloading_exports",
-                info=str(e),
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
 
 @router.delete(
@@ -1199,8 +1042,9 @@ async def download_exports(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Export files for corpus 'mink-dxh6e6wtff' successfully removed",
-                        "return_code": "removed_exports",
+                        "message": return_codes.REMOVED_CONTENT.message,
+                        "return_code": return_codes.REMOVED_CONTENT.code,
+                        "info": "Removed export files"
                     },
                 }
             },
@@ -1212,9 +1056,9 @@ async def download_exports(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to remove export files from Sparv server for corpus 'mink-dxh6e6wtff'",
-                        "return_code": "failed_removing_exports_sparv",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                        "info": "Failed to remove export files",
                     }
                 }
             },
@@ -1240,10 +1084,8 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_leve
             storage.get_export_dir(resource_id, mkdir=True)
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to remove export files from storage server for corpus '{resource_id}'",
-                return_code="failed_removing_exports_storage",
-                info=str(e),
+                return_code=return_codes.FAILED_REMOVING_CONTENT,
+                info=f"Failed to remove export files from storage server: {e}",
             ) from e
 
     try:
@@ -1252,22 +1094,16 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_leve
         success, sparv_output = job.clean_export()
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'",
-            return_code="failed_removing_exports_sparv",
-            info=str(e),
+            return_code=return_codes.FAILED_REMOVING_CONTENT,
+            info=f"Failed to remove export files from Sparv server: {e}",
         ) from e
     if not success:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'",
-            return_code="failed_removing_exports_sparv",
-            info=str(sparv_output),
+            return_code=return_codes.FAILED_REMOVING_CONTENT,
+            info=f"Failed to remove export files from Sparv server: {sparv_output}",
         )
 
-    return utils.response(
-        message=f"Export files for corpus '{resource_id}' successfully removed", return_code="removed_exports"
-    )
+    return utils.response(return_code=return_codes.REMOVED_CONTENT, info="Removed export files")
 
 
 @router.get(
@@ -1278,26 +1114,16 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_leve
     responses={
         status.HTTP_200_OK: {"content": {"text/plain": {}}, "description": "A file download response"},
         **models.common_auth_error_responses,
-        status.HTTP_400_BAD_REQUEST: {
+        status.HTTP_404_NOT_FOUND: {"model": models.ErrorResponse404File},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "model": models.BaseErrorResponse,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "No source file specified for download",
-                        "return_code": "missing_sources_download_text",
-                    }
-                }
-            },
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": models.BaseErrorResponse,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "The source text for this file does not exist",
-                        "return_code": "source_text_not_found",
+                        "message": return_codes.VALIDATION_ERROR.message,
+                        "return_code": return_codes.VALIDATION_ERROR.code,
+                        "info": "Missing required query parameter 'file'"
                     }
                 }
             },
@@ -1308,8 +1134,8 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_leve
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to download source text",
-                        "return_code": "failed_downloading_source_text",
+                        "message": return_codes.FAILED_DOWNLOADING.message,
+                        "return_code": return_codes.FAILED_DOWNLOADING.code,
                         "info": "BaseException",
                     }
                 }
@@ -1339,9 +1165,7 @@ async def download_source_text(
 
     if not download_file:
         raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="No source file specified for download",
-            return_code="missing_sources_download_text",
+            return_code=return_codes.VALIDATION_ERROR, info="Missing required query parameter 'file'"
         )
 
     file_stem = Path(download_file).stem
@@ -1353,18 +1177,9 @@ async def download_source_text(
     try:
         storage.get_file_info(download_file_path)
     except exceptions.ReadError as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message="The source text for this file does not exist",
-            return_code="source_text_not_found",
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND) from e
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to download source text",
-            return_code="failed_downloading_source_text",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
     # Download and return file
     try:
@@ -1375,12 +1190,7 @@ async def download_source_text(
         utils.unpickle_file(local_path)
         return FileResponse(local_path, media_type="text/plain", filename=local_path.name)
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to download source text",
-            return_code="failed_downloading_source_text",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
 
 @router.get(
@@ -1390,13 +1200,13 @@ async def download_source_text(
     responses={
         **models.common_auth_error_responses,
         status.HTTP_404_NOT_FOUND: {
-            "model": models.ErrorResponse404,
+            "model": models.ErrorResponse404Resource,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Corpus 'mink-dxh6e6wtff' has not been run",
-                        "return_code": "corpus_not_run",
+                        "message": return_codes.RESOURCE_NOT_PROCESSED.message,
+                        "return_code": return_codes.RESOURCE_NOT_PROCESSED.code,
                     }
                 }
             },
@@ -1407,8 +1217,8 @@ async def download_source_text(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to check changes for corpus 'mink-dxh6e6wtff'",
-                        "return_code": "failed_checking_changes",
+                        "message": return_codes.FAILED_CHECKING_STATUS.message,
+                        "return_code": return_codes.FAILED_CHECKING_STATUS.code,
                         "info": "BaseException",
                     }
                 }
@@ -1432,19 +1242,15 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
         info_item = registry.get(resource_id)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to get job for corpus '{resource_id}'",
-            return_code="failed_getting_job",
-            info=str(e),
+            return_code=return_codes.FAILED_GETTING_JOB, info=f"Error getting job info for resource: {e}"
         ) from e
     try:
         sources_changed, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
         input_changed = sources_changed or sources_deleted or config_changed
         job = _require_job(info_item.job)
         return utils.response(
-            message=f"Your input for the corpus '{resource_id}' has {'not ' if not input_changed else ''}changed since"
-            " the last run",
-            return_code="input_changed" if input_changed else "input_not_changed",
+            return_code=return_codes.CHECKED_STATUS,
+            info=f"The input has {'not ' if not input_changed else ''}changed since the last run",
             input_changed=input_changed,
             config_changed=config_changed,
             sources_changed=sources_changed,
@@ -1453,16 +1259,7 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
         )
 
     except exceptions.JobNotFoundError as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"Corpus '{resource_id}' has not been run",
-            return_code="corpus_not_run",
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.RESOURCE_NOT_PROCESSED) from e
 
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to check changes for corpus '{resource_id}'",
-            return_code="failed_checking_changes",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_CHECKING_STATUS, info=str(e)) from e

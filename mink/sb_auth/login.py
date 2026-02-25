@@ -11,7 +11,7 @@ from fastapi import Cookie, Query, Request, Security, status
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 
 from mink.cache import jobs_cache
-from mink.core import exceptions
+from mink.core import exceptions, return_codes
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.user import User
@@ -64,16 +64,9 @@ async def get_auth_data(
             auth = JwtAuthentication(jwt_token)
             auth_token = jwt_token
         except jwt.ExpiredSignatureError as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_401_UNAUTHORIZED, message="The provided JWT has expired", return_code="jwt_expired"
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.JWT_EXPIRED) from e
         except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_401_UNAUTHORIZED,
-                message="Failed to authenticate",
-                return_code="failed_authenticating",
-                info=str(e),
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_AUTH, info=str(e)) from e
 
     # Look for API key
     elif api_key:
@@ -81,33 +74,18 @@ async def get_auth_data(
             auth = await ApikeyAuthentication.create(api_key)
             auth_token = api_key
         except exceptions.ApikeyNotFoundError as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_401_UNAUTHORIZED, message="API key not recognized", return_code="apikey_not_found"
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.API_KEY_NOT_FOUND) from e
         except exceptions.ApikeyExpiredError as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_401_UNAUTHORIZED, message="API key expired", return_code="apikey_expired"
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.API_KEY_EXPIRED) from e
         except exceptions.ApikeyCheckFailedError as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR, message="API key check failed", return_code="apikey_check_failed"
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.API_KEY_CHECK_FAILED) from e
         except Exception as e:
             logger.exception("API key authentication failed")
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="API key authentication failed",
-                return_code="apikey_error",
-                info=str(e),
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.API_KEY_ERROR, info=str(e)) from e
 
     # No authentication provided
     else:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_401_UNAUTHORIZED,
-            message="No login credentials provided",
-            return_code="missing_login_credentials",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_LOGIN_CREDENTIALS)
 
     # Store random ID in contextvar and in request state (used for temporary file storage and cookies)
     request_id = shortuuid.uuid()
@@ -133,11 +111,7 @@ async def get_auth_data(
             auth_cache.set_cookie_data(session_id, {"admin_mode": False})
         # Raise exception if admin mode is required by the route
         if require_admin:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_401_UNAUTHORIZED,
-                message="Mink admin status could not be confirmed",
-                return_code="not_admin",
-            )
+            raise exceptions.MinkHTTPException(return_code=return_codes.NOT_ADMIN)
 
     # Give access to all resources if admin mode is on and user is mink admin
     if admin_mode and is_admin:
@@ -145,9 +119,7 @@ async def get_auth_data(
 
     # Check if resource ID was provided
     if require_resource_id and not resource_id:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST, message="No resource ID provided", return_code="missing_resource_id"
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_RESOURCE_ID)
 
     auth_data = {
         "user_id": user.id,
@@ -165,11 +137,7 @@ async def get_auth_data(
 
     # Check if user has access to the requested resource
     if require_resource_exists and resource_id not in resources:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"Resource '{resource_id}' does not exist or you do not have access to it",
-            return_code="resource_not_found",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.RESOURCE_NOT_FOUND)
 
     return auth_data
 

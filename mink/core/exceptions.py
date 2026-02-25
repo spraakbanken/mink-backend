@@ -10,17 +10,40 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from mink.core import models, utils
+from mink.core import return_codes, utils
 from mink.core.logging import logger
 
 
 class MinkHTTPException(HTTPException):
     """Custom HTTP exception class."""
-    def __init__(self, status_code: int, return_code: str, message: str, **kwargs: Any) -> None:
-        """Create a custom HTTP exception."""
+
+    def __init__(
+        self,
+        return_code: return_codes.ReturnCode | str = "",
+        status_code: int | None = None,
+        message: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Create a custom HTTP exception.
+
+        Args:
+            return_code: The return code (should not be empty).
+            status_code: The HTTP status code.
+            message: The response message.
+            **kwargs: Additional key-value pairs to include in the response.
+        """
+        if isinstance(return_code, return_codes.ReturnCode):
+            resolved_status = return_code.status_code if status_code is None else status_code
+            resolved_msg = message if message is not None else return_code.message
+            resolved_code = return_code.code
+        else:
+            resolved_status = status_code if status_code is not None else status.HTTP_500_INTERNAL_SERVER_ERROR
+            resolved_msg = message or return_codes.UNKNOWN_ERROR.message
+            resolved_code = return_code
+
         super().__init__(
-            status_code=status_code,
-            detail={"message": message, "return_code": return_code, **kwargs},
+            status_code=resolved_status,
+            detail={"message": resolved_msg, "return_code": resolved_code, **kwargs},
         )
 
 
@@ -48,34 +71,30 @@ def validation_exception_handler(_request: Request, exc: RequestValidationError)
         errors.append(field_string + f" ({pydantic_error['msg']})")
 
     return utils.response(
-        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, **models.ErrorResponse422(errors=errors).model_dump()
+        return_code=return_codes.VALIDATION_ERROR,
+        info="Could not process the request due to errors in the input (see errors for details).",
+        errors=errors,
     )
 
 
 def starlette_exceptions_handler(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
     """Handle most other uncaught exceptions."""
-    if exc.status_code == status.HTTP_400_BAD_REQUEST:
-        return utils.response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            **models.BaseErrorResponse(message="Bad request", return_code="bad_request").model_dump(),
-        )
-    if exc.status_code == status.HTTP_404_NOT_FOUND:
-        return utils.response(
-            status_code=status.HTTP_404_NOT_FOUND,
-            **models.BaseErrorResponse(message="Resource not found", return_code="resource_not_found").model_dump(),
-        )
-    if exc.status_code == status.HTTP_405_METHOD_NOT_ALLOWED:
-        return utils.response(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            **models.BaseErrorResponse(message="Method not allowed", return_code="method_not_allowed").model_dump(),
-        )
+    code_map = {
+        status.HTTP_400_BAD_REQUEST: return_codes.BAD_REQUEST,
+        status.HTTP_404_NOT_FOUND: return_codes.PAGE_NOT_FOUND,
+        status.HTTP_405_METHOD_NOT_ALLOWED: return_codes.METHOD_NOT_ALLOWED,
+    }
+
+    return_code = code_map.get(exc.status_code)
+    if return_code is not None:
+        return utils.response(return_code=return_code)
+
     tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
     logger.error("Unexpected error: %s\n%s", exc, tb)
     return utils.response(
+        return_code=return_codes.UNKNOWN_ERROR,
         status_code=exc.status_code,
-        **models.BaseErrorResponse(
-            message="Unknown error", return_code="unknown_error", info=exc.detail
-        ).model_dump(),
+        info=exc.detail,
     )
 
 
@@ -83,12 +102,7 @@ def internal_server_error_handler(_request: Request, exc: Exception) -> JSONResp
     """Handle uncaught exceptions."""
     tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
     logger.error("Internal server error: %s\n%s", exc, tb)
-    return utils.response(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        **models.BaseErrorResponse(
-            message="Internal server error", return_code="internal_server_error", info=str(exc)
-        ).model_dump(),
-    )
+    return utils.response(return_code=return_codes.INTERNAL_SERVER_ERROR, info=str(exc))
 
 
 # ------------------------------------------------------------------------------

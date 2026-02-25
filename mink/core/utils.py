@@ -22,7 +22,7 @@ from mkdocs.config import load_config
 from starlette.background import BackgroundTask
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from mink.core import exceptions, models
+from mink.core import exceptions, return_codes
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.sb_auth.login import request_id_var
@@ -32,18 +32,18 @@ if TYPE_CHECKING:
 
 
 def response(
-    status_code: int = status.HTTP_200_OK,
-    message: str = "",
-    return_code: str = "",
+    return_code: return_codes.ReturnCode | str = "",
+    status_code: int | None = None,
+    message: str | None = None,
     cookie: tuple[bool, str, str] | None = None,
     **kwargs: Any,
 ) -> JSONResponse:
     """Create a JSON response, check if a return code was provided, and remove empty key-value pairs.
 
     Args:
+        return_code: The return code (should not be empty).
         status_code: The HTTP status code.
         message: The response message.
-        return_code: The return code (may not be empty).
         cookie: A tuple containing a bool (True=set cookie, False=delete cookie), the cookie key and value.
         **kwargs: Additional key-value pairs to include in the response.
 
@@ -53,24 +53,33 @@ def response(
     # Remove key-value pairs if the value is an empty string
     args = {k: v for k, v in kwargs.items() if v != ""}  # noqa: PLC1901
 
-    success = status.HTTP_200_OK <= status_code < status.HTTP_300_MULTIPLE_CHOICES
+    if isinstance(return_code, return_codes.ReturnCode):
+        resolved_status = return_code.status_code if status_code is None else status_code
+        resolved_message = message if message is not None else return_code.message
+        resolved_code = return_code.code
+    else:
+        resolved_status = status_code if status_code is not None else status.HTTP_200_OK
+        resolved_message = message or ""
+        resolved_code = return_code
 
-    if not message and not success:
-        message = "An unexpected error occurred"
+    success = status.HTTP_200_OK <= resolved_status < status.HTTP_300_MULTIPLE_CHOICES
 
-    if not return_code:
-        return_code = "unexpected_error"
+    if not resolved_message and not success:
+        resolved_message = return_codes.UNKNOWN_ERROR.message
+
+    if not resolved_code:
+        resolved_code = return_codes.UNKNOWN_ERROR.code
         # raise ValueError("A return code must be provided in the response")
 
     status_str = "success" if success else "error"
     if not success:
         log_kwargs = {k: v for k, v in kwargs.items() if k != "status"} or ""
         info_str = "; info: " + str(log_kwargs) if log_kwargs else ""
-        logger.error("%s: %s; return_code: %s%s", status_code, message, return_code, info_str)
+        logger.error("%s: %s; return_code: %s%s", resolved_status, resolved_message, resolved_code, info_str)
 
     response = JSONResponse(
-        content={"status": status_str, "message": message, "return_code": return_code, **args},
-        status_code=status_code,
+        content={"status": status_str, "message": resolved_message, "return_code": resolved_code, **args},
+        status_code=resolved_status,
     )
     if cookie is not None:
         if cookie[0]:
@@ -111,14 +120,7 @@ class LimitRequestSizeMiddleware:
     async def _send_413(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Send a 413 Payload Too Large response."""
         max_size_mb = int(self.max_body_size / (1024 * 1024))
-        resp = response(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            **models.ErrorResponse413(
-                message=f"Request data too large (max {max_size_mb} MB per upload)",
-                return_code="data_too_large",
-                max_size_mb=max_size_mb,
-            ).model_dump(),
-        )
+        resp = response(return_code=return_codes.CONTENT_TOO_LARGE, max_size_mb=max_size_mb)
         await resp(scope, receive, send)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
@@ -316,9 +318,7 @@ def create_zip(inpath: Path, outpath: Path, zip_rootdir: str | None = None) -> N
     zipf.close()
     if not outpath.exists() or outpath.lstat().st_size == 0:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="The zip file could not be created or is empty",
-            return_code="failed_creating_zip",
+            return_code=return_codes.INTERNAL_SERVER_ERROR, info="The zip file could not be created or is empty"
         )
 
 

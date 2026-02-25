@@ -4,24 +4,7 @@ from typing import ClassVar
 
 from pydantic import Field
 
-from mink.core import models
-
-
-class CreateCorpusResponse(models.BaseResponse):
-    """Model for the /create-corpus response."""
-    resource_id: str = Field(default="", description="The ID of the created resource")
-    model_config: ClassVar[dict] = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "status": "success",
-                    "message": "Corpus created successfully",
-                    "return_code": "created_corpus",
-                    "resource_id": "mink-dxh6e6wtff",
-                }
-            ]
-        }
-    }
+from mink.core import models, return_codes
 
 
 class ListCorporaResponse(models.BaseResponse):
@@ -32,8 +15,9 @@ class ListCorporaResponse(models.BaseResponse):
             "examples": [
                 {
                     "status": "success",
-                    "message": "Listing corpora",
-                    "return_code": "listing_corpora",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "info": "Listing corpora",
                     "corpora": ["mink-dxh6e6wtff", "mink-j86tfreaf9", "mink-3qbh7tra6g"]
                 }
             ]
@@ -62,8 +46,9 @@ class CheckChangesResponse(models.BaseResponse):
             "examples": [
                 {
                     "status": "success",
-                    "message": "Your input for the corpus 'mink-dxh6e6wtff' has changed since the last run",
-                    "return_code": "input_changed",
+                    "message": return_codes.CHECKED_STATUS.message,
+                    "return_code": return_codes.CHECKED_STATUS.code,
+                    "info": "The input has changed since the last run",
                     "input_changed": True,
                     "config_changed": False,
                     "sources_changed": True,
@@ -86,8 +71,9 @@ class SchemaResponse(models.BaseResponse):
             "examples": [
                 {
                     "status": "success",
-                    "message": "Getting Sparv config schema",
-                    "return_code": "getting_sparv_schema",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "info": "Returning Sparv config schema",
                     "schema": {
                         "type": "object",
                     },
@@ -105,8 +91,9 @@ class LanguagesResponse(models.BaseResponse):
             "examples": [
                 {
                     "status": "success",
-                    "message": "Listing languages available in Sparv",
-                    "return_code": "listing_languages",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "info": "Listing languages available in Sparv",
                     "languages": [
 
                         {
@@ -137,8 +124,9 @@ class ExportsResponse(models.BaseResponse):
             "examples": [
                 {
                     "status": "success",
-                    "message": "Listing exports available in Sparv",
-                    "return_code": "listing_sparv_exports",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "info": "Listing exports available in Sparv",
                     "language": "swe",
                     "exports": [
                         {
@@ -226,9 +214,9 @@ job_model_examples = [
     },
 ]
 
-resource_status_examples = [
+job_status_examples = [
     {
-        "message": "Job has been queued",
+        "info": "Job has been queued",
         "resource": models.resource_model_example,
         "owner": models.user_model_example,
         "job": job_model_examples[0],
@@ -238,8 +226,10 @@ resource_status_examples = [
 status_response_examples = [
     {
         "status": "success",
-        "message": "Job has been queued",
-        "return_code": "job_queued",
+        "message": return_codes.CHECKED_STATUS.message,
+        "return_code": return_codes.CHECKED_STATUS.code,
+        "job_status": "waiting",
+        "info": "Job has been queued",
         "resource": models.resource_model_example,
         "job": job_model_examples[0],
     }
@@ -248,12 +238,13 @@ status_response_examples = [
 statuses_response_examples = [
     {
         "status": "success",
-        "message": "Listing resource infos",
-        "return_code": "listing_jobs",
+        "message": return_codes.LISTING_CONTENT.message,
+        "return_code": return_codes.LISTING_CONTENT.code,
+        "info": "Listing resource infos",
         "resources": [
             {
-                "message": "Job was completed successfully",
-                "return_code": "job_completed",
+                "job_status": "done",
+                "info": "Job was completed successfully",
                 "resource": {
                     "id": "mink-ezodmp4wxm",
                     "name": {"swe": "txt-korpus", "eng": "txt-korpus"},
@@ -278,8 +269,8 @@ statuses_response_examples = [
                 "job": job_model_examples[0],
             },
             {
-                "message": "Job was completed successfully",
-                "return_code": "job_completed",
+                "job_status": "done",
+                "info": "Job was completed successfully",
                 "resource": {
                     "id": "mink-dxh6e6wtff",
                     "name": {"swe": "Annes och Martins testkorpus", "eng": ""},

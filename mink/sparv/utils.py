@@ -5,9 +5,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from fastapi import status
 
-from mink.core import exceptions
+from mink.core import exceptions, return_codes
 from mink.sparv.config import sparv_settings
 from mink.sparv.storage import storage
 
@@ -37,9 +36,8 @@ def require_compatible_config(config: str | bytes, source_files: list[dict]) -> 
         return
 
     raise exceptions.MinkHTTPException(
-        status.HTTP_400_BAD_REQUEST,
-        message="The importer in your config file is incompatible with your source files",
-        return_code="incompatible_config_importer",
+        return_code=return_codes.INVALID_CONFIG,
+        info="The importer in your config file is incompatible with your source files",
         current_importer=current_importer,
         expected_importer=expected_importer,
     )

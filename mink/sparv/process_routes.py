@@ -6,7 +6,7 @@ from typing import cast
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
-from mink.core import exceptions, models, registry, route_utils, utils
+from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.resource import ResourceType
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
@@ -25,9 +25,7 @@ def _require_job(job: object) -> SparvJob:
     """Ensure that 'job' is a Sparv job, raise an error if not."""
     if not isinstance(job, SparvJob):
         raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message="Resource is not a corpus",
-            return_code="invalid_resource_type",
+            return_code=return_codes.INVALID_RESOURCE_TYPE, info="Expected a corpus resource"
         )
     return cast(SparvJob, job)
 
@@ -44,8 +42,9 @@ def _require_job(job: object) -> SparvJob:
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "The importer in your config file is incompatible with your source files",
-                        "return_code": "incompatible_config_importer",
+                        "message": return_codes.INVALID_CONFIG.message,
+                        "return_code": return_codes.INVALID_CONFIG.code,
+                        "info": "The importer in your config file is incompatible with your source files",
                         "current_importer": "text_import",
                         "expected_importer": "xml_import",
                     }
@@ -53,13 +52,14 @@ def _require_job(job: object) -> SparvJob:
             },
         },
         status.HTTP_404_NOT_FOUND: {
-            "model": models.ErrorResponse404,
+            "model": models.ErrorResponse404File,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "No source files found for 'mink-dxh6e6wtff'",
-                        "return_code": "no_sources_found",
+                        "message": return_codes.FILE_NOT_FOUND.message,
+                        "return_code": return_codes.FILE_NOT_FOUND.code,
+                        "info": "No source files found for this resource"
                     }
                 }
             },
@@ -70,8 +70,8 @@ def _require_job(job: object) -> SparvJob:
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to queue job for 'mink-dxh6e6wtff'",
-                        "return_code": "failed_queuing",
+                        "message": return_codes.FAILED_QUEUING.message,
+                        "return_code": return_codes.FAILED_QUEUING.code,
                         "info": "BaseException",
                     }
                 }
@@ -118,17 +118,12 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         source_files = storage.list_contents(storage.get_source_dir(resource_id))
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to list source files in '{resource_id}'",
-            return_code="failed_listing_sources",
-            info=str(e),
+            return_code=return_codes.FAILED_RUNNING, info=f"Failed to list source files: {e}"
         ) from e
 
     if not source_files:
         raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"No source files found for '{resource_id}'",
-            return_code="no_sources_found",
+            return_code=return_codes.FILE_NOT_FOUND, info="No source files found for this resource"
         )
 
     # Check compatibility between source files and config
@@ -136,10 +131,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         config_contents = storage.get_file_contents(storage.get_config_file(resource_id))
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to get config file for '{resource_id}'",
-            return_code="failed_getting_config",
-            info=str(e),
+            return_code=return_codes.FAILED_RUNNING, info=f"Failed to get config file: {e}"
         ) from e
     if source_files:
         compatible, current_importer, expected_importer = sparv_utils.config_compatible(
@@ -147,9 +139,8 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
         )
         if not compatible:
             raise exceptions.MinkHTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                message="The importer in your config file is incompatible with your source files",
-                return_code="incompatible_config_importer",
+                return_code=return_codes.INVALID_CONFIG,
+                info="The importer in your config file is incompatible with your source files",
                 current_importer=current_importer,
                 expected_importer=expected_importer,
             )
@@ -162,12 +153,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     except exceptions.JobNotFoundError:
         pass
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to run job for '{resource_id}'",
-            return_code="failed_running",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_deleted or config_changed:
         try:
             job = _require_job(info_item.job)
@@ -175,11 +161,8 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
             assert success
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                "Cannot run Sparv safely",
-                return_code="failed_removing_exports",
-                info=str(e),
+                return_code=return_codes.FAILED_RUNNING,
+                info=f"Failed to remove outdated export files before running Sparv: {e}",
                 sparv_message=sparv_output,
             ) from e
 
@@ -191,12 +174,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to queue job for '{resource_id}'",
-            return_code="failed_queuing",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_QUEUING, info=str(e)) from e
 
     # Check that all required files are present
     job = _require_job(job)
@@ -210,15 +188,12 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
             job.sync_to_sparv()
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to start job for '{resource_id}'",
-                return_code="failed_starting_job",
-                info=str(e),
+                return_code=return_codes.FAILED_RUNNING, info=f"Failed to sync files to Sparv: {e}"
             ) from e
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**route_utils.make_status_response(info_item))
+    return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
 
 
 @router.post(
@@ -231,21 +206,21 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Successfully aborted job for 'mink-dxh6e6wtff'",
-                        "return_code": "aborted_job",
+                        "message": return_codes.ABORTED_JOB.message,
+                        "return_code": return_codes.ABORTED_JOB.code,
                     }
                 }
             }
         },
         **models.common_auth_error_responses,
         status.HTTP_404_NOT_FOUND: {
-            "model": models.ErrorResponse404,
+            "model": models.ErrorResponse404File,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "No running job found for 'mink-dxh6e6wtff'",
-                        "return_code": "no_running_job",
+                        "message": return_codes.NO_RUNNING_JOB.message,
+                        "return_code": return_codes.NO_RUNNING_JOB.code,
                     }
                 }
             },
@@ -256,8 +231,8 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to abort job for 'mink-dxh6e6wtff'",
-                        "return_code": "failed_aborting_job",
+                        "message": return_codes.FAILED_ABORTING.message,
+                        "return_code": return_codes.FAILED_ABORTING.code,
                         "info": "BaseException",
                     }
                 }
@@ -269,8 +244,9 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Cannot abort job while syncing files",
-                        "return_code": "failed_aborting_job_syncing",
+                        "message": return_codes.PROCESS_RUNNING.message,
+                        "return_code": return_codes.PROCESS_RUNNING.code,
+                        "info": "Cannot abort job while syncing files",
                     }
                 }
             },
@@ -294,56 +270,28 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
     # Syncing
     if job.status.is_syncing(get_spec(ResourceType.corpus).sync_processes):
         raise exceptions.MinkHTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            message="Cannot abort job while syncing files",
-            return_code="failed_aborting_job_syncing",
+            return_code=return_codes.PROCESS_RUNNING, info="Cannot abort job while syncing files"
         )
     # Waiting
     if job.status.is_waiting():
         try:
             registry.pop_from_queue(job)
             job.set_status(Status.aborted)
-            return utils.response(
-                message=f"Successfully aborted job for '{resource_id}'",
-                return_code="aborted_job",
-                job_status=job.status.serialize(),
-            )
+            return utils.response(return_code=return_codes.ABORTED_JOB, job_status=job.status.serialize())
         except Exception as e:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to unqueue job for '{resource_id}'",
-                return_code="failed_unqueuing_job",
-                info=str(e),
-            ) from e
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_UNQUEUING, info=str(e)) from e
     # No running job
     if not job.status.is_running():
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"No running job found for '{resource_id}'",
-            return_code="no_running_job",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.NO_RUNNING_JOB)
     # Running job, try to abort
     try:
         job = _require_job(job)
         job.abort()
     except exceptions.ProcessNotRunningError as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_404_NOT_FOUND,
-            message=f"No running job found for '{resource_id}'",
-            return_code="no_running_job",
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.NO_RUNNING_JOB) from e
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to abort job for '{resource_id}'",
-            return_code="failed_aborting_job",
-            info=str(e),
-        ) from e
-    return utils.response(
-        message=f"Successfully aborted job for '{resource_id}'",
-        return_code="aborted_job",
-        job_status=job.status.serialize(),
-    )
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_ABORTING, info=str(e)) from e
+    return utils.response(return_code=return_codes.ABORTED_JOB, job_status=job.status.serialize())
 
 
 @router.delete(
@@ -356,8 +304,10 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Annotations for 'mink-dxh6e6wtff' successfully removed",
-                        "return_code": "removed_annotations",
+                        "message": return_codes.REMOVED_CONTENT.message,
+                        "return_code": return_codes.REMOVED_CONTENT.code,
+                        "info": "Removed annotations",
+                        "sparv_output": "'sparv-workdir' directory removed"
                     }
                 }
             }
@@ -369,9 +319,9 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to clear annotations",
-                        "return_code": "failed_clearing_annotations",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                        "info": "Failed to remove annotations",
                     }
                 }
             },
@@ -382,8 +332,9 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Cannot clear annotations while a job is running",
-                        "return_code": "failed_clearing_annotations_job_running",
+                        "message": return_codes.PROCESS_RUNNING.message,
+                        "return_code": return_codes.PROCESS_RUNNING.code,
+                        "info": "Cannot clear annotations while a job is running",
                     }
                 }
             },
@@ -406,24 +357,17 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency(min_l
     job = _require_job(registry.get(resource_id).job)
     if job.status.is_running():
         raise exceptions.MinkHTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            message="Cannot clear annotations while a job is running",
-            return_code="failed_clearing_annotations_job_running",
+            return_code=return_codes.PROCESS_RUNNING, info="Cannot clear annotations while a job is running"
         )
 
     try:
         sparv_output = job.clean()
         return utils.response(
-            message=f"Annotations for '{resource_id}' successfully removed",
-            return_code="removed_annotations",
-            sparv_output=sparv_output,
+            return_code=return_codes.REMOVED_CONTENT, info="Removed annotations", sparv_output=sparv_output
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to clear annotations",
-            return_code="failed_clearing_annotations",
-            info=str(e),
+            return_code=return_codes.FAILED_REMOVING_CONTENT, info=f"Failed to remove annotations: {e}"
         ) from e
 
 
@@ -439,8 +383,8 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency(min_l
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to queue job for 'mink-dxh6e6wtff'",
-                        "return_code": "failed_queuing",
+                        "message": return_codes.FAILED_QUEUING.message,
+                        "return_code": return_codes.FAILED_QUEUING.code,
                         "info": "BaseException",
                     }
                 }
@@ -472,12 +416,7 @@ async def install_korp(
     except exceptions.JobNotFoundError:
         pass
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to run job for '{resource_id}'",
-            return_code="failed_running",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_deleted or config_changed:
         try:
             job = _require_job(info_item.job)
@@ -485,11 +424,8 @@ async def install_korp(
             assert success
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                "Cannot run Sparv safely",
-                return_code="failed_removing_exports",
-                info=str(e),
+                return_code=return_codes.FAILED_RUNNING,
+                info=f"Failed to remove outdated export files before running Sparv: {e}",
                 sparv_message=sparv_output,
             ) from e
 
@@ -499,18 +435,13 @@ async def install_korp(
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to queue job for '{resource_id}'",
-            return_code="failed_queuing",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_QUEUING, info=str(e)) from e
 
     job.set_status(Status.waiting, ProcessName.korp)
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**route_utils.make_status_response(info_item))
+    return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
 
 
 @router.delete(
@@ -523,8 +454,9 @@ async def install_korp(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Corpus 'mink-dxh6e6wtff' successfully removed from Korp",
-                        "return_code": "uninstalled_korp",
+                        "message": return_codes.UNINSTALLED.message,
+                        "return_code": return_codes.UNINSTALLED.code,
+                        "info": "Uninstalled from Korp",
                     }
                 }
             }
@@ -536,8 +468,9 @@ async def install_korp(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Cannot uninstall while a job is running",
-                        "return_code": "failed_uninstalling_job_running",
+                        "message": return_codes.PROCESS_RUNNING.message,
+                        "return_code": return_codes.PROCESS_RUNNING.code,
+                        "info": "Cannot uninstall while a job is running",
                     }
                 }
             },
@@ -548,9 +481,9 @@ async def install_korp(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to uninstall corpus from Korp",
-                        "return_code": "failed_uninstalling_korp",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_UNINSTALLING.message,
+                        "return_code": return_codes.FAILED_UNINSTALLING.code,
+                        "info": "Error when uninstalling from Korp",
                     }
                 }
             },
@@ -571,25 +504,18 @@ async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency(min_leve
     job = _require_job(registry.get(resource_id).job)
     if job.status.is_running():
         raise exceptions.MinkHTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            message="Cannot uninstall while a job is running",
-            return_code="failed_uninstalling_job_running",
+            return_code=return_codes.PROCESS_RUNNING, info="Cannot uninstall while a job is running"
         )
 
     try:
         job = _require_job(job)
         sparv_output = job.uninstall_korp()
         return utils.response(
-            message=f"Corpus '{resource_id}' successfully removed from Korp",
-            return_code="uninstalled_korp",
-            sparv_output=sparv_output,
+            return_code=return_codes.UNINSTALLED, info="Uninstalled from Korp", sparv_output=sparv_output
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to uninstall corpus from Korp",
-            return_code="failed_uninstalling_korp",
-            info=str(e),
+            return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from Korp: {e}"
         ) from e
 
 
@@ -605,8 +531,8 @@ async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency(min_leve
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to queue job for 'mink-dxh6e6wtff'",
-                        "return_code": "failed_queuing",
+                        "message": return_codes.FAILED_QUEUING.message,
+                        "return_code": return_codes.FAILED_QUEUING.code,
                         "info": "BaseException",
                     }
                 }
@@ -633,12 +559,7 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
     except exceptions.JobNotFoundError:
         pass
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to run job for '{resource_id}'",
-            return_code="failed_running",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_deleted or config_changed:
         try:
             job = _require_job(info_item.job)
@@ -646,11 +567,8 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
             assert success
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=f"Failed to remove export files from Sparv server for corpus '{resource_id}'. "
-                "Cannot run Sparv safely",
-                return_code="failed_removing_exports",
-                info=str(e),
+                return_code=return_codes.FAILED_RUNNING,
+                info=f"Failed to remove outdated export files before running Sparv: {e}",
                 sparv_message=sparv_output,
             ) from e
 
@@ -659,18 +577,13 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Failed to queue job for '{resource_id}'",
-            return_code="failed_queuing",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_QUEUING, info=str(e)) from e
 
     job.set_status(Status.waiting, ProcessName.strix)
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
-    return utils.response(**route_utils.make_status_response(info_item))
+    return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
 
 
 @router.delete(
@@ -683,8 +596,9 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Corpus 'mink-dxh6e6wtff' successfully removed from Strix",
-                        "return_code": "uninstalled_strix",
+                        "message": return_codes.UNINSTALLED.message,
+                        "return_code": return_codes.UNINSTALLED.code,
+                        "info": "Uninstalled from Strix",
                     }
                 }
             }
@@ -696,8 +610,9 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Cannot uninstall while a job is running",
-                        "return_code": "failed_uninstalling_job_running",
+                        "message": return_codes.PROCESS_RUNNING.message,
+                        "return_code": return_codes.PROCESS_RUNNING.code,
+                        "info": "Cannot uninstall while a job is running",
                     }
                 }
             },
@@ -708,9 +623,9 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to uninstall corpus from Strix",
-                        "return_code": "failed_uninstalling_strix",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_UNINSTALLING.message,
+                        "return_code": return_codes.FAILED_UNINSTALLING.code,
+                        "info": "Error when uninstalling from Strix",
                     }
                 }
             },
@@ -731,25 +646,21 @@ async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency(min_lev
     job = _require_job(registry.get(resource_id).job)
     if job.status.is_running():
         raise exceptions.MinkHTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            message="Cannot uninstall while a job is running",
-            return_code="failed_uninstalling_job_running",
+            return_code=return_codes.PROCESS_RUNNING, info="Cannot uninstall while a job is running"
         )
 
     try:
         job = _require_job(job)
         sparv_output = job.uninstall_strix()
         return utils.response(
-            message=f"Corpus '{resource_id}' successfully removed from Strix",
-            return_code="uninstalled_strix",
+            message=return_codes.UNINSTALLED.message,
+            return_code=return_codes.UNINSTALLED.code,
+            info="Uninstalled from Strix",
             sparv_output=sparv_output,
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to uninstall corpus from Strix",
-            return_code="failed_uninstalling_strix",
-            info=str(e),
+            return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from Strix: {e}"
         ) from e
 
 
@@ -764,9 +675,9 @@ async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency(min_lev
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed getting Sparv schema",
-                        "return_code": "failed_getting_sparv_schema",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_LISTING_CONTENT.message,
+                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
+                        "info": "Failed getting Sparv config schema",
                     },
                 }
             },
@@ -791,13 +702,10 @@ async def sparv_schema(
         schema = job.get_sparv_schema(update_cache=update_cache)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed getting Sparv schema",
-            return_code="failed_getting_sparv_schema",
-            info=str(e),
+            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed getting Sparv config schema: {e}"
         ) from e
     return utils.response(
-        message="Getting Sparv config schema", return_code="getting_sparv_schema", sparv_schema=schema
+        return_code=return_codes.LISTING_CONTENT, info="Returning Sparv config schema", sparv_schema=schema
     )
 
 
@@ -812,9 +720,9 @@ async def sparv_schema(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed listing languages",
-                        "return_code": "failed_listing_languages",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_LISTING_CONTENT.message,
+                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
+                        "info": "Failed listing languages",
                     },
                 }
             },
@@ -835,13 +743,11 @@ async def sparv_languages() -> JSONResponse:
         languages = job.list_languages()
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed listing languages",
-            return_code="failed_listing_languages",
-            info=str(e),
+            return_code=return_codes.FAILED_LISTING_CONTENT,
+            info=f"Failed listing languages: {e}",
         ) from e
     return utils.response(
-        message="Listing languages available in Sparv", return_code="listing_languages", languages=languages
+        return_code=return_codes.LISTING_CONTENT, info="Listing languages available in Sparv", languages=languages
     )
 
 
@@ -857,9 +763,9 @@ async def sparv_languages() -> JSONResponse:
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed listing exports",
-                        "return_code": "failed_listing_sparv_exports",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_LISTING_CONTENT.message,
+                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
+                        "info": "Failed listing exports",
                     }
                 }
             },
@@ -885,14 +791,11 @@ async def sparv_exports(
         exports = job.list_exports()
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed listing exports",
-            return_code="failed_listing_sparv_exports",
-            info=str(e),
+            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed listing exports: {e}"
         ) from e
     return utils.response(
-        message="Listing exports available in Sparv",
-        return_code="listing_sparv_exports",
+        return_code=return_codes.LISTING_CONTENT,
+        info="Listing exports available in Sparv",
         language=language,
         exports=exports,
     )

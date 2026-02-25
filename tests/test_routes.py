@@ -15,6 +15,7 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from mink.core import return_codes
 from mink.core.config import settings
 from mink.main import app
 
@@ -61,7 +62,9 @@ def test_admin_mode() -> None:
             method, path, headers=HEADERS, cookies={"session_id": admin_cookie} if admin_cookie else None
         )
         if n == "1":
-            assert response.json().get("return_code") == "admin_on", f"Route {method} {path} did not enable admin mode"
+            assert response.json().get("return_code") == return_codes.ADMIN_ON.code, (
+                f"Route {method} {path} did not enable admin mode"
+            )
             admin_cookie = response.cookies.get("session_id")
             assert admin_cookie is not None, "No session_id cookie set when enabling admin mode"
         elif n == "2":
@@ -69,7 +72,7 @@ def test_admin_mode() -> None:
                 f"Admin mode should be on after enabling, but got {response.json().get('admin_mode_status')}"
             )
         if n == "3":
-            assert response.json().get("return_code") == "admin_off", (
+            assert response.json().get("return_code") == return_codes.ADMIN_OFF.code, (
                 f"Route {method} {path} did not disable admin mode"
             )
         elif n == "4":
@@ -83,7 +86,7 @@ def resource() -> typing.Generator[str, None, None]:
     """Test creating a resource."""
     response = call_route("POST", "/create-corpus", status_code=status.HTTP_201_CREATED, headers=HEADERS)
     json_data = response.json()
-    assert json_data.get("return_code") == "created_resource", f"Resource creation failed: {json_data}"
+    assert json_data.get("return_code") == return_codes.CREATED_RESOURCE.code, f"Resource creation failed: {json_data}"
     resource_id = json_data.get("resource_id")
     assert json_data.get("resource_id") is not None, "Resource ID should not be None"
     yield resource_id
@@ -92,7 +95,7 @@ def resource() -> typing.Generator[str, None, None]:
     call_route("POST", "/abort-job", f"resource_id={resource_id}", headers=HEADERS, fail_ok=True)
     response = call_route("DELETE", "/remove-corpus", f"resource_id={resource_id}", headers=HEADERS)
     json_data = response.json()
-    assert json_data.get("return_code") == "removed_resource", f"Resource removal failed: {json_data}"
+    assert json_data.get("return_code") == return_codes.REMOVED_RESOURCE.code, f"Resource removal failed: {json_data}"
 
 
 def test_list_resources(resource: str) -> None:
@@ -119,6 +122,7 @@ def resource_with_sources(resource: str) -> str:
             "PUT",
             "/upload-sources",
             f"resource_id={resource}",
+            status_code=status.HTTP_201_CREATED,
             headers=HEADERS,
             files=[
                 ("files", ("test_source1.txt", f1)),
@@ -149,7 +153,9 @@ def test_manage_sources(resource_with_sources: str) -> None:
             assert len(response.content) > 0, "Downloaded file should not be empty"
         elif path == "/remove-sources":
             json_data = response.json()
-            assert json_data.get("return_code") == "removed_sources", f"Source removal failed: {json_data}"
+            assert json_data.get("return_code") == return_codes.REMOVED_CONTENT.code, (
+                f"Source removal failed: {json_data}"
+            )
 
 
 @pytest.fixture(scope="module")
@@ -204,7 +210,9 @@ def test_manage_exports(resource_processed: str) -> None:
             assert len(response.content) > 0, "Downloaded exports file should not be empty"
         elif path == "/remove-exports":
             json_data = response.json()
-            assert json_data.get("return_code") == "removed_exports", f"Exports removal failed: {json_data}"
+            assert json_data.get("return_code") == return_codes.REMOVED_CONTENT.code, (
+                f"Exports removal failed: {json_data}"
+            )
         elif path == "/download-source-text":
             assert response.headers.get("Content-Type", "").startswith("text/"), (
                 "Download source text should return a text content type"

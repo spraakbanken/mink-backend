@@ -5,9 +5,7 @@ import re
 import shlex
 import subprocess
 
-from fastapi import status
-
-from mink.core import exceptions, registry, utils
+from mink.core import exceptions, registry, return_codes, utils
 from mink.core.jobs import BaseJob
 from mink.core.logging import logger
 from mink.core.resource import ResourceType
@@ -599,10 +597,8 @@ class SparvJob(BaseJob):
         if p.stderr:
             self.set_status(Status.error)
             raise exceptions.MinkHTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                return_code="failed_to_retrieve_sparv_exports",
-                message="Failed to retrieve Sparv exports",
-                info=p.stderr.decode(),
+                return_code=return_codes.FAILED_SYNCING,
+                info=f"Failed to retrieve Sparv exports: {p.stderr.decode()}",
             )
 
         # Get plain text sources from Sparv

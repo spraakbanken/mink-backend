@@ -9,6 +9,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `/info` response schema has changed: the fields `importer_modules` and `recommended_file_size` have been moved under a
   new `resource_info` field, which is a dictionary keyed by resource type.
+- Some response models and status codes were updated to be more consistent and accurate.
+- `/resource-info` response schema has changed: each resource now has a `job_status` field indicating the status of the
+  current job for that resource, replacing the previous `return_code` field. The possible values for `job_status` are
+  the ones indicated by `status_codes` in the `/info`response.
 - The Sparv output (nohupfile) and the Sparv run script are no longer removed when calling `/clear-annotations` which
   allows for better debugging.
 - Core resource handling is now spec-driven: resource packages (like `sparv` and `metadata`) register their behavior via
@@ -28,6 +32,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Added a new script `config_helper.py` for validating and displaying config values from all modules and the .env file.
+- Added a new route `/return-codes` which lists all possible return codes and their meanings, to make it easier for
+  users to understand the API responses.
 
 ## [2.1.1] - 2026-02-04
 

@@ -89,7 +89,7 @@ def register() -> None:
             startup_check=startup_check,
             openapi_examples={
                 "JobModel": sparv_models.job_model_examples,
-                "ResourceStatusModel": sparv_models.resource_status_examples,
+                "JobStatusModel": sparv_models.job_status_examples,
                 "StatusResponse": sparv_models.status_response_examples,
                 "StatusesResponse": sparv_models.statuses_response_examples,
             },

@@ -2,6 +2,7 @@
 
 import json
 import re
+from collections import defaultdict
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -10,9 +11,9 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.templating import Jinja2Templates
 from jinja2 import Template
 
-from mink.core import utils
+from mink.core import return_codes, utils
 from mink.core.config import settings
-from mink.core.models import InfoResponse
+from mink.core.models import InfoResponse, ReturnCodesResponse
 from mink.core.resource_specs import get_all_specs
 
 router = APIRouter(tags=["Documentation"])
@@ -204,9 +205,25 @@ async def api_info() -> JSONResponse:
             resource_info[rtype.value] = payload
 
     return utils.response(
-        message="Listing information about data processing",
-        return_code="listing_info",
+        return_code=return_codes.LISTING_CONTENT,
+        info="Listing Mink API information",
         status_codes=status_codes,
         file_size_limits=file_size_limits,
         resource_info=resource_info,
 )
+
+
+@router.get("/return-codes", response_model=ReturnCodesResponse)
+async def list_return_codes() -> JSONResponse:
+    """List all return codes."""
+    # Sort return codes into a dict keyed by tag
+    codes = return_codes.get_all_return_codes()
+    tags_dict = defaultdict(list)
+    for code in codes:
+        tags_dict[code.tag].append({"code": code.code, "message": code.message, "status_code": code.status_code})
+
+    return utils.response(
+        return_code=return_codes.LISTING_CONTENT,
+        info="Listing all return codes",
+        data=tags_dict,
+    )

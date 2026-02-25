@@ -5,6 +5,8 @@ from typing import ClassVar, Generic, TypeVar
 from fastapi import File, status
 from pydantic import BaseModel, Field
 
+from mink.core import return_codes
+
 # ------------------------------------------------------------------------------
 # Reusable base response models
 # ------------------------------------------------------------------------------
@@ -18,16 +20,25 @@ class BaseResponse(BaseModel):
         default="",
         description="Return code indicating the status of the request, mostly used for frontend error handling"
     )
-
-
-class BaseResponseWithWarnings(BaseResponse):
-    """Model for responses with warnings."""
+    info: str | None = Field(default=None, description="More detailed information about the response")
     warnings: list[str] | None = Field(default=None, description="List of warnings, if any")
 
 
-class BaseResponseWithInfo(BaseResponse):
-    """Model for responses with info field."""
-    info: str = Field(default="", description="More detailed information about the response")
+class CreateResourceResponse(BaseResponse):
+    """Model for the response to a resource creation request."""
+    resource_id: str = Field(default="", description="The ID of the created resource")
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.CREATED_RESOURCE.message,
+                    "return_code": return_codes.CREATED_RESOURCE.code,
+                    "resource_id": "mink-dxh6e6wtff",
+                }
+            ]
+        }
+    }
 
 
 class StatusCodeModel(BaseModel):
@@ -69,7 +80,7 @@ class FileModel(BaseModel):
     }
 
 
-class BaseResponseWithContents(BaseResponse):
+class ListingFilesResponse(BaseResponse):
     """Model for responses with file contents field."""
     contents: list[FileModel] = Field(
         default=[FileModel()], description="List of contents, each containing information about a file"
@@ -137,7 +148,6 @@ job_model_example = {
 
 class JobModel(BaseModel):
     """Model for a generic job."""
-
     status: dict[str, str] = Field(default_factory=dict, description="Statuses for the job's processes")
     current_process: str | None = Field(default=None, description="The current process being executed")
     pid: int | None = Field(default=None, description="The process ID of the current job")
@@ -183,6 +193,21 @@ class BaseErrorResponse(BaseResponse):
     info: str | None = Field(default=None, description="Additional information about the error")
 
 
+class ErrorResponse400(BaseErrorResponse):
+    """Model for 400 error responses."""
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "error",
+                    "message": return_codes.MISSING_RESOURCE_ID.message,
+                    "return_code": return_codes.MISSING_RESOURCE_ID.code,
+                }
+            ]
+        }
+    }
+
+
 class ErrorResponse401(BaseErrorResponse):
     """Model for 401 error responses."""
     info: str | None = Field(default=None, description="Additional information about the error")
@@ -191,50 +216,64 @@ class ErrorResponse401(BaseErrorResponse):
             "examples": [
                 {
                     "status": "error",
-                    "message": "The provided JWT has expired",
-                    "return_code": "jwt_expired"
+                    "message": return_codes.FAILED_AUTH.message,
+                    "return_code": return_codes.FAILED_AUTH.code,
                 },
                 {
                     "status": "error",
-                    "message": "Invalid credentials provided",
-                    "return_code": "invalid_credentials",
-                    "info": "Signature verification failed"
+                    "message": return_codes.JWT_EXPIRED.message,
+                    "return_code": return_codes.JWT_EXPIRED.code,
+                },
+                {
+                    "status": "error",
+                    "message": return_codes.API_KEY_NOT_FOUND.message,
+                    "return_code": return_codes.API_KEY_NOT_FOUND.code,
+                },
+                {
+                    "status": "error",
+                    "message": return_codes.API_KEY_EXPIRED.message,
+                    "return_code": return_codes.API_KEY_EXPIRED.code,
+                },
+                {
+                    "status": "error",
+                    "message": return_codes.MISSING_LOGIN_CREDENTIALS.message,
+                    "return_code": return_codes.MISSING_LOGIN_CREDENTIALS.code,
+                },
+                {
+                    "status": "error",
+                    "message": return_codes.NOT_ADMIN.message,
+                    "return_code": return_codes.NOT_ADMIN.code,
                 },
             ]
         }
     }
 
 
-class ErrorResponse404(BaseErrorResponse):
-    """Model for 404 error responses."""
+class ErrorResponse404Resource(BaseErrorResponse):
+    """Model for 404 resource not found error responses."""
     model_config = {
         "json_schema_extra": {
             "examples": [
-                    {
-                        "status": "error",
-                        "message": "Failed to authenticate",
-                        "return_code": "failed_authenticating",
-                    },
-                    {
-                        "status": "error",
-                        "message": "API key not recognized",
-                        "return_code": "apikey_not_found",
-                    },
-                    {
-                        "status": "error",
-                        "message": "API key has expired",
-                        "return_code": "apikey_expired",
-                    },
-                    {
-                        "status": "error",
-                        "message": "No login credentials provided",
-                        "return_code": "missing_login_credentials",
-                    },
-                    {
-                        "status": "error",
-                        "message": "Mink admin status could not be confirmed",
-                        "return_code": "admin_status_not_confirmed",
-                    },
+                {
+                    "status": "error",
+                    "message": return_codes.RESOURCE_NOT_FOUND.message,
+                    "return_code": return_codes.RESOURCE_NOT_FOUND.code,
+                }
+            ]
+        }
+    }
+
+
+class ErrorResponse404File(BaseErrorResponse):
+    """Model for 404 file not found error responses."""
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "error",
+                    "message": return_codes.FILE_NOT_FOUND.message,
+                    "return_code": return_codes.FILE_NOT_FOUND.code,
+                }
             ]
         }
     }
@@ -242,10 +281,9 @@ class ErrorResponse404(BaseErrorResponse):
 
 class ErrorResponse413(BaseErrorResponse):
     """Model for 413 error responses."""
-
-    return_code: str = Field(default="data_too_large", description="Short code describing the error")
+    return_code: str = Field(default=return_codes.CONTENT_TOO_LARGE.code, description="Short code describing the error")
     message: str = Field(
-        default="Request data too large (max 100 MB per upload)", description="Short message describing the error"
+        default=return_codes.CONTENT_TOO_LARGE.message, description="Short message describing the error"
     )
     max_size_mb: int = Field(default=100, description="Max allowed size in MB")
     info: str | None = Field(default=None, description="Additional information about the error")
@@ -256,8 +294,8 @@ class ErrorResponse413(BaseErrorResponse):
             "examples": [
                 {
                     "status": "error",
-                    "message": "Request data too large",
-                    "return_code": "data_too_large",
+                    "message": return_codes.CONTENT_TOO_LARGE.message,
+                    "return_code": return_codes.CONTENT_TOO_LARGE.code,
                     "max_size_mb": 100,
                 }
             ]
@@ -267,8 +305,10 @@ class ErrorResponse413(BaseErrorResponse):
 
 class ErrorResponse422(BaseErrorResponse):
     """Model for 422 error responses."""
-    message: str = Field(default="Validation Error", description="Short message describing the error")
-    return_code: str = Field(default="validation_error", description="Short code describing the error")
+    message: str = Field(
+        default=return_codes.VALIDATION_ERROR.message, description="Short message describing the error"
+    )
+    return_code: str = Field(default=return_codes.VALIDATION_ERROR.code, description="Short code describing the error")
     info: str = Field(default="Could not process the request due to errors in the input (see errors for details).",
                       description="More detailed information about the response")
     errors: list[str]
@@ -278,8 +318,8 @@ class ErrorResponse422(BaseErrorResponse):
             "examples": [
                 {
                     "status": "error",
-                    "message": "Validation error",
-                    "return_code": "validation_error",
+                    "message": return_codes.VALIDATION_ERROR.message,
+                    "return_code": return_codes.VALIDATION_ERROR.code,
                     "info": "Could not process the request due to errors in the input (see errors for details).",
                     "errors": ["query: q (Field required)"],
                 }
@@ -295,18 +335,18 @@ class ErrorResponse500(BaseErrorResponse):
             "examples": [
                 {
                     "status": "error",
-                    "message": "An unexpected error occurred",
-                    "return_code": "internal_error"
+                    "message": return_codes.INTERNAL_SERVER_ERROR.message,
+                    "return_code": return_codes.INTERNAL_SERVER_ERROR.code
                 },
                 {
                     "status": "error",
-                    "message": "API key check failed",
-                    "return_code": "apikey_check_failed"
+                    "message": return_codes.API_KEY_CHECK_FAILED.message,
+                    "return_code": return_codes.API_KEY_CHECK_FAILED.code,
                 },
                 {
                     "status": "error",
-                    "message": "API key authentication failed",
-                    "return_code": "apikey_authentication_failed",
+                    "message": return_codes.API_KEY_ERROR.message,
+                    "return_code": return_codes.API_KEY_ERROR.code,
                     "info": "Signature verification failed"
                 }
             ]
@@ -315,8 +355,9 @@ class ErrorResponse500(BaseErrorResponse):
 
 
 common_auth_error_responses = {
+    status.HTTP_400_BAD_REQUEST: {"model": ErrorResponse400},
     status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponse401},
-    status.HTTP_404_NOT_FOUND: {"model": ErrorResponse404},
+    status.HTTP_404_NOT_FOUND: {"model": ErrorResponse404Resource},
     status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponse422},
     status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": ErrorResponse500}
 }
@@ -360,8 +401,9 @@ class InfoResponse(BaseResponse):
         "json_schema_extra": {
             "example": {
                 "status": "success",
-                "message": "Listing information about data processing",
-                "return_code": "listing_info",
+                "message": return_codes.LISTING_CONTENT.message,
+                "return_code": return_codes.LISTING_CONTENT.code,
+                "info": "Listing Mink API information",
                 "status_codes": {
                     "info": "job status codes",
                     "data": [
@@ -399,10 +441,43 @@ class InfoResponse(BaseResponse):
     }
 
 
-class ResourceStatusModel(BaseModel):
-    """Model for the status of a resource (used as base for StatusResponse and StatusesResponse)."""
+class ReturnCodesResponse(BaseResponse):
+    """Model for the /return-codes response."""
+    data: dict[str, list[dict[str, str]]] = Field(
+        default_factory=dict,
+        description="Dictionary containing lists of return codes keyed by tag",
+    )
 
-    message: str = Field(default="", description="Message describing the status of the resource")
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "status": "success",
+                "message": "Listing contents",
+                "return_code": "listing_content",
+                "info": "Listing all return codes",
+                "data": {
+                    "Common errors": [
+                        {"code": "unexpected_error", "message": "An unexpected error occurred", "status_code": 500},
+                        {"code": "page_not_found", "message": "Page not found", "status_code": 404},
+                    ],
+                    "Authentication and authorization": [
+                        {"code": "failed_authenticating", "message": "Failed to authenticate", "status_code": 200},
+                        {
+                            "code": "missing_login_credentials",
+                            "message": "No login credentials provided",
+                            "status_code": 200,
+                        },
+                    ],
+                },
+            }
+        }
+    }
+
+
+class JobStatusModel(BaseModel):
+    """Model for the status of a resource (used as base for StatusResponse and StatusesResponse)."""
+    job_status: str = Field(default="", description="Status of the current job for the resource")
+    info: str = Field(default="", description="Info about the job status")
     resource: ResourceModel = Field(
         default=ResourceModel(),
         description="Object containing information about the resource",
@@ -419,7 +494,8 @@ class ResourceStatusModel(BaseModel):
         "json_schema_extra": {
             "examples": [
                     {
-                "message": "Job has been queued",
+                "job_status": "waiting",
+                "info": "Job has been queued",
                 "resource": resource_model_example,
                 "owner": user_model_example,
                 "job": job_model_example,
@@ -429,16 +505,17 @@ class ResourceStatusModel(BaseModel):
     }
 
 
-class StatusResponse(BaseResponse, ResourceStatusModel):
+class StatusResponse(BaseResponse, JobStatusModel):
     """Model for job status responses."""
-
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
             "examples": [
                 {
                     "status": "success",
-                    "message": "Job has been queued",
-                    "return_code": "job_queued",
+                    "message": return_codes.CHECKED_STATUS.message,
+                    "return_code": return_codes.CHECKED_STATUS.code,
+                    "job_status": "waiting",
+                    "info": "Job has been queued",
                     "resource": resource_model_example,
                     "job": job_model_example,
                 }
@@ -449,7 +526,7 @@ class StatusResponse(BaseResponse, ResourceStatusModel):
 
 class StatusesResponse(BaseResponse):
     """Model for multiple job statuses responses."""
-    resources: list[ResourceStatusModel] = Field(
+    resources: list[JobStatusModel] = Field(
         default=[], description="List of resource objects containing information about the corpus"
     )
 
@@ -458,12 +535,13 @@ class StatusesResponse(BaseResponse):
             "examples": [
                 {
                     "status": "success",
-                    "message": "Listing resource infos",
-                    "return_code": "listing_jobs",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "info": "Listing resource infos",
                     "resources": [
                         {
-                            "message": "Job was completed successfully",
-                            "return_code": "job_completed",
+                            "job_status": "done",
+                            "info": "Job was completed successfully",
                             "resource": {
                                 "id": "mink-ezodmp4wxm",
                                 "name": {"swe": "txt-korpus", "eng": "txt-korpus"},
@@ -488,8 +566,8 @@ class StatusesResponse(BaseResponse):
                             "job": job_model_example,
                         },
                         {
-                            "message": "Job was completed successfully",
-                            "return_code": "job_completed",
+                            "job_status": "done",
+                            "info": "Job was completed successfully",
                             "resource": {
                                 "id": "mink-dxh6e6wtff",
                                 "name": {"swe": "Annes och Martins testkorpus", "eng": ""},

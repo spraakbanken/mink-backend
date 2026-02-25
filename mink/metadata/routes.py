@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.cache import jobs_cache
-from mink.core import exceptions, models, registry, route_utils, utils
+from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.resource import Resource, ResourceType
@@ -25,15 +25,15 @@ router = APIRouter(tags=["Manage Metadata"])
 @router.post(
     "/create-metadata",
     status_code=status.HTTP_201_CREATED,
-    response_model=models.BaseResponse,
+    response_model=models.CreateResourceResponse,
     responses={
         status.HTTP_201_CREATED: {
             "content": {
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Resource created successfully",
-                        "return_code": "created_resource",
+                        "message": return_codes.CREATED_RESOURCE.message,
+                        "return_code": return_codes.CREATED_RESOURCE.code,
                         "resource_id": "mink-dxh6e6wtff",
                     }
                 }
@@ -45,9 +45,9 @@ router = APIRouter(tags=["Manage Metadata"])
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to create resource: ID not available",
-                        "return_code": "failed_creating_resource",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_CREATING_RESOURCE.message,
+                        "return_code": return_codes.FAILED_CREATING_RESOURCE.code,
+                        "info": "ID not available",
                     }
                 }
             },
@@ -73,16 +73,14 @@ async def create_metadata(
     org_prefix = metadata_settings.METADATA_ORG_PREFIXES.get(user.id)
     if org_prefix is None:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="No organization prefix was found for user",
-            return_code="failed_getting_org_prefix",
+            return_code=return_codes.FAILED_CREATING_RESOURCE,
+            info=f"No organization prefix found for user with ID '{user.id}'",
         )
     org_prefix = org_prefix.lower()
     if not public_id.startswith(f"{org_prefix}-"):
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to create resource: chosen public ID does not contain the correct organization prefix",
-            return_code="failed_creating_resource",
+            return_code=return_codes.FAILED_CREATING_RESOURCE,
+            info=f"Public ID '{public_id}' does not start with organization prefix '{org_prefix}'",
         )
 
     # Check availability of ID in SBX metadata and the Mink backend resource registry
@@ -93,17 +91,10 @@ async def create_metadata(
             id_available = response.json().get("available", False)
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to create resource: failed to check ID availability",
-            return_code="failed_creating_resource",
-            info=str(e),
+            return_code=return_codes.FAILED_CREATING_RESOURCE, info=f"Error when checking ID availability: {e}"
         ) from e
     if not id_available or public_id in jobs_cache.get_all_resources():
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to create resource: ID not available",
-            return_code="failed_creating_resource",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_CREATING_RESOURCE, info="ID not available")
 
     resource_id = await route_utils.create_resource_id(
         auth_token=auth_data["auth_token"],
@@ -122,12 +113,7 @@ async def create_metadata(
         resource_dir = storage.get_resource_dir(resource_id, mkdir=True)
         storage.get_source_dir(resource_id, mkdir=True)
 
-        return utils.response(
-            status.HTTP_201_CREATED,
-            message="Resource created successfully",
-            return_code="created_resource",
-            resource_id=resource_id,
-        )
+        return utils.response(return_code=return_codes.CREATED_RESOURCE, resource_id=resource_id)
 
     # If anything fails, try to remove from storage, auth system, and registry
     except Exception as e:
@@ -137,12 +123,7 @@ async def create_metadata(
             info_obj=info_obj,
             remove_from_storage_fn=lambda: storage.remove_dir(resource_dir, resource_id),
         )
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to create resource",
-            return_code="failed_creating_resource",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_CREATING_RESOURCE, info=str(e)) from e
 
 
 @router.delete(
@@ -154,8 +135,8 @@ async def create_metadata(
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "Resource successfully removed",
-                        "return_code": "removed_resource",
+                        "message": return_codes.REMOVED_RESOURCE.message,
+                        "return_code": return_codes.REMOVED_RESOURCE.code,
                     }
                 }
             }
@@ -167,8 +148,9 @@ async def create_metadata(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Resource 'mink-dxh6e6wtff' is not a metadata resource",
-                        "return_code": "wrong_resource_type",
+                        "message": return_codes.INVALID_RESOURCE_TYPE.message,
+                        "return_code": return_codes.INVALID_RESOURCE_TYPE.code,
+                        "info": "Expected a metadata resource",
                     }
                 }
             },
@@ -179,9 +161,9 @@ async def create_metadata(
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to remove resource from storage",
-                        "return_code": "failed_removing_storage",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                        "info": "Failed to remove resource from storage",
                     }
                 }
             },
@@ -204,9 +186,7 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
     # TODO: Maybe this should be done in login.AuthDependency()?
     if info_obj.resource.type != ResourceType.metadata:
         raise exceptions.MinkHTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            message=f"Resource '{resource_id}' is not a metadata resource",
-            return_code="wrong_resource_type",
+            return_code=return_codes.INVALID_RESOURCE_TYPE, info="Expected a metadata resource"
         )
 
     return await route_utils.remove_resource(
@@ -232,8 +212,8 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
                 "application/json": {
                     "example": {
                         "status": "success",
-                        "message": "File successfully uploaded",
-                        "return_code": "uploaded_file",
+                        "message": return_codes.FILE_UPLOADED.message,
+                        "return_code": return_codes.FILE_UPLOADED.code,
                     }
                 }
             }
@@ -245,8 +225,9 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "File needs to be YAML",
-                        "return_code": "wrong_format",
+                        "message": return_codes.INVALID_FILE.message,
+                        "return_code": return_codes.INVALID_FILE.code,
+                        "info": "File format needs to be YAML",
                     }
                 }
             },
@@ -257,8 +238,8 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to upload file",
-                        "return_code": "failed_uploading_file",
+                        "message": return_codes.FAILED_UPLOADING.message,
+                        "return_code": return_codes.FAILED_UPLOADING.code,
                         "info": "BaseException",
                     }
                 }
@@ -299,26 +280,15 @@ async def upload_metadata_yaml(
     responses={
         status.HTTP_200_OK: {"content": {"application/octet-stream": {}}, "description": "A file download response"},
         **models.common_auth_error_responses,
-        status.HTTP_404_NOT_FOUND: {
-            "model": models.ErrorResponse404,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "File not found",
-                        "return_code": "file_not_found",
-                    }
-                }
-            },
-        },
+        status.HTTP_404_NOT_FOUND: {"model": models.ErrorResponse404File},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to download file",
-                        "return_code": "failed_downloading_file",
+                        "message": return_codes.FAILED_DOWNLOADING.message,
+                        "return_code": return_codes.FAILED_DOWNLOADING.code,
                         "info": "BaseException",
                     }
                 }

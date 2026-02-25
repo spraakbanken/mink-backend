@@ -3,17 +3,34 @@
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
-from mink.core import exceptions, models, registry, route_utils, utils
+from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.resource_specs import get_spec
-from mink.core.status import JobStatuses
 from mink.sb_auth import login
 
 router = APIRouter()
 
 
-@router.put("/advance-queue", tags=["Process Corpus"], response_model=models.BaseResponse, include_in_schema=False)
+@router.put(
+    "/advance-queue",
+    tags=["Process Corpus"],
+    response_model=models.BaseResponse,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.INVALID_SECRET_KEY.message,
+                        "return_code": return_codes.INVALID_SECRET_KEY.code,
+                    }
+                }
+            }
+        },
+    },
+    include_in_schema=False,
+)
 async def advance_queue(
     secret_key: str = Query(..., alias="secret_key", description="Secret key for authentication"),
 ) -> JSONResponse:
@@ -26,11 +43,7 @@ async def advance_queue(
     For Mink internal use only!
     """
     if secret_key != settings.MINK_SECRET_KEY:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_401_UNAUTHORIZED,
-            message="Failed to confirm secret key for protected route",
-            return_code="failed_confirming_secret_key",
-        )
+        raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_SECRET_KEY)
 
     # Unqueue jobs that are done, aborted or erroneous
     registry.unqueue_inactive()
@@ -93,7 +106,7 @@ async def advance_queue(
         if not started_any:
             break
 
-    return utils.response(message="Queue advancing completed", return_code="advanced_queue")
+    return utils.response(return_code=return_codes.QUEUE_ADVANCED)
 
 
 @router.get(
@@ -102,27 +115,15 @@ async def advance_queue(
     response_model=models.StatusResponse | models.StatusesResponse,
     responses={
         **models.common_auth_error_responses,
-        status.HTTP_404_NOT_FOUND: {
-            "model": models.ErrorResponse404,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": "Resource does not exist or you do not have access to it",
-                        "return_code": "resource_not_found",
-                    }
-                }
-            },
-        },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
                 "application/json": {
                     "example": {
                         "status": "error",
-                        "message": "Failed to get job status for resource",
-                        "return_code": "failed_getting_job_status",
-                        "info": "BaseException",
+                        "message": return_codes.FAILED_GETTING_JOB.message,
+                        "return_code": return_codes.FAILED_GETTING_JOB.code,
+                        "info": "Error getting job info for resource",
                     }
                 }
             },
@@ -134,7 +135,7 @@ async def resource_info(
     resource_id: str | None = Query(None, description="Resource ID"),
     auth_data: dict = Depends(login.AuthDependency(require_resource_id=False)),
 ) -> JSONResponse:
-    """Return the status of the current job for a resourace or all resources belonging to the user.
+    """Return the status of the current job for a resource or all the user's resources.
 
     If the resource ID is provided, the status of the specific resource is returned. Otherwise, the statuses of all
     resources are returned.
@@ -154,30 +155,20 @@ async def resource_info(
     if resource_id:
         # Check if resource exists
         if resource_id not in resources:
-            raise exceptions.MinkHTTPException(
-                status.HTTP_404_NOT_FOUND,
-                message="Resource does not exist or you do not have access to it",
-                return_code="resource_not_found",
-            )
+            raise exceptions.MinkHTTPException(return_code=return_codes.RESOURCE_NOT_FOUND)
         try:
             info = registry.get(resource_id)
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message="Failed to get job status for resource",
-                return_code="failed_getting_job_status",
-                info=str(e),
+                return_code=return_codes.FAILED_GETTING_JOB, info=f"Error getting job info for resource: {e}"
             ) from e
         if not info:
-            return utils.response(
-                message="There is no active job for this resource",
-                return_code="no_active_job",
-                job_status=JobStatuses(
-                    status=None,
-                    processes=list(get_spec(info.resource.type).process_names),
-                ).serialize(),
+            raise exceptions.MinkHTTPException(
+                return_code=return_codes.FAILED_GETTING_JOB, info="No job info found for resource"
             )
-        return utils.response(**route_utils.make_status_response(info, admin=admin_mode))
+        return utils.response(
+            return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info, admin=admin_mode)
+        )
 
     try:
         # Get all job statuses for this user's resources
@@ -186,11 +177,8 @@ async def resource_info(
         for res in resources:
             resp_dict = route_utils.make_status_response(res, admin=admin_mode)
             res_list.append(resp_dict)
-        return utils.response(message="Listing resource infos", resources=res_list, return_code="listing_jobs")
+        return utils.response(
+            return_code=return_codes.LISTING_CONTENT, info="Listing resource infos", resources=res_list
+        )
     except Exception as e:
-        raise exceptions.MinkHTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message="Failed to get job statuses",
-            return_code="failed_getting_job_statuses",
-            info=str(e),
-        ) from e
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_LISTING_CONTENT, info=str(e)) from e
