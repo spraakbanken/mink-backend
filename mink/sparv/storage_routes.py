@@ -748,7 +748,7 @@ async def upload_config(
     """Upload a corpus configuration as file or plain text (using the `config` parameter).
 
     The config must be in yaml format. Read more about corpus config files in the [Sparv Pipeline
-    documentation](https://spraakbanken.gu.se/sparv/#/user-manual/corpus-configuration).
+    documentation](https://spraakbanken.gu.se/sparv/user-manual/corpus-configuration).
 
     If a config file already exists for the given corpus it will be replaced by the newly uploaded one.
 

@@ -72,7 +72,7 @@ python config_helper.py
 ```
 
 To override the default settings, create a `.env` file in the project's root directory and set the environment variables
-listed in `config.py`. For examples, see the [developer's guide](/docs/developers-guide.md#configuration).
+listed in `config.py`. For examples, see the [developer's guide](/docs/developers-guide/#configuration).
 
 ## Tracking to Matomo
 

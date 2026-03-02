@@ -41,6 +41,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - The `/api-docs` route has been removed. Use `/redoc` instead.
 - The `/developers-guide` route has been removed. Use `/docs` instead.
 
+### Fixed
+
+- Fixed some outdated URLs in the documentation.
+
 ### Deprecated
 
 - The `/download-source-text` route is deprecated and will be removed in a future release. The plain text export from
