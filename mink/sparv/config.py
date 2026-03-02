@@ -51,6 +51,7 @@ class SparvSettings(BaseSettings):
     SPARV_DEFAULT_EXPORTS: list[str] = Field(
         default_factory=lambda: [
             "xml_export:pretty",
+            "text_export:plain_text",
             "csv_export:csv",
             "stats_export:freq_list",
         ]

@@ -35,6 +35,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a new route `/return-codes` which lists all possible return codes and their meanings, to make it easier for
   users to understand the API responses.
 
+### Deprecated
+
+- The `/download-source-text` route is deprecated and will be removed in a future release. The plain text export from
+  Sparv should be used instead.
+
 ## [2.1.1] - 2026-02-04
 
 ### Fixed

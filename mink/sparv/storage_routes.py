@@ -1108,6 +1108,7 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_leve
 
 @router.get(
     "/download-source-text",
+    deprecated=True,
     tags=["Manage Exports"],
     response_model=models.FileResponse,
     response_class=FileResponse,
