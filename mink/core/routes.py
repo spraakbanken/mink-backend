@@ -44,8 +44,15 @@ def _rewrite_operation_links(openapi_schema: dict, link_builder: Callable[[str],
 
 @router.get("/", include_in_schema=False)
 async def hello(request: Request) -> RedirectResponse:
-    """Redirect to /redoc."""
-    return RedirectResponse(url=request.url_for("redoc"))
+    """Redirect to /docs."""
+    return RedirectResponse(url=request.url_for("docs"))
+
+
+@router.get("/docs")
+async def docs(request: Request) -> RedirectResponse:
+    """Render mkdocs HTML with the developer's guide."""
+    docs_url = request.scope.get("root_path", "") + "/docs/"
+    return RedirectResponse(url=docs_url)
 
 
 @router.get("/openapi.json", response_model=dict)
@@ -104,13 +111,6 @@ async def swagger(request: Request) -> HTMLResponse:
         intercept = f"""requestInterceptor: (req) => {{ req.headers["X-API-Key"] = "{api_key}"; return req; }},\n"""
         html_body = re.sub(r"(url: '/swagger-openapi.json',\n)", r"\1" + " " * 8 + intercept, html_body)
     return HTMLResponse(html_body)
-
-
-@router.get("/docs")
-async def docs(request: Request) -> RedirectResponse:
-    """Render mkdocs HTML with the developer's guide."""
-    docs_url = request.scope.get("root_path", "") + "/docs/"
-    return RedirectResponse(url=docs_url)
 
 
 @router.get("/openapi-to-markdown", include_in_schema=False, response_class=PlainTextResponse)
