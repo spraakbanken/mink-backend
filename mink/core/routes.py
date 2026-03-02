@@ -35,13 +35,6 @@ async def api_specification(request: Request) -> JSONResponse:
     return JSONResponse(content=json.loads(oas_string))
 
 
-# Deprecated, kept for backwards compatibility
-@router.get("/api-spec", include_in_schema=False)
-async def api_specification2(request: Request) -> RedirectResponse:
-    """Get the open API specification (in json format) for this API."""
-    return RedirectResponse(url=request.url_for("api_specification"))
-
-
 @router.get("/redoc", response_class=HTMLResponse)
 async def api_documentation(request: Request) -> HTMLResponse:
     """Render ReDoc HTML (documentation for this API)."""
@@ -50,13 +43,6 @@ async def api_documentation(request: Request) -> HTMLResponse:
         redoc_favicon_url=str(request.url_for("static", path="favicon.ico")),
         title="Mink API documentation"
     )
-
-
-# Deprecated, kept for backwards compatibility
-@router.get("/api-doc", include_in_schema=False)
-async def api_documentation2(request: Request) -> RedirectResponse:
-    """Render ReDoc HTML (documentation for this API)."""
-    return RedirectResponse(url=request.url_for("api_documentation"))
 
 
 @router.get("/swagger-openapi.json", include_in_schema=False)
@@ -103,13 +89,6 @@ async def developers_guide(request: Request) -> RedirectResponse:
     """Render mkdocs HTML with the developer's guide."""
     docs_url = request.scope.get("root_path", "") + "/docs/"
     return RedirectResponse(url=docs_url)
-
-
-# Deprecated, kept for backwards compatibility
-@router.get("/developers-guide", include_in_schema=False)
-async def developers_guide2(request: Request) -> RedirectResponse:
-    """Render mkdocs HTML with the developer's guide."""
-    return RedirectResponse(url=request.url_for("developers_guide"))
 
 
 @router.get("/openapi-to-markdown", include_in_schema=False, response_class=PlainTextResponse)

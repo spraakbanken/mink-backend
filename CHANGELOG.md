@@ -35,6 +35,12 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a new route `/return-codes` which lists all possible return codes and their meanings, to make it easier for
   users to understand the API responses.
 
+### Removed
+
+- The `/api-spec` route has been removed. Use `/openapi.json` instead.
+- The `/api-docs` route has been removed. Use `/redoc` instead.
+- The `/developers-guide` route has been removed. Use `/docs` instead.
+
 ### Deprecated
 
 - The `/download-source-text` route is deprecated and will be removed in a future release. The plain text export from
