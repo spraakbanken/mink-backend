@@ -1,8 +1,10 @@
 """Collection of general routes."""
 
+import copy
 import json
 import re
 from collections import defaultdict
+from collections.abc import Callable
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -20,56 +22,76 @@ router = APIRouter(tags=["Documentation"])
 templates = Jinja2Templates(directory="templates")
 
 
+def _rewrite_operation_links(openapi_schema: dict, link_builder: Callable[[str], str]) -> dict:
+    """Return a copy of an OpenAPI schema with operation links rewritten (for redoc/swagger) in description fields."""
+    op_link_re = re.compile(r"\(#([A-Za-z0-9_-]+)\)")
+    rewritten_schema = copy.deepcopy(openapi_schema)
+
+    def walk(node: object) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key == "description" and isinstance(value, str):
+                    node[key] = op_link_re.sub(lambda match: link_builder(match.group(1)), value)
+                else:
+                    walk(value)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+
+    walk(rewritten_schema)
+    return rewritten_schema
+
+
 @router.get("/", include_in_schema=False)
 async def hello(request: Request) -> RedirectResponse:
     """Redirect to /redoc."""
-    return RedirectResponse(url=request.url_for("api_documentation"))
+    return RedirectResponse(url=request.url_for("redoc"))
 
 
 @router.get("/openapi.json", response_model=dict)
-async def api_specification(request: Request) -> JSONResponse:
-    """Get the open API specification (in json format) for this API."""
-    oas = request.app.openapi()
-    # Convert markdown anchor links to ReDoc operation links, e.g. (#install-strix-put)->(#operation/install-strix-put)
-    oas_string = re.sub(r"\(#([a-zA-Z0-9\-]+)\)", r"(#operation/\1)", json.dumps(oas))
-    return JSONResponse(content=json.loads(oas_string))
+async def openapi(request: Request) -> JSONResponse:
+    """Serve the open API specification (in json format) with custom ReDoc operation links."""
+    # Rewrite markdown anchor links to ReDoc operation links, e.g. (#install-strix)->(#operation/install-strix)
+    oas = _rewrite_operation_links(
+        request.app.openapi(),
+        lambda operation_id: f"(#operation/{operation_id})",
+    )
+    return JSONResponse(content=oas)
 
 
 @router.get("/redoc", response_class=HTMLResponse)
-async def api_documentation(request: Request) -> HTMLResponse:
+async def redoc(request: Request) -> HTMLResponse:
     """Render ReDoc HTML (documentation for this API)."""
     return get_redoc_html(
-        openapi_url=str(request.url_for("api_specification")),
+        openapi_url=str(request.url_for("openapi")),
         redoc_favicon_url=str(request.url_for("static", path="favicon.ico")),
-        title="Mink API documentation"
+        title="Mink API documentation",
     )
 
 
 @router.get("/swagger-openapi.json", include_in_schema=False)
-async def swagger_api_spec(request: Request) -> JSONResponse:
-    """Serve a modified OpenAPI schema (OAS) for Swagger."""
+async def swagger_openapi(request: Request) -> JSONResponse:
+    """Serve a modified OpenAPI specification with custom Swagger operation links."""
     oas = request.app.openapi()
-    # Create a dictionary with paths as keys and their tag names as values (needed for Swagger links)
-    paths_dict = {
+    # Create a dict with operationIds as keys and their tag names as values (needed to create Swagger links)
+    opid_dict = {
         operation.get("operationId", ""): tag.replace(" ", "%20")
         for operations in oas.get("paths", {}).values()
         for operation in operations.values()
         for tag in operation.get("tags", [])
     }
-    # Convert markdown anchor links to Swagger links, e.g. (#install-strix-put)->(#/Process%20Corpus/install-strix-put)
-    oas_string = re.sub(
-        r"\(#([a-zA-Z0-9\-]+)\)",
-        lambda match: f"(#/{paths_dict.get(match.group(1), '')}/{match.group(1)})",
-        json.dumps(oas)
+    # Rewrite markdown anchor links to Swagger links, e.g. (#install-strix)->(#/Process%20Corpus/install-strix)
+    oas = _rewrite_operation_links(
+        oas, lambda operation_id: f"(#/{opid_dict.get(operation_id, '')}/{operation_id})"
     )
-    return JSONResponse(content=json.loads(oas_string))
+    return JSONResponse(content=oas)
 
 
 @router.get("/swagger", response_class=HTMLResponse)
-async def swagger_api_documentation(request: Request) -> HTMLResponse:
+async def swagger(request: Request) -> HTMLResponse:
     """Render Swagger UI HTML (documentation for this API)."""
     html_body = get_swagger_ui_html(
-        openapi_url=str(request.url_for("swagger_api_spec")),
+        openapi_url=str(request.url_for("swagger_openapi")),
         swagger_favicon_url=str(request.url_for("static", path="favicon.ico")),
         title=request.app.title + " - Swagger UI",
     ).body
@@ -85,7 +107,7 @@ async def swagger_api_documentation(request: Request) -> HTMLResponse:
 
 
 @router.get("/docs")
-async def developers_guide(request: Request) -> RedirectResponse:
+async def docs(request: Request) -> RedirectResponse:
     """Render mkdocs HTML with the developer's guide."""
     docs_url = request.scope.get("root_path", "") + "/docs/"
     return RedirectResponse(url=docs_url)
@@ -104,16 +126,13 @@ async def openapi_to_markdown(request: Request) -> PlainTextResponse:
             production_server_url = server.get("url", "")
             break
 
-    # Fix all anchor links in the OpenAPI schema, e.g. (#install-strix-put) --> (#install-strix)
-    oas_string = re.sub(r"\(#([a-zA-Z0-9\-]+)-[a-zA-Z0-9]+\)", r"(#\1)", json.dumps(openapi_schema))
-
     # Replace the current host with the production server URL
+    oas_string = json.dumps(openapi_schema)
     if production_server_url is not None and production_server_url != settings.MINK_URL:
         oas_string = re.sub(rf"{settings.MINK_URL}", production_server_url, oas_string)
 
-    openapi_schema = json.loads(oas_string)
-
     # Organize paths by tags, preserving tag order from the OpenAPI spec
+    openapi_schema = json.loads(oas_string)
     tag_order = [tag["name"] for tag in openapi_schema.get("tags", [])]
     tag_descriptions = {tag["name"]: tag["description"] for tag in openapi_schema.get("tags", [])}
     tags_dict = {tag: [] for tag in tag_order}
@@ -148,7 +167,7 @@ async def openapi_to_markdown(request: Request) -> PlainTextResponse:
 
 
 @router.get("/info", response_model=InfoResponse)
-async def api_info() -> JSONResponse:
+async def info() -> JSONResponse:
     """Show info about data processing, e.g. job status codes, file size limits and Sparv importer modules."""
     from mink.core.status import Status  # noqa: PLC0415
 

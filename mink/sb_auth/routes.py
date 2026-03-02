@@ -44,7 +44,7 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
     """Turn on admin mode for the user if the user can be verified as a Mink admin in the authentication system.
 
     When admin mode is activated the user will have full access to all corpora in Mink. This works by setting a session
-    cookie in the client. Admin mode will be activated until [turned off](#admin-mode-off-post) or until the
+    cookie in the client. Admin mode will be activated until [turned off](#admin-mode-off) or until the
     session expires.
 
     ### Example

@@ -110,6 +110,8 @@ app.include_router(login_routes.router)
 for router in get_resource_routers():
     app.include_router(router)
 
+utils.use_route_names_as_operation_ids(app)
+
 
 # ------------------------------------------------------------------------------
 # Middleware
@@ -205,16 +207,8 @@ def custom_openapi() -> dict:
     for schema in openapi_schema.get("components", {}).get("schemas", {}).values():
         schema.pop("title", None)
 
-    for path, path_item in openapi_schema.get("paths", {}).items():
-        for method, operation in path_item.items():
-
-            # Generate simpler operationIds (used for anchor links in the documentation)
-            # Example: /admin-mode-off [POST] -> admin-mode-off-post
-            clean_path = path.strip("/").replace("/", "-")
-            if not clean_path:
-                clean_path = "root"
-            operation_id = f"{clean_path}-{method}"
-            operation["operationId"] = operation_id
+    for path_item in openapi_schema.get("paths", {}).values():
+        for operation in path_item.values():
 
             # Remove auto-generated "title" from response schemas in paths
             for response in operation.get("responses", {}).values():
