@@ -774,7 +774,7 @@ class SparvDefaultJob:
         # Create corpus dir with config file on Sparv server
         p = storage.ssh_run(
             f"mkdir -p {self.remote_corpus_dir_esc} && "
-            f"echo 'metadata:\n  language: {self.lang}' > "
+            f"echo 'metadata:\n  id: corpus-id\n  language: {self.lang}' > "
             f"{self.remote_corpus_dir_esc + '/' + shlex.quote(self.config_file)}"
         )
         if p.stderr:

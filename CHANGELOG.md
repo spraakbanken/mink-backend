@@ -44,6 +44,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Fixed some outdated URLs in the documentation.
+- Fixed issue with bad path patterns occurring in the response from `/sparv-exports`.
 
 ### Deprecated
 
