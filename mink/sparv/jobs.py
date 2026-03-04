@@ -733,13 +733,18 @@ class SparvDefaultJob:
         except json.JSONDecodeError as e:
             raise exceptions.JobError("Failed to parse Sparv output as JSON") from e
 
-        # Cache json data
         cache.set_sparv_schema(json_data)
 
         return json_data
 
-    def list_languages(self) -> list:
+    def list_languages(self, update_cache: bool = False) -> list:
         """List the languages available in Sparv."""
+        if not update_cache:
+            # Get from cache if available
+            cached_languages = cache.get_sparv_languages()
+            if cached_languages:
+                return cached_languages
+
         # Create corpus dir with config file on Sparv server
         p = storage.ssh_run(
             f"mkdir -p {self.remote_corpus_dir_esc} && "
@@ -767,10 +772,19 @@ class SparvDefaultJob:
             matchobj = re.match(r"(.+?)\s+(\S+)$", line)
             if matchobj:
                 languages.append({"name": matchobj.group(1), "code": matchobj.group(2)})
+
+        cache.set_sparv_languages(languages)
+
         return languages
 
-    def list_exports(self) -> list:
+    def list_exports(self, update_cache: bool = False) -> list:
         """List the available exports for the current language."""
+        if not update_cache:
+            # Get from cache if available
+            cached_exports = cache.get_sparv_exports()
+            if cached_exports:
+                return cached_exports
+
         # Create corpus dir with config file on Sparv server
         p = storage.ssh_run(
             f"mkdir -p {self.remote_corpus_dir_esc} && "
@@ -807,5 +821,7 @@ class SparvDefaultJob:
                 export_files = [i.removeprefix("export/") for i in function_data.get("exports", [])]
                 functions_info["export_files"] = export_files
                 exports.append(functions_info)
+
+        cache.set_sparv_exports(exports)
 
         return exports

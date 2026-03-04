@@ -2,6 +2,7 @@
 
 from typing import ClassVar
 
+from fastapi import Query
 from pydantic import Field
 
 from mink.core import models, return_codes
@@ -311,3 +312,9 @@ statuses_response_examples = [
         ],
     }
 ]
+
+
+# ------------------------------------------------------------------------------
+# Reusable query parameters
+# ------------------------------------------------------------------------------
+update_cache_param: bool = Query(False, description="If true, force update the cached Sparv data", alias="update-cache")

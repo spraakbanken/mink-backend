@@ -684,11 +684,7 @@ async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency(min_lev
         }
     },
 )
-async def sparv_schema(
-    update_cache: bool = Query(
-        False, description="If true, force update the cached Sparv schema", alias="update-cache"
-    ),
-) -> JSONResponse:
+async def sparv_schema(update_cache: bool = sparv_models.update_cache_param) -> JSONResponse:
     """Get the JSON schema for the Sparv config format.
 
     ### Example
@@ -729,7 +725,7 @@ async def sparv_schema(
         }
     },
 )
-async def sparv_languages() -> JSONResponse:
+async def sparv_languages(update_cache: bool = sparv_models.update_cache_param) -> JSONResponse:
     """List languages available in Sparv along with their language codes (ISO 639-3).
 
     ### Example
@@ -740,7 +736,7 @@ async def sparv_languages() -> JSONResponse:
     """
     try:
         job = SparvDefaultJob()
-        languages = job.list_languages()
+        languages = job.list_languages(update_cache=update_cache)
     except Exception as e:
         raise exceptions.MinkHTTPException(
             return_code=return_codes.FAILED_LISTING_CONTENT,
@@ -774,6 +770,7 @@ async def sparv_languages() -> JSONResponse:
 )
 async def sparv_exports(
     language: str = Query("swe", description="languages for which to list exports"),
+    update_cache: bool = sparv_models.update_cache_param,
 ) -> JSONResponse:
     """List available Sparv export formats for the chosen language (default: 'swe').
 
@@ -788,7 +785,7 @@ async def sparv_exports(
     """
     try:
         job = SparvDefaultJob(language=language)
-        exports = job.list_exports()
+        exports = job.list_exports(update_cache=update_cache)
     except Exception as e:
         raise exceptions.MinkHTTPException(
             return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed listing exports: {e}"
