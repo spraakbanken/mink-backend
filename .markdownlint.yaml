@@ -2,8 +2,11 @@ MD033:  # Don't use inline HTML
   allowed_elements:
     - img
     - p
+    - br
 
 MD013:  # Line length
   line_length: 120
+  tables: false
+  code_blocks: false  # will be replaced with: ignore_code_blocks: true
 
 MD024: false # Turn off MD024/no-duplicate-headings (used in CHANGELOG.md)
