@@ -3,6 +3,7 @@
 from enum import StrEnum
 from typing import Any, cast
 
+from mink.core import return_codes
 from mink.core.resource import ResourceType
 from mink.sparv.config import sparv_settings
 
@@ -59,13 +60,13 @@ def register() -> None:
             job.sync_results()
         except Exception as e:
             return {
-                "message": "Job was run successfully but syncing to storage server failed",
-                "return_code": "job_success_export_upload_fail",
-                "info": str(e),
+                "message": return_codes.FAILED_SYNCING.message,
+                "return_code": return_codes.FAILED_SYNCING.code,
+                "info": f"Job was run successfully but syncing to storage server failed: {e}",
             }
         return {
-            "message": "Job was run successfully. Starting to sync results",
-            "return_code": "job_success_start_sync",
+            "message": return_codes.STARTED_SYNCING.message,
+            "return_code": return_codes.STARTED_SYNCING.code,
         }
 
     register_spec(

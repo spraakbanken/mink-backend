@@ -206,6 +206,12 @@ FAILED_REMOVING_CONTENT = ReturnCode(
     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     tag=CONTENT,
 )
+STARTED_SYNCING = ReturnCode(
+    "started_syncing",
+    message="Starting to sync files",
+    status_code=status.HTTP_200_OK,
+    tag=CONTENT,
+)
 FAILED_SYNCING = ReturnCode(
     "failed_syncing", message="Failed to sync files", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, tag=CONTENT
 )
