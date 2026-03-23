@@ -104,7 +104,7 @@ async def swagger(request: Request) -> HTMLResponse:
     if api_key:
         # Insert a requestInterceptor into the swagger UI html
         intercept = f"""requestInterceptor: (req) => {{ req.headers["X-API-Key"] = "{api_key}"; return req; }},\n"""
-        html_body = re.sub(r"(url: '/swagger-openapi.json',\n)", r"\1" + " " * 8 + intercept, html_body)
+        html_body = re.sub(r"(url: '\S+/swagger-openapi.json',\n)", r"\1" + " " * 8 + intercept, html_body)
     return HTMLResponse(html_body)
 
 
