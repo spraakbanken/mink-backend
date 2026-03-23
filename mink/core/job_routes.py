@@ -196,8 +196,30 @@ async def resource_status_deprecated(
 
 
 @router.get(
+    "/resource/list",
+    tags=["Manage Resources"],
+    response_model=models.ListResourcesResponse,
+    responses={**models.common_auth_error_responses},
+)
+async def list_resources(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
+    """List all resources available to the authenticated user, regardless of resource type.
+
+    ### Example
+
+    ```bash
+    curl -X GET '{{host}}/resource/list' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    return utils.response(
+        return_code=return_codes.LISTING_CONTENT,
+        info="Listing available resources",
+        resources=auth_data["resources"],
+    )
+
+
+@router.get(
     "/resource/status/list",
-    tags=["Process Corpus"],
+    tags=["Manage Resources"],
     response_model=models.StatusesResponse,
     responses={**models.common_auth_error_responses},
 )
@@ -217,7 +239,7 @@ async def list_resource_statuses(auth_data: dict = Depends(login.AuthDependencyN
 
 @router.get(
     "/resource/status/get/{resource_id}",
-    tags=["Process Corpus"],
+    tags=["Manage Resources", "Process Corpus"],
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,

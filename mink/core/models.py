@@ -87,6 +87,24 @@ class ListingFilesResponse(BaseResponse):
     )
 
 
+class ListResourcesResponse(BaseResponse):
+    """Model for responses listing resource IDs."""
+    resources: list[str] = Field(default=[], description="List of resource IDs")
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "info": "Listing available resources",
+                    "resources": ["mink-dxh6e6wtff", "mink-j86tfreaf9", "mink-3qbh7tra6g"],
+                }
+            ]
+        }
+    }
+
+
 class FileResponse(BaseModel):
     """Model for file response."""
     filename: str = Field(default="", description="Name of the file")

@@ -66,6 +66,8 @@ servers:
     description: Development server
 
 tags:
+  - name: Manage Resources
+    description: Routes for listing and getting information about all resources, regardless of type.
   - name: Manage Corpora
     description: Routes for creating, listing, and removing corpora.
   - name: Manage Sources

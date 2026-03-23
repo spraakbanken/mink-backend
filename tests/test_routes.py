@@ -81,6 +81,13 @@ def test_admin_mode() -> None:
             )
 
 
+def test_list_resources() -> None:
+    """Test listing all resources regardless of type."""
+    response = call_route("GET", "/resource/list", headers=HEADERS)
+    json_data = response.json()
+    assert isinstance(json_data.get("resources"), list), "Response should be a list of resources"
+
+
 # ------------------------------------------------------------------------------
 # Corpus tests
 # ------------------------------------------------------------------------------
@@ -373,7 +380,8 @@ def check_resource_loop(resource_id: str, process_name: str = "sparv", timeout: 
     """Call /resource/status/get and /queue/advance until the resource is processed, abort if it takes too long.
 
     Returns:
-        A tuple containing the JSON response from /resource/status/get and a boolean indicating if the timeout was reached.
+        A tuple containing the JSON response from /resource/status/get
+        and a boolean indicating if the timeout was reached.
     """
     start = time.time()
     process_status = None

@@ -31,6 +31,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Added new route `/resource/list` for listing all resources regardless of type.
 - Added a new script `config_helper.py` for validating and displaying config values from all modules and the .env file.
 - Added a new route `/return-codes` which lists all possible return codes and their meanings, to make it easier for
   users to understand the API responses.
