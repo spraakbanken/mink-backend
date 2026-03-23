@@ -148,8 +148,16 @@ ROUTE_INFO = RouteInfo()
 # Wrap up
 # ------------------------------------------------------------------------------
 
-def pytest_sessionfinish(session: object) -> None:  # noqa: ARG001 (unused argument)
+def pytest_sessionfinish(session: object) -> None:
     """Test that all routes have been tested."""
+    # Skip untested-route summary when running a keyword-filtered subset via `-k`.
+    config = getattr(session, "config", None)
+    keyword_expr = ""
+    if config is not None:
+        keyword_expr = str(config.getoption("keyword") or "")
+    if keyword_expr:
+        return
+
     untested = ROUTE_INFO.get_untested_routes()
     if untested:
         logging.getLogger("mink_test").warning("Found %d untested routes: %s", len(untested), untested)
