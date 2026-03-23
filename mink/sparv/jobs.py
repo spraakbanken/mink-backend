@@ -140,7 +140,7 @@ class SparvJob(BaseJob):
 
         Calculate the time it took to process the corpus until it ended or until now. When a Sparv job has ended (with
         success or error) it reads the time Sparv took (from the nohup file) and compensates for extra time the backend
-        may have taken (e.g. because it was waiting for advance-queue or file syncing).
+        may have taken (e.g. because it was waiting for queue advance or file syncing).
         """
         ended = ""
         duration = self.duration or 0

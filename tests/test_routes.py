@@ -30,7 +30,7 @@ HEADERS = {"X-Api-Key": settings.SBAUTH_PERSONAL_API_KEY}
 
 
 # ------------------------------------------------------------------------------
-# Testing
+# General tests
 # ------------------------------------------------------------------------------
 
 
@@ -81,47 +81,50 @@ def test_admin_mode() -> None:
             )
 
 
+# ------------------------------------------------------------------------------
+# Corpus tests
+# ------------------------------------------------------------------------------
+
 @pytest.fixture(scope="module")
-def resource() -> typing.Generator[str, None, None]:
-    """Test creating a resource."""
-    response = call_route("POST", "/create-corpus", status_code=status.HTTP_201_CREATED, headers=HEADERS)
+def corpus() -> typing.Generator[str, None, None]:
+    """Test creating a corpus."""
+    response = call_route("POST", "/corpus/create", status_code=status.HTTP_201_CREATED, headers=HEADERS)
     json_data = response.json()
-    assert json_data.get("return_code") == return_codes.CREATED_RESOURCE.code, f"Resource creation failed: {json_data}"
+    assert json_data.get("return_code") == return_codes.CREATED_RESOURCE.code, f"Corpus creation failed: {json_data}"
     resource_id = json_data.get("resource_id")
     assert json_data.get("resource_id") is not None, "Resource ID should not be None"
     yield resource_id
 
     # Teardown: remove resource after all tests are done
-    call_route("POST", "/abort-job", f"resource_id={resource_id}", headers=HEADERS, fail_ok=True)
-    response = call_route("DELETE", "/remove-corpus", f"resource_id={resource_id}", headers=HEADERS)
+    call_route("POST", f"/corpus/job/abort/{resource_id}", headers=HEADERS, fail_ok=True)
+    response = call_route("DELETE", f"/corpus/remove/{resource_id}", headers=HEADERS)
     json_data = response.json()
-    assert json_data.get("return_code") == return_codes.REMOVED_RESOURCE.code, f"Resource removal failed: {json_data}"
+    assert json_data.get("return_code") == return_codes.REMOVED_RESOURCE.code, f"Corpus removal failed: {json_data}"
 
 
-def test_list_resources(resource: str) -> None:
-    """Test listing resources."""
+def test_list_corpora(corpus: str) -> None:
+    """Test listing corporaa."""
     routes = [
-        ("GET", "/list-corpora", f"resource_id={resource}"),
-        ("GET", "/list-korp-corpora", f"resource_id={resource}"),
+        ("GET", "/corpus/list"),
+        ("GET", "/corpus/korp/list"),
     ]
-    for method, path, query in routes:
-        response = call_route(method, path, query, headers=HEADERS)
+    for method, path in routes:
+        response = call_route(method, path, headers=HEADERS)
         json_data = response.json()
         assert isinstance(json_data.get("corpora"), list), "Response should be a list of resources"
-        if path == "/list-corpora":
-            assert resource in json_data.get("corpora", []), f"Resource {resource} should be in the list of corpora"
+        if path == "/corpus/list":
+            assert corpus in json_data.get("corpora", []), f"Corpus {corpus} should be in the list of corpora"
 
 
 @pytest.fixture(scope="module")
-def resource_with_sources(resource: str) -> str:
-    """Ensure a resource exists and sources are uploaded."""
+def corpus_with_sources(corpus: str) -> str:
+    """Ensure a corpus exists and sources are uploaded."""
     with (
         Path("tests/test_data/test_source.txt").open("rb") as f1,
     ):
         call_route(
             "PUT",
-            "/upload-sources",
-            f"resource_id={resource}",
+            f"/corpus/sources/upload/{corpus}",
             status_code=status.HTTP_201_CREATED,
             headers=HEADERS,
             files=[
@@ -129,29 +132,29 @@ def resource_with_sources(resource: str) -> str:
                 ("files", ("test_source2.txt", f1)),
             ],
         )
-    return resource
+    return corpus
 
 
-def test_manage_sources(resource_with_sources: str) -> None:
-    """Test manage sources routes."""
+def test_manage_corpus_sources(corpus_with_sources: str) -> None:
+    """Test manage corpus sources routes."""
     routes = [
-        ("GET", "/list-sources", f"resource_id={resource_with_sources}"),
-        ("GET", "/download-sources", f"resource_id={resource_with_sources}"),
-        ("DELETE", "/remove-sources", f"resource_id={resource_with_sources}&remove=test_source2.txt"),
+        ("GET", f"/corpus/sources/list/{corpus_with_sources}", None),
+        ("GET", f"/corpus/sources/download/{corpus_with_sources}", None),
+        ("DELETE", f"/corpus/sources/remove/{corpus_with_sources}", "remove=test_source2.txt"),
     ]
     for method, path, query in routes:
-        response = call_route(method, path, query, headers=HEADERS)
-        if path == "/list-sources":
+        response = call_route(method, path, query=query, headers=HEADERS)
+        if path.startswith("/corpus/sources/list/"):
             json_data = response.json()
             assert isinstance(json_data.get("contents"), list), "Response should be a list of sources"
             assert len(json_data.get("contents", [])) > 0, "There should be at least one source file in the list"
-        elif path == "/download-sources":
+        elif path.startswith("/corpus/sources/download/"):
             assert response.headers.get("Content-Disposition") is not None, (
                 "Download response should have Content-Disposition header"
             )
             assert response.headers.get("Content-Type") == "application/zip", "Download response should be a zip file"
             assert len(response.content) > 0, "Downloaded file should not be empty"
-        elif path == "/remove-sources":
+        elif path.startswith("/corpus/sources/remove/"):
             json_data = response.json()
             assert json_data.get("return_code") == return_codes.REMOVED_CONTENT.code, (
                 f"Source removal failed: {json_data}"
@@ -159,56 +162,55 @@ def test_manage_sources(resource_with_sources: str) -> None:
 
 
 @pytest.fixture(scope="module")
-def resource_with_sources_and_config(resource_with_sources: str) -> str:
-    """Ensure a resource exists and sources are uploaded."""
+def corpus_with_sources_and_config(corpus_with_sources: str) -> str:
+    """Ensure a corpus exists and sources are uploaded."""
     with Path("tests/test_data/test_config.yaml").open("rb") as f:
         call_route(
             "PUT",
-            "/upload-config",
-            f"resource_id={resource_with_sources}",
+            f"/corpus/config/upload/{corpus_with_sources}",
             status_code=status.HTTP_201_CREATED,
             headers=HEADERS,
             files=[("file", ("config.yaml", f))],
         )
-    return resource_with_sources
+    return corpus_with_sources
 
 
-def test_download_config(resource_with_sources_and_config: str) -> None:
+def test_download_corpus_config(corpus_with_sources_and_config: str) -> None:
     """Test download config route."""
-    response = call_route("GET", "/download-config", f"resource_id={resource_with_sources_and_config}", headers=HEADERS)
+    response = call_route("GET", f"/corpus/config/download/{corpus_with_sources_and_config}", headers=HEADERS)
     assert len(response.content) > 0, "Downloaded file should not be empty"
 
 
 @pytest.fixture(scope="module")
-def resource_processed(resource_with_sources_and_config: str) -> str:
-    """Ensure a resource is processed."""
-    call_route("PUT", "/run-sparv", f"resource_id={resource_with_sources_and_config}", headers=HEADERS)
-    json_data = check_resource_loop(resource_id=resource_with_sources_and_config)
+def corpus_processed(corpus_with_sources_and_config: str) -> str:
+    """Ensure a corpus is processed."""
+    call_route("PUT", f"/corpus/job/run/{corpus_with_sources_and_config}", headers=HEADERS)
+    json_data = check_resource_loop(resource_id=corpus_with_sources_and_config)
     sparv_status = json_data.get("job", {}).get("status", {}).get("sparv")
-    assert sparv_status == "done", f"Resource processing failed. Sparv status: {sparv_status}"
-    return resource_with_sources_and_config
+    assert sparv_status == "done", f"Corpus processing failed. Sparv status: {sparv_status}"
+    return corpus_with_sources_and_config
 
 
-def test_manage_exports(resource_processed: str) -> None:
-    """Test manage exports routes."""
+def test_manage_corpus_exports(corpus_processed: str) -> None:
+    """Test manage corpus exports routes."""
     routes = [
-        ("GET", "/list-exports", f"resource_id={resource_processed}"),
-        ("GET", "/download-exports", f"resource_id={resource_processed}"),
-        ("GET", "/download-source-text", f"resource_id={resource_processed}&file=test_source1.txt"),
-        ("DELETE", "/remove-exports", f"resource_id={resource_processed}"),
+        ("GET", f"/corpus/exports/list/{corpus_processed}", None),
+        ("GET", f"/corpus/exports/download/{corpus_processed}", None),
+        ("GET", "/download-source-text", f"resource_id={corpus_processed}&file=test_source1.txt"),
+        ("DELETE", f"/corpus/exports/remove/{corpus_processed}", None),
     ]
     for method, path, query in routes:
-        response = call_route(method, path, query, headers=HEADERS)
-        if path == "/list-exports":
+        response = call_route(method, path, query=query, headers=HEADERS)
+        if path.startswith("/corpus/exports/list/"):
             json_data = response.json()
             assert isinstance(json_data.get("contents"), list), "Response should be a list of exports"
-        elif path == "/download-exports":
+        elif path.startswith("/corpus/exports/download/"):
             assert response.headers.get("Content-Disposition") is not None, (
                 "Download response should have Content-Disposition header"
             )
             assert response.headers.get("Content-Type") == "application/zip", "Download response should be a zip file"
             assert len(response.content) > 0, "Downloaded exports file should not be empty"
-        elif path == "/remove-exports":
+        elif path.startswith("/corpus/exports/remove/"):
             json_data = response.json()
             assert json_data.get("return_code") == return_codes.REMOVED_CONTENT.code, (
                 f"Exports removal failed: {json_data}"
@@ -220,59 +222,72 @@ def test_manage_exports(resource_processed: str) -> None:
             assert len(response.content) > 0, "Downloaded source text should not be empty"
 
 
-def test_processing_corpora(resource_processed: str) -> None:
+def test_processing_corpora(corpus_processed: str) -> None:
     """Test processing corpora routes."""
     routes = [
-        ("GET", "/check-changes", f"resource_id={resource_processed}"),
-        ("PUT", "/run-sparv", f"resource_id={resource_processed}"),
-        ("POST", "/abort-job", f"resource_id={resource_processed}"),
-        ("DELETE", "/clear-annotations", f"resource_id={resource_processed}"),
-        ("PUT", "/install-korp", f"resource_id={resource_processed}"),
-        ("DELETE", "/uninstall-korp", f"resource_id={resource_processed}"),
-        ("PUT", "/install-strix", f"resource_id={resource_processed}"),
-        ("DELETE", "/uninstall-strix", f"resource_id={resource_processed}"),
+        ("GET", f"/corpus/job/check-input/{corpus_processed}", None),
+        ("PUT", f"/corpus/job/run/{corpus_processed}", None),
+        ("POST", f"/corpus/job/abort/{corpus_processed}", None),
+        ("DELETE", f"/corpus/annotations/remove/{corpus_processed}", None),
+        ("PUT", f"/corpus/korp/install/{corpus_processed}", "korp"),
+        ("DELETE", f"/corpus/korp/uninstall/{corpus_processed}", None),
+        ("PUT", f"/corpus/strix/install/{corpus_processed}", "strix"),
+        ("DELETE", f"/corpus/strix/uninstall/{corpus_processed}", None),
     ]
-    for method, path, query in routes:
-        call_route(method, path, query, headers=HEADERS)
+    for method, path, process_name in routes:
+        call_route(method, path, headers=HEADERS)
 
-        if path.startswith("/install"):
-            process_name = path.split("-")[1]
-            json_data = check_resource_loop(resource_id=resource_processed, process_name=process_name, timeout=60)
+        if process_name:
+            json_data = check_resource_loop(resource_id=corpus_processed, process_name=process_name, timeout=60)
             status = json_data.get("job", {}).get("status", {}).get(process_name)
             assert status == "done", f"{process_name} installation failed. Status: {status}"
 
 
-def test_manage_metadata() -> None:
-    """Test manage metadata routes."""
-    # Create metadata resource
-    response = call_route(
-        "POST", "/create-metadata", "public_id=sbx-pytest", status_code=status.HTTP_201_CREATED, headers=HEADERS
-    )
-    resource_id = response.json().get("resource_id")
-    assert resource_id is not None, "Resource ID should not be None"
+# ------------------------------------------------------------------------------
+# Metadata tests
+# ------------------------------------------------------------------------------
 
+@pytest.fixture(scope="module")
+def metadata() -> typing.Generator[str, None, None]:
+    """Test creating a metadata resource."""
+    response = call_route(
+        "POST", "/metadata/create", query="public_id=sbx-pytest", status_code=status.HTTP_201_CREATED, headers=HEADERS
+    )
+    json_data = response.json()
+    assert json_data.get("return_code") == return_codes.CREATED_RESOURCE.code, f"Metadata creation failed: {json_data}"
+    resource_id = json_data.get("resource_id")
+    assert json_data.get("resource_id") is not None, "Resource ID should not be None"
+    yield resource_id
+
+    # Teardown: remove resource after all tests are done
+    response = call_route("DELETE", f"/metadata/remove/{resource_id}", headers=HEADERS)
+    json_data = response.json()
+    assert json_data.get("return_code") == return_codes.REMOVED_RESOURCE.code, f"Metadata removal failed: {json_data}"
+
+
+def test_manage_metadata(metadata: str) -> None:
+    """Test manage metadata routes."""
     routes = [
-        ("PUT", "/upload-metadata-yaml", f"resource_id={resource_id}", status.HTTP_201_CREATED),
-        ("GET", "/download-metadata-yaml", f"resource_id={resource_id}", status.HTTP_200_OK),
-        ("DELETE", "/remove-metadata", f"resource_id={resource_id}", status.HTTP_200_OK),
+        ("PUT", f"/metadata/config/upload/{metadata}", status.HTTP_201_CREATED),
+        ("GET", f"/metadata/config/download/{metadata}", status.HTTP_200_OK),
     ]
-    for method, path, query, status_code in routes:
-        if path == "/upload-metadata-yaml":
+    for method, path, status_code in routes:
+        if path.startswith("/metadata/config/upload/"):
             with Path("tests/test_data/test_config.yaml").open("rb") as f:
                 response = call_route(
                     method,
                     path,
-                    query,
                     status_code=status_code,
                     headers=HEADERS,
                     files=[("file", ("test_metadata.yaml", f))],
                 )
         else:
-            response = call_route(method, path, query, status_code=status_code, headers=HEADERS)
+            response = call_route(method, path, status_code=status_code, headers=HEADERS)
 
-    if path == "/download-metadata-yaml":
-        assert response.headers.get("Content-Type") == "text/yaml", "Download should return YAML"
-        assert len(response.content) > 0, "Downloaded metadata YAML should not be empty"
+        if path.startswith("/metadata/config/download/"):
+            logger.debug(response.headers.get("Content-Type"))
+            assert "text/yaml" in response.headers.get("Content-Type"), "Download should return YAML"
+            assert len(response.content) > 0, "Downloaded metadata YAML should not be empty"
 
 
 # ------------------------------------------------------------------------------
@@ -283,6 +298,7 @@ def test_manage_metadata() -> None:
 def call_route(
     method: str,
     path: str,
+    *,
     query: str | None = None,
     status_code: int = status.HTTP_200_OK,
     headers: dict | None = None,
@@ -354,16 +370,16 @@ def log_response(response: typing.Any, method: str, loglevel: int = logging.DEBU
 
 
 def check_resource_loop(resource_id: str, process_name: str = "sparv", timeout: int = 60) -> typing.Any:
-    """Call /resource-info and /advance-queue until the resource is processed, abort if it takes too long.
+    """Call /resource/status/get and /queue/advance until the resource is processed, abort if it takes too long.
 
     Returns:
-        A tuple containing the JSON response from /resource-info and a boolean indicating if the timeout was reached.
+        A tuple containing the JSON response from /resource/status/get and a boolean indicating if the timeout was reached.
     """
     start = time.time()
     process_status = None
     while True:
-        call_route("PUT", "/advance-queue", f"secret_key={settings.MINK_SECRET_KEY}", headers=HEADERS, log=False)
-        response = call_route("GET", "/resource-info", f"resource_id={resource_id}", headers=HEADERS)
+        call_route("PUT", "/queue/advance", query=f"secret_key={settings.MINK_SECRET_KEY}", headers=HEADERS, log=False)
+        response = call_route("GET", f"/resource/status/get/{resource_id}", headers=HEADERS)
         json_data = response.json()
         process_status = json_data.get("job", {}).get("status", {}).get(process_name)
         progress = json_data.get("job", {}).get("progress", {})

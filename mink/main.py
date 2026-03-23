@@ -123,8 +123,8 @@ async def log_request(request: Request, call_next: Callable) -> Response:
     root_path = request.scope.get("root_path") or ""
     path = request.url.path[len(root_path):]
 
-    # Log request info, but don't log options and advance-queue requests (too much spam)
-    if request.method != "OPTIONS" and not path.startswith("/advance-queue"):
+    # Log request info, but don't log options and queue advance requests (too much spam)
+    if request.method != "OPTIONS" and not path.startswith("/queue/advance"):
         logger.info("Request: %s %s?%s", request.method, path, request.url.query)
 
     # Call the actual route
@@ -149,7 +149,7 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
         idsite=settings.TRACKING_MATOMO_IDSITE,
         access_token=settings.TRACKING_MATOMO_AUTH_TOKEN,
         http_timeout=settings.TRACKING_MATOMO_HTTP_TIMEOUT,
-        exclude_paths=["/advance-queue"],
+        exclude_paths=["/queue/advance"],
         ignored_methods=["OPTIONS"],
     )
 elif settings.ENV not in {"testing", "development"}:

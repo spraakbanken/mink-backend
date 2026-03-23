@@ -41,6 +41,12 @@ def _require_job(job: object) -> SparvJob:
 @router.post(
     "/create-corpus",
     tags=["Manage Corpora"],
+    deprecated=True,
+    name="create-corpus-deprecated",
+)
+@router.post(
+    "/corpus/create",
+    tags=["Manage Corpora"],
     status_code=status.HTTP_201_CREATED,
     response_model=models.CreateResourceResponse,
     responses={
@@ -66,7 +72,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
     ### Example
 
     ```bash
-    curl -X POST '{{host}}/create-corpus' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X POST '{{host}}/corpus/create' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = await route_utils.create_resource_id(
@@ -102,6 +108,12 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
 @router.get(
     "/list-corpora",
     tags=["Manage Corpora"],
+    deprecated=True,
+    name="list-corpora-deprecated",
+)
+@router.get(
+    "/corpus/list",
+    tags=["Manage Corpora"],
     response_model=sparv_models.ListCorporaResponse,
     responses={**models.common_auth_error_responses},
 )
@@ -111,7 +123,7 @@ async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceI
     ### Example
 
     ```bash
-    curl '{{host}}/list-corpora' -H 'Authorization: Bearer YOUR_JWT'
+    curl '{{host}}/corpus/list' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     return utils.response(
@@ -121,6 +133,12 @@ async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceI
 
 @router.get(
     "/list-korp-corpora",
+    tags=["Manage Corpora"],
+    deprecated=True,
+    name="list-korp-corpora-deprecated",
+)
+@router.get(
+    "/corpus/korp/list",
     tags=["Manage Corpora"],
     response_model=sparv_models.ListCorporaResponse,
     responses={
@@ -161,7 +179,7 @@ async def list_korp_corpora(auth_data: dict = Depends(login.AuthDependencyNoReso
     ### Example
 
     ```bash
-    curl '{{host}}/list-korp-corpora' -H 'Authorization: Bearer YOUR_JWT'
+    curl '{{host}}/corpus/korp/list' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     installed_corpora = []
@@ -180,6 +198,12 @@ async def list_korp_corpora(auth_data: dict = Depends(login.AuthDependencyNoReso
 
 @router.delete(
     "/remove-corpus",
+    tags=["Manage Corpora"],
+    deprecated=True,
+    name="remove-corpus-deprecated",
+)
+@router.delete(
+    "/corpus/remove/{resource_id}",
     tags=["Manage Corpora"],
     response_model=models.BaseResponse,
     responses={
@@ -218,7 +242,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
     ### Example
 
     ```bash
-    curl -X DELETE '{{host}}/remove-corpus?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X DELETE '{{host}}/corpus/remove/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -259,6 +283,12 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
 
 @router.put(
     "/upload-sources",
+    tags=["Manage Sources"],
+    deprecated=True,
+    name="upload-sources-deprecated",
+)
+@router.put(
+    "/corpus/sources/upload/{resource_id}",
     tags=["Manage Sources"],
     response_model=models.BaseResponse,
     responses={
@@ -330,7 +360,7 @@ async def upload_sources(
     ### Example
 
     ```bash
-    curl -X PUT '{{host}}/upload-sources?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT' \
+    curl -X PUT '{{host}}/corpus/sources/upload/<resource_id>' -H 'Authorization: Bearer YOUR_JWT' \
 -F 'files=@path_to_file1' -F 'files=@path_to_file2'
     ```
     """
@@ -446,6 +476,12 @@ async def upload_sources(
 @router.get(
     "/list-sources",
     tags=["Manage Sources"],
+    deprecated=True,
+    name="list-sources-deprecated",
+)
+@router.get(
+    "/corpus/sources/list/{resource_id}",
+    tags=["Manage Sources"],
     response_model=models.ListingFilesResponse,
     responses={
         status.HTTP_200_OK: {
@@ -483,7 +519,7 @@ async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSO
     ### Example
 
     ```bash
-    curl '{{host}}/list-sources?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl '{{host}}/corpus/sources/list/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -502,6 +538,12 @@ async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSO
 
 @router.delete(
     "/remove-sources",
+    tags=["Manage Sources"],
+    deprecated=True,
+    name="remove-sources-deprecated",
+)
+@router.delete(
+    "/corpus/sources/remove/{resource_id}",
     tags=["Manage Sources"],
     response_model=models.BaseResponse,
     responses={
@@ -560,7 +602,7 @@ async def remove_sources(
     ### Example
 
     ```bash
-    curl -X DELETE '{{host}}/remove-sources?resource_id=some_resource_id&remove=file1,file2' \
+    curl -X DELETE '{{host}}/corpus/sources/remove/<resource_id>?remove=file1,file2' \
 -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
@@ -602,6 +644,12 @@ async def remove_sources(
 @router.get(
     "/download-sources",
     tags=["Manage Sources"],
+    deprecated=True,
+    name="download-sources-deprecated",
+)
+@router.get(
+    "/corpus/sources/download/{resource_id}",
+    tags=["Manage Sources"],
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -637,7 +685,7 @@ async def download_sources(
     ### Example
 
     ```bash
-    curl '{{host}}/download-sources?resource_id=some_resource_id&file=some_file_name&zip=true' \
+    curl '{{host}}/corpus/sources/download/<resource_id>?file=some_file_name&zip=true' \
 -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
@@ -696,6 +744,12 @@ async def download_sources(
 
 @router.put(
     "/upload-config",
+    tags=["Manage Config"],
+    deprecated=True,
+    name="upload-config-deprecated",
+)
+@router.put(
+    "/corpus/config/upload/{resource_id}",
     tags=["Manage Config"],
     status_code=status.HTTP_201_CREATED,
     response_model=models.BaseResponse,
@@ -757,7 +811,7 @@ async def upload_config(
     ### Example
 
     ```bash
-    curl -X PUT '{{host}}/upload-config?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT' \
+    curl -X PUT '{{host}}/corpus/config/upload/<resource_id>' -H 'Authorization: Bearer YOUR_JWT' \
 -F 'file=@path_to_config_file'
     ```
     """
@@ -777,6 +831,12 @@ async def upload_config(
 
 @router.get(
     "/download-config",
+    tags=["Manage Config"],
+    deprecated=True,
+    name="download-config-deprecated",
+)
+@router.get(
+    "/corpus/config/download/{resource_id}",
     tags=["Manage Config"],
     response_model=models.FileResponse,
     response_class=FileResponse,
@@ -805,7 +865,7 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
     ### Example
 
     ```bash
-    curl '{{host}}/download-config?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl '{{host}}/corpus/config/download/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -826,6 +886,12 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
 
 @router.get(
     "/list-exports",
+    tags=["Manage Exports"],
+    deprecated=True,
+    name="list-exports-deprecated",
+)
+@router.get(
+    "/corpus/exports/list/{resource_id}",
     tags=["Manage Exports"],
     response_model=models.ListingFilesResponse,
     responses={
@@ -879,7 +945,7 @@ async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSO
     ### Example
 
     ```bash
-    curl '{{host}}/list-exports?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl '{{host}}/corpus/exports/list/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -896,6 +962,12 @@ async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSO
 
 @router.get(
     "/download-exports",
+    tags=["Manage Exports"],
+    deprecated=True,
+    name="download-exports-deprecated",
+)
+@router.get(
+    "/corpus/exports/download/{resource_id}",
     tags=["Manage Exports"],
     response_model=models.FileResponse,
     response_class=FileResponse,
@@ -949,7 +1021,7 @@ async def download_exports(
     ### Example
 
     ```bash
-    curl '{{host}}/download-exports?resource_id=some_resource_id&file=some_file_name&zip=true' \
+    curl '{{host}}/corpus/exports/download/<resource_id>?file=some_file_name&zip=true' \
 -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
@@ -1035,6 +1107,12 @@ async def download_exports(
 @router.delete(
     "/remove-exports",
     tags=["Manage Exports"],
+    deprecated=True,
+    name="remove-exports-deprecated",
+)
+@router.delete(
+    "/corpus/exports/remove/{resource_id}",
+    tags=["Manage Exports"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -1073,7 +1151,7 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_leve
     ### Example
 
     ```bash
-    curl -X DELETE '{{host}}/remove-exports?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X DELETE '{{host}}/corpus/exports/remove/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -1156,7 +1234,7 @@ async def download_source_text(
     ### Example
 
     ```bash
-    curl '{{host}}/download-source-text?resource_id=some_resource_id&file=some_file_name' \
+    curl '{{host}}/download-source-text?resource_id=<resource_id>&file=some_file_name' \
 -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
@@ -1197,7 +1275,13 @@ async def download_source_text(
 @router.get(
     "/check-changes",
     tags=["Process Corpus"],
-    response_model=sparv_models.CheckChangesResponse,
+    deprecated=True,
+    name="check-changes-deprecated",
+)
+@router.get(
+    "/corpus/job/check-input/{resource_id}",
+    tags=["Process Corpus"],
+    response_model=sparv_models.CheckInputResponse,
     responses={
         **models.common_auth_error_responses,
         status.HTTP_404_NOT_FOUND: {
@@ -1227,7 +1311,7 @@ async def download_source_text(
         },
     },
 )
-async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def check_input(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
     """Check for any changes in the config and source files since the last Sparv job was started.
 
     Those changes include added and deleted source files.
@@ -1235,7 +1319,7 @@ async def check_changes(auth_data: dict = Depends(login.AuthDependency())) -> JS
     ### Example
 
     ```bash
-    curl -X GET '{{host}}/check-changes?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X GET '{{host}}/corpus/job/check-input/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]

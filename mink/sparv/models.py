@@ -26,8 +26,8 @@ class ListCorporaResponse(models.BaseResponse):
     }
 
 
-class CheckChangesResponse(models.BaseResponse):
-    """Model for the /check-changes response."""
+class CheckInputResponse(models.BaseResponse):
+    """Model for the /corpus/job/check-input response."""
     input_changed: bool = Field(
         default=False, description="Indicates if the input for the corpus has changed since the last run"
     )
@@ -62,7 +62,7 @@ class CheckChangesResponse(models.BaseResponse):
 
 
 class SchemaResponse(models.BaseResponse):
-    """Model for the /sparv-schema response."""
+    """Model for the /corpus/sparv/get-schema response."""
 
     sparv_schema: dict = Field(
         default={}, alias="schema", description="The JSON schema for the Sparv configuration format"
@@ -85,7 +85,7 @@ class SchemaResponse(models.BaseResponse):
 
 
 class LanguagesResponse(models.BaseResponse):
-    """Model for the /languages response."""
+    """Model for the /corpus/sparv/list-languages response."""
     languages: list[str] = Field(default=[], description="List of supported languages (language names and ISO codes)")
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
@@ -117,7 +117,7 @@ class LanguagesResponse(models.BaseResponse):
 
 
 class ExportsResponse(models.BaseResponse):
-    """Model for the /exports response."""
+    """Model for the /corpus/sparv/list-exports response."""
     exports: list[str] = Field(default=[], description="List of available export formats")
     language: str = Field(default="swe", description="ISO code of the language chosen for the export listing")
     model_config: ClassVar[dict] = {

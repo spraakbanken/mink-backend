@@ -33,6 +33,12 @@ def _require_job(job: object) -> SparvJob:
 @router.put(
     "/run-sparv",
     tags=["Process Corpus"],
+    deprecated=True,
+    name="run-sparv-deprecated",
+)
+@router.put(
+    "/corpus/job/run/{resource_id}",
+    tags=["Process Corpus"],
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -98,7 +104,7 @@ async def run_sparv(
     ### Example
 
     ```bash
-    curl -X PUT '{{host}}/run-sparv?resource_id=some_resource_id&exports=csv_export:csv,stats_export:freq_list,\
+    curl -X PUT '{{host}}/corpus/job/run/<resource_id>?exports=csv_export:csv,stats_export:freq_list,\
 xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
@@ -199,6 +205,12 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
 @router.post(
     "/abort-job",
     tags=["Process Corpus"],
+    deprecated=True,
+    name="abort-job-deprecated",
+)
+@router.post(
+    "/corpus/job/abort/{resource_id}",
+    tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -262,7 +274,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
     ### Example
 
     ```bash
-    curl -X POST '{{host}}/abort-job?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X POST '{{host}}/corpus/job/abort/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -296,6 +308,12 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
 
 @router.delete(
     "/clear-annotations",
+    tags=["Process Corpus"],
+    deprecated=True,
+    name="clear-annotations-deprecated",
+)
+@router.delete(
+    "/corpus/annotations/remove/{resource_id}",
     tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
@@ -349,7 +367,7 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency(min_l
     ### Example
 
     ```bash
-    curl -X DELETE '{{host}}/clear-annotations?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X DELETE '{{host}}/corpus/annotations/remove/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -373,6 +391,12 @@ async def clear_annotations(auth_data: dict = Depends(login.AuthDependency(min_l
 
 @router.put(
     "/install-korp",
+    tags=["Process Corpus"],
+    deprecated=True,
+    name="install-korp-deprecated",
+)
+@router.put(
+    "/corpus/korp/install/{resource_id}",
     tags=["Process Corpus"],
     response_model=models.StatusResponse,
     responses={
@@ -403,7 +427,7 @@ async def install_korp(
     ### Example
 
     ```bash
-    curl -X PUT '{{host}}/install-korp?resource_id=some_resource_id?scramble=true' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X PUT '{{host}}/corpus/korp/install/<resource_id>?scramble=true' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -446,6 +470,12 @@ async def install_korp(
 
 @router.delete(
     "/uninstall-korp",
+    tags=["Process Corpus"],
+    deprecated=True,
+    name="uninstall-korp-deprecated",
+)
+@router.delete(
+    "/corpus/korp/uninstall/{resource_id}",
     tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
@@ -496,7 +526,7 @@ async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency(min_leve
     ### Example
 
     ```bash
-    curl -X DELETE '{{host}}/uninstall-korp?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X DELETE '{{host}}/corpus/korp/uninstall/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -522,6 +552,12 @@ async def uninstall_korp(auth_data: dict = Depends(login.AuthDependency(min_leve
 @router.put(
     "/install-strix",
     tags=["Process Corpus"],
+    deprecated=True,
+    name="install-strix-deprecated",
+)
+@router.put(
+    "/corpus/strix/install/{resource_id}",
+    tags=["Process Corpus"],
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -546,7 +582,7 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
     ### Example
 
     ```bash
-    curl -X PUT '{{host}}/install-strix?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X PUT '{{host}}/corpus/strix/install/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -588,6 +624,12 @@ async def install_strix(auth_data: dict = Depends(login.AuthDependency(min_level
 
 @router.delete(
     "/uninstall-strix",
+    tags=["Process Corpus"],
+    deprecated=True,
+    name="uninstall-strix-deprecated",
+)
+@router.delete(
+    "/corpus/strix/uninstall/{resource_id}",
     tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
@@ -638,7 +680,7 @@ async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency(min_lev
     ### Example
 
     ```bash
-    curl -X DELETE '{{host}}/uninstall-strix?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X DELETE '{{host}}/corpus/strix/uninstall/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -667,6 +709,12 @@ async def uninstall_strix(auth_data: dict = Depends(login.AuthDependency(min_lev
 @router.get(
     "/sparv-schema",
     tags=["Documentation"],
+    deprecated=True,
+    name="sparv-schema-deprecated",
+)
+@router.get(
+    "/corpus/sparv/get-schema",
+    tags=["Documentation"],
     response_model=sparv_models.SchemaResponse,
     responses={
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
@@ -690,7 +738,7 @@ async def sparv_schema(update_cache: bool = sparv_models.update_cache_param) -> 
     ### Example
 
     ```bash
-    curl -X GET '{{host}}/sparv-schema'
+    curl -X GET '{{host}}/corpus/sparv/get-schema'
     ```
     """
     try:
@@ -707,6 +755,12 @@ async def sparv_schema(update_cache: bool = sparv_models.update_cache_param) -> 
 
 @router.get(
     "/sparv-languages",
+    tags=["Documentation"],
+    deprecated=True,
+    name="sparv-languages-deprecated",
+)
+@router.get(
+    "/corpus/sparv/list-languages",
     tags=["Documentation"],
     response_model=sparv_models.LanguagesResponse,
     responses={
@@ -731,7 +785,7 @@ async def sparv_languages(update_cache: bool = sparv_models.update_cache_param) 
     ### Example
 
     ```bash
-    curl -X GET '{{host}}/sparv-languages'
+    curl -X GET '{{host}}/corpus/sparv/list-languages'
     ```
     """
     try:
@@ -749,6 +803,12 @@ async def sparv_languages(update_cache: bool = sparv_models.update_cache_param) 
 
 @router.get(
     "/sparv-exports",
+    tags=["Documentation"],
+    deprecated=True,
+    name="sparv-exports-deprecated",
+)
+@router.get(
+    "/corpus/sparv/list-exports",
     tags=["Documentation"],
     response_model=sparv_models.ExportsResponse,
     responses={
@@ -775,12 +835,12 @@ async def sparv_exports(
     """List available Sparv export formats for the chosen language (default: 'swe').
 
     The language is specified with the `language` as ISO 639-3 code. See available languages by calling
-    <{{host}}/sparv-languages>.
+    <{{host}}/corpus/sparv/list-languages>.
 
     ### Example
 
     ```bash
-    curl -X GET '{{host}}/sparv-exports?language=swe'
+    curl -X GET '{{host}}/corpus/sparv/list-exports?language=swe'
     ```
     """
     try:

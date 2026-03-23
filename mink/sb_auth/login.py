@@ -28,8 +28,10 @@ request_id_var = ContextVar("request_id_var", default="")
 async def get_auth_data(
     request: Request,
     session_id: str | None = Cookie(None),
-    corpus_id: str | None = Query(None, description="Resource ID (deprecated, use resource_id instead)"),
-    resource_id: str | None = Query(None, description="Resource ID"),
+    corpus_query_id: str | None = Query(
+        None, description="Resource ID (deprecated, use resource_id instead)", deprecated=True
+    ),
+    resource_query_id: str | None = Query(None, description="Resource ID"),
     jwt_token: str | None = Security(oauth2_scheme),
     api_key: str | None = Security(api_key_scheme),
     min_level: str = "READ",
@@ -42,8 +44,8 @@ async def get_auth_data(
     Args:
         request: The request object.
         session_id: The session ID from the cookie.
-        corpus_id: The resource ID from the query parameter (deprecated).
-        resource_id: The resource ID from the query parameter.
+        corpus_query_id: The resource ID from the query parameter (deprecated).
+        resource_query_id: The resource ID from the query parameter.
         jwt_token: The JWT token from the request.
         api_key: The API key from the request.
         min_level: Minimum access level to filter user's resources by.
@@ -54,9 +56,15 @@ async def get_auth_data(
     Returns:
         A dictionary containing user information, resource IDs, and an optional authentication token.
     """
-    # TODO: For backwards compatibility, use corpus_id if resource_id is not provided
-    if not resource_id:
-        resource_id = corpus_id
+    # Prefer path parameter if present (new routes), otherwise support query params.
+    path_resource_id = request.path_params.get("resource_id")
+    if path_resource_id:
+        resource_id = path_resource_id
+    elif resource_query_id:
+        resource_id = resource_query_id
+    else:
+        # Backwards compatibility: use corpus_id if resource_id is not provided.
+        resource_id = corpus_query_id
 
     # Look for JWT
     if jwt_token:
@@ -164,16 +172,21 @@ class AuthDependency:
         session_id: str | None = Cookie(None, description="Session ID"),
         jwt_token: str | None = Security(oauth2_scheme),
         api_key: str | None = Security(api_key_scheme),
-        corpus_id: str | None = Query(None, description="Resource ID (deprecated, use resource_id instead)"),
+        corpus_query_id: str | None = Query(
+            None,
+            alias="corpus_id",
+            description="Resource ID (deprecated, use resource_id instead)",
+            deprecated=True,
+        ),
         # TODO: make resource_id required by replacing "None" with "..." when corpus_id has been removed
-        resource_id: str = Query(None, description="Resource ID"),
+        resource_query_id: str | None = Query(None, alias="resource_id", description="Resource ID"),
     ) -> dict:
         """Call the authentication dependency."""
         return await get_auth_data(
             request,
             session_id,
-            corpus_id,
-            resource_id,
+            corpus_query_id,
+            resource_query_id,
             jwt_token,
             api_key,
             self.min_level,

@@ -107,8 +107,13 @@ class RouteInfo:
         self.tagged_routes = 0
         self.untagged_routes = []
         self.tested_routes = set()
+        self.route_patterns = []
         for route in app.routes:
             if isinstance(route, APIRoute):
+                # Exclude deprecated aliases from coverage accounting.
+                if route.deprecated:
+                    continue
+                self.route_patterns.append((route.path, route.path_regex))
                 # Get tags from the route if available and non-empty
                 if hasattr(route, "tags") and route.tags:
                     self.tag_dict[route.tags[0]].extend((method, route.path) for method in route.methods)
@@ -120,6 +125,15 @@ class RouteInfo:
 
     def set_tested(self, path: str) -> None:
         """Mark a route as tested."""
+        if path in self.routes:
+            self.tested_routes.add(path)
+            return
+        # Map concrete paths (e.g. /corpus/job/run/mink-abc) to route templates
+        # (e.g. /corpus/job/run/{resource_id}) when possible.
+        for template, pattern in self.route_patterns:
+            if pattern.match(path):
+                self.tested_routes.add(template)
+                return
         self.tested_routes.add(path)
 
     def get_untested_routes(self) -> list:

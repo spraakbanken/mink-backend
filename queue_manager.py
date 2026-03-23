@@ -1,6 +1,6 @@
 """Script for advancing the job queue with scheduled jobs.
 
-This scheduler will make a call to the 'advance-queue' route of the mink API.
+This scheduler will make a call to the '/queue/advance' route of the mink API.
 """
 
 import logging
@@ -23,8 +23,8 @@ logger = logging.getLogger("mink_queue_manager")
 
 def advance_queue() -> None:
     """Check the queue and run jobs if possible."""
-    logger.info("Calling '/advance-queue'")
-    url = f"{settings.MINK_URL}/advance-queue"
+    logger.info("Calling '/queue/advance'")
+    url = f"{settings.MINK_URL}/queue/advance"
     try:
         params = {"secret_key": settings.MINK_SECRET_KEY}
         with httpx.Client(timeout=60.0) as client:

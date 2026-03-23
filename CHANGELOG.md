@@ -50,6 +50,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Deprecated
 
+- Most API routes have been renamed according to the pattern `<resource-type>/<sub-resource>/<action>/<resource-id>`
+  instead of `/<action>-<resource-type>?resource-id=<resource-id>` (e.g. `/upload-sources` is now
+  `/corpora/sources/upload`). Check the API documentation for the updated route names. The old routes are still
+  available but they are deprecated and will be removed in a future release.
 - The `/download-source-text` route is deprecated and will be removed in a future release. The plain text export from
   Sparv should be used instead.
 

@@ -43,11 +43,6 @@ def _rewrite_operation_links(openapi_schema: dict, link_builder: Callable[[str],
 
 
 @router.get("/", include_in_schema=False)
-async def hello(request: Request) -> RedirectResponse:
-    """Redirect to /docs."""
-    return RedirectResponse(url=request.url_for("docs"))
-
-
 @router.get("/docs")
 async def docs(request: Request) -> RedirectResponse:
     """Render mkdocs HTML with the developer's guide."""

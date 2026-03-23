@@ -24,6 +24,12 @@ router = APIRouter(tags=["Manage Metadata"])
 
 @router.post(
     "/create-metadata",
+    tags=["Manage Metadata"],
+    deprecated=True,
+    name="create-metadata-deprecated",
+)
+@router.post(
+    "/metadata/create",
     status_code=status.HTTP_201_CREATED,
     response_model=models.CreateResourceResponse,
     responses={
@@ -65,7 +71,7 @@ async def create_metadata(
     ### Example
 
     ```bash
-    curl -X GET '{{host}}/create-metadata?public_id=org-prefix-resource-id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X POST '{{host}}/metadata/create?public_id=org-prefix-resource-id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     # TODO: better solution for getting user's organization prefix!
@@ -128,6 +134,12 @@ async def create_metadata(
 
 @router.delete(
     "/remove-metadata",
+    tags=["Manage Metadata"],
+    deprecated=True,
+    name="remove-metadata-deprecated",
+)
+@router.delete(
+    "/metadata/remove/{resource_id}",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -176,7 +188,7 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
     ### Example
 
     ```bash
-    curl -X DELETE '{{host}}/remove-metadata?resource_id=resource-id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X DELETE '{{host}}/metadata/remove/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]
@@ -204,6 +216,12 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
 
 @router.put(
     "/upload-metadata-yaml",
+    tags=["Manage Metadata"],
+    deprecated=True,
+    name="upload-metadata-yaml-deprecated",
+)
+@router.put(
+    "/metadata/config/upload/{resource_id}",
     status_code=status.HTTP_201_CREATED,
     response_model=models.BaseResponse,
     responses={
@@ -257,7 +275,7 @@ async def upload_metadata_yaml(
     ### Example
 
     ```bash
-    curl -X PUT '{{host}}/upload-metadata-yaml?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT' \
+    curl -X PUT '{{host}}/metadata/config/upload/<resource_id>' -H 'Authorization: Bearer YOUR_JWT' \
 -F 'file=@path_to_metadata.yaml'
     ```
     """
@@ -275,6 +293,12 @@ async def upload_metadata_yaml(
 
 @router.get(
     "/download-metadata-yaml",
+    tags=["Manage Metadata"],
+    deprecated=True,
+    name="download-metadata-yaml-deprecated",
+)
+@router.get(
+    "/metadata/config/download/{resource_id}",
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -302,7 +326,7 @@ async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency(
     ### Example
 
     ```bash
-    curl -X GET '{{host}}/download-metadata-yaml?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X GET '{{host}}/metadata/config/download/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     resource_id = auth_data["resource_id"]

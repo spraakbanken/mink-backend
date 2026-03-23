@@ -15,6 +15,13 @@ router = APIRouter()
 @router.put(
     "/advance-queue",
     tags=["Process Corpus"],
+    deprecated=True,
+    name="advance-queue-deprecated",
+    include_in_schema=False,
+)
+@router.put(
+    "/queue/advance",
+    tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_401_UNAUTHORIZED: {
@@ -29,18 +36,17 @@ router = APIRouter()
             }
         },
     },
-    include_in_schema=False,
 )
 async def advance_queue(
     secret_key: str = Query(..., alias="secret_key", description="Secret key for authentication"),
 ) -> JSONResponse:
     """Check the job queue and attempt to advance it.
 
+    For Mink internal use only!
+
     1. Unqueue jobs that are done, aborted or erroneous
     2. For running jobs, check if process is still running
     3. Run the next job in the queue if there are fewer running jobs than allowed
-
-    For Mink internal use only!
     """
     if secret_key != settings.MINK_SECRET_KEY:
         raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_SECRET_KEY)
@@ -109,9 +115,47 @@ async def advance_queue(
     return utils.response(return_code=return_codes.QUEUE_ADVANCED)
 
 
+def _resource_status_for_id(resource_id: str, resources: list[str], admin_mode: bool) -> JSONResponse:
+    """Get status for one resource."""
+    # Check if resource exists
+    if resource_id not in resources:
+        raise exceptions.MinkHTTPException(return_code=return_codes.RESOURCE_NOT_FOUND)
+    try:
+        info = registry.get(resource_id)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_GETTING_JOB, info=f"Error getting job info for resource: {e}"
+        ) from e
+    if not info:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_GETTING_JOB, info="No job info found for resource"
+        )
+    return utils.response(
+        return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info, admin=admin_mode)
+    )
+
+
+def _resource_status_list(resource_ids: list[str], admin_mode: bool) -> JSONResponse:
+    """Get statuses for all available resources."""
+    try:
+        # Get all job statuses for this user's resources
+        res_list = []
+        resource_infos = registry.filter_resources(resource_ids)
+        for info_obj in resource_infos:
+            resp_dict = route_utils.make_status_response(info_obj, admin=admin_mode)
+            res_list.append(resp_dict)
+        return utils.response(
+            return_code=return_codes.LISTING_CONTENT, info="Listing resource infos", resources=res_list
+        )
+    except Exception as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_LISTING_CONTENT, info=str(e)) from e
+
+
 @router.get(
     "/resource-info",
     tags=["Process Corpus"],
+    deprecated=True,
+    name="resource-info-deprecated",
     response_model=models.StatusResponse | models.StatusesResponse,
     responses={
         **models.common_auth_error_responses,
@@ -130,55 +174,78 @@ async def advance_queue(
         },
     },
 )
-async def resource_info(
-    # Parameter is defined again here to allow for None (since it is optional in this route)
-    resource_id: str | None = Query(None, description="Resource ID"),
+async def resource_status_deprecated(
     auth_data: dict = Depends(login.AuthDependency(require_resource_id=False)),
 ) -> JSONResponse:
-    """Return the status of the current job for a resource or all the user's resources.
-
-    If the resource ID is provided, the status of the specific resource is returned. Otherwise, the statuses of all
-    resources are returned.
+    """Return resource status for a specific resource or for all resources available to the authenticated user.
 
     If admin mode is turned on, the owner information is included for each resource.
 
     ### Example
 
     ```bash
-    curl -X GET '{{host}}/resource-info?resource_id=some_resource_id' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X GET '{{host}}/resource-info' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data.get("resource_id")
-    resources = auth_data.get("resources", [])
-    admin_mode = auth_data.get("admin_mode", False)
-
+    resource_id = auth_data["resource_id"]
+    resources = auth_data["resources"]
+    admin_mode = auth_data["admin_mode"]
     if resource_id:
-        # Check if resource exists
-        if resource_id not in resources:
-            raise exceptions.MinkHTTPException(return_code=return_codes.RESOURCE_NOT_FOUND)
-        try:
-            info = registry.get(resource_id)
-        except Exception as e:
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.FAILED_GETTING_JOB, info=f"Error getting job info for resource: {e}"
-            ) from e
-        if not info:
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.FAILED_GETTING_JOB, info="No job info found for resource"
-            )
-        return utils.response(
-            return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info, admin=admin_mode)
-        )
+        return _resource_status_for_id(resource_id, resources, admin_mode)
+    return _resource_status_list(resources, admin_mode)
 
-    try:
-        # Get all job statuses for this user's resources
-        res_list = []
-        resources = registry.filter_resources(resources)
-        for res in resources:
-            resp_dict = route_utils.make_status_response(res, admin=admin_mode)
-            res_list.append(resp_dict)
-        return utils.response(
-            return_code=return_codes.LISTING_CONTENT, info="Listing resource infos", resources=res_list
-        )
-    except Exception as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_LISTING_CONTENT, info=str(e)) from e
+
+@router.get(
+    "/resource/status/list",
+    tags=["Process Corpus"],
+    response_model=models.StatusesResponse,
+    responses={**models.common_auth_error_responses},
+)
+async def list_resource_statuses(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
+    """Return statuses for all resources available to the authenticated user.
+
+    If admin mode is turned on, the owner information is included for each resource.
+
+    ### Example
+
+    ```bash
+    curl -X GET '{{host}}/resource/status/list' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    return _resource_status_list(auth_data["resources"], auth_data["admin_mode"])
+
+
+@router.get(
+    "/resource/status/get/{resource_id}",
+    tags=["Process Corpus"],
+    response_model=models.StatusResponse,
+    responses={
+        **models.common_auth_error_responses,
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_GETTING_JOB.message,
+                        "return_code": return_codes.FAILED_GETTING_JOB.code,
+                        "info": "Error getting job info for resource",
+                    }
+                }
+            },
+        },
+    },
+)
+async def get_resource_status(
+    resource_id: str,
+    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
+) -> JSONResponse:
+    """Return the status for one resource.
+
+    ### Example
+
+    ```bash
+    curl -X GET '{{host}}/resource/status/get/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    return _resource_status_for_id(resource_id, auth_data["resources"], auth_data["admin_mode"])

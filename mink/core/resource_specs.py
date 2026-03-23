@@ -35,7 +35,7 @@ class ResourceSpec:
     """Functions to call to advance the job queue for this resource type, keyed by process name"""
 
     process_running: Callable[[Any], bool] | None = None
-    """Function to check if a process is still running (e.g. for advance-queue)"""
+    """Function to check if a process is still running (e.g. for /queue/advance)"""
 
     sync_processes: tuple[str, ...] = ()
     """Processes which handle file syncing"""
