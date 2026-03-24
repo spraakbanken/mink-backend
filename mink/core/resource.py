@@ -1,20 +1,25 @@
 """Classes defining resource objects."""
 
-from enum import Enum
+from dataclasses import dataclass
 from typing import Any
 
 from mink.core import exceptions, utils
 
 
-class ResourceType(Enum):
-    """Class for representing the different resource types."""
+@dataclass(frozen=True, slots=True)
+class ResourceType:
+    """Value object representing a resource type."""
 
-    corpus = "corpus"
-    metadata = "metadata"
+    value: str
 
-    def serialize(self) -> str:
-        """Return a serialized representation of the ResourceType instance."""
-        return self.name
+    def __post_init__(self) -> None:
+        """Validate the resource type name."""
+        if not isinstance(self.value, str) or not self.value:
+            raise exceptions.InvalidResourceTypeError(self.value)
+
+    def __str__(self) -> str:
+        """Return a string representation of the resource type."""
+        return self.value
 
 
 class Resource:
@@ -23,9 +28,10 @@ class Resource:
     def __init__(
         self,
         id: str,  # noqa: A002
+        type: ResourceType,  # noqa: A002,
+        *,
         public_id: str | None = "",
         name: dict | None = None,
-        type: ResourceType | str = ResourceType.corpus,  # noqa: A002
         source_files: list | None = None,
         sources_deleted: str = "",
     ) -> None:
@@ -43,14 +49,18 @@ class Resource:
         self.public_id = public_id or self.id
         self.name = name or {"swe": "", "eng": ""}
         if isinstance(type, ResourceType):
-            self.type = type
+            resource_type = type
         elif isinstance(type, str):
-            try:
-                self.type = ResourceType[type]
-            except KeyError:
-                raise exceptions.InvalidResourceTypeError(type) from None
+            resource_type = ResourceType(type)
         else:
             raise exceptions.InvalidResourceTypeError(type)
+        from mink.core.resource_specs import get_spec  # noqa: PLC0415, avoid circular import
+
+        try:
+            get_spec(resource_type)
+        except KeyError:
+            raise exceptions.InvalidResourceTypeError(resource_type.value) from None
+        self.type = resource_type
         self.source_files = source_files or []
         self.sources_deleted = sources_deleted or ""
 

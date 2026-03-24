@@ -3,6 +3,8 @@
 from mink.core.resource import ResourceType
 from mink.metadata.config import metadata_settings
 
+METADATA = ResourceType("metadata")
+
 
 def register() -> None:
     """Register the metadata resource spec."""
@@ -11,7 +13,7 @@ def register() -> None:
     from mink.metadata.storage import storage  # noqa: PLC0415
 
     register_spec(
-        ResourceType.metadata,
+        METADATA,
         ResourceSpec(
             storage=storage,
             job_cls=BaseJob,

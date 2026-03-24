@@ -20,7 +20,7 @@ class Info:
         self,
         id: str,  # noqa: A002
         owner: User,
-        resource: Resource | None = None,
+        resource: Resource,
         job: BaseJob | None = None,
     ) -> None:
         """Create an info instance.
@@ -33,7 +33,7 @@ class Info:
         """
         self.id = id
         self.owner = owner
-        self.resource = resource or Resource(id=self.id)
+        self.resource = resource
         spec = get_spec(self.resource.type)
         self.job = job or spec.job_cls(id=self.id, processes=list(spec.process_names))
 

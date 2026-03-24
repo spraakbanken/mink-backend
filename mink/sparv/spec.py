@@ -7,6 +7,8 @@ from mink.core import return_codes
 from mink.core.resource import ResourceType
 from mink.sparv.config import sparv_settings
 
+CORPUS = ResourceType("corpus")
+
 
 class ProcessName(StrEnum):
     """Enum class for Sparv process names."""
@@ -70,7 +72,7 @@ def register() -> None:
         }
 
     register_spec(
-        ResourceType.corpus,
+        CORPUS,
         ResourceSpec(
             storage=storage,
             job_cls=SparvJob,

@@ -8,12 +8,11 @@ import subprocess
 from mink.core import exceptions, registry, return_codes, utils
 from mink.core.jobs import BaseJob
 from mink.core.logging import logger
-from mink.core.resource import ResourceType
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
 from mink.sparv import cache
 from mink.sparv.config import sparv_settings
-from mink.sparv.spec import ProcessName
+from mink.sparv.spec import CORPUS, ProcessName
 from mink.sparv.storage import storage
 
 PROGRESS_DONE = 100
@@ -72,7 +71,7 @@ class SparvJob(BaseJob):
 
         # Set processes based on resource spec (used for the JobStatuses mapping and status checks in BaseJob)
         if processes is None:
-            processes = list(get_spec(ResourceType.corpus).process_names)
+            processes = list(get_spec(CORPUS).process_names)
 
         super().__init__(
             id=id,
@@ -515,7 +514,7 @@ class SparvJob(BaseJob):
         Returns:
             Tuple of warnings, errors, and miscellaneous output.
         """
-        if not self.status.has_process_output(self.current_process, get_spec(ResourceType.corpus).no_output_processes):
+        if not self.status.has_process_output(self.current_process, get_spec(CORPUS).no_output_processes):
             return "", "", "", ""
 
         p = storage.ssh_run(f"cat {self.nohupfile}")
@@ -566,7 +565,7 @@ class SparvJob(BaseJob):
         Returns:
             Progress percentage as a string.
         """
-        if self.status.has_process_output(self.current_process, get_spec(ResourceType.corpus).no_output_processes):
+        if self.status.has_process_output(self.current_process, get_spec(CORPUS).no_output_processes):
             if self.progress_output == PROGRESS_DONE and not self.status.is_done(self.current_process):
                 return "99%"
             return f"{self.progress_output}%"

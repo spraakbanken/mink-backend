@@ -8,9 +8,10 @@ from mink.cache import jobs_cache
 from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
-from mink.core.resource import Resource, ResourceType
+from mink.core.resource import Resource
 from mink.metadata import utils as metadata_utils
 from mink.metadata.config import metadata_settings
+from mink.metadata.spec import METADATA
 from mink.metadata.storage import storage
 from mink.sb_auth import login
 
@@ -111,7 +112,7 @@ async def create_metadata(
 
     try:
         # Create info object in registry
-        res = Resource(resource_id, type=ResourceType.metadata, public_id=public_id)
+        res = Resource(resource_id, type=METADATA, public_id=public_id)
         info_obj = Info(resource_id, resource=res, owner=user)
         info_obj.create()
 
@@ -196,7 +197,7 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
 
     # Check for correct resource type
     # TODO: Maybe this should be done in login.AuthDependency()?
-    if info_obj.resource.type != ResourceType.metadata:
+    if info_obj.resource.type != METADATA:
         raise exceptions.MinkHTTPException(
             return_code=return_codes.INVALID_RESOURCE_TYPE, info="Expected a metadata resource"
         )

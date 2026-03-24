@@ -12,13 +12,14 @@ from mink.core import exceptions, models, registry, return_codes, route_utils, u
 from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.logging import logger
-from mink.core.resource import Resource, ResourceType
+from mink.core.resource import Resource
 from mink.core.resource_specs import get_spec
 from mink.sb_auth import login
 from mink.sparv import models as sparv_models
 from mink.sparv import utils as sparv_utils
 from mink.sparv.config import sparv_settings
 from mink.sparv.jobs import SparvJob
+from mink.sparv.spec import CORPUS
 from mink.sparv.storage import storage
 
 router = APIRouter()
@@ -84,7 +85,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
 
     try:
         # Create info object in registry
-        res = Resource(resource_id, type=ResourceType.corpus)
+        res = Resource(resource_id, type=CORPUS)
         info_obj = Info(resource_id, resource=res, owner=auth_data["user"])
         info_obj.create()
 
@@ -386,7 +387,7 @@ async def upload_sources(
     existing_files = storage.list_contents(source_dir)
     max_file_size_mb = int(settings.MAX_FILE_LENGTH / (1024 * 1024))
     warnings = []
-    spec = get_spec(ResourceType.corpus)
+    spec = get_spec(CORPUS)
 
     # Upload data
     for f in files:

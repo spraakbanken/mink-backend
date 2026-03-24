@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
 from mink.core import exceptions, models, registry, return_codes, route_utils, utils
-from mink.core.resource import ResourceType
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
 from mink.sb_auth import login
@@ -15,7 +14,7 @@ from mink.sparv import models as sparv_models
 from mink.sparv import utils as sparv_utils
 from mink.sparv.config import sparv_settings
 from mink.sparv.jobs import SparvDefaultJob, SparvJob
-from mink.sparv.spec import ProcessName
+from mink.sparv.spec import CORPUS, ProcessName
 from mink.sparv.storage import storage
 
 router = APIRouter()
@@ -280,7 +279,7 @@ async def abort_job(auth_data: dict = Depends(login.AuthDependency(min_level="WR
     resource_id = auth_data["resource_id"]
     job = _require_job(registry.get(resource_id).job)
     # Syncing
-    if job.status.is_syncing(get_spec(ResourceType.corpus).sync_processes):
+    if job.status.is_syncing(get_spec(CORPUS).sync_processes):
         raise exceptions.MinkHTTPException(
             return_code=return_codes.PROCESS_RUNNING, info="Cannot abort job while syncing files"
         )

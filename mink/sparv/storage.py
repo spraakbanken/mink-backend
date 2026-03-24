@@ -7,10 +7,10 @@ from dateutil.parser import isoparse
 
 from mink.core import exceptions
 from mink.core.config import settings
-from mink.core.resource import ResourceType
 from mink.core.resource_specs import get_spec
 from mink.core.storage_base import BaseStorage
 from mink.sparv.config import sparv_settings
+from mink.sparv.spec import CORPUS
 
 if TYPE_CHECKING:
     from mink.core.info import Info
@@ -112,7 +112,7 @@ class SparvStorage(BaseStorage):
 
     def get_config_file(self, resource_id: str) -> Path:
         """Get path to corpus config file."""
-        config_filename = get_spec(ResourceType.corpus).config_filename
+        config_filename = get_spec(CORPUS).config_filename
         return self.get_corpus_dir(resource_id) / config_filename
 
     # ------------------------------------------------------------------------------
