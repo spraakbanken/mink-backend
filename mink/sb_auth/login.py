@@ -253,11 +253,12 @@ class Authentication:
         """Return user."""
         return self.user
 
-    def get_resource_ids(self, min_level: str = "READ") -> list[str]:
+    def get_resource_ids(self, min_level: str = "READ", resource_type: str | None = None) -> list[str]:
         """Get a list of all resource IDs the user has access to.
 
         Args:
             min_level: Minimum access level to filter by.
+            resource_type: The type of resource to filter by.
 
         Returns:
             A list of resource IDs.
@@ -266,7 +267,15 @@ class Authentication:
         def is_relevant(resource_id: str, level: int) -> bool:
             return level >= self.levels[min_level] and resource_id.startswith(settings.RESOURCE_PREFIX)
 
-        grants = {**self.scope.get("corpora", {}), **self.scope.get("metadata", {})}.items()
+        # If resource_type is specified, only return resources of that type
+        if resource_type:
+            grants = self.scope.get(resource_type, {}).items()
+        else:
+            merged_grants: dict[str, int] = {}
+            for scope_resource_type in settings.SBAUTH_RESOURCE_TYPES:
+                merged_grants.update(self.scope.get(scope_resource_type, {}))
+            grants = merged_grants.items()
+
         return [resource_id for resource_id, level in grants if is_relevant(resource_id, level)]
 
     def is_admin(self) -> bool:

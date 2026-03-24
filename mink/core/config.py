@@ -67,6 +67,9 @@ class Settings(BaseSettings):
     SBAUTH_MINK_APP_RESOURCE: str = "mink-app"  # Name of the resource used to control admin grants
     SBAUTH_CACHE_LIFETIME: int = 10 * 60  # How long to cache fetched permissions (in seconds)
     SBAUTH_PERSONAL_API_KEY: str = ""  # Personal API key for SB Auth (used for testing purposes)
+    SBAUTH_RESOURCE_TYPES: list[str] = Field(
+        default_factory=lambda: ["corpora", "lexica", "metadata"]
+    )  # Resource types in SB Auth
 
     # Settings for queue manager
     MAX_WORKERS: int = 1  # Number of jobs that can be run simultaneously

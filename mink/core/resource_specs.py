@@ -55,6 +55,9 @@ class ResourceSpec:
     info_builder: Callable[[], dict[str, Any]] | None = None
     """Function to build resource-type-specific info dict for `/info` route"""
 
+    sbauth_resource_type: str = ""
+    """SB Auth scope key for this resource type"""
+
 
 _SPEC_REGISTRY: dict[ResourceType, ResourceSpec] = {}
 _SPECS_STATE = {"loading": False, "loaded": False}
@@ -83,8 +86,18 @@ def load_specs() -> None:
 
 def register_spec(resource_type: ResourceType, spec: ResourceSpec) -> None:
     """Register a spec for a resource type."""
+    from mink.core.config import settings  # noqa: PLC0415, avoids circular import
+
+    # Check if spec for this resource type is already registered
     if resource_type in _SPEC_REGISTRY:
         raise ValueError(f"Resource spec already registered: {resource_type}")
+    # Check if sbauth_resource_type is valid (i.e. defined in settings.SBAUTH_RESOURCE_TYPES)
+    if spec.sbauth_resource_type not in settings.SBAUTH_RESOURCE_TYPES:
+        raise ValueError(
+            f"Invalid sbauth_resource_type '{spec.sbauth_resource_type}' "
+            f"for {resource_type}. Allowed: {settings.SBAUTH_RESOURCE_TYPES}"
+        )
+
     _SPEC_REGISTRY[resource_type] = spec
 
 

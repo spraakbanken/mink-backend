@@ -9,6 +9,7 @@ from mink.core import exceptions, models, registry, return_codes, route_utils, u
 from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.resource import Resource
+from mink.core.resource_specs import get_spec
 from mink.metadata import utils as metadata_utils
 from mink.metadata.config import metadata_settings
 from mink.metadata.spec import METADATA
@@ -105,7 +106,7 @@ async def create_metadata(
 
     resource_id = await route_utils.create_resource_id(
         auth_token=auth_data["auth_token"],
-        resource_type="metadata",
+        resource_type=get_spec(METADATA).sbauth_resource_type,
         existing_ids_fn=jobs_cache.get_all_resources,
         resource_prefix=settings.RESOURCE_PREFIX,
     )

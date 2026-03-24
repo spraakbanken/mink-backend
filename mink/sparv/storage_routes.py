@@ -78,7 +78,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
     """
     resource_id = await route_utils.create_resource_id(
         auth_token=auth_data["auth_token"],
-        resource_type="corpora",
+        resource_type=get_spec(CORPUS).sbauth_resource_type,
         existing_ids_fn=jobs_cache.get_all_resources,
         resource_prefix=settings.RESOURCE_PREFIX,
     )

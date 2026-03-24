@@ -20,6 +20,7 @@ def register() -> None:
             allowed_extensions=(".yaml", ".yml"),
             config_filename="",
             process_names=(),
+            sbauth_resource_type="metadata",
             router_modules=("mink.metadata.routes",),
             info_builder=lambda: {
                 "description": metadata_settings.METADATA_RES_INFO,

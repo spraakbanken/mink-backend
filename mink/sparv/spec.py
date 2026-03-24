@@ -79,6 +79,7 @@ def register() -> None:
             allowed_extensions=tuple(sparv_settings.SPARV_IMPORTER_MODULES.keys()),
             config_filename=sparv_settings.SPARV_CORPUS_CONFIG,
             process_names=tuple(p.name for p in ProcessName),
+            sbauth_resource_type="corpora",
             router_modules=("mink.sparv.storage_routes", "mink.sparv.process_routes"),
             process_running=process_running,
             queue_handlers={
