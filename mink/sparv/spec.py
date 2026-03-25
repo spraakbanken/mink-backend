@@ -31,16 +31,18 @@ def register() -> None:
     from mink.sparv.storage import storage  # noqa: PLC0415, avoids circular import
 
     def startup_check() -> None:
-        if not sparv_settings.SPARV_HOST:
-            if settings.ENV != "development":
-                raise exceptions.ConfigVariableNotSetError("SPARV_HOST")
-            logger.warning("'SPARV_HOST' not set, Sparv will not be available!")
-            sparv_settings.SPARV_ENABLED = False
-        if not sparv_settings.SPARV_USER:
-            if settings.ENV != "development":
-                raise exceptions.ConfigVariableNotSetError("SPARV_USER")
-            logger.warning("'SPARV_USER' not set, Sparv will not be available!")
-            sparv_settings.SPARV_ENABLED = False
+        for var in [
+            "SPARV_HOST",
+            "SPARV_USER",
+            "SPARV_CORPORA_DIR",
+            "SPARV_DEFAULT_CORPORA_DIR",
+            "SPARV_COMMAND",
+        ]:
+            if not getattr(sparv_settings, var):
+                if settings.ENV != "development":
+                    raise exceptions.ConfigVariableNotSetError(var)
+                logger.warning(f"'{var}' not set, Sparv will not be available!")
+                sparv_settings.SPARV_ENABLED = False
 
     def process_running(job: Any) -> bool:
         return cast(SparvJob, job).process_running()

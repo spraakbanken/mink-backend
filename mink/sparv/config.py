@@ -17,10 +17,14 @@ class SparvSettings(BaseSettings):
     # Sparv server settings
     SPARV_HOST: str = ""  # Host where Sparv is run
     SPARV_USER: str = ""  # User for running Sparv
-    SPARV_DEFAULT_CORPORA_DIR: str = "~/mink-data/corpus/default"  # Dir for running listings like 'sparv run -l'
-    SPARV_CORPORA_DIR: str = "mink-data/corpus"  # Dir where user corpora are stored and run, relative to home dir
-    SPARV_ENVIRON: str = "SPARV_DATADIR=~/sparv-pipeline/data/"  # Environment variables to set when running Sparv
-    SPARV_COMMAND: str = "~/sparv-pipeline/venv/bin/python -u -m sparv"  # Command for calling Sparv
+    # Dir where user corpora are stored and run, e.g. "/home/user/mink-data/corpus"
+    SPARV_CORPORA_DIR: str = ""
+    # Dir for running listings like 'sparv run -l', e.g. "/home/user/mink-data/corpus/default"
+    SPARV_DEFAULT_CORPORA_DIR: str = ""
+    # Environment variables to set when running Sparv, e.g. SPARV_DATADIR=/home/user/sparv-pipeline/data/
+    SPARV_ENVIRON: str = ""
+    # Command for calling Sparv, e.g. "/home/user/sparv-pipeline/venv/bin/python -u -m sparv"
+    SPARV_COMMAND: str = ""
     SPARV_RUN: str = "run --socket ~/sparv-pipeline/sparv.socket --json-log --log-to-file info"  # Sparv's 'run' command
     SPARV_INSTALL: str = "install --json-log --log-to-file info"  # Sparv's 'install' command
     SPARV_UNINSTALL: str = "uninstall --log-to-file info"  # Sparv's 'uninstall' command
@@ -114,7 +118,7 @@ class SparvSettings(BaseSettings):
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists
         "env_file_encoding": "utf-8",
-        "extra": "ignore"  # Ignore extra environment variables from other modules (e.g. SPARV_*)
+        "extra": "ignore"  # Ignore extra environment variables from other modules
     }
 
 
