@@ -23,6 +23,11 @@ from mink.sparv.spec import CORPUS
 from mink.sparv.storage import storage
 
 router = APIRouter()
+SBAUTH_CORPUS = get_spec(CORPUS).sbauth_resource_type
+AUTH_CORPUS = login.AuthDependency(sbauth_resource_type=SBAUTH_CORPUS)
+AUTH_CORPUS_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_CORPUS)
+AUTH_CORPUS_ADMIN = login.AuthDependency(min_level="ADMIN", sbauth_resource_type=SBAUTH_CORPUS)
+AUTH_CORPUS_NO_ID = login.AuthDependencyNoResourceId(sbauth_resource_type=SBAUTH_CORPUS)
 
 
 def _require_job(job: object) -> SparvJob:
@@ -67,7 +72,7 @@ def _require_job(job: object) -> SparvJob:
         },
     },
 )
-async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
+async def create_corpus(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResponse:
     """Create a new corpus.
 
     ### Example
@@ -118,7 +123,7 @@ async def create_corpus(auth_data: dict = Depends(login.AuthDependencyNoResource
     response_model=sparv_models.ListCorporaResponse,
     responses={**models.common_auth_error_responses},
 )
-async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
+async def list_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResponse:
     """List the IDs of all available corpora.
 
     ### Example
@@ -172,7 +177,7 @@ async def list_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceI
         },
     },
 )
-async def list_korp_corpora(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
+async def list_korp_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResponse:
     """List the IDs of the user's Mink corpora that are installed in Korp.
 
     This route is deprecated and will be removed in future versions.
@@ -235,7 +240,7 @@ async def list_korp_corpora(auth_data: dict = Depends(login.AuthDependencyNoReso
         },
     },
 )
-async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level="ADMIN"))) -> JSONResponse:
+async def remove_corpus(auth_data: dict = Depends(AUTH_CORPUS_ADMIN)) -> JSONResponse:
     """Remove a corpus from the storage server.
 
     Will attempt to abort any running job for this corpus and also remove it from the Sparv server.
@@ -351,7 +356,7 @@ async def remove_corpus(auth_data: dict = Depends(login.AuthDependency(min_level
 async def upload_sources(
     request: Request,
     files: list[UploadFile] = File(..., description="The files to upload"),
-    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
+    auth_data: dict = Depends(AUTH_CORPUS_WRITE),
 ) -> JSONResponse:
     """Upload the attached files as corpus source files.
 
@@ -514,7 +519,7 @@ async def upload_sources(
         },
     },
 )
-async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def list_sources(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
     """List the available corpus source files.
 
     ### Example
@@ -593,7 +598,7 @@ async def list_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSO
 )
 async def remove_sources(
     remove: list[str] = Query(..., description="Files to remove, comma-separated"),
-    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
+    auth_data: dict = Depends(AUTH_CORPUS_WRITE),
 ) -> JSONResponse:
     """Remove the source files given in the `remove` parameter from the corpus.
 
@@ -675,7 +680,7 @@ async def remove_sources(
 async def download_sources(
     download_file: str | None = Query(None, alias="file", description="The file name or path to download"),
     zipped: bool = Query(False, alias="zip", description="Whether to zip the file or not"),
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(AUTH_CORPUS),
 ) -> FileResponse:
     """Download the corpus source files as a zip file.
 
@@ -798,7 +803,7 @@ async def download_sources(
 async def upload_config(
     yaml_file: UploadFile | None = models.upload_file_opt_param,
     yaml_txt: str | None = Query(None, alias="config", description="The config file as plain text"),
-    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
+    auth_data: dict = Depends(AUTH_CORPUS_WRITE),
 ) -> JSONResponse:
     """Upload a corpus configuration as file or plain text (using the `config` parameter).
 
@@ -860,7 +865,7 @@ async def upload_config(
         },
     },
 )
-async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> FileResponse:
+async def download_config(auth_data: dict = Depends(AUTH_CORPUS)) -> FileResponse:
     """Download the corpus config file in YAML format.
 
     ### Example
@@ -940,7 +945,7 @@ async def download_config(auth_data: dict = Depends(login.AuthDependency())) -> 
         },
     },
 )
-async def list_exports(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def list_exports(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
     """List the available export files created by Sparv.
 
     ### Example
@@ -1008,7 +1013,7 @@ async def download_exports(
     download_file: str | None = Query(None, alias="file", description="The file name or path to download"),
     download_folder: str | None = Query(None, alias="dir", description="The directory to download"),
     zipped: bool = Query(True, alias="zip", description="Whether to zip the file or not"),
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(AUTH_CORPUS),
 ) -> FileResponse:
     """Download all available export files created by Sparv.
 
@@ -1144,7 +1149,7 @@ async def download_exports(
         },
     },
 )
-async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_level="WRITE"))) -> JSONResponse:
+async def remove_exports(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONResponse:
     """Remove all export files for the corpus from the storage server.
 
     Will attempt to remove exports from the Sparv server, too, but won't crash if this fails.
@@ -1225,7 +1230,7 @@ async def remove_exports(auth_data: dict = Depends(login.AuthDependency(min_leve
 )
 async def download_source_text(
     download_file: str = Query(..., alias="file", description="The file name to download"),
-    auth_data: dict = Depends(login.AuthDependency()),
+    auth_data: dict = Depends(AUTH_CORPUS),
 ) -> FileResponse:
     """Download one of the source files in plain text.
 
@@ -1312,7 +1317,7 @@ async def download_source_text(
         },
     },
 )
-async def check_input(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
+async def check_input(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
     """Check for any changes in the config and source files since the last Sparv job was started.
 
     Those changes include added and deleted source files.

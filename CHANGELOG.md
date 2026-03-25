@@ -28,6 +28,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - The config setting "SPARV_WORKERS" has been renamed to "MAX_WORKERS" since it is now used by all resource types
   instead of just Sparv.
 - The documentation was updated to reflect the new project structure.
+- SB Auth resource types are now defined in the config and mappen in the specs. The login module is able to return
+  resources of the specified type only, avoiding accidental execution of actions on the wrong resource type.
 
 ### Added
 

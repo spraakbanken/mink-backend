@@ -17,6 +17,11 @@ from mink.metadata.storage import storage
 from mink.sb_auth import login
 
 router = APIRouter(tags=["Manage Metadata"])
+SBAUTH_METADATA = get_spec(METADATA).sbauth_resource_type
+AUTH_METADATA = login.AuthDependency(sbauth_resource_type=SBAUTH_METADATA)
+AUTH_METADATA_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_METADATA)
+AUTH_METADATA_ADMIN = login.AuthDependency(min_level="ADMIN", sbauth_resource_type=SBAUTH_METADATA)
+AUTH_METADATA_NO_ID = login.AuthDependencyNoResourceId(sbauth_resource_type=SBAUTH_METADATA)
 
 
 # ------------------------------------------------------------------------------
@@ -64,7 +69,7 @@ router = APIRouter(tags=["Manage Metadata"])
 )
 async def create_metadata(
     public_id: str = Query(..., description="Public resource ID"),
-    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
+    auth_data: dict = Depends(AUTH_METADATA_NO_ID),
 ) -> JSONResponse:
     """Create a new metadata resource.
 
@@ -184,7 +189,7 @@ async def create_metadata(
         },
     },
 )
-async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_level="ADMIN"))) -> JSONResponse:
+async def remove_metadata(auth_data: dict = Depends(AUTH_METADATA_ADMIN)) -> JSONResponse:
     """Remove a metadata resource.
 
     ### Example
@@ -270,7 +275,7 @@ async def remove_metadata(auth_data: dict = Depends(login.AuthDependency(min_lev
 async def upload_metadata_yaml(
     yaml_file: UploadFile = models.upload_file_opt_param,
     yaml_txt: str | None = Query(None, alias="yaml", description="The yaml metadata in plain text"),
-    auth_data: dict = Depends(login.AuthDependency(min_level="WRITE")),
+    auth_data: dict = Depends(AUTH_METADATA_WRITE),
 ) -> JSONResponse:
     """Upload a YAML metadata file or provide metadata as plain text.
 
@@ -322,7 +327,7 @@ async def upload_metadata_yaml(
         },
     },
 )
-async def download_metadata_yaml(auth_data: dict = Depends(login.AuthDependency())) -> FileResponse:
+async def download_metadata_yaml(auth_data: dict = Depends(AUTH_METADATA)) -> FileResponse:
     """Download the metadata yaml file for a specific resource.
 
     ### Example

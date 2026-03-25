@@ -35,6 +35,7 @@ async def get_auth_data(
     jwt_token: str | None = Security(oauth2_scheme),
     api_key: str | None = Security(api_key_scheme),
     min_level: str = "READ",
+    sbauth_resource_type: str | None = None,
     require_resource_id: bool = True,
     require_resource_exists: bool = True,
     require_admin: bool = False,
@@ -49,6 +50,7 @@ async def get_auth_data(
         jwt_token: The JWT token from the request.
         api_key: The API key from the request.
         min_level: Minimum access level to filter user's resources by.
+        sbauth_resource_type: Optional SB Auth resource type key to filter accessible resources by.
         require_resource_id: The route requires the user to supply a resource ID.
         require_resource_exists: The route requires that the supplied resource ID occurs in the JWT.
         require_admin: The route requires the user to be a mink admin.
@@ -105,6 +107,7 @@ async def get_auth_data(
     # Get user info and which resources the user has access to from SB Auth
     user = auth.get_user()
     is_admin = auth.is_admin()
+    # TODO: pass resource_type=sbauth_resource_type when SB Auth allows for creating other resource types via the API
     sb_auth_resources = auth.get_resource_ids(min_level)
     all_resources = jobs_cache.get_all_resources()
     # Get intersection between resources in SB Auth and resources in Mink-backend
@@ -156,12 +159,14 @@ class AuthDependency:
     def __init__(
         self,
         min_level: str = "READ",
+        sbauth_resource_type: str | None = None,
         require_resource_id: bool = True,
         require_resource_exists: bool = True,
         require_admin: bool = False,
     ) -> None:
         """Initialize the AuthDependency class."""
         self.min_level = min_level
+        self.sbauth_resource_type = sbauth_resource_type
         self.require_resource_id = require_resource_id
         self.require_resource_exists = require_resource_exists
         self.require_admin = require_admin
@@ -190,6 +195,7 @@ class AuthDependency:
             jwt_token,
             api_key,
             self.min_level,
+            self.sbauth_resource_type,
             self.require_resource_id,
             self.require_resource_exists,
             self.require_admin,
@@ -213,6 +219,7 @@ class AuthDependencyNoResourceId(AuthDependency):
             jwt_token=jwt_token,
             api_key=api_key,
             min_level=self.min_level,
+            sbauth_resource_type=self.sbauth_resource_type,
             require_resource_id=False,
             require_resource_exists=False,
             require_admin=self.require_admin,
