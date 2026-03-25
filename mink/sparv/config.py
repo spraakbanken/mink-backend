@@ -16,7 +16,7 @@ class SparvSettings(BaseSettings):
 
     # Sparv server settings
     SPARV_HOST: str = ""  # Host where Sparv is run
-    SPARV_USER: str = ""  # User for running Sparv
+    SPARV_USER: str = ""  # User for running Sparv (has no effect if SPARV_HOST is localhost)
     # Dir where user corpora are stored and run, e.g. "/home/user/mink-data/corpus"
     SPARV_CORPORA_DIR: str = ""
     # Dir for running listings like 'sparv run -l', e.g. "/home/user/mink-data/corpus/default"

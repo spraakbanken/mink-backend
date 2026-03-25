@@ -3,7 +3,6 @@
 import json
 import re
 import shlex
-import subprocess
 
 from mink.core import exceptions, registry, return_codes, utils
 from mink.core.jobs import BaseJob
@@ -94,8 +93,6 @@ class SparvJob(BaseJob):
         self.installed_strix = installed_strix
         self.output = output
 
-        self.sparv_user = sparv_settings.SPARV_USER
-        self.sparv_server = sparv_settings.SPARV_HOST
         self.remote_corpus_dir = storage.get_corpus_dir(self.id)
         self.remote_corpus_dir_esc = shlex.quote(str(self.remote_corpus_dir))
         self.nohupfile = shlex.quote(str(self.remote_corpus_dir / sparv_settings.SPARV_NOHUP_FILE))
@@ -220,15 +217,11 @@ class SparvJob(BaseJob):
             raise exceptions.ReadError(self.id, "Failed to download corpus") from e
 
         # Sync corpus config to Sparv server
-        p = subprocess.run(
-            [
-                "rsync",
-                "-av",
-                storage.get_local_config_file(self.id),
-                f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/",
-            ],
-            capture_output=True,
-            check=False,
+        p = storage.rsync(
+            storage.get_local_config_file(self.id),
+            f"{self.remote_corpus_dir}/",
+            dst_remote=True,
+            args=["-av"],
         )
         if p.stderr:
             self.set_status(Status.error)
@@ -238,16 +231,11 @@ class SparvJob(BaseJob):
         # Sync corpus files to Sparv server
         # TODO: do this async
         local_source_dir = storage.get_local_source_dir(self.id)
-        p = subprocess.run(
-            [
-                "rsync",
-                "-av",
-                "--delete",
-                local_source_dir,
-                f"{self.sparv_user}@{self.sparv_server}:~/{self.remote_corpus_dir}/",
-            ],
-            capture_output=True,
-            check=False,
+        p = storage.rsync(
+            local_source_dir,
+            f"{self.remote_corpus_dir}/",
+            dst_remote=True,
+            args=["-av", "--delete"],
         )
         if p.stderr:
             self.set_status(Status.error)
@@ -584,15 +572,11 @@ class SparvJob(BaseJob):
         """
         self.set_status(Status.running, ProcessName.sync2storage)
         remote_corpus_dir = storage.get_corpus_dir(self.id)
-        local_corpus_dir = str(storage.get_local_resource_dir(self.id, mkdir=True))
+        local_corpus_dir = storage.get_local_resource_dir(self.id, mkdir=True)
 
         # Get exports from Sparv
         remote_export_dir = storage.get_export_dir(self.id)
-        p = subprocess.run(
-            ["rsync", "-av", f"{self.sparv_user}@{self.sparv_server}:~/{remote_export_dir}", local_corpus_dir],
-            capture_output=True,
-            check=False,
-        )
+        p = storage.rsync(remote_export_dir, local_corpus_dir, src_remote=True, args=["-av"])
         if p.stderr:
             self.set_status(Status.error)
             raise exceptions.MinkHTTPException(
@@ -602,20 +586,18 @@ class SparvJob(BaseJob):
 
         # Get plain text sources from Sparv
         remote_work_dir = storage.get_work_dir(self.id)
-        p = subprocess.run(
-            [
-                "rsync",
-                "-av",
-                "--include=@text",
-                "--include=*/",
-                "--exclude=*",
-                "--prune-empty-dirs",
-                f"{self.sparv_user}@{self.sparv_server}:~/{remote_work_dir}",
-                local_corpus_dir,
-            ],
-            capture_output=True,
-            check=False,
+        p = storage.rsync(
+            remote_work_dir,
+            local_corpus_dir,
+            src_remote=True,
+            args=["-av", "--include=@text", "--include=*/", "--exclude=*", "--prune-empty-dirs"],
         )
+        if p.stderr:
+            self.set_status(Status.error)
+            raise exceptions.MinkHTTPException(
+                return_code=return_codes.FAILED_SYNCING,
+                info=f"Failed to retrieve plain text sources: {p.stderr.decode()}",
+            )
 
         # Transfer exports to the storage server
         local_export_dir = storage.get_local_export_dir(self.id)
@@ -705,8 +687,6 @@ class SparvDefaultJob:
         if not sparv_settings.SPARV_ENABLED:
             raise exceptions.ConfigurationError("Sparv is not enabled in the configuration")
 
-        self.sparv_user = sparv_settings.SPARV_USER
-        self.sparv_server = sparv_settings.SPARV_HOST
         self.remote_corpus_dir = storage.get_corpus_dir(self.lang, default_dir=True)
         self.remote_corpus_dir_esc = shlex.quote(str(self.remote_corpus_dir))
         self.config_file = sparv_settings.SPARV_CORPUS_CONFIG

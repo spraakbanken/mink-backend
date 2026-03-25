@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import ipaddress
 import mimetypes
 import shlex
+import socket
 import subprocess
 from pathlib import Path
 from typing import ClassVar
@@ -50,8 +52,28 @@ class BaseStorage:
     # Helpers
     # ------------------------------------------------------------------------------
     def _ensure(self, capability: str) -> None:
+        """Ensure that the storage supports the given capability."""
         if not getattr(self, f"supports_{capability}", False):
             raise exceptions.ParameterError(f"{capability} not supported for this storage")
+
+    def _is_local_host(self) -> bool:
+        """Check if configured host is localhost."""
+        host = self.host.strip().lower()
+        if host in {"localhost", "127.0.0.1", "::1"}:
+            return True
+        try:
+            ip = ipaddress.ip_address(socket.gethostbyname(host))
+        except Exception:
+            return False
+        else:
+            return ip.is_loopback
+
+    def _rsync_target(self, path: str | Path, remote: bool = False) -> str:
+        """Build rsync path target for local/remote transport."""
+        path_str = str(path)
+        if remote and not self._is_local_host():
+            return f"{self.user}@{self.host}:{path_str}"
+        return path_str
 
     # ------------------------------------------------------------------------------
     # Local path getters (on Mink server, used for file downloads)
@@ -93,12 +115,49 @@ class BaseStorage:
         Returns:
             The completed process.
         """
+        if self._is_local_host():
+            return subprocess.run(
+                ["bash", "-c", command],
+                capture_output=True,
+                input=ssh_input,
+                check=False,
+            )
         return subprocess.run(
             ["ssh", "-i", settings.SSH_KEY, f"{self.user}@{self.host}", command],
             capture_output=True,
             input=ssh_input,
             check=False,
         )
+
+    def rsync(
+        self,
+        src: str | Path,
+        dst: str | Path,
+        *,
+        src_remote: bool = False,
+        dst_remote: bool = False,
+        args: list[str] | None = None,
+    ) -> subprocess.CompletedProcess:
+        """Run rsync with local/remote endpoint selection.
+
+        Args:
+            src: Source path.
+            dst: Destination path.
+            src_remote: Whether source is on configured remote storage.
+            dst_remote: Whether destination is on configured remote storage.
+            args: Additional rsync flags/arguments.
+
+        Returns:
+            The completed process from rsync.
+        """
+        if src_remote and dst_remote and not self._is_local_host():
+            raise exceptions.ParameterError("Rsync between two remote endpoints is not supported")
+
+        command = ["rsync"]
+        if args:
+            command.extend(args)
+        command.extend([self._rsync_target(src, remote=src_remote), self._rsync_target(dst, remote=dst_remote)])
+        return subprocess.run(command, capture_output=True, check=False)
 
     def list_contents(self, directory: Path, exclude_dirs: bool = True, blacklist: list | None = None) -> list:
         """List files in directory on remote server recursively.
@@ -191,11 +250,10 @@ class BaseStorage:
         if not self.is_valid_path(remote_file_path, resource_id):
             raise exceptions.ReadError(remote_file_path, "You don't have permission to download this file")
 
-        cmd = ["rsync", "--protect-args"]
+        args = ["--protect-args"]
         if ignore_missing:
-            cmd.append("--ignore-missing-args")
-        cmd += [f"{self.user}@{self.host}:{remote_file_path}", f"{local_file}"]
-        p = subprocess.run(cmd, capture_output=True, check=False)
+            args.append("--ignore-missing-args")
+        p = self.rsync(remote_file_path, local_file, src_remote=True, args=args)
         if p.stderr:
             raise exceptions.ReadError(remote_file_path, p.stderr.decode())
         return not (ignore_missing and not local_file.is_file())
@@ -286,10 +344,8 @@ class BaseStorage:
         if zipped and zippath is None:
             raise exceptions.ParameterError("'zippath' may not be None if 'zipped=True'")
 
-        command = ["rsync", "--recursive"]
-        command.extend(f"--exclude={e}" for e in excludes)
-        command.extend([f"{self.user}@{self.host}:{remote_dir}/", f"{local_dir}"])
-        p = subprocess.run(command, capture_output=True, check=False)
+        args = ["--recursive", *(f"--exclude={e}" for e in excludes)]
+        p = self.rsync(f"{remote_dir}/", local_dir, src_remote=True, args=args)
         if p.stderr:
             raise exceptions.ReadError(remote_dir, p.stderr.decode())
 
@@ -315,10 +371,10 @@ class BaseStorage:
         if not local_dir.is_dir():
             raise exceptions.WriteError(local_dir, "Directory is not valid")
 
-        args = ["--recursive", "--delete", f"{local_dir}/"] if delete else ["--recursive", f"{local_dir}/"]
+        args = ["--recursive", "--delete"] if delete else ["--recursive"]
 
         self.make_dir(remote_dir)
-        p = subprocess.run(["rsync", *args, f"{self.user}@{self.host}:{remote_dir}"], capture_output=True, check=False)
+        p = self.rsync(f"{local_dir}/", remote_dir, dst_remote=True, args=args)
         if p.stderr:
             raise exceptions.WriteError(remote_dir, p.stderr.decode())
 
