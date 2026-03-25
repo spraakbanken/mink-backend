@@ -88,6 +88,13 @@ def test_list_resources() -> None:
     assert isinstance(json_data.get("resources"), list), "Response should be a list of resources"
 
 
+def test_list_resource_statuses() -> None:
+    """Test listing all resource statuses."""
+    response = call_route("GET", "/resource/status/list", headers=HEADERS)
+    json_data = response.json()
+    assert isinstance(json_data.get("resources"), list), "Response should be a list of resources"
+
+
 # ------------------------------------------------------------------------------
 # Corpus tests
 # ------------------------------------------------------------------------------
