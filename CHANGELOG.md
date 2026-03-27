@@ -48,6 +48,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- When creating a new resource, the correct resource type is now passed to the authentication system.
 - Fixed some outdated URLs in the documentation.
 - Fixed issue with bad path patterns occurring in the response from `/sparv-exports`.
 

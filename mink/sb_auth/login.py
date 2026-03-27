@@ -107,8 +107,7 @@ async def get_auth_data(
     # Get user info and which resources the user has access to from SB Auth
     user = auth.get_user()
     is_admin = auth.is_admin()
-    # TODO: pass resource_type=sbauth_resource_type when SB Auth allows for creating other resource types via the API
-    sb_auth_resources = auth.get_resource_ids(min_level)
+    sb_auth_resources = auth.get_resource_ids(min_level, resource_type=sbauth_resource_type)
     all_resources = jobs_cache.get_all_resources()
     # Get intersection between resources in SB Auth and resources in Mink-backend
     # (in case SB Auth is used for multiple backends)
@@ -395,8 +394,10 @@ class ApikeyAuthentication(Authentication):
         return response.json()
 
 
-async def create_resource(auth_token: str, resource_id: str, resource_type: str | None = None) -> None:
+async def create_resource(auth_token: str, resource_id: str, resource_type: str) -> None:
     """Create a new resource in SB Auth.
+
+    SB auth API documented at https://github.com/spraakbanken/sb-auth#api
 
     Args:
         auth_token: The authentication token (JWT or API key).
@@ -407,9 +408,11 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str 
         exceptions.CorpusExistsError: If the corpus already exists.
         exceptions.CreateResourceError: If creating the resource fails.
     """
-    # API documented at https://github.com/spraakbanken/sb-auth#api
-    # TODO: specify resource_type when SB Auth is ready
-    url = settings.SBAUTH_URL + f"resource/{resource_id}"
+    # Check if resource_type is valid according to SB Auth resource types
+    if resource_type not in settings.SBAUTH_RESOURCE_TYPES:
+        raise exceptions.CreateResourceError(resource_id, f"Invalid resource type: {resource_type}")
+
+    url = settings.SBAUTH_URL + f"resource/{resource_id}?type={resource_type}"
     headers = {"Authorization": f"apikey {settings.SBAUTH_API_KEY}", "Content-Type": "application/json"}
     data = {"jwt": auth_token} if is_jwt(auth_token) else {"apikey": auth_token}
     async with httpx.AsyncClient() as client:
