@@ -125,7 +125,8 @@ async def log_request(request: Request, call_next: Callable) -> Response:
 
     # Log request info, but don't log options and queue advance requests (too much spam)
     if request.method != "OPTIONS" and not path.startswith("/queue/advance"):
-        logger.info("Request: %s %s?%s", request.method, path, request.url.query)
+        request_str = f"{request.method} {path}" + (f"?{request.url.query}" if request.url.query else "")
+        logger.info("Request: %s", request_str)
 
     # Call the actual route
     return await call_next(request)
