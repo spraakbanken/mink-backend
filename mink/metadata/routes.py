@@ -345,27 +345,3 @@ async def download_metadata_yaml(auth_data: dict = Depends(AUTH_METADATA)) -> Fi
         download_fn=lambda: storage.download_file(remote_yaml_file, local_yaml_file, resource_id, ignore_missing=True),
         media_type="text/yaml",
     )
-
-
-# # ------------------------------------------------------------------------------
-# # Source file operations
-# # ------------------------------------------------------------------------------
-
-# @router.put("/upload-metadata-sources")
-# async def upload_metadata_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
-#     pass
-
-
-# @router.get("/list-metadata-sources")
-# async def list_metadata_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
-#     pass
-
-
-# @router.delete("/remove-metadata-sources")
-# async def remove_metadata_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
-#     pass
-
-
-# @router.get("/download-metadata-sources")
-# async def download_metadata_sources(auth_data: dict = Depends(login.AuthDependency())) -> JSONResponse:
-#     pass

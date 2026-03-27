@@ -313,18 +313,6 @@ async def remove_corpus(auth_data: dict = Depends(AUTH_CORPUS_ADMIN)) -> JSONRes
             }
         },
         **models.common_auth_error_responses,
-        status.HTTP_400_BAD_REQUEST: {
-            "model": models.BaseErrorResponse,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": return_codes.MISSING_FILE_UPLOAD.message,
-                        "return_code": return_codes.MISSING_FILE_UPLOAD.code,
-                    }
-                }
-            },
-        },
         status.HTTP_413_CONTENT_TOO_LARGE: {
             "model": models.ErrorResponse413,
             "content": {
@@ -373,9 +361,6 @@ async def upload_sources(
     ```
     """
     resource_id = auth_data["resource_id"]
-    # Check if corpus files were provided
-    if not files:
-        raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_FILE_UPLOAD)
 
     # Check request size constraint
     try:
