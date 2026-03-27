@@ -8,9 +8,9 @@ from pydantic import Field
 from mink.core import models, return_codes
 
 
-class ListCorporaResponse(models.BaseResponse):
-    """Model for responses where corpora as listed."""
-    corpora: list[str] = Field(default=[], description="List of resource IDs")
+class ListResourcesResponse(models.BaseResponse):
+    """Model for responses where corpus resources are listed."""
+    resources: list[str] = Field(default=[], description="List of resource IDs")
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
             "examples": [
@@ -18,8 +18,8 @@ class ListCorporaResponse(models.BaseResponse):
                     "status": "success",
                     "message": return_codes.LISTING_CONTENT.message,
                     "return_code": return_codes.LISTING_CONTENT.code,
-                    "info": "Listing corpora",
-                    "corpora": ["mink-dxh6e6wtff", "mink-j86tfreaf9", "mink-3qbh7tra6g"]
+                    "info": "Listing available corpus resources",
+                    "resources": ["mink-dxh6e6wtff", "mink-j86tfreaf9", "mink-3qbh7tra6g"]
                 }
             ]
         }

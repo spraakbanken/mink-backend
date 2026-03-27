@@ -13,6 +13,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - `/resource-info` response schema has changed: each resource now has a `job_status` field indicating the status of the
   current job for that resource, replacing the previous `return_code` field. The possible values for `job_status` are
   the ones indicated by `status_codes` in the `/info`response.
+- `/list-corpora` and `/list-korp-corpora` response schema has changed: the list of corpora is now returned under the
+  `resources` field instead of `corpora` to be more consistent with other resource types.
 - The Sparv output (nohupfile) and the Sparv run script are no longer removed when calling `/clear-annotations` which
   allows for better debugging.
 - Core resource handling is now spec-driven: resource packages (like `sparv` and `metadata`) register their behavior via

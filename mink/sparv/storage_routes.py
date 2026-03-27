@@ -120,7 +120,7 @@ async def create_corpus(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONRes
 @router.get(
     "/corpus/list",
     tags=["Manage Corpora"],
-    response_model=sparv_models.ListCorporaResponse,
+    response_model=sparv_models.ListResourcesResponse,
     responses={**models.common_auth_error_responses},
 )
 async def list_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResponse:
@@ -133,7 +133,9 @@ async def list_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResp
     ```
     """
     return utils.response(
-        return_code=return_codes.LISTING_CONTENT, info="Listing available corpora", corpora=auth_data.get("resources")
+        return_code=return_codes.LISTING_CONTENT,
+        info="Listing available corpus resources",
+        resources=auth_data.get("resources"),
     )
 
 
@@ -146,7 +148,7 @@ async def list_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResp
 @router.get(
     "/corpus/korp/list",
     tags=["Manage Corpora"],
-    response_model=sparv_models.ListCorporaResponse,
+    response_model=sparv_models.ListResourcesResponse,
     responses={
         status.HTTP_200_OK: {
             "content": {
@@ -156,7 +158,7 @@ async def list_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResp
                         "message": return_codes.LISTING_CONTENT.message,
                         "return_code": return_codes.LISTING_CONTENT.code,
                         "info": "Listing corpora installed in Korp",
-                        "corpora": ["mink-dxh6e6wtff", "mink-j86tfreaf9"],
+                        "resources": ["mink-dxh6e6wtff", "mink-j86tfreaf9"],
                     }
                 }
             }
@@ -198,7 +200,7 @@ async def list_korp_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSO
             return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed to list corpora installed in Korp: {e}"
         ) from e
     return utils.response(
-        return_code=return_codes.LISTING_CONTENT, info="Listing corpora installed in Korp", corpora=installed_corpora
+        return_code=return_codes.LISTING_CONTENT, info="Listing corpora installed in Korp", resources=installed_corpora
     )
 
 

@@ -117,7 +117,7 @@ def corpus() -> typing.Generator[str, None, None]:
 
 
 def test_list_corpora(corpus: str) -> None:
-    """Test listing corporaa."""
+    """Test listing corpora."""
     routes = [
         ("GET", "/corpus/list"),
         ("GET", "/corpus/korp/list"),
@@ -125,9 +125,9 @@ def test_list_corpora(corpus: str) -> None:
     for method, path in routes:
         response = call_route(method, path, headers=HEADERS)
         json_data = response.json()
-        assert isinstance(json_data.get("corpora"), list), "Response should be a list of resources"
+        assert isinstance(json_data.get("resources"), list), "Response should be a list of resources"
         if path == "/corpus/list":
-            assert corpus in json_data.get("corpora", []), f"Corpus {corpus} should be in the list of corpora"
+            assert corpus in json_data.get("resources", []), f"Corpus {corpus} should be in the list of resources"
 
 
 @pytest.fixture(scope="module")
