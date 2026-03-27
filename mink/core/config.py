@@ -19,12 +19,12 @@ class Settings(BaseSettings):
 
     # Modules that register resource specs
     SPEC_MODULES: list[str] = Field(
-        default_factory=lambda: ["mink.sparv.spec", "mink.metadata.spec"]
+        default_factory=lambda: ["mink.sparv.spec", "mink.metadata.spec", "mink.karp.spec"]
     )
 
     # Modules that contain config
     CONFIG_MODULES: list[str] = Field(
-        default_factory=lambda: ["mink.sparv.config", "mink.metadata.config"]
+        default_factory=lambda: ["mink.sparv.config", "mink.metadata.config", "mink.karp.config"]
     )
 
     # CORS settings

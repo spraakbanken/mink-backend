@@ -99,4 +99,5 @@ markers = [
     "admin: marks tests for admin routes (deselect with '-m \"not admin\"')",
     "corpus: marks tests as corpus tests (deselect with '-m \"not corpus\"')",
     "metadata: marks tests as metadata tests (deselect with '-m \"not metadata\"')",
+    "lexicon: marks tests as lexicon tests (deselect with '-m \"not lexicon\"')",
 ]

@@ -78,6 +78,8 @@ tags:
     description: Routes for managing annotation and installation jobs with Sparv and checking the job status.
   - name: Manage Exports
     description: Routes for listing, downloading, and removing export files.
+  - name: Manage Lexicons
+    description: Routes for managing lexicon resources with Karp.
   - name: Manage Metadata
     description: Routes for creating, uploading, and downloading metadata resources.
   - name: Admin Mode

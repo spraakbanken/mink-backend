@@ -1,0 +1,9 @@
+name:
+  swe: Test lexikon
+  eng: Test lexicon
+karps:
+  entry_word:
+    field: baseform
+    description:
+      swe: grundform
+      eng: baseform
