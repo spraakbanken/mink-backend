@@ -28,6 +28,7 @@ def metadata() -> typing.Generator[str, None, None]:
     assert json_data.get("return_code") == return_codes.REMOVED_RESOURCE.code, f"Metadata removal failed: {json_data}"
 
 
+@pytest.mark.metadata
 def test_manage_metadata(metadata: str) -> None:
     """Test manage metadata routes."""
     routes = [

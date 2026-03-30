@@ -27,6 +27,7 @@ def corpus() -> typing.Generator[str, None, None]:
     assert json_data.get("return_code") == return_codes.REMOVED_RESOURCE.code, f"Corpus removal failed: {json_data}"
 
 
+@pytest.mark.corpus
 def test_list_corpora(corpus: str) -> None:
     """Test listing corporaa."""
     routes = [
@@ -60,6 +61,7 @@ def corpus_with_sources(corpus: str) -> str:
     return corpus
 
 
+@pytest.mark.corpus
 def test_manage_corpus_sources(corpus_with_sources: str) -> None:
     """Test manage corpus sources routes."""
     routes = [
@@ -100,6 +102,7 @@ def corpus_with_sources_and_config(corpus_with_sources: str) -> str:
     return corpus_with_sources
 
 
+@pytest.mark.corpus
 def test_download_corpus_config(corpus_with_sources_and_config: str) -> None:
     """Test download config route."""
     response = call_route("GET", f"/corpus/config/download/{corpus_with_sources_and_config}", headers=HEADERS)
@@ -116,6 +119,7 @@ def corpus_processed(corpus_with_sources_and_config: str) -> str:
     return corpus_with_sources_and_config
 
 
+@pytest.mark.corpus
 def test_manage_corpus_exports(corpus_processed: str) -> None:
     """Test manage corpus exports routes."""
     routes = [
@@ -147,6 +151,7 @@ def test_manage_corpus_exports(corpus_processed: str) -> None:
             assert len(response.content) > 0, "Downloaded source text should not be empty"
 
 
+@pytest.mark.corpus
 def test_processing_corpora(corpus_processed: str) -> None:
     """Test processing corpora routes."""
     routes = [

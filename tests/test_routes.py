@@ -1,11 +1,14 @@
 """Tests for non-resource specific routes."""
 
+import pytest
+
 from mink.core import return_codes
 from tests.utils import HEADERS, call_route, logger
 
 from .conftest import ROUTE_INFO
 
 
+@pytest.mark.general
 def test_untagged_routes() -> None:
     """Test that all routes are tagged."""
     logger.debug("Found %d routes", ROUTE_INFO.routes)
@@ -14,12 +17,15 @@ def test_untagged_routes() -> None:
     )
 
 
+@pytest.mark.general
 def test_documentation_route() -> None:
     """Test documentation routes."""
     for method, path in ROUTE_INFO.tag_dict.get("Documentation", []):
         call_route(method, path)
 
 
+@pytest.mark.general
+@pytest.mark.admin
 def test_admin_mode() -> None:
     """Test admin mode routes."""
     routes = [
@@ -53,6 +59,7 @@ def test_admin_mode() -> None:
             )
 
 
+@pytest.mark.general
 def test_list_resources() -> None:
     """Test listing all resources regardless of type."""
     response = call_route("GET", "/resource/list", headers=HEADERS)
@@ -60,6 +67,7 @@ def test_list_resources() -> None:
     assert isinstance(json_data.get("resources"), list), "Response should be a list of resources"
 
 
+@pytest.mark.general
 def test_list_resource_statuses() -> None:
     """Test listing all resource statuses."""
     response = call_route("GET", "/resource/status/list", headers=HEADERS)
