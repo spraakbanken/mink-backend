@@ -46,7 +46,7 @@ def test_list_corpora(corpus: str) -> None:
 def corpus_with_sources(corpus: str) -> str:
     """Ensure a corpus exists and sources are uploaded."""
     with (
-        Path("tests/test_data/test_source.txt").open("rb") as f1,
+        Path("tests/test_data/test_corpus_source.txt").open("rb") as f1,
     ):
         call_route(
             "PUT",
@@ -91,7 +91,7 @@ def test_manage_corpus_sources(corpus_with_sources: str) -> None:
 @pytest.fixture(scope="module")
 def corpus_with_sources_and_config(corpus_with_sources: str) -> str:
     """Ensure a corpus exists and sources are uploaded."""
-    with Path("tests/test_data/test_config.yaml").open("rb") as f:
+    with Path("tests/test_data/test_corpus_config.yaml").open("rb") as f:
         call_route(
             "PUT",
             f"/corpus/config/upload/{corpus_with_sources}",

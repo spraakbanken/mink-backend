@@ -37,7 +37,7 @@ def test_manage_metadata(metadata: str) -> None:
     ]
     for method, path, status_code in routes:
         if path.startswith("/metadata/config/upload/"):
-            with Path("tests/test_data/test_config.yaml").open("rb") as f:
+            with Path("tests/test_data/test_corpus_config.yaml").open("rb") as f:
                 response = call_route(
                     method,
                     path,
