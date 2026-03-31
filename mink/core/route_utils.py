@@ -149,7 +149,15 @@ async def get_yaml_payload(*, yaml_file: UploadFile | None, yaml_txt: str | None
         )
 
     if yaml_file:
-        if yaml_file.content_type not in {"application/yaml", "application/x-yaml", "text/yaml"}:
+        valid_mime_types = {"application/yaml", "application/x-yaml", "text/yaml", "text/x-yaml"}
+        has_yaml_suffix = bool(yaml_file.filename and Path(yaml_file.filename).suffix.lower() in {".yaml", ".yml"})
+        # MIME types can vary by client/tool; accept known YAML MIME types and .yaml/.yml uploads.
+        if (
+            yaml_file.content_type
+            and yaml_file.content_type != "application/octet-stream"
+            and yaml_file.content_type not in valid_mime_types
+            and not has_yaml_suffix
+        ):
             raise exceptions.MinkHTTPException(
                 return_code=return_codes.INVALID_FILE, info="File format needs to be YAML"
             )
