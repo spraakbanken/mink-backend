@@ -69,15 +69,7 @@ tags:
   - name: Manage Resources
     description: Routes for listing and getting information about all resources, regardless of type.
   - name: Manage Corpora
-    description: Routes for creating, listing, and removing corpora.
-  - name: Manage Sources
-    description: Routes for uploading, listing, downloading, and removing corpus source files.
-  - name: Manage Config
-    description: Routes for uploading and downloading corpus config files.
-  - name: Process Corpus
-    description: Routes for managing annotation and installation jobs with Sparv and checking the job status.
-  - name: Manage Exports
-    description: Routes for listing, downloading, and removing export files.
+    description: Routes for managing corpus resources with Sparv.
   - name: Manage Lexicons
     description: Routes for managing lexicon resources with Karp.
   - name: Manage Metadata

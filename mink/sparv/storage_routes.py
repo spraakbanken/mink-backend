@@ -22,7 +22,7 @@ from mink.sparv.jobs import SparvJob
 from mink.sparv.spec import CORPUS
 from mink.sparv.storage import storage
 
-router = APIRouter()
+router = APIRouter(tags=["Manage Corpora"])
 SBAUTH_CORPUS = get_spec(CORPUS).sbauth_resource_type
 AUTH_CORPUS = login.AuthDependency(sbauth_resource_type=SBAUTH_CORPUS)
 AUTH_CORPUS_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_CORPUS)
@@ -46,13 +46,11 @@ def _require_job(job: object) -> SparvJob:
 
 @router.post(
     "/create-corpus",
-    tags=["Manage Corpora"],
     deprecated=True,
     name="create-corpus-deprecated",
 )
 @router.post(
     "/corpus/create",
-    tags=["Manage Corpora"],
     status_code=status.HTTP_201_CREATED,
     response_model=models.CreateResourceResponse,
     responses={
@@ -113,13 +111,11 @@ async def create_corpus(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONRes
 
 @router.get(
     "/list-corpora",
-    tags=["Manage Corpora"],
     deprecated=True,
     name="list-corpora-deprecated",
 )
 @router.get(
     "/corpus/list",
-    tags=["Manage Corpora"],
     response_model=sparv_models.ListResourcesResponse,
     responses={**models.common_auth_error_responses},
 )
@@ -141,13 +137,11 @@ async def list_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResp
 
 @router.get(
     "/list-korp-corpora",
-    tags=["Manage Corpora"],
     deprecated=True,
     name="list-korp-corpora-deprecated",
 )
 @router.get(
     "/corpus/korp/list",
-    tags=["Manage Corpora"],
     response_model=sparv_models.ListResourcesResponse,
     responses={
         status.HTTP_200_OK: {
@@ -206,13 +200,11 @@ async def list_korp_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSO
 
 @router.delete(
     "/remove-corpus",
-    tags=["Manage Corpora"],
     deprecated=True,
     name="remove-corpus-deprecated",
 )
 @router.delete(
     "/corpus/remove/{resource_id}",
-    tags=["Manage Corpora"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -291,13 +283,11 @@ async def remove_corpus(auth_data: dict = Depends(AUTH_CORPUS_ADMIN)) -> JSONRes
 
 @router.put(
     "/upload-sources",
-    tags=["Manage Sources"],
     deprecated=True,
     name="upload-sources-deprecated",
 )
 @router.put(
     "/corpus/sources/upload/{resource_id}",
-    tags=["Manage Sources"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_201_CREATED: {
@@ -468,13 +458,11 @@ async def upload_sources(
 
 @router.get(
     "/list-sources",
-    tags=["Manage Sources"],
     deprecated=True,
     name="list-sources-deprecated",
 )
 @router.get(
     "/corpus/sources/list/{resource_id}",
-    tags=["Manage Sources"],
     response_model=models.ListingFilesResponse,
     responses={
         status.HTTP_200_OK: {
@@ -531,13 +519,11 @@ async def list_sources(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
 
 @router.delete(
     "/remove-sources",
-    tags=["Manage Sources"],
     deprecated=True,
     name="remove-sources-deprecated",
 )
 @router.delete(
     "/corpus/sources/remove/{resource_id}",
-    tags=["Manage Sources"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -636,13 +622,11 @@ async def remove_sources(
 
 @router.get(
     "/download-sources",
-    tags=["Manage Sources"],
     deprecated=True,
     name="download-sources-deprecated",
 )
 @router.get(
     "/corpus/sources/download/{resource_id}",
-    tags=["Manage Sources"],
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -737,13 +721,11 @@ async def download_sources(
 
 @router.put(
     "/upload-config",
-    tags=["Manage Config"],
     deprecated=True,
     name="upload-config-deprecated",
 )
 @router.put(
     "/corpus/config/upload/{resource_id}",
-    tags=["Manage Config"],
     status_code=status.HTTP_201_CREATED,
     response_model=models.BaseResponse,
     responses={
@@ -824,13 +806,11 @@ async def upload_config(
 
 @router.get(
     "/download-config",
-    tags=["Manage Config"],
     deprecated=True,
     name="download-config-deprecated",
 )
 @router.get(
     "/corpus/config/download/{resource_id}",
-    tags=["Manage Config"],
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -879,13 +859,11 @@ async def download_config(auth_data: dict = Depends(AUTH_CORPUS)) -> FileRespons
 
 @router.get(
     "/list-exports",
-    tags=["Manage Exports"],
     deprecated=True,
     name="list-exports-deprecated",
 )
 @router.get(
     "/corpus/exports/list/{resource_id}",
-    tags=["Manage Exports"],
     response_model=models.ListingFilesResponse,
     responses={
         status.HTTP_200_OK: {
@@ -955,13 +933,11 @@ async def list_exports(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
 
 @router.get(
     "/download-exports",
-    tags=["Manage Exports"],
     deprecated=True,
     name="download-exports-deprecated",
 )
 @router.get(
     "/corpus/exports/download/{resource_id}",
-    tags=["Manage Exports"],
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -1099,13 +1075,11 @@ async def download_exports(
 
 @router.delete(
     "/remove-exports",
-    tags=["Manage Exports"],
     deprecated=True,
     name="remove-exports-deprecated",
 )
 @router.delete(
     "/corpus/exports/remove/{resource_id}",
-    tags=["Manage Exports"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -1180,7 +1154,6 @@ async def remove_exports(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRe
 @router.get(
     "/download-source-text",
     deprecated=True,
-    tags=["Manage Exports"],
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -1267,13 +1240,11 @@ async def download_source_text(
 
 @router.get(
     "/check-changes",
-    tags=["Process Corpus"],
     deprecated=True,
     name="check-changes-deprecated",
 )
 @router.get(
     "/corpus/job/check-input/{resource_id}",
-    tags=["Process Corpus"],
     response_model=sparv_models.CheckInputResponse,
     responses={
         **models.common_auth_error_responses,

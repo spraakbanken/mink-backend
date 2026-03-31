@@ -14,14 +14,13 @@ router = APIRouter()
 
 @router.put(
     "/advance-queue",
-    tags=["Process Corpus"],
     deprecated=True,
     name="advance-queue-deprecated",
     include_in_schema=False,
 )
 @router.put(
     "/queue/advance",
-    tags=["Process Corpus"],
+    tags=["Manage Resources"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_401_UNAUTHORIZED: {
@@ -153,7 +152,7 @@ def _resource_status_list(resource_ids: list[str], admin_mode: bool) -> JSONResp
 
 @router.get(
     "/resource-info",
-    tags=["Process Corpus"],
+    tags=["Manage Corpora"],
     deprecated=True,
     name="resource-info-deprecated",
     response_model=models.StatusResponse | models.StatusesResponse,
@@ -239,7 +238,7 @@ async def list_resource_statuses(auth_data: dict = Depends(login.AuthDependencyN
 
 @router.get(
     "/resource/status/get/{resource_id}",
-    tags=["Manage Resources", "Process Corpus"],
+    tags=["Manage Resources", "Manage Corpora"],
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,

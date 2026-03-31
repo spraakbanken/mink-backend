@@ -1,4 +1,4 @@
-"""Routes related to Sparv."""
+"""Routes related to processing corpora with Sparv."""
 
 import time
 from typing import cast
@@ -10,14 +10,13 @@ from mink.core import exceptions, models, registry, return_codes, route_utils, u
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
 from mink.sb_auth import login
-from mink.sparv import models as sparv_models
 from mink.sparv import utils as sparv_utils
 from mink.sparv.config import sparv_settings
-from mink.sparv.jobs import SparvDefaultJob, SparvJob
+from mink.sparv.jobs import SparvJob
 from mink.sparv.spec import CORPUS, ProcessName
 from mink.sparv.storage import storage
 
-router = APIRouter()
+router = APIRouter(tags=["Manage Corpora"])
 SBAUTH_CORPUS = get_spec(CORPUS).sbauth_resource_type
 AUTH_CORPUS_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_CORPUS)
 
@@ -33,13 +32,11 @@ def _require_job(job: object) -> SparvJob:
 
 @router.put(
     "/run-sparv",
-    tags=["Process Corpus"],
     deprecated=True,
     name="run-sparv-deprecated",
 )
 @router.put(
     "/corpus/job/run/{resource_id}",
-    tags=["Process Corpus"],
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -205,13 +202,11 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
 
 @router.post(
     "/abort-job",
-    tags=["Process Corpus"],
     deprecated=True,
     name="abort-job-deprecated",
 )
 @router.post(
     "/corpus/job/abort/{resource_id}",
-    tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -309,13 +304,11 @@ async def abort_job(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRespons
 
 @router.delete(
     "/clear-annotations",
-    tags=["Process Corpus"],
     deprecated=True,
     name="clear-annotations-deprecated",
 )
 @router.delete(
     "/corpus/annotations/remove/{resource_id}",
-    tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -392,13 +385,11 @@ async def clear_annotations(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSO
 
 @router.put(
     "/install-korp",
-    tags=["Process Corpus"],
     deprecated=True,
     name="install-korp-deprecated",
 )
 @router.put(
     "/corpus/korp/install/{resource_id}",
-    tags=["Process Corpus"],
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -471,13 +462,11 @@ async def install_korp(
 
 @router.delete(
     "/uninstall-korp",
-    tags=["Process Corpus"],
     deprecated=True,
     name="uninstall-korp-deprecated",
 )
 @router.delete(
     "/corpus/korp/uninstall/{resource_id}",
-    tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -552,13 +541,11 @@ async def uninstall_korp(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRe
 
 @router.put(
     "/install-strix",
-    tags=["Process Corpus"],
     deprecated=True,
     name="install-strix-deprecated",
 )
 @router.put(
     "/corpus/strix/install/{resource_id}",
-    tags=["Process Corpus"],
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -625,13 +612,11 @@ async def install_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRes
 
 @router.delete(
     "/uninstall-strix",
-    tags=["Process Corpus"],
     deprecated=True,
     name="uninstall-strix-deprecated",
 )
 @router.delete(
     "/corpus/strix/uninstall/{resource_id}",
-    tags=["Process Corpus"],
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -705,155 +690,3 @@ async def uninstall_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONR
         raise exceptions.MinkHTTPException(
             return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from Strix: {e}"
         ) from e
-
-
-@router.get(
-    "/sparv-schema",
-    tags=["Documentation"],
-    deprecated=True,
-    name="sparv-schema-deprecated",
-)
-@router.get(
-    "/corpus/sparv/get-schema",
-    tags=["Documentation"],
-    response_model=sparv_models.SchemaResponse,
-    responses={
-        status.HTTP_500_INTERNAL_SERVER_ERROR: {
-            "model": models.ErrorResponse500,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": return_codes.FAILED_LISTING_CONTENT.message,
-                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
-                        "info": "Failed getting Sparv config schema",
-                    },
-                }
-            },
-        }
-    },
-)
-async def sparv_schema(update_cache: bool = sparv_models.update_cache_param) -> JSONResponse:
-    """Get the JSON schema for the Sparv config format.
-
-    ### Example
-
-    ```bash
-    curl -X GET '{{host}}/corpus/sparv/get-schema'
-    ```
-    """
-    try:
-        job = SparvDefaultJob()
-        schema = job.get_sparv_schema(update_cache=update_cache)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed getting Sparv config schema: {e}"
-        ) from e
-    return utils.response(
-        return_code=return_codes.LISTING_CONTENT, info="Returning Sparv config schema", sparv_schema=schema
-    )
-
-
-@router.get(
-    "/sparv-languages",
-    tags=["Documentation"],
-    deprecated=True,
-    name="sparv-languages-deprecated",
-)
-@router.get(
-    "/corpus/sparv/list-languages",
-    tags=["Documentation"],
-    response_model=sparv_models.LanguagesResponse,
-    responses={
-        status.HTTP_500_INTERNAL_SERVER_ERROR: {
-            "model": models.ErrorResponse500,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": return_codes.FAILED_LISTING_CONTENT.message,
-                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
-                        "info": "Failed listing languages",
-                    },
-                }
-            },
-        }
-    },
-)
-async def sparv_languages(update_cache: bool = sparv_models.update_cache_param) -> JSONResponse:
-    """List languages available in Sparv along with their language codes (ISO 639-3).
-
-    ### Example
-
-    ```bash
-    curl -X GET '{{host}}/corpus/sparv/list-languages'
-    ```
-    """
-    try:
-        job = SparvDefaultJob()
-        languages = job.list_languages(update_cache=update_cache)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FAILED_LISTING_CONTENT,
-            info=f"Failed listing languages: {e}",
-        ) from e
-    return utils.response(
-        return_code=return_codes.LISTING_CONTENT, info="Listing languages available in Sparv", languages=languages
-    )
-
-
-@router.get(
-    "/sparv-exports",
-    tags=["Documentation"],
-    deprecated=True,
-    name="sparv-exports-deprecated",
-)
-@router.get(
-    "/corpus/sparv/list-exports",
-    tags=["Documentation"],
-    response_model=sparv_models.ExportsResponse,
-    responses={
-        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": models.ErrorResponse422},
-        status.HTTP_500_INTERNAL_SERVER_ERROR: {
-            "model": models.ErrorResponse500,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": return_codes.FAILED_LISTING_CONTENT.message,
-                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
-                        "info": "Failed listing exports",
-                    }
-                }
-            },
-        },
-    },
-)
-async def sparv_exports(
-    language: str = Query("swe", description="languages for which to list exports"),
-    update_cache: bool = sparv_models.update_cache_param,
-) -> JSONResponse:
-    """List available Sparv export formats for the chosen language (default: 'swe').
-
-    The language is specified with the `language` as ISO 639-3 code. See available languages by calling
-    <{{host}}/corpus/sparv/list-languages>.
-
-    ### Example
-
-    ```bash
-    curl -X GET '{{host}}/corpus/sparv/list-exports?language=swe'
-    ```
-    """
-    try:
-        job = SparvDefaultJob(language=language)
-        exports = job.list_exports(update_cache=update_cache)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed listing exports: {e}"
-        ) from e
-    return utils.response(
-        return_code=return_codes.LISTING_CONTENT,
-        info="Listing exports available in Sparv",
-        language=language,
-        exports=exports,
-    )
