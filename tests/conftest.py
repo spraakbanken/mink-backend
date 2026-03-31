@@ -150,12 +150,14 @@ ROUTE_INFO = RouteInfo()
 
 def pytest_sessionfinish(session: object) -> None:
     """Test that all routes have been tested."""
-    # Skip untested-route summary when running a keyword-filtered subset via `-k`.
+    # Skip untested-route summary when running a filtered subset via `-k` or `-m`.
     config = getattr(session, "config", None)
     keyword_expr = ""
+    mark_expr = ""
     if config is not None:
         keyword_expr = str(config.getoption("keyword") or "")
-    if keyword_expr:
+        mark_expr = str(config.getoption("markexpr") or "")
+    if keyword_expr or mark_expr:
         return
 
     untested = ROUTE_INFO.get_untested_routes()
