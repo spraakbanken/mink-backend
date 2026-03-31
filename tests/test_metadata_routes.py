@@ -32,6 +32,7 @@ def metadata() -> typing.Generator[str, None, None]:
 def test_manage_metadata(metadata: str) -> None:
     """Test manage metadata routes."""
     routes = [
+        ("GET", "/metadata/list", status.HTTP_200_OK),
         ("PUT", f"/metadata/config/upload/{metadata}", status.HTTP_201_CREATED),
         ("GET", f"/metadata/config/download/{metadata}", status.HTTP_200_OK),
     ]
@@ -48,7 +49,11 @@ def test_manage_metadata(metadata: str) -> None:
         else:
             response = call_route(method, path, status_code=status_code, headers=HEADERS)
 
-        if path.startswith("/metadata/config/download/"):
+        if path.startswith("/metadata/list/"):
+            json_data = response.json()
+            assert isinstance(json_data.get("resources"), list), "Response should be a list of resources"
+            assert metadata in json_data.get("resources", []), f"Metadata {metadata} should be in the list of resources"
+        elif path.startswith("/metadata/config/download/"):
             logger.debug(response.headers.get("Content-Type"))
             assert "text/yaml" in response.headers.get("Content-Type"), "Download should return YAML"
             assert len(response.content) > 0, "Downloaded metadata YAML should not be empty"

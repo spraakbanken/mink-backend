@@ -40,6 +40,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a new script `config_helper.py` for validating and displaying config values from all modules and the .env file.
 - Added a new route `/return-codes` which lists all possible return codes and their meanings, to make it easier for
   users to understand the API responses.
+- Added a new route `/metadata/list` for listing all metadata resources.
 - Caching of Sparv data computed in `/sparv-exports` and `/sparv-languages` to speed up subsequent calls. The cache can
   be bypassed by setting the `update-cache` query parameter to true.
 

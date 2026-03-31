@@ -31,7 +31,6 @@ AUTH_METADATA_NO_ID = login.AuthDependencyNoResourceId(sbauth_resource_type=SBAU
 
 @router.post(
     "/create-metadata",
-    tags=["Manage Metadata"],
     deprecated=True,
     name="create-metadata-deprecated",
 )
@@ -141,7 +140,6 @@ async def create_metadata(
 
 @router.delete(
     "/remove-metadata",
-    tags=["Manage Metadata"],
     deprecated=True,
     name="remove-metadata-deprecated",
 )
@@ -216,6 +214,26 @@ async def remove_metadata(auth_data: dict = Depends(AUTH_METADATA_ADMIN)) -> JSO
     )
 
 
+@router.get(
+    "/metadata/list",
+    response_model=models.ListResourcesResponse,
+    responses={**models.common_auth_error_responses},
+)
+async def list_metadata(auth_data: dict = Depends(AUTH_METADATA_NO_ID)) -> JSONResponse:
+    """List the IDs of all available metadata resources.
+
+    ### Example
+
+    ```bash
+    curl '{{host}}/metadata/list' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    return utils.response(
+        return_code=return_codes.LISTING_CONTENT,
+        info="Listing available metadata resources",
+        resources=auth_data.get("resources"),
+    )
+
 # ------------------------------------------------------------------------------
 # Metadata (yaml) file operations
 # ------------------------------------------------------------------------------
@@ -223,7 +241,6 @@ async def remove_metadata(auth_data: dict = Depends(AUTH_METADATA_ADMIN)) -> JSO
 
 @router.put(
     "/upload-metadata-yaml",
-    tags=["Manage Metadata"],
     deprecated=True,
     name="upload-metadata-yaml-deprecated",
 )
@@ -300,7 +317,6 @@ async def upload_metadata_yaml(
 
 @router.get(
     "/download-metadata-yaml",
-    tags=["Manage Metadata"],
     deprecated=True,
     name="download-metadata-yaml-deprecated",
 )
