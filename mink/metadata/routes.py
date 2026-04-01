@@ -198,14 +198,6 @@ async def remove_metadata(auth_data: dict = Depends(AUTH_METADATA_ADMIN)) -> JSO
     """
     resource_id = auth_data["resource_id"]
     info_obj = registry.get(resource_id)
-
-    # Check for correct resource type
-    # TODO: Maybe this should be done in login.AuthDependency()?
-    if info_obj.resource.type != METADATA:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.INVALID_RESOURCE_TYPE, info="Expected a metadata resource"
-        )
-
     return await route_utils.remove_resource(
         resource_id=resource_id,
         auth_token=auth_data["auth_token"],
