@@ -51,7 +51,7 @@ def register() -> None:
             config_filename=karp_settings.KARP_CONFIG,
             process_names=tuple(p.name for p in ProcessName),
             sbauth_resource_type="lexica",
-            router_modules=("mink.karp.storage_routes",),
+            router_modules=("mink.karp.storage_routes", "mink.karp.process_routes"),
             process_running=process_running,
             queue_handlers={
                 ProcessName.karp_pipeline.name: run_karp_pipeline,

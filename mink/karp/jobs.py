@@ -185,8 +185,10 @@ class KarpJob(BaseJob):
         Raises:
             exceptions.JobError: If running Karp Pipeline fails.
         """
+        # Run Karp Pipeline and capture the exit code and the time it took to run
         script_content = (
-            f"nohup time -p {karp_settings.KARP_COMMAND} {karp_settings.KARP_RUN} >{self.nohupfile} 2>&1 &\necho $!"
+            f'nohup bash -c "time -p {karp_settings.KARP_COMMAND} {karp_settings.KARP_RUN}; rc=\\$?; '
+            f'printf \'{{\\"exit_code\\":\\"%s\\"}}\\n\' \\"\\$rc\\"" >{self.nohupfile} 2>&1 &\necho $!'
         )
 
         self.started = utils.get_current_time()
@@ -215,20 +217,21 @@ class KarpJob(BaseJob):
         Raises:
             exceptions.JobError: If installing lexicon in KarpS fails.
         """
-        script_content = shlex.quote(
-            f"nohup time -p sh -c {karp_settings.KARP_COMMAND} {karp_settings.KARP_INSTALL} "
-            f">{self.nohupfile} 2>&1 &\necho $!"
+        script_content = (
+            f'nohup bash -c "time -p {karp_settings.KARP_COMMAND} {karp_settings.KARP_INSTALL}; rc=\\$?; '
+            f'printf \'{{\\"exit_code\\":\\"%s\\"}}\\n\' \\"\\$rc\\"" >{self.nohupfile} 2>&1 &\necho $!'
         )
+
         self.started = utils.get_current_time()
         p = storage.ssh_run(
             f"cd {self.remote_resource_dir_esc} && "
-            f"echo {script_content} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
+            f"echo {shlex.quote(script_content)} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
         )
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
             self.reset_time()
-            self.set_status(Status.error, ProcessName.karp_pipeline)
+            self.set_status(Status.error, ProcessName.karps)
             raise exceptions.JobError(f"Failed to install resource in KarpS: {stderr}")
 
         self.installed_karps = True
@@ -238,7 +241,7 @@ class KarpJob(BaseJob):
             self.set_attribute("pid", int(p.stdout.decode()))
         except ValueError:
             pass
-        self.set_status(Status.running, ProcessName.karp_pipeline)
+        self.set_status(Status.running, ProcessName.karps)
 
     def abort(self) -> None:
         """Abort running Karp Pipeline.
@@ -327,22 +330,23 @@ class KarpJob(BaseJob):
                 try:
                     json_output = json.loads(line)
                     msg = json_output.get("message")
-                    if json_output.get("level") == "FINAL" and msg == "Nothing to be done.":
-                        progress = PROGRESS_DONE
-                        misc.append(msg)
-                    elif json_output.get("level") == "PROGRESS":
-                        progress = int(msg[:-1])
-                    elif json_output.get("level") == "WARNING":
+                    if json_output.get("level") == "WARNING":
                         warnings.append("WARNING " + msg)
                     elif json_output.get("level") == "ERROR":
                         errors.append("ERROR " + msg)
+                    elif json_output.get("exit_code") is not None:
+                        if json_output["exit_code"] == "0":
+                            progress = PROGRESS_DONE
+                        else:
+                            errors.append(f"Karp Pipeline exited with code {json_output['exit_code']}")
                     else:
                         misc.append(msg)
                 except json.JSONDecodeError:
                     # Catch "real" time output
                     if re.match(r"real \d.+", line):
-                        real_seconds = int(float(line[5:].strip()))
-                        karp_ended = self.get_ended_timestamp(real_seconds)
+                        real_seconds = self._parse_real_seconds(line[5:].strip())
+                        if real_seconds is not None:
+                            karp_ended = self.get_ended_timestamp(real_seconds)
                     # Ignore "user" and "sys" time output
                     elif re.match(r"user|sys \d.+", line):
                         pass

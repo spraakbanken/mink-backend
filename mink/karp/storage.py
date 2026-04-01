@@ -1,13 +1,19 @@
 """Karp storage backend and singleton instance."""
 
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
+from dateutil.parser import isoparse
+
+from mink.core import exceptions
 from mink.core.config import settings
 from mink.core.resource_specs import get_spec
 from mink.core.storage_base import BaseStorage
 from mink.karp.config import karp_settings
 from mink.karp.spec import LEXICON
+
+if TYPE_CHECKING:
+    from mink.core.info import Info
 
 
 class KarpStorage(BaseStorage):
@@ -25,6 +31,39 @@ class KarpStorage(BaseStorage):
     def relative_path(filepath: Path) -> str:
         """Return a path string relative to the lexicon directory (for API responses)."""
         return "/".join(filepath.parts[4:])
+
+    def get_file_changes(self, resource_id: str, info_item: "Info") -> tuple[bool, bool]:
+        """Get changes for source file and config file.
+
+        Args:
+            resource_id: The resource ID.
+            info_item: The resource info item.
+
+        Returns:
+            A tuple containing two booleans:
+            - Whether the source file has changed.
+            - Whether the config file has changed.
+
+        Raises:
+            exceptions.JobNotFoundError: If the job has not started.
+        """
+        source_changed = config_changed = False
+
+        if not info_item.job.started:
+            raise exceptions.JobNotFoundError(resource_id)
+        started = isoparse(info_item.job.started)
+
+        # Compare source files modification times to the time stamp of the last job started
+        source_file = info_item.resource.source_files[0]
+        if isoparse(source_file.get("last_modified")) > started:
+            source_changed = True
+
+        # Compare the config file modification time to the time stamp of the last job started
+        config_file_obj = self.get_file_info(self.get_config_file(resource_id))
+        if isoparse(config_file_obj["last_modified"]) > started:
+            config_changed = True
+
+        return source_changed, config_changed
 
     # ------------------------------------------------------------------------------
     # Path getters

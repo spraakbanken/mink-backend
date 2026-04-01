@@ -1,6 +1,7 @@
 """Base job classes used by resource specs."""
 
 import datetime
+import re
 from typing import Any
 
 from mink.core import utils
@@ -91,6 +92,19 @@ class BaseJob:
 
     def update_job_info(self) -> None:
         """Refresh job-specific info (not needed for base jobs)."""
+
+    @staticmethod
+    def _parse_real_seconds(raw: str) -> int:
+        """Parse seconds from `time` output, supporting both dot and comma decimals."""
+        normalized = raw.strip().replace(",", ".")
+        try:
+            return int(float(normalized))
+        except ValueError:
+            # Fallback for slightly noisier output (e.g. trailing chars).
+            match = re.search(r"\d+(?:\.\d+)?", normalized)
+            if not match:
+                return 0
+            return int(float(match.group(0)))
 
     # ------------------------------------------------------------------------------
     # Setters and getters

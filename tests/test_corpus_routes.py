@@ -113,7 +113,7 @@ def test_download_corpus_config(corpus_with_sources_and_config: str) -> None:
 def corpus_processed(corpus_with_sources_and_config: str) -> str:
     """Ensure a corpus is processed."""
     call_route("PUT", f"/corpus/job/run/{corpus_with_sources_and_config}", headers=HEADERS)
-    json_data = check_resource_loop(resource_id=corpus_with_sources_and_config)
+    json_data = check_resource_loop(resource_id=corpus_with_sources_and_config, process_name="sparv")
     sparv_status = json_data.get("job", {}).get("status", {}).get("sparv")
     assert sparv_status == "done", f"Corpus processing failed. Sparv status: {sparv_status}"
     return corpus_with_sources_and_config

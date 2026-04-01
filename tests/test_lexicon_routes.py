@@ -7,7 +7,7 @@ import pytest
 from fastapi import status
 
 from mink.core import return_codes
-from tests.utils import HEADERS, call_route
+from tests.utils import HEADERS, call_route, check_resource_loop
 
 
 @pytest.fixture(scope="module")
@@ -118,3 +118,32 @@ def test_download_lexicon_config(lexicon_with_data_and_config: str) -> None:
     """Test download config route."""
     response = call_route("GET", f"/lexicon/config/download/{lexicon_with_data_and_config}", headers=HEADERS)
     assert len(response.content) > 0, "Downloaded file should not be empty"
+
+
+@pytest.fixture(scope="module")
+def lexicon_processed(lexicon_with_data_and_config: str) -> str:
+    """Ensure a lexicon is processed."""
+    call_route("PUT", f"/lexicon/job/run/{lexicon_with_data_and_config}", headers=HEADERS)
+    json_data = check_resource_loop(resource_id=lexicon_with_data_and_config, process_name="karp_pipeline")
+    karp_status = json_data.get("job", {}).get("status", {}).get("karp_pipeline")
+    assert karp_status == "done", f"Lexicon processing failed. Karp Pipeline status: {karp_status}"
+    return lexicon_with_data_and_config
+
+
+@pytest.mark.lexicon
+def test_processing_lexicons(lexicon_processed: str) -> None:
+    """Test routes for processing lexicons."""
+    routes = [
+        ("PUT", f"/lexicon/job/run/{lexicon_processed}", None),
+        ("POST", f"/lexicon/job/abort/{lexicon_processed}", None),
+        ("DELETE", f"/lexicon/output/remove/{lexicon_processed}", None),
+        # ("PUT", f"/lexicon/karps/install/{lexicon_processed}", "karps"),
+        # ("DELETE", f"/lexicon/karps/uninstall/{lexicon_processed}", None),
+    ]
+    for method, path, process_name in routes:
+        call_route(method, path, headers=HEADERS)
+
+        if process_name:
+            json_data = check_resource_loop(resource_id=lexicon_processed, process_name=process_name, timeout=60)
+            status = json_data.get("job", {}).get("status", {}).get(process_name)
+            assert status == "done", f"{process_name} installation failed. Status: {status}"

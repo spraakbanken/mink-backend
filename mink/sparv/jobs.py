@@ -532,7 +532,7 @@ class SparvJob(BaseJob):
                 except json.JSONDecodeError:
                     # Catch "real" time output
                     if re.match(r"real \d.+", line):
-                        real_seconds = int(float(line[5:].strip()))
+                        real_seconds = self._parse_real_seconds(line[5:].strip())
                         sparv_ended = self.get_ended_timestamp(real_seconds)
                     # Ignore "user" and "sys" time output
                     elif re.match(r"user|sys \d.+", line):

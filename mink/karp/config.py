@@ -14,8 +14,8 @@ class KarpSettings(BaseSettings):
     KARP_DATA_DIR: str = ""  # Dir where user lexicons are stored and run
     KARP_PARENT_CONFIG: str = ""  # Path to parent config file that is used for all Karp runs
     KARP_COMMAND: str = ""  # Command for calling Karp, e.g. "~/.local/bin/karp-pipeline"
-    KARP_RUN: str = "run"  # Karp's 'run' command
-    KARP_INSTALL: str = "install karps"  # Karp's 'install' command
+    KARP_RUN: str = "run --json-output"  # Karp's 'run' command
+    KARP_INSTALL: str = "install karps --json-output"  # Karp's 'install' command
 
     # Karp data dirs and file naming
     KARP_SOURCE_DIR: str = "source"  # Dir for storing source files

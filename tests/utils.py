@@ -101,7 +101,7 @@ def log_response(response: typing.Any, method: str, loglevel: int = logging.DEBU
         logger.log(loglevel, "Response from %s %s:\n%s...", method, url, response.text[:100])
 
 
-def check_resource_loop(resource_id: str, process_name: str = "sparv", timeout: int = 60) -> typing.Any:
+def check_resource_loop(resource_id: str, process_name: str, timeout: int = 60) -> typing.Any:
     """Call /resource/status/get and /queue/advance until the resource is processed, abort if it takes too long.
 
     Returns:

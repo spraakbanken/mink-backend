@@ -22,10 +22,13 @@ def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, str]
         config_yaml["resource_id"] = resource_id
 
     # Set path to parent config
-    config_yaml["parent_config"] = karp_settings.KARP_PARENT_CONFIG
+    config_yaml["parent"] = karp_settings.KARP_PARENT_CONFIG
 
     # Set link
     config_yaml.setdefault("karps", {}).setdefault("link", f"/library/lexicon/{resource_id}")
+
+    # Set empty description if missing
+    config_yaml.setdefault("description", {"eng": "", "swe": ""})
 
     # Get resource name
     name = config_yaml.get("name", {})
