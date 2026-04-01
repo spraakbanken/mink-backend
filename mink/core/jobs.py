@@ -122,10 +122,31 @@ class BaseJob:
     def set_status(self, status: Status, process: str | Any | None = None) -> None:
         """Change the status of a job."""
         process_name = self.current_process if process is None else getattr(process, "name", process)
-        if self.status[process_name] != status:
+        if process_name is None:
+            return
+
+        status_changed = self.status[process_name] != status
+        if status_changed:
             self.status[process_name] = status
-            if self.status.is_active():
-                self.current_process = process_name
+
+        # Enforce one active process per job. If a process is being queued/started,
+        # any other active process is considered stale and marked as error.
+        stale_cleared = False
+        if status in {Status.waiting, Status.running}:
+            for name, state in self.status.items():
+                if name != process_name and state in {Status.waiting, Status.running}:
+                    self.status[name] = Status.error
+                    stale_cleared = True
+
+        # Move current_process only when it should point to an active process.
+        current_process_changed = False
+        if self.current_process != process_name and (
+            status in {Status.waiting, Status.running} or (status_changed and self.status.is_active())
+        ):
+            self.current_process = process_name
+            current_process_changed = True
+
+        if status_changed or stale_cleared or current_process_changed:
             self.parent.update()
 
     # ------------------------------------------------------------------------------

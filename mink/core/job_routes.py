@@ -5,8 +5,11 @@ from fastapi.responses import JSONResponse
 
 from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
+from mink.core.info import Info
+from mink.core.jobs import BaseJob
 from mink.core.logging import logger
 from mink.core.resource_specs import get_spec
+from mink.core.status import Status
 from mink.sb_auth import login
 
 router = APIRouter()
@@ -53,6 +56,43 @@ async def advance_queue(
     # Unqueue jobs that are done, aborted or erroneous
     registry.unqueue_inactive()
 
+    def mark_stale_active_processes(job: BaseJob, info_obj: Info, active_processes: list[str], reason: str) -> None:
+        """Mark stale active process states as error and unqueue the job."""
+        if active_processes:
+            logger.warning(
+                "Marking stale active processes as error for job '%s' (%s): %s",
+                job.id,
+                reason,
+                active_processes,
+            )
+        for name in active_processes:
+            job.status[name] = Status.error
+        info_obj.update()
+        registry.pop_from_queue(job)
+
+    def has_consistent_active_process(job: BaseJob, info_obj: Info, expected_status: Status, reason: str) -> bool:
+        """Validate active process invariants; mark stale state as error if invalid."""
+        active_processes = [name for name, state in job.status.items() if state in {Status.waiting, Status.running}]
+        process_name = job.current_process
+
+        # Must have exactly one active process and it must match current_process.
+        if len(active_processes) != 1 or process_name != active_processes[0]:
+            mark_stale_active_processes(job, info_obj, active_processes, reason=reason)
+            return False
+
+        # Must also match the expected active status for this queue phase.
+        if expected_status == Status.running:
+            is_expected_active = job.status.is_running(process_name)
+        elif expected_status == Status.waiting:
+            is_expected_active = job.status.is_waiting(process_name)
+        else:
+            raise ValueError(f"Unsupported expected_status '{expected_status}' in queue consistency check")
+        if not is_expected_active:
+            mark_stale_active_processes(job, info_obj, active_processes, reason=reason)
+            return False
+
+        return True
+
     # For running jobs, check if process is still running
     running_jobs, waiting_jobs = registry.get_running_waiting()
     logger.debug("Running jobs: %d  Waiting jobs: %d", len(running_jobs), len(waiting_jobs))
@@ -63,6 +103,8 @@ async def advance_queue(
             continue
         try:
             spec = get_spec(info_obj.resource.type)
+            if not has_consistent_active_process(job, info_obj, Status.running, reason="inconsistent running state"):
+                continue
             if spec.process_running and not spec.process_running(job):
                 try:
                     job.abort()
@@ -78,7 +120,7 @@ async def advance_queue(
     # Start waiting jobs when global capacity is available
     while waiting_jobs and len(running_jobs) < settings.MAX_WORKERS:
         started_any = False
-        for n, job in enumerate(waiting_jobs):
+        for job in list(waiting_jobs):
             # Get info object and spec for this job, to check process names and max workers
             info_obj = getattr(job, "parent", None)
             if not info_obj:
@@ -93,13 +135,20 @@ async def advance_queue(
             if not job.status.is_waiting():
                 continue
 
-            # Skip if there is no queue handler for the current process
-            handler = spec.queue_handlers.get(job.current_process or "")
-            if handler is None:
-                logger.warning("No queue handler for process '%s' (job '%s')", job.current_process, job.id)
+            if not has_consistent_active_process(job, info_obj, Status.waiting, reason="inconsistent waiting state"):
+                if job in waiting_jobs:
+                    waiting_jobs.remove(job)
                 continue
 
-            waiting_jobs.pop(n)
+            # Skip if there is no queue handler for the current process
+            process_name = job.current_process or ""
+            handler = spec.queue_handlers.get(process_name)
+            if handler is None:
+                logger.warning("No queue handler for process '%s' (job '%s')", process_name, job.id)
+                continue
+
+            if job in waiting_jobs:
+                waiting_jobs.remove(job)
             try:
                 handler(job)
                 running_jobs.append(job)
