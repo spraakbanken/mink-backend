@@ -12,6 +12,7 @@ import tomllib
 import unicodedata
 import zipfile
 from collections.abc import Mapping, Sequence
+from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -238,6 +239,10 @@ def serialize_obj(obj: Any, *, depth: int | None = None, seen: set[int] | None =
     """Recursively serialize objects while avoiding cycles and keeping depth limits."""
     if seen is None:
         seen = set()
+
+    # Convert enums to plain values for stable logging/JSON output.
+    if isinstance(obj, Enum):
+        return obj.value
 
     # Primitives stay as-is
     if obj is None or isinstance(obj, (str, int, float, bool)):
