@@ -364,75 +364,75 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
     return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
 
 
-# @router.delete(
-#     "/karps/uninstall/{resource_id}",
-#     response_model=models.BaseResponse,
-#     responses={
-#         status.HTTP_200_OK: {
-#             "content": {
-#                 "application/json": {
-#                     "example": {
-#                         "status": "success",
-#                         "message": return_codes.UNINSTALLED.message,
-#                         "return_code": return_codes.UNINSTALLED.code,
-#                         "info": "Uninstalled from KarpS",
-#                     }
-#                 }
-#             }
-#         },
-#         **models.common_auth_error_responses,
-#         status.HTTP_503_SERVICE_UNAVAILABLE: {
-#             "model": models.BaseErrorResponse,
-#             "content": {
-#                 "application/json": {
-#                     "example": {
-#                         "status": "error",
-#                         "message": return_codes.PROCESS_RUNNING.message,
-#                         "return_code": return_codes.PROCESS_RUNNING.code,
-#                         "info": "Cannot uninstall while a job is running",
-#                     }
-#                 }
-#             },
-#         },
-#         status.HTTP_500_INTERNAL_SERVER_ERROR: {
-#             "model": models.ErrorResponse500,
-#             "content": {
-#                 "application/json": {
-#                     "example": {
-#                         "status": "error",
-#                         "message": return_codes.FAILED_UNINSTALLING.message,
-#                         "return_code": return_codes.FAILED_UNINSTALLING.code,
-#                         "info": "Error when uninstalling from KarpS",
-#                     }
-#                 }
-#             },
-#         },
-#     },
-# )
-# async def uninstall_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONResponse:
-#     """Uninstall the lexicon from KarpS.
+@router.delete(
+    "/karps/uninstall/{resource_id}",
+    response_model=models.BaseResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.UNINSTALLED.message,
+                        "return_code": return_codes.UNINSTALLED.code,
+                        "info": "Uninstalled from KarpS",
+                    }
+                }
+            }
+        },
+        **models.common_auth_error_responses,
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "model": models.BaseErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.PROCESS_RUNNING.message,
+                        "return_code": return_codes.PROCESS_RUNNING.code,
+                        "info": "Cannot uninstall while a job is running",
+                    }
+                }
+            },
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_UNINSTALLING.message,
+                        "return_code": return_codes.FAILED_UNINSTALLING.code,
+                        "info": "Error when uninstalling from KarpS",
+                    }
+                }
+            },
+        },
+    },
+)
+async def uninstall_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONResponse:
+    """Uninstall the lexicon from KarpS.
 
-#     ### Example
+    ### Example
 
-#     ```bash
-#     curl -X DELETE '{{host}}/lexicon/karps/uninstall/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
-#     ```
-#     """
-#     resource_id = auth_data["resource_id"]
-#     # Check if there is an active job
-#     job = _require_job(registry.get(resource_id).job)
-#     if job.status.is_running():
-#         raise exceptions.MinkHTTPException(
-#             return_code=return_codes.PROCESS_RUNNING, info="Cannot uninstall while a job is running"
-#         )
+    ```bash
+    curl -X DELETE '{{host}}/lexicon/karps/uninstall/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    resource_id = auth_data["resource_id"]
+    # Check if there is an active job
+    job = _require_job(registry.get(resource_id).job)
+    if job.status.is_running():
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.PROCESS_RUNNING, info="Cannot uninstall while a job is running"
+        )
 
-#     try:
-#         job = _require_job(job)
-#         karp_output = job.uninstall_karps()
-#         return utils.response(
-#             return_code=return_codes.UNINSTALLED, info="Uninstalled from KarpS", karp_output=karp_output
-#         )
-#     except Exception as e:
-#         raise exceptions.MinkHTTPException(
-#             return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from KarpS: {e}"
-#         ) from e
+    try:
+        job = _require_job(job)
+        warnings, output = job.uninstall_karps()
+        return utils.response(
+            return_code=return_codes.UNINSTALLED, info="Uninstalled from KarpS", output=output, warnings=warnings
+        )
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from KarpS: {e}"
+        ) from e

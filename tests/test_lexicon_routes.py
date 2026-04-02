@@ -137,8 +137,9 @@ def test_processing_lexicons(lexicon_processed: str) -> None:
         ("PUT", f"/lexicon/job/run/{lexicon_processed}", None),
         ("POST", f"/lexicon/job/abort/{lexicon_processed}", None),
         ("DELETE", f"/lexicon/output/remove/{lexicon_processed}", None),
-        # ("PUT", f"/lexicon/karps/install/{lexicon_processed}", "karps"),
-        # ("DELETE", f"/lexicon/karps/uninstall/{lexicon_processed}", None),
+        ("PUT", f"/lexicon/job/run/{lexicon_processed}", "karp_pipeline"),  # Needs to run again after output removal
+        ("PUT", f"/lexicon/karps/install/{lexicon_processed}", "karps"),
+        ("DELETE", f"/lexicon/karps/uninstall/{lexicon_processed}", None),
     ]
     for method, path, process_name in routes:
         call_route(method, path, headers=HEADERS)

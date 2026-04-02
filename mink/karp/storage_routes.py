@@ -137,19 +137,19 @@ async def list_lexicons(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
             }
         },
         **models.common_auth_error_responses,
-        # status.HTTP_500_INTERNAL_SERVER_ERROR: {
-        #     "model": models.ErrorResponse500,
-        #     "content": {
-        #         "application/json": {
-        #             "example": {
-        #                 "status": "error",
-        #                 "message": return_codes.FAILED_REMOVING_CONTENT.message,
-        #                 "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
-        #                 "info": "Failed to remove resource from Karp",
-        #             }
-        #         }
-        #     },
-        # },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                        "info": "Failed to remove resource from KarpS",
+                    }
+                }
+            },
+        },
     },
 )
 async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
@@ -165,16 +165,16 @@ async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
     """
     resource_id = auth_data["resource_id"]
     info_obj = registry.get(resource_id)
-    # job = _require_job(info_obj.job)
+    job = _require_job(info_obj.job)
 
-    # # Uninstall lexicon from KarpS
-    # if job.installed_karps:
-    #     try:
-    #         job.uninstall_karps()
-    #     except Exception as e:
-    #         raise exceptions.MinkHTTPException(
-    #             return_code=return_codes.FAILED_REMOVING_CONTENT, info=f"Failed to remove resource from Karp: {e}"
-    #         ) from e
+    # Uninstall lexicon from KarpS
+    if job.installed_karps:
+        try:
+            job.uninstall_karps()
+        except Exception as e:
+            raise exceptions.MinkHTTPException(
+                return_code=return_codes.FAILED_REMOVING_CONTENT, info=f"Failed to remove resource from KarpS: {e}"
+            ) from e
 
     return await route_utils.remove_resource(
         resource_id=resource_id,

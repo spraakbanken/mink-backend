@@ -1,10 +1,12 @@
 """Base job classes used by resource specs."""
 
 import datetime
+import json
 import re
 from typing import Any
 
 from mink.core import utils
+from mink.core.logging import logger
 from mink.core.status import JobStatuses, Status
 
 
@@ -105,6 +107,57 @@ class BaseJob:
             if not match:
                 return 0
             return int(float(match.group(0)))
+
+    def parse_jsonl_output(self, output: str) -> dict:
+        """Parse job output in JSONL format and parse time output if present.
+
+        Args:
+            output: Job output as a string.
+
+        Returns:
+            A dictionary with the parsed output.
+        """
+        parsed_output = {
+            "warnings": [],
+            "errors": [],
+            "progress": [],
+            "misc": [],
+            "final": "",
+            "exit_code": None,
+            "real_seconds": None,
+        }
+        for line in output.split("\n"):
+            try:
+                json_output = json.loads(line)
+                msg = json_output.get("message")
+                level = json_output.get("level")
+
+                if level == "WARNING":
+                    if msg is not None:
+                        parsed_output["warnings"].append(str(msg))
+                elif level in {"ERROR", "CRITICAL"}:
+                    if msg is not None:
+                        parsed_output["errors"].append(str(msg))
+                elif level == "PROGRESS":
+                    if msg is not None:
+                        parsed_output["progress"].append(str(msg))
+                elif level == "FINAL":
+                    parsed_output["final"] = str(msg) if msg is not None else ""
+                elif json_output.get("exit_code") is not None:
+                    parsed_output["exit_code"] = str(json_output["exit_code"])
+                elif msg is not None:
+                    parsed_output["misc"].append(str(msg))
+            except json.JSONDecodeError:
+                # Catch "real" time output
+                if re.match(r"real \d.+", line):
+                    real_seconds = self._parse_real_seconds(line[5:].strip())
+                    parsed_output["real_seconds"] = real_seconds
+                # Ignore "user" and "sys" time output
+                elif re.match(r"user|sys \d.+", line):
+                    pass
+                else:
+                    logger.debug("Failed to parse line in output as JSON: %s", line)
+        return parsed_output
 
     # ------------------------------------------------------------------------------
     # Setters and getters

@@ -1,7 +1,5 @@
 """Karp job implementations."""
 
-import json
-import re
 import shlex
 
 from mink.core import exceptions, registry, utils
@@ -243,6 +241,37 @@ class KarpJob(BaseJob):
             pass
         self.set_status(Status.running, ProcessName.karps)
 
+    def uninstall_karps(self) -> tuple[str, str]:
+        """Uninstall resource from KarpS.
+
+        Raises:
+            exceptions.JobError: If uninstalling resource from KarpS fails.
+        """
+        try:
+            self.abort()
+        except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
+            pass
+        except Exception:
+            raise
+
+        p = storage.ssh_run(
+            f"cd {self.remote_resource_dir_esc} && {karp_settings.KARP_COMMAND} {karp_settings.KARP_UNINSTALL}"
+        )
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            logger.error("Failed to uninstall resource %s from KarpS: %s", self.id, stderr)
+            raise exceptions.JobError(f"Failed to uninstall resource from KarpS: {stderr}")
+
+        self.set_attribute("installed_karps", False)
+
+        # Get output from uninstall command
+        parsed_output = self.parse_jsonl_output(p.stdout.decode() if p.stdout else "")
+        warnings = "\n".join(parsed_output["warnings"])
+        output = "\n".join(parsed_output["misc"])
+
+        return warnings, output
+
     def abort(self) -> None:
         """Abort running Karp Pipeline.
 
@@ -317,45 +346,31 @@ class KarpJob(BaseJob):
         Returns:
             Tuple of warnings, errors, and miscellaneous output.
         """
-        p = storage.ssh_run(f"cat {self.nohupfile}")
-
-        stdout = p.stdout.decode().strip() if p.stdout else ""
         warnings = errors = misc = karp_ended = ""
         progress = 0
+
+        p = storage.ssh_run(f"cat {self.nohupfile}")
+        stdout = p.stdout.decode().strip() if p.stdout else ""
         if stdout:
-            warnings = []
-            errors = []
-            misc = []
-            for line in stdout.split("\n"):
-                try:
-                    json_output = json.loads(line)
-                    msg = json_output.get("message")
-                    if json_output.get("level") == "WARNING":
-                        warnings.append("WARNING " + msg)
-                    elif json_output.get("level") == "ERROR":
-                        errors.append("ERROR " + msg)
-                    elif json_output.get("exit_code") is not None:
-                        if json_output["exit_code"] == "0":
-                            progress = PROGRESS_DONE
-                        else:
-                            errors.append(f"Karp Pipeline exited with code {json_output['exit_code']}")
-                    else:
-                        misc.append(msg)
-                except json.JSONDecodeError:
-                    # Catch "real" time output
-                    if re.match(r"real \d.+", line):
-                        real_seconds = self._parse_real_seconds(line[5:].strip())
-                        if real_seconds is not None:
-                            karp_ended = self.get_ended_timestamp(real_seconds)
-                    # Ignore "user" and "sys" time output
-                    elif re.match(r"user|sys \d.+", line):
-                        pass
+            parsed_output = self.parse_jsonl_output(stdout)
+            warnings = "\n".join(parsed_output["warnings"])
+            errors = "\n".join(parsed_output["errors"])
+            misc = "\n".join(parsed_output["misc"])
+
+            real_seconds = parsed_output.get("real_seconds")
+            if real_seconds is not None:
+                karp_ended = self.get_ended_timestamp(real_seconds)
+
+            exit_code = parsed_output.get("exit_code")
+            if exit_code is not None:
+                if exit_code == "0":
+                    progress = PROGRESS_DONE
+                else:
+                    if errors:
+                        errors += "\n"
+                    errors += f"Karp Pipeline exited with code {exit_code}"
 
             self.progress_output = progress
-
-            warnings = "\n".join(warnings)
-            errors = "\n".join(errors)
-            misc = "\n".join(misc)
 
         return warnings, errors, misc, karp_ended
 

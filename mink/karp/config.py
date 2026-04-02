@@ -16,6 +16,7 @@ class KarpSettings(BaseSettings):
     KARP_COMMAND: str = ""  # Command for calling Karp, e.g. "~/.local/bin/karp-pipeline"
     KARP_RUN: str = "run --json-output"  # Karp's 'run' command
     KARP_INSTALL: str = "install karps --json-output"  # Karp's 'install' command
+    KARP_UNINSTALL: str = "uninstall karps --json-output"  # Karp's 'uninstall' command
 
     # Karp data dirs and file naming
     KARP_SOURCE_DIR: str = "source"  # Dir for storing source files
