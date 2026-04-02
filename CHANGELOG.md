@@ -5,6 +5,13 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [unreleased]
 
+### Added
+
+- Added a new resource type: lexicons. This includes routes for creating, listing, uploading and downloading lexicons.
+- Added a new route `/metadata/list` for listing all metadata resources.
+
+## [2.2.0] - 2026-04-02
+
 ### Changed
 
 - `/info` response schema has changed: the fields `importer_modules` and `recommended_file_size` have been moved under a
@@ -35,12 +42,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Added a new resource type: lexicons. This includes routes for creating, listing, uploading and downloading lexicons.
 - Added new route `/resource/list` for listing all resources regardless of type.
 - Added a new script `config_helper.py` for validating and displaying config values from all modules and the .env file.
 - Added a new route `/return-codes` which lists all possible return codes and their meanings, to make it easier for
   users to understand the API responses.
-- Added a new route `/metadata/list` for listing all metadata resources.
 - Caching of Sparv data computed in `/sparv-exports` and `/sparv-languages` to speed up subsequent calls. The cache can
   be bypassed by setting the `update-cache` query parameter to true.
 
@@ -194,7 +199,8 @@ This is the first release of the Mink backend! This application contains functio
 corpus-related files, processing corpora with [Sparv](https://spraakbanken.gu.se/sparv/) and installing them in
 [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
 
-[unreleased]: https://github.com/spraakbanken/mink-backend/compare/v2.1.1...dev/
+[unreleased]: https://github.com/spraakbanken/mink-backend/compare/v2.2.0...dev/
+[2.2.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.2.0
 [2.1.1]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.1.1
 [2.1.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.1.0
 [2.0.2]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.0.2
