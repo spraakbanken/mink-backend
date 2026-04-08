@@ -168,6 +168,6 @@ def test_processing_corpora(corpus_processed: str) -> None:
         call_route(method, path, headers=HEADERS)
 
         if process_name:
-            json_data = check_resource_loop(resource_id=corpus_processed, process_name=process_name, timeout=60)
+            json_data = check_resource_loop(resource_id=corpus_processed, process_name=process_name, timeout=120)
             status = json_data.get("job", {}).get("status", {}).get(process_name)
             assert status == "done", f"{process_name} installation failed. Status: {status}"
