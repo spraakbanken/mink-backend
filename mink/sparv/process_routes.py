@@ -529,9 +529,9 @@ async def uninstall_korp(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRe
 
     try:
         job = _require_job(job)
-        sparv_output = job.uninstall_korp()
+        warnings, output = job.uninstall_korp()
         return utils.response(
-            return_code=return_codes.UNINSTALLED, info="Uninstalled from Korp", sparv_output=sparv_output
+            return_code=return_codes.UNINSTALLED, info="Uninstalled from Korp", output=output, warnings=warnings
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
@@ -679,12 +679,13 @@ async def uninstall_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONR
 
     try:
         job = _require_job(job)
-        sparv_output = job.uninstall_strix()
+        warnings, output = job.uninstall_strix()
         return utils.response(
             message=return_codes.UNINSTALLED.message,
             return_code=return_codes.UNINSTALLED.code,
             info="Uninstalled from Strix",
-            sparv_output=sparv_output,
+            warnings=warnings,
+            output=output,
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(

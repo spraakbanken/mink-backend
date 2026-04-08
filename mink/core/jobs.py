@@ -120,7 +120,7 @@ class BaseJob:
         parsed_output = {
             "warnings": [],
             "errors": [],
-            "progress": [],
+            "progress": 0,
             "misc": [],
             "final": "",
             "exit_code": None,
@@ -140,7 +140,7 @@ class BaseJob:
                         parsed_output["errors"].append(str(msg))
                 elif level == "PROGRESS":
                     if msg is not None:
-                        parsed_output["progress"].append(str(msg))
+                        parsed_output["progress"] = int(str(msg).strip("%"))
                 elif level == "FINAL":
                     parsed_output["final"] = str(msg) if msg is not None else ""
                 elif json_output.get("exit_code") is not None:

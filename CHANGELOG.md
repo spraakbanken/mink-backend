@@ -9,6 +9,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Added a new resource type: lexicons. This includes routes for creating, listing, uploading and downloading lexicons.
 - Added a new route `/metadata/list` for listing all metadata resources.
+- Added a 'warnings' field to the response from `/corpus/korp/uninstall/<id>` and `/corpus/strix/uninstall/<id>` which
+  contains any warnings that occurred during the export process.
 
 ## [2.2.0] - 2026-04-02
 

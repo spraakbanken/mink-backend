@@ -287,7 +287,7 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
 
     if job_status.is_error(job.current_process):
         logger.error(
-            "An error occurred during processing, warnings: %s, errors: %s, output: %s, job_attrs: %s",
+            "An error occurred during processing; warnings: %s, errors: %s, output: %s, job_attrs: %s",
             info_attrs["job"]["warnings"],
             info_attrs["job"]["errors"],
             info_attrs["job"]["output"],

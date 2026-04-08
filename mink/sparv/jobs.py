@@ -336,7 +336,7 @@ class SparvJob(BaseJob):
             pass
         self.set_status(Status.running, ProcessName.korp)
 
-    def uninstall_korp(self) -> None:
+    def uninstall_korp(self) -> tuple[str, str]:
         """Uninstall corpus from Korp.
 
         Raises:
@@ -360,6 +360,13 @@ class SparvJob(BaseJob):
             raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stderr}")
 
         self.set_attribute("installed_korp", False)
+
+        # Get output from uninstall command
+        parsed_output = self.parse_jsonl_output(p.stdout.decode() if p.stdout else "")
+        warnings = "\n".join(parsed_output["warnings"])
+        output = "\n".join(parsed_output["misc"])
+
+        return warnings, output
 
     def install_strix(self) -> None:
         """Install a corpus in Strix.
@@ -401,7 +408,7 @@ class SparvJob(BaseJob):
             pass
         self.set_status(Status.running, ProcessName.strix)
 
-    def uninstall_strix(self) -> None:
+    def uninstall_strix(self) -> tuple[str, str]:
         """Uninstall corpus from Strix.
 
         Raises:
@@ -425,6 +432,13 @@ class SparvJob(BaseJob):
             raise exceptions.JobError(f"Failed to uninstall corpus from Strix: {stderr}")
 
         self.set_attribute("installed_strix", False)
+
+        # Get output from uninstall command
+        parsed_output = self.parse_jsonl_output(p.stdout.decode() if p.stdout else "")
+        warnings = "\n".join(parsed_output["warnings"])
+        output = "\n".join(parsed_output["misc"])
+
+        return warnings, output
 
     def abort(self) -> None:
         """Abort running Sparv process.
@@ -505,44 +519,28 @@ class SparvJob(BaseJob):
         if not self.status.has_process_output(self.current_process, get_spec(CORPUS).no_output_processes):
             return "", "", "", ""
 
-        p = storage.ssh_run(f"cat {self.nohupfile}")
-
-        stdout = p.stdout.decode().strip() if p.stdout else ""
         warnings = errors = misc = sparv_ended = ""
-        progress = 0
+
+        p = storage.ssh_run(f"cat {self.nohupfile}")
+        stdout = p.stdout.decode().strip() if p.stdout else ""
         if stdout:
-            warnings = []
-            errors = []
-            misc = []
-            for line in stdout.split("\n"):
-                try:
-                    json_output = json.loads(line)
-                    msg = json_output.get("message")
-                    if json_output.get("level") == "FINAL" and msg == "Nothing to be done.":
-                        progress = PROGRESS_DONE
-                        misc.append(msg)
-                    elif json_output.get("level") == "PROGRESS":
-                        progress = int(msg[:-1])
-                    elif json_output.get("level") == "WARNING":
-                        warnings.append("WARNING " + msg)
-                    elif json_output.get("level") == "ERROR":
-                        errors.append("ERROR " + msg)
-                    else:
-                        misc.append(msg)
-                except json.JSONDecodeError:
-                    # Catch "real" time output
-                    if re.match(r"real \d.+", line):
-                        real_seconds = self._parse_real_seconds(line[5:].strip())
-                        sparv_ended = self.get_ended_timestamp(real_seconds)
-                    # Ignore "user" and "sys" time output
-                    elif re.match(r"user|sys \d.+", line):
-                        pass
+            parsed_output = self.parse_jsonl_output(stdout)
+            warnings = "\n".join(parsed_output["warnings"])
+            errors = "\n".join(parsed_output["errors"])
+            misc = "\n".join(parsed_output["misc"])
+
+            real_seconds = parsed_output.get("real_seconds")
+            if real_seconds is not None:
+                sparv_ended = self.get_ended_timestamp(real_seconds)
+
+            progress = parsed_output.get("progress") or 0
+            final_msg = parsed_output.get("final")
+            if final_msg:
+                misc += ("\n" if misc else "") + final_msg
+            if final_msg == "Nothing to be done.":
+                progress = PROGRESS_DONE
 
             self.progress_output = progress
-
-            warnings = "\n".join(warnings)
-            errors = "\n".join(errors)
-            misc = "\n".join(misc)
 
         return warnings, errors, misc, sparv_ended
 
