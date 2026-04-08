@@ -76,7 +76,7 @@ def response(
     status_str = "success" if success else "error"
     if not success:
         log_kwargs = {k: v for k, v in kwargs.items() if k != "status"} or ""
-        info_str = "; info: " + str(log_kwargs) if log_kwargs else ""
+        info_str = "; " + str(log_kwargs) if log_kwargs else ""
         logger.error("%s: %s; return_code: %s%s", resolved_status, resolved_message, resolved_code, info_str)
 
     response = JSONResponse(

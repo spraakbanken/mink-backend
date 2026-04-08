@@ -500,6 +500,8 @@ async def download_sources(
         # Unzippped download
         return FileResponse(local_path, media_type=download_file_type, filename=local_path.name)
 
+    except FileNotFoundError as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
@@ -622,6 +624,6 @@ async def download_config(auth_data: dict = Depends(AUTH_LEXICON)) -> FileRespon
     return route_utils.download_file_response(
         local_path=local_yaml_file,
         ensure_local_dir_fn=lambda: storage.get_local_source_dir(resource_id, mkdir=True),
-        download_fn=lambda: storage.download_file(storage_yaml_file, local_yaml_file, resource_id, ignore_missing=True),
+        download_fn=lambda: storage.download_file(storage_yaml_file, local_yaml_file, resource_id),
         media_type="text/yaml",
     )

@@ -105,6 +105,17 @@ class BaseStorage:
         """Return a path string for API responses."""
         return str(filepath)
 
+    def file_exists(self, filepath: Path) -> bool:
+        """Check if a remote file exists at the given path."""
+        try:
+            fileinfo = self.get_file_info(filepath)
+            if fileinfo:
+                return True
+        except exceptions.ReadError:
+            return False
+        else:
+            return True
+
     def ssh_run(self, command: str, ssh_input: bytes | None = None) -> subprocess.CompletedProcess:
         """Execute 'command' on server and return process.
 
@@ -232,31 +243,30 @@ class BaseStorage:
             "path": self.relative_path(filepath),
         }
 
-    def download_file(
-        self, remote_file_path: Path, local_file: Path, resource_id: str, ignore_missing: bool = False
-    ) -> bool:
+    def download_file(self, remote_file_path: Path, local_file: Path, resource_id: str) -> bool:
         """Download a file from the remote server.
 
         Args:
             remote_file_path: The path to the remote file.
             local_file: The local file path to save the downloaded file to.
             resource_id: The resource ID.
-            ignore_missing: Whether to ignore missing files.
 
         Returns:
             True if the file was downloaded successfully, False otherwise.
         """
+        # Check if file exists in storage
+        if not self.file_exists(remote_file_path):
+            raise FileNotFoundError(f"File not found: {remote_file_path}")
+
         self._ensure("read")
         if not self.is_valid_path(remote_file_path, resource_id):
             raise exceptions.ReadError(remote_file_path, "You don't have permission to download this file")
 
         args = ["--protect-args"]
-        if ignore_missing:
-            args.append("--ignore-missing-args")
         p = self.rsync(remote_file_path, local_file, src_remote=True, args=args)
         if p.stderr:
             raise exceptions.ReadError(remote_file_path, p.stderr.decode())
-        return not (ignore_missing and not local_file.is_file())
+        return local_file.is_file()
 
     def get_file_contents(self, filepath: Path, as_bytes: bool = False) -> bytes | str:
         """Get contents of file at 'filepath'.

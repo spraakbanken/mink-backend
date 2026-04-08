@@ -350,6 +350,6 @@ async def download_metadata_yaml(auth_data: dict = Depends(AUTH_METADATA)) -> Fi
     return route_utils.download_file_response(
         local_path=local_yaml_file,
         ensure_local_dir_fn=lambda: storage.get_local_resource_dir(resource_id, mkdir=True),
-        download_fn=lambda: storage.download_file(remote_yaml_file, local_yaml_file, resource_id, ignore_missing=True),
+        download_fn=lambda: storage.download_file(remote_yaml_file, local_yaml_file, resource_id),
         media_type="text/yaml",
     )

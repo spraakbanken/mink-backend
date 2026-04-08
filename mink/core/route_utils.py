@@ -211,7 +211,11 @@ async def upload_yaml_file(
 
 
 def download_file_response(
-    *, local_path: Path, ensure_local_dir_fn: Callable[[], object], download_fn: Callable[[], bool], media_type: str
+    *,
+    local_path: Path,
+    ensure_local_dir_fn: Callable[[], object],
+    download_fn: Callable[[], bool],
+    media_type: str,
 ) -> FileResponse:
     """Download a file and return a file response, or raise a MinkHTTPException.
 
@@ -227,6 +231,8 @@ def download_file_response(
     ensure_local_dir_fn()
     try:
         download_ok = download_fn()
+    except FileNotFoundError as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
     if download_ok:
