@@ -4,10 +4,15 @@ info:
     ## Introduction
 
     The Mink backend is a REST API that powers the [Mink](https://spraakbanken.gu.se/mink) frontend, Språkbanken's data
-    platform. It enables users to upload corpus data to a storage server and process that data using Sparv. This
-    documentation provides a comprehensive reference for all available API routes.
+    platform. It enables users to:
+    
+    - upload corpus data, process it using Sparv and install it in Korp and Strix
+    - upload lexicon data and install it in KarpS
+    - manage metadata resources (limited support)
+    
+    This documentation provides a comprehensive reference for all available API routes.
 
-    ## Workflow
+    ## Workflow for corpora
 
     A workflow for processing data with Sparv via Mink could look like this:
 
@@ -15,9 +20,17 @@ info:
     2. [Upload some corpus source files](#upload-corpus-sources)
     3. [Upload a corpus config file](#upload-corpus-config)
     4. [Run Sparv](#run-corpus-job)
-    5. [Check the status](#get-resource-status)
+    5. [Check the job status](#get-resource-status)
     6. [Download export files](#download-corpus-exports)
     7. [Install the corpus in Korp](#install-korp) / [Strix](#install-strix)
+
+    ## Workflow for lexicons
+
+    1. [Create a new lexicon](#create-lexicon)
+    2. [Upload a lexicon source file](#upload-lexicon-sources)
+    4. [Run Karp](#run-lexicon-job)
+    5. [Check the job status](#get-resource-status)
+    6. [Install the lexicon in KarpS](#install-karps)
 
     ## Authentication
 
