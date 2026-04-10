@@ -11,6 +11,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a new route `/metadata/list` for listing all metadata resources.
 - Added a 'warnings' field to the response from `/corpus/korp/uninstall/<id>` and `/corpus/strix/uninstall/<id>` which
   contains any warnings that occurred during the export process.
+- Added checks for unused config variables in the .env file upon app start to help identify typos or misconfigurations.
 
 ### Removed
 

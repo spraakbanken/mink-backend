@@ -9,7 +9,6 @@ import importlib
 import json
 import os
 import pkgutil
-from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -23,6 +22,7 @@ from rich.table import Table
 
 import mink
 from mink.core.config import Settings as CoreSettings
+from mink.core.config_utils import collect_defined_env_var_names, find_unused_env_vars, normalize_env_keys
 
 
 @dataclass(frozen=True)
@@ -146,18 +146,6 @@ def _instantiate_settings(settings_class: type[BaseSettings], env_file: str) -> 
     return settings_type()
 
 
-def _normalize_keys(keys: Iterable[str]) -> set[str]:
-    """Normalize env keys for case-insensitive comparisons.
-
-    Args:
-        keys: Iterable of env keys.
-
-    Returns:
-        Normalized key set.
-    """
-    return {key.lower() for key in keys if key}
-
-
 def _source_for_field(name: str, env_file_keys: set[str], env_keys: set[str]) -> str:
     """Return the source label for a field.
 
@@ -191,12 +179,12 @@ def _collect_extra_entries(
     Returns:
         Tuple of (env file extras, env extras).
     """
-    env_file_extras: list[ExtraEntry] = []
+    # Reuse the same env-key comparison logic as the runtime warning.
+    env_file_extras = [
+        ExtraEntry(name=key, value=env_file_values.get(key), source=".env")
+        for key in find_unused_env_vars(env_file_values, known_keys)
+    ]
     env_extras: list[ExtraEntry] = []
-
-    for key, value in env_file_values.items():
-        if key and key.lower() not in known_keys:
-            env_file_extras.append(ExtraEntry(name=key, value=value, source=".env"))
 
     if include_env:
         env_extras.extend(
@@ -367,8 +355,8 @@ def main() -> None:
     args = parse_args()
     env_file = Path(args.env_file)
     env_file_values = dotenv_values(env_file) if env_file.exists() else {}
-    env_file_keys = _normalize_keys(env_file_values.keys())
-    env_keys = _normalize_keys(os.environ.keys())
+    env_file_keys = normalize_env_keys(env_file_values.keys())
+    env_keys = normalize_env_keys(os.environ.keys())
 
     json_out: dict[str, Any] = {}
 
@@ -379,9 +367,9 @@ def main() -> None:
         print(exc)
         raise SystemExit(1) from exc
 
-    known_keys: set[str] = set()
-    for _, settings in settings_instances:
-        known_keys |= _normalize_keys(settings.__class__.model_fields.keys())
+    # Build the known key set from the instantiated settings classes so the report
+    # and the startup warning use the same case-insensitive comparison rules.
+    known_keys = collect_defined_env_var_names(settings.__class__ for _, settings in settings_instances)
 
     env_file_extras, env_extras = _collect_extra_entries(
         env_file_values,

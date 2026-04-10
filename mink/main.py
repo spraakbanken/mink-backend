@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from mink.cache.memcached import cache
-from mink.core import exceptions, job_routes, registry, routes, utils
+from mink.core import config_utils, exceptions, job_routes, registry, routes, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.resource_specs import get_resource_routers, run_startup_checks
@@ -40,6 +40,9 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     # -------------------------------
     logger.info("Starting Mink version: %s", MINK_VERSION)
     logger.debug("Environment: %s. Log level: %s", settings.ENV, settings.LOG_LEVEL)
+
+    # Check for unused environment variables
+    config_utils.check_unused_env_vars()
 
     # Make sure required config variables are set
     if not settings.CACHE_CLIENT:

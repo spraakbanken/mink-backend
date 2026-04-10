@@ -218,6 +218,10 @@ python config_helper.py
 `config_helper.py` discovers module settings via the `CONFIG_MODULES` list in `mink/core/config.py`, so new module
 config files should be added there to appear in the report.
 
+Upon application startup, all settings are loaded from the core and module config files, as well as the `.env` file, and
+validated using the helper functions in `config_utils.py`. A warning will be logged for any unused variables in the
+`.env` file.
+
 #### Using Configuration Variables in Code
 
 Core configuration variables are available via the `mink.core.config.settings` object, while module settings are
@@ -317,6 +321,7 @@ promote modularity and maintainability.
 The `core` package provides essential functionality required for normal operation and is not intended to be replaced. It
 includes the following modules:
 
+- `config_utils.py`: Contains helper functions for validating configuration variables.
 - `config.py`: Defines default core settings for the Mink backend.
 - `exceptions.py`: Contains Mink-specific exceptions.
 - `info.py`: Handles creation and management of info objects.
