@@ -17,6 +17,8 @@ from mink.core.logging import logger
 from mink.core.user import User
 from mink.sb_auth import cache as auth_cache
 
+# TODO: from fastapi import Path as FastAPIPath
+
 # Setup security schemes
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="", auto_error=False)
 api_key_scheme = APIKeyHeader(name="X-Api-Key", auto_error=False)
@@ -27,11 +29,10 @@ request_id_var = ContextVar("request_id_var", default="")
 
 async def get_auth_data(
     request: Request,
+    *,
     session_id: str | None = Cookie(None),
-    corpus_query_id: str | None = Query(
-        None, description="Resource ID (deprecated, use resource_id instead)", deprecated=True
-    ),
     resource_query_id: str | None = Query(None, description="Resource ID"),
+    # resource_id: str | None = FastAPIPath(description="Resource ID"),
     jwt_token: str | None = Security(oauth2_scheme),
     api_key: str | None = Security(api_key_scheme),
     min_level: str = "READ",
@@ -45,8 +46,8 @@ async def get_auth_data(
     Args:
         request: The request object.
         session_id: The session ID from the cookie.
-        corpus_query_id: The resource ID from the query parameter (deprecated).
         resource_query_id: The resource ID from the query parameter.
+        # resource_id: The resource ID from the path parameter.
         jwt_token: The JWT token from the request.
         api_key: The API key from the request.
         min_level: Minimum access level to filter user's resources by.
@@ -60,13 +61,12 @@ async def get_auth_data(
     """
     # Prefer path parameter if present (new routes), otherwise support query params.
     path_resource_id = request.path_params.get("resource_id")
+    # TODO: path_resource_id = resource_id
     if path_resource_id:
         resource_id = path_resource_id
+    # Backwards compatibility: use resource_query_id if resource_id is not provided.
     elif resource_query_id:
         resource_id = resource_query_id
-    else:
-        # Backwards compatibility: use corpus_id if resource_id is not provided.
-        resource_id = corpus_query_id
 
     # Look for JWT
     if jwt_token:
@@ -173,31 +173,31 @@ class AuthDependency:
     async def __call__(
         self,
         request: Request,
+        # TODO: Remove deprecated resource_query_id in favor of path parameter in the future
+        # resource_id: str | None = FastAPIPath(description="Resource ID"),
+        resource_query_id: str | None = Query(
+            None,
+            alias="resource_id",
+            deprecated=True,
+            description="Resource ID (deprecated, use path parameter instead)",
+        ),
         session_id: str | None = Cookie(None, description="Session ID"),
         jwt_token: str | None = Security(oauth2_scheme),
         api_key: str | None = Security(api_key_scheme),
-        corpus_query_id: str | None = Query(
-            None,
-            alias="corpus_id",
-            description="Resource ID (deprecated, use resource_id instead)",
-            deprecated=True,
-        ),
-        # TODO: make resource_id required by replacing "None" with "..." when corpus_id has been removed
-        resource_query_id: str | None = Query(None, alias="resource_id", description="Resource ID"),
     ) -> dict:
         """Call the authentication dependency."""
         return await get_auth_data(
             request,
-            session_id,
-            corpus_query_id,
-            resource_query_id,
-            jwt_token,
-            api_key,
-            self.min_level,
-            self.sbauth_resource_type,
-            self.require_resource_id,
-            self.require_resource_exists,
-            self.require_admin,
+            session_id=session_id,
+            resource_query_id=resource_query_id,
+            # resource_id=resource_id,
+            jwt_token=jwt_token,
+            api_key=api_key,
+            min_level=self.min_level,
+            sbauth_resource_type=self.sbauth_resource_type,
+            require_resource_id=self.require_resource_id,
+            require_resource_exists=self.require_resource_exists,
+            require_admin=self.require_admin,
         )
 
 

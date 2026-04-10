@@ -12,6 +12,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a 'warnings' field to the response from `/corpus/korp/uninstall/<id>` and `/corpus/strix/uninstall/<id>` which
   contains any warnings that occurred during the export process.
 
+### Removed
+
+- The deprecated query parameter `corpus_id` has been removed from all routes. Use the path parameter `resource_id`
+  instead.
+
 ## [2.2.0] - 2026-04-02
 
 ### Changed
