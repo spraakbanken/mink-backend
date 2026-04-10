@@ -31,6 +31,7 @@ def _require_job(job: object) -> KarpJob:
 
 @router.put(
     "/job/run/{resource_id}",
+    operation_id="run-lexicon-job",
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -132,6 +133,7 @@ async def run_karp_pipeline(
 
 @router.post(
     "/job/abort/{resource_id}",
+    operation_id="abort-lexicon-job",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -224,6 +226,7 @@ async def abort_job(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRespon
 
 @router.delete(
     "/output/remove/{resource_id}",
+    operation_id="remove-lexicon-output",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -300,6 +303,7 @@ async def remove_output(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
 
 @router.put(
     "/karps/install/{resource_id}",
+    operation_id="install-karps",
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -366,6 +370,7 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
 
 @router.delete(
     "/karps/uninstall/{resource_id}",
+    operation_id="uninstall-karps",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {

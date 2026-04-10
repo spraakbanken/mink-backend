@@ -43,7 +43,7 @@ def _rewrite_operation_links(openapi_schema: dict, link_builder: Callable[[str],
 
 
 @router.get("/", include_in_schema=False)
-@router.get("/docs")
+@router.get("/docs", operation_id="docs")
 async def docs(request: Request) -> RedirectResponse:
     """Render mkdocs HTML with the developer's guide."""
     docs_url = request.scope.get("root_path", "") + "/docs/"
@@ -61,7 +61,7 @@ async def openapi(request: Request) -> JSONResponse:
     return JSONResponse(content=oas)
 
 
-@router.get("/redoc", response_class=HTMLResponse)
+@router.get("/redoc", response_class=HTMLResponse, operation_id="redoc")
 async def redoc(request: Request) -> HTMLResponse:
     """Render ReDoc HTML (documentation for this API)."""
     return get_redoc_html(
@@ -89,7 +89,7 @@ async def swagger_openapi(request: Request) -> JSONResponse:
     return JSONResponse(content=oas)
 
 
-@router.get("/swagger", response_class=HTMLResponse)
+@router.get("/swagger", response_class=HTMLResponse, operation_id="swagger")
 async def swagger(request: Request) -> HTMLResponse:
     """Render Swagger UI HTML (documentation for this API)."""
     html_body = get_swagger_ui_html(
@@ -161,7 +161,7 @@ async def openapi_to_markdown(request: Request) -> PlainTextResponse:
     return PlainTextResponse(content=markdown)
 
 
-@router.get("/info", response_model=InfoResponse)
+@router.get("/info", response_model=InfoResponse, operation_id="info")
 async def info() -> JSONResponse:
     """Show info about data processing, e.g. job status codes, file size limits and Sparv importer modules."""
     from mink.core.status import Status  # noqa: PLC0415
@@ -206,7 +206,7 @@ async def info() -> JSONResponse:
 )
 
 
-@router.get("/return-codes", response_model=ReturnCodesResponse)
+@router.get("/return-codes", response_model=ReturnCodesResponse, operation_id="return-codes")
 async def list_return_codes() -> JSONResponse:
     """List all return codes."""
     # Sort return codes into a dict keyed by tag

@@ -23,6 +23,7 @@ router = APIRouter()
 )
 @router.put(
     "/queue/advance",
+    operation_id="advance-queue",
     tags=["Manage Resources"],
     response_model=models.BaseResponse,
     responses={
@@ -245,6 +246,7 @@ async def resource_status_deprecated(
 
 @router.get(
     "/resource/list",
+    operation_id="list-resources",
     tags=["Manage Resources"],
     response_model=models.ListResourcesResponse,
     responses={**models.common_auth_error_responses},
@@ -267,6 +269,7 @@ async def list_resources(auth_data: dict = Depends(login.AuthDependencyNoResourc
 
 @router.get(
     "/resource/status/list",
+    operation_id="list-resource-statuses",
     tags=["Manage Resources"],
     response_model=models.StatusesResponse,
     responses={**models.common_auth_error_responses},
@@ -287,6 +290,7 @@ async def list_resource_statuses(auth_data: dict = Depends(login.AuthDependencyN
 
 @router.get(
     "/resource/status/get/{resource_id}",
+    operation_id="get-resource-status",
     tags=["Manage Resources", "Manage Corpora"],
     response_model=models.StatusResponse,
     responses={

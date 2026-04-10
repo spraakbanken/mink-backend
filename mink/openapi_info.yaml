@@ -12,11 +12,11 @@ info:
     A workflow for processing data with Sparv via Mink could look like this:
 
     1. [Create a new corpus](#create-corpus)
-    2. [Upload some corpus source files](#upload-sources)
-    3. [Upload a corpus config file](#upload-config)
-    4. [Run Sparv](#run-sparv)
-    5. [Check the status](#resource-info)
-    6. [Download export files](#download-exports)
+    2. [Upload some corpus source files](#upload-corpus-sources)
+    3. [Upload a corpus config file](#upload-corpus-config)
+    4. [Run Sparv](#run-corpus-job)
+    5. [Check the status](#get-resource-status)
+    6. [Download export files](#download-corpus-exports)
     7. [Install the corpus in Korp](#install-korp) / [Strix](#install-strix)
 
     ## Authentication

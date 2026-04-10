@@ -18,6 +18,7 @@ router = APIRouter(tags=["Documentation"])
 )
 @router.get(
     "/corpus/sparv/get-schema",
+    operation_id="get-sparv-schema",
     response_model=sparv_models.SchemaResponse,
     responses={
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
@@ -63,6 +64,7 @@ async def sparv_schema(update_cache: bool = sparv_models.update_cache_param) -> 
 )
 @router.get(
     "/corpus/sparv/list-languages",
+    operation_id="list-sparv-languages",
     response_model=sparv_models.LanguagesResponse,
     responses={
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
@@ -109,6 +111,7 @@ async def sparv_languages(update_cache: bool = sparv_models.update_cache_param) 
 )
 @router.get(
     "/corpus/sparv/list-exports",
+    operation_id="list-sparv-exports",
     response_model=sparv_models.ExportsResponse,
     responses={
         status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": models.ErrorResponse422},

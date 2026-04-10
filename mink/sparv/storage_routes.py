@@ -51,6 +51,7 @@ def _require_job(job: object) -> SparvJob:
 )
 @router.post(
     "/corpus/create",
+    operation_id="create-corpus",
     status_code=status.HTTP_201_CREATED,
     response_model=models.CreateResourceResponse,
     responses={
@@ -116,6 +117,7 @@ async def create_corpus(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONRes
 )
 @router.get(
     "/corpus/list",
+    operation_id="list-corpora",
     response_model=sparv_models.ListResourcesResponse,
     responses={**models.common_auth_error_responses},
 )
@@ -142,6 +144,7 @@ async def list_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResp
 )
 @router.get(
     "/corpus/korp/list",
+    operation_id="list-korp-corpora",
     response_model=sparv_models.ListResourcesResponse,
     responses={
         status.HTTP_200_OK: {
@@ -205,6 +208,7 @@ async def list_korp_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSO
 )
 @router.delete(
     "/corpus/remove/{resource_id}",
+    operation_id="remove-corpus",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -288,6 +292,7 @@ async def remove_corpus(auth_data: dict = Depends(AUTH_CORPUS_ADMIN)) -> JSONRes
 )
 @router.put(
     "/corpus/sources/upload/{resource_id}",
+    operation_id="upload-corpus-sources",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_201_CREATED: {
@@ -463,6 +468,7 @@ async def upload_sources(
 )
 @router.get(
     "/corpus/sources/list/{resource_id}",
+    operation_id="list-corpus-sources",
     response_model=models.ListingFilesResponse,
     responses={
         status.HTTP_200_OK: {
@@ -524,6 +530,7 @@ async def list_sources(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
 )
 @router.delete(
     "/corpus/sources/remove/{resource_id}",
+    operation_id="remove-corpus-sources",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -627,6 +634,7 @@ async def remove_sources(
 )
 @router.get(
     "/corpus/sources/download/{resource_id}",
+    operation_id="download-corpus-sources",
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -728,6 +736,7 @@ async def download_sources(
 )
 @router.put(
     "/corpus/config/upload/{resource_id}",
+    operation_id="upload-corpus-config",
     status_code=status.HTTP_201_CREATED,
     response_model=models.BaseResponse,
     responses={
@@ -813,6 +822,7 @@ async def upload_config(
 )
 @router.get(
     "/corpus/config/download/{resource_id}",
+    operation_id="download-corpus-config",
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -866,6 +876,7 @@ async def download_config(auth_data: dict = Depends(AUTH_CORPUS)) -> FileRespons
 )
 @router.get(
     "/corpus/exports/list/{resource_id}",
+    operation_id="list-corpus-exports",
     response_model=models.ListingFilesResponse,
     responses={
         status.HTTP_200_OK: {
@@ -940,6 +951,7 @@ async def list_exports(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
 )
 @router.get(
     "/corpus/exports/download/{resource_id}",
+    operation_id="download-corpus-exports",
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -1084,6 +1096,7 @@ async def download_exports(
 )
 @router.delete(
     "/corpus/exports/remove/{resource_id}",
+    operation_id="remove-corpus-exports",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -1251,6 +1264,7 @@ async def download_source_text(
 )
 @router.get(
     "/corpus/job/check-input/{resource_id}",
+    operation_id="check-corpus-input",
     response_model=sparv_models.CheckInputResponse,
     responses={
         **models.common_auth_error_responses,

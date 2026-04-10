@@ -13,6 +13,7 @@ router = APIRouter(tags=["Admin Mode"])
 
 @router.post(
     "/admin-mode-on",
+    operation_id="admin-mode-on",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -64,6 +65,7 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
 
 @router.post(
     "/admin-mode-off",
+    operation_id="admin-mode-off",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -111,6 +113,7 @@ async def admin_mode_off(
 
 @router.get(
     "/admin-mode-status",
+    operation_id="admin-mode-status",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {

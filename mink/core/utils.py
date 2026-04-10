@@ -16,9 +16,8 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from fastapi import FastAPI, status
+from fastapi import status
 from fastapi.responses import JSONResponse
-from fastapi.routing import APIRoute
 from mkdocs.commands import build
 from mkdocs.config import load_config
 from starlette.background import BackgroundTask
@@ -210,16 +209,6 @@ def get_version_from_pyproject(path: Path = Path("pyproject.toml")) -> str:
     with path.open("rb") as f:
         data = tomllib.load(f)
     return data["project"]["version"]
-
-
-def use_route_names_as_operation_ids(app: FastAPI) -> None:
-    """Simplify operation IDs: use the route function name and replace underscores with hyphens.
-
-    Should be called only after all routes have been added.
-    """
-    for route in app.routes:
-        if isinstance(route, APIRoute):
-            route.operation_id = route.name.replace("_", "-")
 
 
 def build_docs() -> None:

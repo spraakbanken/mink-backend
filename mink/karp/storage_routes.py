@@ -41,6 +41,7 @@ def _require_job(job: object) -> KarpJob:
 
 @router.post(
     "/create",
+    operation_id="create-lexicon",
     status_code=status.HTTP_201_CREATED,
     response_model=models.CreateResourceResponse,
     responses={
@@ -102,6 +103,7 @@ async def create_lexicon(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
 
 @router.get(
     "/list",
+    operation_id="list-lexicons",
     response_model=karp_models.ListResourcesResponse,
     responses={**models.common_auth_error_responses},
 )
@@ -123,6 +125,7 @@ async def list_lexicons(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
 
 @router.delete(
     "/remove/{resource_id}",
+    operation_id="remove-lexicon",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -191,6 +194,7 @@ async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
 
 @router.put(
     "/sources/upload/{resource_id}",
+    operation_id="upload-lexicon-sources",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_201_CREATED: {
@@ -310,6 +314,7 @@ async def upload_sources(
 
 @router.get(
     "/sources/list/{resource_id}",
+    operation_id="list-lexicon-sources",
     response_model=models.ListingFilesResponse,
     responses={
         status.HTTP_200_OK: {
@@ -365,6 +370,7 @@ async def list_sources(auth_data: dict = Depends(AUTH_LEXICON)) -> JSONResponse:
 
 @router.delete(
     "/sources/remove/{resource_id}",
+    operation_id="remove-lexicon-sources",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -434,6 +440,7 @@ async def remove_sources(
 
 @router.get(
     "/sources/download/{resource_id}",
+    operation_id="download-lexicon-sources",
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={
@@ -512,6 +519,7 @@ async def download_sources(
 
 @router.put(
     "/config/upload/{resource_id}",
+    operation_id="upload-lexicon-config",
     status_code=status.HTTP_201_CREATED,
     response_model=models.BaseResponse,
     responses={
@@ -588,6 +596,7 @@ async def upload_config(
 
 @router.get(
     "/config/download/{resource_id}",
+    operation_id="download-lexicon-config",
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={

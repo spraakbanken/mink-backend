@@ -110,8 +110,6 @@ app.include_router(login_routes.router)
 for router in get_resource_routers():
     app.include_router(router)
 
-utils.use_route_names_as_operation_ids(app)
-
 
 # ------------------------------------------------------------------------------
 # Middleware

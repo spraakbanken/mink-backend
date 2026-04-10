@@ -37,6 +37,7 @@ def _require_job(job: object) -> SparvJob:
 )
 @router.put(
     "/corpus/job/run/{resource_id}",
+    operation_id="run-corpus-job",
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -207,6 +208,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
 )
 @router.post(
     "/corpus/job/abort/{resource_id}",
+    operation_id="abort-corpus-job",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -309,6 +311,7 @@ async def abort_job(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRespons
 )
 @router.delete(
     "/corpus/annotations/remove/{resource_id}",
+    operation_id="clear-corpus-annotations",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -390,6 +393,7 @@ async def clear_annotations(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSO
 )
 @router.put(
     "/corpus/korp/install/{resource_id}",
+    operation_id="install-korp",
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -467,6 +471,7 @@ async def install_korp(
 )
 @router.delete(
     "/corpus/korp/uninstall/{resource_id}",
+    operation_id="uninstall-korp",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -546,6 +551,7 @@ async def uninstall_korp(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRe
 )
 @router.put(
     "/corpus/strix/install/{resource_id}",
+    operation_id="install-strix",
     response_model=models.StatusResponse,
     responses={
         **models.common_auth_error_responses,
@@ -617,6 +623,7 @@ async def install_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRes
 )
 @router.delete(
     "/corpus/strix/uninstall/{resource_id}",
+    operation_id="uninstall-strix",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
