@@ -16,7 +16,7 @@ from mink.sparv.jobs import SparvJob
 from mink.sparv.spec import CORPUS, ProcessName
 from mink.sparv.storage import storage
 
-router = APIRouter(tags=["Manage Corpora"])
+router = APIRouter(tags=["Manage Corpora"], prefix="/corpus")
 SBAUTH_CORPUS = get_spec(CORPUS).sbauth_resource_type
 AUTH_CORPUS_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_CORPUS)
 
@@ -31,12 +31,7 @@ def _require_job(job: object) -> SparvJob:
 
 
 @router.put(
-    "/run-sparv",
-    deprecated=True,
-    name="run-sparv-deprecated",
-)
-@router.put(
-    "/corpus/job/run/{resource_id}",
+    "/job/run/{resource_id}",
     operation_id="run-corpus-job",
     response_model=models.StatusResponse,
     responses={
@@ -202,12 +197,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
 
 
 @router.post(
-    "/abort-job",
-    deprecated=True,
-    name="abort-job-deprecated",
-)
-@router.post(
-    "/corpus/job/abort/{resource_id}",
+    "/job/abort/{resource_id}",
     operation_id="abort-corpus-job",
     response_model=models.BaseResponse,
     responses={
@@ -305,12 +295,7 @@ async def abort_job(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRespons
 
 
 @router.delete(
-    "/clear-annotations",
-    deprecated=True,
-    name="clear-annotations-deprecated",
-)
-@router.delete(
-    "/corpus/annotations/remove/{resource_id}",
+    "/annotations/remove/{resource_id}",
     operation_id="clear-corpus-annotations",
     response_model=models.BaseResponse,
     responses={
@@ -387,12 +372,7 @@ async def clear_annotations(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSO
 
 
 @router.put(
-    "/install-korp",
-    deprecated=True,
-    name="install-korp-deprecated",
-)
-@router.put(
-    "/corpus/korp/install/{resource_id}",
+    "/korp/install/{resource_id}",
     operation_id="install-korp",
     response_model=models.StatusResponse,
     responses={
@@ -465,12 +445,7 @@ async def install_korp(
 
 
 @router.delete(
-    "/uninstall-korp",
-    deprecated=True,
-    name="uninstall-korp-deprecated",
-)
-@router.delete(
-    "/corpus/korp/uninstall/{resource_id}",
+    "/korp/uninstall/{resource_id}",
     operation_id="uninstall-korp",
     response_model=models.BaseResponse,
     responses={
@@ -545,12 +520,7 @@ async def uninstall_korp(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRe
 
 
 @router.put(
-    "/install-strix",
-    deprecated=True,
-    name="install-strix-deprecated",
-)
-@router.put(
-    "/corpus/strix/install/{resource_id}",
+    "/strix/install/{resource_id}",
     operation_id="install-strix",
     response_model=models.StatusResponse,
     responses={
@@ -617,12 +587,7 @@ async def install_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRes
 
 
 @router.delete(
-    "/uninstall-strix",
-    deprecated=True,
-    name="uninstall-strix-deprecated",
-)
-@router.delete(
-    "/corpus/strix/uninstall/{resource_id}",
+    "/strix/uninstall/{resource_id}",
     operation_id="uninstall-strix",
     response_model=models.BaseResponse,
     responses={

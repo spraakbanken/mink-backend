@@ -43,12 +43,6 @@ def _require_job(job: object) -> SparvJob:
 # Corpus operations
 # ------------------------------------------------------------------------------
 
-
-@router.post(
-    "/create-corpus",
-    deprecated=True,
-    name="create-corpus-deprecated",
-)
 @router.post(
     "/corpus/create",
     operation_id="create-corpus",
@@ -111,11 +105,6 @@ async def create_corpus(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONRes
 
 
 @router.get(
-    "/list-corpora",
-    deprecated=True,
-    name="list-corpora-deprecated",
-)
-@router.get(
     "/corpus/list",
     operation_id="list-corpora",
     response_model=sparv_models.ListResourcesResponse,
@@ -144,6 +133,7 @@ async def list_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONResp
 )
 @router.get(
     "/corpus/korp/list",
+    deprecated=True,
     operation_id="list-korp-corpora",
     response_model=sparv_models.ListResourcesResponse,
     responses={
@@ -201,11 +191,6 @@ async def list_korp_corpora(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSO
     )
 
 
-@router.delete(
-    "/remove-corpus",
-    deprecated=True,
-    name="remove-corpus-deprecated",
-)
 @router.delete(
     "/corpus/remove/{resource_id}",
     operation_id="remove-corpus",
@@ -284,12 +269,6 @@ async def remove_corpus(auth_data: dict = Depends(AUTH_CORPUS_ADMIN)) -> JSONRes
 # Source file operations
 # ------------------------------------------------------------------------------
 
-
-@router.put(
-    "/upload-sources",
-    deprecated=True,
-    name="upload-sources-deprecated",
-)
 @router.put(
     "/corpus/sources/upload/{resource_id}",
     operation_id="upload-corpus-sources",
@@ -462,11 +441,6 @@ async def upload_sources(
 
 
 @router.get(
-    "/list-sources",
-    deprecated=True,
-    name="list-sources-deprecated",
-)
-@router.get(
     "/corpus/sources/list/{resource_id}",
     operation_id="list-corpus-sources",
     response_model=models.ListingFilesResponse,
@@ -523,11 +497,6 @@ async def list_sources(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
         ) from e
 
 
-@router.delete(
-    "/remove-sources",
-    deprecated=True,
-    name="remove-sources-deprecated",
-)
 @router.delete(
     "/corpus/sources/remove/{resource_id}",
     operation_id="remove-corpus-sources",
@@ -628,11 +597,6 @@ async def remove_sources(
 
 
 @router.get(
-    "/download-sources",
-    deprecated=True,
-    name="download-sources-deprecated",
-)
-@router.get(
     "/corpus/sources/download/{resource_id}",
     operation_id="download-corpus-sources",
     response_model=models.FileResponse,
@@ -728,12 +692,6 @@ async def download_sources(
 # Config file operations
 # ------------------------------------------------------------------------------
 
-
-@router.put(
-    "/upload-config",
-    deprecated=True,
-    name="upload-config-deprecated",
-)
 @router.put(
     "/corpus/config/upload/{resource_id}",
     operation_id="upload-corpus-config",
@@ -816,11 +774,6 @@ async def upload_config(
 
 
 @router.get(
-    "/download-config",
-    deprecated=True,
-    name="download-config-deprecated",
-)
-@router.get(
     "/corpus/config/download/{resource_id}",
     operation_id="download-corpus-config",
     response_model=models.FileResponse,
@@ -868,12 +821,6 @@ async def download_config(auth_data: dict = Depends(AUTH_CORPUS)) -> FileRespons
 # Export file operations
 # ------------------------------------------------------------------------------
 
-
-@router.get(
-    "/list-exports",
-    deprecated=True,
-    name="list-exports-deprecated",
-)
 @router.get(
     "/corpus/exports/list/{resource_id}",
     operation_id="list-corpus-exports",
@@ -944,11 +891,6 @@ async def list_exports(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
         ) from e
 
 
-@router.get(
-    "/download-exports",
-    deprecated=True,
-    name="download-exports-deprecated",
-)
 @router.get(
     "/corpus/exports/download/{resource_id}",
     operation_id="download-corpus-exports",
@@ -1090,11 +1032,6 @@ async def download_exports(
 
 
 @router.delete(
-    "/remove-exports",
-    deprecated=True,
-    name="remove-exports-deprecated",
-)
-@router.delete(
     "/corpus/exports/remove/{resource_id}",
     operation_id="remove-corpus-exports",
     response_model=models.BaseResponse,
@@ -1168,100 +1105,6 @@ async def remove_exports(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRe
     return utils.response(return_code=return_codes.REMOVED_CONTENT, info="Removed export files")
 
 
-@router.get(
-    "/download-source-text",
-    deprecated=True,
-    response_model=models.FileResponse,
-    response_class=FileResponse,
-    responses={
-        status.HTTP_200_OK: {"content": {"text/plain": {}}, "description": "A file download response"},
-        **models.common_auth_error_responses,
-        status.HTTP_404_NOT_FOUND: {"model": models.ErrorResponse404File},
-        status.HTTP_422_UNPROCESSABLE_CONTENT: {
-            "model": models.BaseErrorResponse,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": return_codes.VALIDATION_ERROR.message,
-                        "return_code": return_codes.VALIDATION_ERROR.code,
-                        "info": "Missing required query parameter 'file'"
-                    }
-                }
-            },
-        },
-        status.HTTP_500_INTERNAL_SERVER_ERROR: {
-            "model": models.ErrorResponse500,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": "error",
-                        "message": return_codes.FAILED_DOWNLOADING.message,
-                        "return_code": return_codes.FAILED_DOWNLOADING.code,
-                        "info": "BaseException",
-                    }
-                }
-            },
-        },
-    },
-)
-async def download_source_text(
-    download_file: str = Query(..., alias="file", description="The file name to download"),
-    auth_data: dict = Depends(AUTH_CORPUS),
-) -> FileResponse:
-    """Download one of the source files in plain text.
-
-    The plain text is extracted by Sparv and therefore it can only be requested after a completed Sparv job.
-    The source file name (including its file extension) must be specified in the `file` parameter.
-
-    ### Example
-
-    ```bash
-    curl '{{host}}/download-source-text?resource_id=<resource_id>&file=some_file_name' \
--H 'Authorization: Bearer YOUR_JWT'
-    ```
-    """
-    resource_id = auth_data["resource_id"]
-    storage_work_dir = storage.get_work_dir(resource_id)
-    local_corpus_dir = storage.get_local_resource_dir(resource_id, mkdir=True)
-
-    if not download_file:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.VALIDATION_ERROR, info="Missing required query parameter 'file'"
-        )
-
-    file_stem = Path(download_file).stem
-    download_file_path = (
-        storage_work_dir / Path(download_file).parent / file_stem / sparv_settings.SPARV_PLAIN_TEXT_FILE
-    )
-
-    # Check if file exists
-    try:
-        storage.get_file_info(download_file_path)
-    except exceptions.ReadError as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND) from e
-    except Exception as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
-
-    # Download and return file
-    try:
-        out_file_name = file_stem + "_plain.txt"
-        local_path = local_corpus_dir / out_file_name
-        storage.download_file(download_file_path, local_path, resource_id)
-        utils.uncompress_gzip(local_path)
-        utils.unpickle_file(local_path)
-        return FileResponse(local_path, media_type="text/plain", filename=local_path.name)
-    except FileNotFoundError as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
-    except Exception as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
-
-
-@router.get(
-    "/check-changes",
-    deprecated=True,
-    name="check-changes-deprecated",
-)
 @router.get(
     "/corpus/job/check-input/{resource_id}",
     operation_id="check-corpus-input",

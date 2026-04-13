@@ -1,6 +1,7 @@
 # Editors
 .idea/
 .vscode
+.codex
 
 # Instance files
 instance/

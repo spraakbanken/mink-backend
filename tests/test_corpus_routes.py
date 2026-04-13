@@ -125,7 +125,6 @@ def test_manage_corpus_exports(corpus_processed: str) -> None:
     routes = [
         ("GET", f"/corpus/exports/list/{corpus_processed}", None),
         ("GET", f"/corpus/exports/download/{corpus_processed}", None),
-        ("GET", "/download-source-text", f"resource_id={corpus_processed}&file=test_source1.txt"),
         ("DELETE", f"/corpus/exports/remove/{corpus_processed}", None),
     ]
     for method, path, query in routes:
@@ -144,11 +143,6 @@ def test_manage_corpus_exports(corpus_processed: str) -> None:
             assert json_data.get("return_code") == return_codes.REMOVED_CONTENT.code, (
                 f"Exports removal failed: {json_data}"
             )
-        elif path == "/download-source-text":
-            assert response.headers.get("Content-Type", "").startswith("text/"), (
-                "Download source text should return a text content type"
-            )
-            assert len(response.content) > 0, "Downloaded source text should not be empty"
 
 
 @pytest.mark.corpus

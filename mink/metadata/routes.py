@@ -16,7 +16,7 @@ from mink.metadata.spec import METADATA
 from mink.metadata.storage import storage
 from mink.sb_auth import login
 
-router = APIRouter(tags=["Manage Metadata"])
+router = APIRouter(tags=["Manage Metadata"], prefix="/metadata")
 SBAUTH_METADATA = get_spec(METADATA).sbauth_resource_type
 AUTH_METADATA = login.AuthDependency(sbauth_resource_type=SBAUTH_METADATA)
 AUTH_METADATA_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_METADATA)
@@ -28,14 +28,8 @@ AUTH_METADATA_NO_ID = login.AuthDependencyNoResourceId(sbauth_resource_type=SBAU
 # Resource creation and removal
 # ------------------------------------------------------------------------------
 
-
 @router.post(
-    "/create-metadata",
-    deprecated=True,
-    name="create-metadata-deprecated",
-)
-@router.post(
-    "/metadata/create",
+    "/create",
     status_code=status.HTTP_201_CREATED,
     response_model=models.CreateResourceResponse,
     responses={
@@ -139,12 +133,7 @@ async def create_metadata(
 
 
 @router.delete(
-    "/remove-metadata",
-    deprecated=True,
-    name="remove-metadata-deprecated",
-)
-@router.delete(
-    "/metadata/remove/{resource_id}",
+    "/remove/{resource_id}",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -207,7 +196,7 @@ async def remove_metadata(auth_data: dict = Depends(AUTH_METADATA_ADMIN)) -> JSO
 
 
 @router.get(
-    "/metadata/list",
+    "/list",
     response_model=models.ListResourcesResponse,
     responses={**models.common_auth_error_responses},
 )
@@ -226,18 +215,13 @@ async def list_metadata(auth_data: dict = Depends(AUTH_METADATA_NO_ID)) -> JSONR
         resources=auth_data.get("resources"),
     )
 
+
 # ------------------------------------------------------------------------------
 # Metadata (yaml) file operations
 # ------------------------------------------------------------------------------
 
-
 @router.put(
-    "/upload-metadata-yaml",
-    deprecated=True,
-    name="upload-metadata-yaml-deprecated",
-)
-@router.put(
-    "/metadata/config/upload/{resource_id}",
+    "/config/upload/{resource_id}",
     status_code=status.HTTP_201_CREATED,
     response_model=models.BaseResponse,
     responses={
@@ -308,12 +292,7 @@ async def upload_metadata_yaml(
 
 
 @router.get(
-    "/download-metadata-yaml",
-    deprecated=True,
-    name="download-metadata-yaml-deprecated",
-)
-@router.get(
-    "/metadata/config/download/{resource_id}",
+    "/config/download/{resource_id}",
     response_model=models.FileResponse,
     response_class=FileResponse,
     responses={

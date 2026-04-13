@@ -19,6 +19,19 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - The deprecated query parameter `corpus_id` has been removed from all routes. Use the path parameter `resource_id`
   instead.
+- The deprecated route `/download-source-text` has been removed. The source text can be downloaded via the plain text
+  export from Sparv instead.
+- The deprecated routes with the old format where the resource ID was provided as a query parameter (e.g.
+  `/upload-sources?resource_id=...`,) have been removed. Use the new routes with the format
+  `/<resource-type>/<sub-resource>/<action>/<resource-id>` instead (e.g. `/corpora/sources/upload/<resource_id>`).
+
+### Fixed
+
+- Fixed bug: "Try it out" button in Swagger UI did not work for routes requiring a resource ID as a path parameter.
+
+### Deprecated
+
+- The route `/corpus/korp/list` is deprecated and will be removed in a future release.
 
 ## [2.2.0] - 2026-04-02
 

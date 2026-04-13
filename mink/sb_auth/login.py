@@ -7,7 +7,8 @@ from pathlib import Path
 import httpx
 import jwt
 import shortuuid
-from fastapi import Cookie, Query, Request, Security, status
+from fastapi import Cookie, Request, Security, status
+from fastapi import Path as FastAPIPath
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 
 from mink.cache import jobs_cache
@@ -16,8 +17,6 @@ from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.user import User
 from mink.sb_auth import cache as auth_cache
-
-# TODO: from fastapi import Path as FastAPIPath
 
 # Setup security schemes
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="", auto_error=False)
@@ -31,8 +30,7 @@ async def get_auth_data(
     request: Request,
     *,
     session_id: str | None = Cookie(None),
-    resource_query_id: str | None = Query(None, description="Resource ID"),
-    # resource_id: str | None = FastAPIPath(description="Resource ID"),
+    resource_id: str | None = FastAPIPath(description="Resource ID"),
     jwt_token: str | None = Security(oauth2_scheme),
     api_key: str | None = Security(api_key_scheme),
     min_level: str = "READ",
@@ -46,8 +44,7 @@ async def get_auth_data(
     Args:
         request: The request object.
         session_id: The session ID from the cookie.
-        resource_query_id: The resource ID from the query parameter.
-        # resource_id: The resource ID from the path parameter.
+        resource_id: The resource ID from the path parameter.
         jwt_token: The JWT token from the request.
         api_key: The API key from the request.
         min_level: Minimum access level to filter user's resources by.
@@ -59,15 +56,6 @@ async def get_auth_data(
     Returns:
         A dictionary containing user information, resource information and the session ID.
     """
-    # Prefer path parameter if present (new routes), otherwise support query params.
-    path_resource_id = request.path_params.get("resource_id")
-    # TODO: path_resource_id = resource_id
-    if path_resource_id:
-        resource_id = path_resource_id
-    # Backwards compatibility: use resource_query_id if resource_id is not provided.
-    elif resource_query_id:
-        resource_id = resource_query_id
-
     # Look for JWT
     if jwt_token:
         try:
@@ -184,14 +172,7 @@ class AuthDependency:
     async def __call__(
         self,
         request: Request,
-        # TODO: Remove deprecated resource_query_id in favor of path parameter in the future
-        # resource_id: str | None = FastAPIPath(description="Resource ID"),
-        resource_query_id: str | None = Query(
-            None,
-            alias="resource_id",
-            deprecated=True,
-            description="Resource ID (deprecated, use path parameter instead)",
-        ),
+        resource_id: str | None = FastAPIPath(description="Resource ID"),
         session_id: str | None = Cookie(None, description="Session ID"),
         jwt_token: str | None = Security(oauth2_scheme),
         api_key: str | None = Security(api_key_scheme),
@@ -200,8 +181,7 @@ class AuthDependency:
         return await get_auth_data(
             request,
             session_id=session_id,
-            resource_query_id=resource_query_id,
-            # resource_id=resource_id,
+            resource_id=resource_id,
             jwt_token=jwt_token,
             api_key=api_key,
             min_level=self.min_level,

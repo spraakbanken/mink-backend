@@ -8,16 +8,11 @@ from mink.core import exceptions, models, return_codes, utils
 from mink.sparv import models as sparv_models
 from mink.sparv.jobs import SparvDefaultJob
 
-router = APIRouter(tags=["Documentation"])
+router = APIRouter(tags=["Documentation"], prefix="/corpus")
 
 
 @router.get(
-    "/sparv-schema",
-    deprecated=True,
-    name="sparv-schema-deprecated",
-)
-@router.get(
-    "/corpus/sparv/get-schema",
+    "/sparv/get-schema",
     operation_id="get-sparv-schema",
     response_model=sparv_models.SchemaResponse,
     responses={
@@ -58,12 +53,7 @@ async def sparv_schema(update_cache: bool = sparv_models.update_cache_param) -> 
 
 
 @router.get(
-    "/sparv-languages",
-    deprecated=True,
-    name="sparv-languages-deprecated",
-)
-@router.get(
-    "/corpus/sparv/list-languages",
+    "/sparv/list-languages",
     operation_id="list-sparv-languages",
     response_model=sparv_models.LanguagesResponse,
     responses={
@@ -105,12 +95,7 @@ async def sparv_languages(update_cache: bool = sparv_models.update_cache_param) 
 
 
 @router.get(
-    "/sparv-exports",
-    deprecated=True,
-    name="sparv-exports-deprecated",
-)
-@router.get(
-    "/corpus/sparv/list-exports",
+    "/sparv/list-exports",
     operation_id="list-sparv-exports",
     response_model=sparv_models.ExportsResponse,
     responses={
