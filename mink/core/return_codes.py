@@ -229,6 +229,15 @@ FAILED_LISTING_CONTENT = ReturnCode(
 QUEUE_ADVANCED = ReturnCode(
     "advanced_queue", message="Queue advancing completed", status_code=status.HTTP_200_OK, tag=JOB
 )
+QUEUE_HEALTHY = ReturnCode(
+    "queue_healthy", message="Queue health looks good", status_code=status.HTTP_200_OK, tag=JOB
+)
+QUEUE_DEGRADED = ReturnCode(
+    "queue_degraded",
+    message="Queue health warning detected",
+    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+    tag=JOB,
+)
 NO_RUNNING_JOB = ReturnCode(
     "no_running_job",
     message="No running job found for this resource",

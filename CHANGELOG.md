@@ -9,6 +9,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Added a new resource type: lexicons. This includes routes for creating, listing, uploading and downloading lexicons.
 - Added a new route `/metadata/list` for listing all metadata resources.
+- Added a new internal route `/queue/health` which exposes monitorable queue statistics and returns a warning when
+  queued or running jobs exceed the configured threshold.
+- Added regular queue health polling in `queue_manager.py`, which calls `/queue/health`, logs degraded queue state and
+  optionally notifies via a Slack webhook.
+- Added a new field `queued` to the `/resource/status` responses which indicates when a job was queued.
 - Added a 'warnings' field to the response from `/corpus/korp/uninstall/<id>` and `/corpus/strix/uninstall/<id>` which
   contains any warnings that occurred during the export process.
 - Added checks for unused config variables in the .env file upon app start to help identify typos or misconfigurations.

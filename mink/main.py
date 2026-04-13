@@ -125,7 +125,7 @@ async def log_request(request: Request, call_next: Callable) -> Response:
     path = request.url.path[len(root_path):]
 
     # Log request info, but don't log options and queue advance requests (too much spam)
-    if request.method != "OPTIONS" and not path.startswith("/queue/advance"):
+    if request.method != "OPTIONS" and not path.startswith(("/queue/advance", "/queue/health")):
         request_str = f"{request.method} {path}" + (f"?{request.url.query}" if request.url.query else "")
         logger.info("Request: %s", request_str)
 
@@ -151,7 +151,7 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
         idsite=settings.TRACKING_MATOMO_IDSITE,
         access_token=settings.TRACKING_MATOMO_AUTH_TOKEN,
         http_timeout=settings.TRACKING_MATOMO_HTTP_TIMEOUT,
-        exclude_paths=["/queue/advance"],
+        exclude_paths=["/queue/advance", "/queue/health"],
         ignored_methods=["OPTIONS"],
     )
 elif settings.ENV not in {"testing", "development"}:

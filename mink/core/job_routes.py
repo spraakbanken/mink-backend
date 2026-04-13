@@ -1,5 +1,7 @@
 """Routes related to jobs status and information."""
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 
@@ -156,6 +158,155 @@ async def advance_queue(
             break
 
     return utils.response(return_code=return_codes.QUEUE_ADVANCED)
+
+
+@router.get(
+    "/queue/health",
+    operation_id="queue-health",
+    tags=["Manage Resources"],
+    response_model=models.QueueHealthResponse,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.INVALID_SECRET_KEY.message,
+                        "return_code": return_codes.INVALID_SECRET_KEY.code,
+                    }
+                }
+            }
+        },
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "model": models.QueueHealthResponse,
+            "content": {
+                "application/json": {
+                    "example": models.QueueHealthResponse.model_config["json_schema_extra"]["examples"][1]
+                }
+            },
+        },
+    },
+)
+async def queue_health(
+    secret_key: str = Query(..., alias="secret_key", description="Secret key for authentication"),
+) -> JSONResponse:
+    """Return monitorable queue health statistics for internal checks."""
+    if secret_key != settings.MINK_SECRET_KEY:
+        raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_SECRET_KEY)
+
+    warning_threshold_seconds = settings.QUEUE_HEALTH_WARNING_SECONDS
+    queue_jobs = []
+    last_started: str | None = None
+    seconds_since_last_start: int | None = None
+    oldest_running_started: str | None = None
+    oldest_running_seconds = 0
+    oldest_waiting_queued: str | None = None
+    oldest_waiting_seconds = 0
+
+    # Only active queued jobs should contribute to this health summary.
+    running_queue, waiting_queue = registry.get_running_waiting()
+    running_jobs = len(running_queue)
+    waiting_jobs = len(waiting_queue)
+
+    def seconds_since(timestamp: str) -> int | None:
+        """Return elapsed seconds since an ISO timestamp, or None if unavailable."""
+        if not timestamp:
+            return None
+        try:
+            parsed = datetime.fromisoformat(timestamp)
+        except ValueError:
+            logger.warning("Invalid timestamp in queue health data: %s", timestamp)
+            return None
+        return max(int((datetime.now().astimezone() - parsed).total_seconds()), 0)
+
+    def add_queue_job(job: BaseJob, current_status: Status) -> None:
+        """Calculate relevant time-based statistics for a job and add it to the queue health response."""
+        nonlocal \
+            last_started, \
+            seconds_since_last_start, \
+            oldest_running_started, \
+            oldest_running_seconds, \
+            oldest_waiting_queued, \
+            oldest_waiting_seconds
+
+        info_obj = getattr(job, "parent", None)
+        if info_obj is None:
+            logger.warning("Job '%s' missing parent info, skipping queue health entry", job.id)
+            return
+
+        priority = registry.get_priority(job)
+        priority = priority if priority != -1 else ""
+        queued_seconds = seconds_since(job.queued) or 0
+        started_seconds = seconds_since(job.started)
+
+        # Track the most recently started active job
+        if started_seconds is not None and (
+            seconds_since_last_start is None or started_seconds < seconds_since_last_start
+        ):
+            last_started = job.started
+            seconds_since_last_start = started_seconds
+
+        if current_status == Status.running:
+            # Running jobs are aged from process start when available
+            age_reference = "started"
+            age_seconds = started_seconds or job.duration
+            if age_seconds >= oldest_running_seconds:
+                oldest_running_started = job.started or None
+                oldest_running_seconds = age_seconds
+        else:
+            # Waiting jobs have not started yet, so queue age is the useful signal.
+            age_reference = "queued"
+            age_seconds = queued_seconds
+            if age_seconds >= oldest_waiting_seconds:
+                oldest_waiting_queued = job.queued or None
+                oldest_waiting_seconds = age_seconds
+
+        queue_jobs.append(
+            {
+                "resource_id": info_obj.id,
+                "resource_type": info_obj.resource.type.value,
+                "current_process": job.current_process,
+                "job_status": current_status.name,
+                "priority": priority,
+                "queued": job.queued,
+                "started": job.started,
+                "age_reference": age_reference,
+                "age_seconds": age_seconds,
+            }
+        )
+
+    for job in running_queue:
+        add_queue_job(job, Status.running)
+    for job in waiting_queue:
+        add_queue_job(job, Status.waiting)
+
+    # Report degraded health when either the oldest running job or the oldest
+    # queued job exceeds the configured threshold
+    warnings = []
+    if oldest_running_seconds >= warning_threshold_seconds:
+        warnings.append(f"Oldest running job has been active for {oldest_running_seconds} seconds")
+    if oldest_waiting_seconds >= warning_threshold_seconds:
+        warnings.append(f"Oldest waiting job has been queued for {oldest_waiting_seconds} seconds")
+
+    healthy = not warnings
+    return utils.response(
+        return_code=return_codes.QUEUE_HEALTHY if healthy else return_codes.QUEUE_DEGRADED,
+        info="Queue health summary",
+        warnings=warnings or None,
+        healthy=healthy,
+        warning_threshold_seconds=warning_threshold_seconds,
+        queue_size=len(queue_jobs),
+        running_jobs=running_jobs,
+        waiting_jobs=waiting_jobs,
+        max_workers=settings.MAX_WORKERS,
+        last_started=last_started,
+        seconds_since_last_start=seconds_since_last_start,
+        oldest_running_started=oldest_running_started,
+        oldest_running_seconds=oldest_running_seconds,
+        oldest_waiting_queued=oldest_waiting_queued,
+        oldest_waiting_seconds=oldest_waiting_seconds,
+        queue_jobs=queue_jobs,
+    )
 
 
 @router.get(

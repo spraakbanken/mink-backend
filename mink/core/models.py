@@ -161,6 +161,7 @@ job_model_example = {
     "priority": "",
     "warnings": "",
     "errors": "",
+    "queued": "",
     "started": "",
     "ended": "",
     "duration": 0,
@@ -176,6 +177,7 @@ class JobModel(BaseModel):
     priority: int | str = Field(default="", description="Queue priority")
     warnings: str = Field(default="", description="Warnings from the job")
     errors: str = Field(default="", description="Errors from the job")
+    queued: str = Field(default="", description="Timestamp of when the job was queued")
     started: str = Field(default="", description="Timestamp of when the job started")
     ended: str = Field(default="", description="Timestamp of when the job ended")
     duration: int = Field(default=0, description="Duration of the job in seconds")
@@ -203,6 +205,110 @@ class ResourceModel(BaseModel):
     )
 
     model_config = {"json_schema_extra": {"examples": [resource_model_example]}}
+
+
+class QueueHealthJobModel(BaseModel):
+    """Model for one active queue entry."""
+    resource_id: str = Field(default="", description="Mink resource ID")
+    resource_type: str = Field(default="", description="Resource type")
+    current_process: str | None = Field(default=None, description="Current queue process")
+    job_status: str = Field(default="none", description="Current status for the queue process")
+    priority: int | str = Field(default="", description="Queue priority")
+    queued: str = Field(default="", description="Timestamp of when the job was queued")
+    started: str = Field(default="", description="Timestamp of when the current process started")
+    age_reference: str = Field(default="queued", description="Whether age_seconds is measured from queued or started")
+    age_seconds: int = Field(default=0, description="Seconds since the age_reference timestamp")
+
+
+class QueueHealthResponse(BaseResponse):
+    """Model for queue health responses."""
+    healthy: bool = Field(default=True, description="Whether the queue is considered healthy")
+    warning_threshold_seconds: int = Field(
+        default=3600, description="Threshold used for warning on old queued or running jobs"
+    )
+    queue_size: int = Field(default=0, description="Number of active jobs in the queue")
+    running_jobs: int = Field(default=0, description="Number of running jobs")
+    waiting_jobs: int = Field(default=0, description="Number of waiting jobs")
+    max_workers: int = Field(default=1, description="Configured maximum number of simultaneous workers")
+    last_started: str | None = Field(default=None, description="Timestamp of the most recently started active job")
+    seconds_since_last_start: int | None = Field(
+        default=None, description="Seconds since the most recently started active job"
+    )
+    oldest_running_started: str | None = Field(default=None, description="Start timestamp for the oldest running job")
+    oldest_running_seconds: int = Field(default=0, description="Seconds since the oldest running job started")
+    oldest_waiting_queued: str | None = Field(default=None, description="Queue timestamp for the oldest waiting job")
+    oldest_waiting_seconds: int = Field(default=0, description="Seconds since the oldest waiting job was queued")
+    queue_jobs: list[QueueHealthJobModel] = Field(
+        default_factory=list, description="Active jobs currently in the queue"
+    )
+
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.QUEUE_HEALTHY.message,
+                    "return_code": return_codes.QUEUE_HEALTHY.code,
+                    "healthy": True,
+                    "warning_threshold_seconds": 3600,
+                    "queue_size": 1,
+                    "running_jobs": 1,
+                    "waiting_jobs": 0,
+                    "max_workers": 1,
+                    "last_started": "2026-04-13T09:00:00+02:00",
+                    "seconds_since_last_start": 120,
+                    "oldest_running_started": "2026-04-13T09:00:00+02:00",
+                    "oldest_running_seconds": 120,
+                    "oldest_waiting_queued": None,
+                    "oldest_waiting_seconds": 0,
+                    "queue_jobs": [
+                        {
+                            "resource_id": "mink-dxh6e6wtff",
+                            "resource_type": "corpus",
+                            "current_process": "sparv",
+                            "job_status": "running",
+                            "priority": "",
+                            "queued": "2026-04-13T08:59:55+02:00",
+                            "started": "2026-04-13T09:00:00+02:00",
+                            "age_reference": "started",
+                            "age_seconds": 120,
+                        }
+                    ],
+                },
+                {
+                    "status": "error",
+                    "message": return_codes.QUEUE_DEGRADED.message,
+                    "return_code": return_codes.QUEUE_DEGRADED.code,
+                    "healthy": False,
+                    "warning_threshold_seconds": 3600,
+                    "warnings": ["Oldest running job has been active for 7260 seconds"],
+                    "queue_size": 1,
+                    "running_jobs": 1,
+                    "waiting_jobs": 0,
+                    "max_workers": 1,
+                    "last_started": "2026-04-13T07:00:00+02:00",
+                    "seconds_since_last_start": 7260,
+                    "oldest_running_started": "2026-04-13T07:00:00+02:00",
+                    "oldest_running_seconds": 7260,
+                    "oldest_waiting_queued": None,
+                    "oldest_waiting_seconds": 0,
+                    "queue_jobs": [
+                        {
+                            "resource_id": "mink-dxh6e6wtff",
+                            "resource_type": "corpus",
+                            "current_process": "sparv",
+                            "job_status": "running",
+                            "priority": "",
+                            "queued": "2026-04-13T06:59:55+02:00",
+                            "started": "2026-04-13T07:00:00+02:00",
+                            "age_reference": "started",
+                            "age_seconds": 7260,
+                        }
+                    ],
+                },
+            ]
+        }
+    }
 
 
 # ----------------------------------------------------

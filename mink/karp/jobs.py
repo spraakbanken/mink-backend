@@ -30,6 +30,7 @@ class KarpJob(BaseJob):
         errors: str = "",
         output: str = "",
         progress: str = "",
+        queued: str = "",
         started: str = "",
         ended: str = "",
         duration: int = 0,
@@ -49,6 +50,7 @@ class KarpJob(BaseJob):
             errors: Latest Karp errors.
             output: Latest Karp misc output.
             progress: Progress percentage as a string (e.g. '45%').
+            queued: Timestamp of when the current job was queued.
             started: Timestamp of when the current process started.
             ended: Timestamp of when the current process ended.
             duration: The time elapsed for the current process (in seconds), until ended or until now.
@@ -71,6 +73,7 @@ class KarpJob(BaseJob):
             warnings=warnings,
             errors=errors,
             progress=progress,
+            queued=queued,
             started=started,
             ended=ended,
             duration=duration,
@@ -100,6 +103,7 @@ class KarpJob(BaseJob):
             "warnings": self.warnings,
             "errors": self.errors,
             "output": self.output,
+            "queued": self.queued,
             "started": self.started,
             "ended": self.ended,
             "duration": self.duration,

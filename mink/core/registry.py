@@ -9,7 +9,7 @@ from functools import wraps
 from pathlib import Path
 
 from mink.cache import jobs_cache
-from mink.core import exceptions, info, jobs
+from mink.core import exceptions, info, jobs, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 
@@ -143,6 +143,7 @@ def add_to_queue(job: jobs.BaseJob) -> jobs.BaseJob:
     save_priorities()
     # Reset time stamps for the job
     job.reset_time()
+    job.set_attribute("queued", utils.get_current_time())
     return job
 
 

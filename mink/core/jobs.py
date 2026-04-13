@@ -25,6 +25,7 @@ class BaseJob:
         errors: str = "",
         output: str = "",
         progress: str = "",
+        queued: str = "",
         started: str = "",
         ended: str = "",
         duration: int = 0,
@@ -43,6 +44,7 @@ class BaseJob:
             errors: Latest errors.
             output: Latest misc output.
             progress: Progress percentage as a string (e.g. '45%').
+            queued: Timestamp of when the current job was queued.
             started: Timestamp of when the current process started.
             ended: Timestamp of when the current process ended.
             duration: The time elapsed for the current process (in seconds), until ended or until now.
@@ -57,6 +59,7 @@ class BaseJob:
         self.errors = errors
         self.output = output
         self.progress_output = int(progress.strip("%")) if progress else 0
+        self.queued = queued
         self.started = started
         self.ended = ended
         self.duration = duration
@@ -75,6 +78,7 @@ class BaseJob:
             "warnings": self.warnings,
             "errors": self.errors,
             "output": self.output,
+            "queued": self.queued,
             "started": self.started,
             "ended": self.ended,
             "duration": self.duration,
@@ -223,8 +227,10 @@ class BaseJob:
         ended = start + datetime.timedelta(seconds=duration)
         return ended.isoformat(timespec="seconds")
 
-    def reset_time(self, reset_started: bool = True) -> None:
+    def reset_time(self, reset_started: bool = True, reset_queued: bool = True) -> None:
         """Reset timestamp fields (e.g. when queuing a new job)."""
+        if reset_queued:
+            self.queued = ""
         if reset_started:
             self.started = ""
         self.ended = ""
