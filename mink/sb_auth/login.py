@@ -57,7 +57,7 @@ async def get_auth_data(
         require_admin: The route requires the user to be a mink admin.
 
     Returns:
-        A dictionary containing user information, resource IDs, and an optional authentication token.
+        A dictionary containing user information, resource information and the session ID.
     """
     # Prefer path parameter if present (new routes), otherwise support query params.
     path_resource_id = request.path_params.get("resource_id")
@@ -132,13 +132,13 @@ async def get_auth_data(
         raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_RESOURCE_ID)
 
     auth_data = {
-        "user_id": user.id,
         "user": user,
         "auth_token": auth_token,
         "session_id": session_id,
         "resources": resources,
         "resource_id": resource_id,
         "admin_mode": admin_mode,
+        "info_obj": None,
     }
 
     # Routes does not require resource ID, so we can skip the last check
@@ -148,6 +148,17 @@ async def get_auth_data(
     # Check if user has access to the requested resource
     if require_resource_exists and resource_id not in resources:
         raise exceptions.MinkHTTPException(return_code=return_codes.RESOURCE_NOT_FOUND)
+
+    # Refresh persisted owner metadata for the requested resource
+    try:
+        from mink.core import registry  # noqa: PLC0415, Import lazily to avoid import cycle
+        info_obj = registry.get(resource_id)
+        info_obj.sync_owner(user)
+        auth_data["info_obj"] = info_obj
+    except exceptions.JobNotFoundError:
+        pass
+    except Exception:
+        logger.exception("Failed to load/sync info object for resource '%s'.", resource_id)
 
     return auth_data
 
@@ -243,7 +254,7 @@ class Authentication:
             email: User's email.
         """
         user_id = re.sub(r"[^\w\-_\.]", "", (f"{idp}-{sub}"))
-        self.user = User(id=user_id, name=name, email=email)
+        self.user = User(id=user_id, name=name, email=email, idp=idp, sub=sub)
 
     def set_resources(self, scope: dict, levels: dict) -> None:
         """Set scope and levels of resource grants.

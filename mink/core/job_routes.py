@@ -228,8 +228,6 @@ async def resource_status_deprecated(
 ) -> JSONResponse:
     """Return resource status for a specific resource or for all resources available to the authenticated user.
 
-    If admin mode is turned on, the owner information is included for each resource.
-
     ### Example
 
     ```bash
@@ -276,8 +274,6 @@ async def list_resources(auth_data: dict = Depends(login.AuthDependencyNoResourc
 )
 async def list_resource_statuses(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
     """Return statuses for all resources available to the authenticated user.
-
-    If admin mode is turned on, the owner information is included for each resource.
 
     ### Example
 

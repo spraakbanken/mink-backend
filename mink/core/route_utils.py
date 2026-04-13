@@ -10,11 +10,20 @@ import shortuuid
 from fastapi import UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
-from mink.core import exceptions, info, return_codes, utils
+from mink.core import exceptions, info, registry, return_codes, utils
+from mink.core.info import Info
 from mink.core.logging import logger
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
 from mink.sb_auth import login
+
+
+def get_info_from_auth(auth_data: dict) -> Info:
+    """Return cached info object from auth_data, or load it from the registry."""
+    info_obj = auth_data.get("info_obj")
+    if info_obj is not None:
+        return info_obj
+    return registry.get(auth_data["resource_id"])
 
 
 async def create_resource_id(
@@ -250,14 +259,6 @@ def make_status_response(info: info.Info, admin: bool = False) -> dict:
     job = info.job
     job.update_job_info()
     info_attrs = info.serialize()
-
-    if not admin:
-        # Only keep essential information, as this can be shown to other resource users than the owner
-        info_attrs["owner"] = {
-            "id": info_attrs["owner"]["id"],
-            "name": info_attrs["owner"]["name"],
-            "email": info_attrs["owner"]["email"],
-        }
 
     job_status = job.status
     spec = get_spec(info.resource.type)

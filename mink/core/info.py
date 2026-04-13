@@ -79,6 +79,28 @@ class Info:
         with backup_file.open("w") as f:
             f.write(dump)
 
+    def sync_owner(self, user: User) -> None:
+        """Update stored owner metadata from an authenticated owner.
+
+        Args:
+            user: Authenticated user from the current request.
+        """
+        # Only the owner should be able to refresh the persisted owner metadata.
+        if self.owner.id != user.id:
+            return
+
+        changed = False
+
+        # Keep auth-backed user fields in stored info objects in sync over time.
+        for field_name in ("name", "email", "idp", "sub"):
+            new_value = getattr(user, field_name)
+            if getattr(self.owner, field_name) != new_value:
+                setattr(self.owner, field_name, new_value)
+                changed = True
+
+        if changed:
+            self.update()
+
     def remove(self, abort_job: bool = False) -> None:
         """Remove an info item from the cache and file system.
 

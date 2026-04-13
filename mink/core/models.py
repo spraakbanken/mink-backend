@@ -125,9 +125,11 @@ class FileResponse(BaseModel):
 
 
 user_model_example = {
-        "id": "user-abc123",
+        "id": "example-idp-abc123",
         "name": "Anna Andersson",
         "email": "anna.andersson@example.com",
+        "idp": "example-idp",
+        "sub": "abc123",
     }
 
 
@@ -136,6 +138,8 @@ class UserModel(BaseModel):
     user_id: str = Field(default="", alias="id", description="User ID")
     name: str = Field(default="", description="Name of the user")
     email: str = Field(default="", description="Email address of the user")
+    idp: str | None = Field(default=None, description="Identity provider of the user")
+    sub: str | None = Field(default=None, description="Subject identifier from the identity provider")
 
     model_config = {
         "json_schema_extra": {"examples": [user_model_example]}  # type: ignore

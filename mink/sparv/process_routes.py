@@ -153,7 +153,7 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     # Get info_item, check for changes and remove exports if necessary
     sources_deleted = config_changed = False
     try:
-        info_item = registry.get(resource_id)
+        info_item = route_utils.get_info_from_auth(auth_data)
         _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except exceptions.JobNotFoundError:
         pass
@@ -431,7 +431,7 @@ async def install_korp(
     # Get info_item, check for changes and remove exports if necessary
     sources_deleted = config_changed = False
     try:
-        info_item = registry.get(resource_id)
+        info_item = route_utils.get_info_from_auth(auth_data)
         _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except exceptions.JobNotFoundError:
         pass
@@ -584,7 +584,7 @@ async def install_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRes
     # Get info_item, check for changes and remove exports if necessary
     sources_deleted = config_changed = False
     try:
-        info_item = registry.get(resource_id)
+        info_item = route_utils.get_info_from_auth(auth_data)
         _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except exceptions.JobNotFoundError:
         pass

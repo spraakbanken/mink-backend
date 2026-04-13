@@ -1308,7 +1308,7 @@ async def check_input(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
     """
     resource_id = auth_data["resource_id"]
     try:
-        info_item = registry.get(resource_id)
+        info_item = route_utils.get_info_from_auth(auth_data)
     except Exception as e:
         raise exceptions.MinkHTTPException(
             return_code=return_codes.FAILED_GETTING_JOB, info=f"Error getting job info for resource: {e}"

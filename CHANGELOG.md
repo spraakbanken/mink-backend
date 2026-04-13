@@ -12,6 +12,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a 'warnings' field to the response from `/corpus/korp/uninstall/<id>` and `/corpus/strix/uninstall/<id>` which
   contains any warnings that occurred during the export process.
 - Added checks for unused config variables in the .env file upon app start to help identify typos or misconfigurations.
+- Added fields `idp` and `sub` to the User class and model (used in the responses from `/resource/status/list` and
+  `/resource/status/list`).
 
 ### Removed
 

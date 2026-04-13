@@ -97,7 +97,7 @@ async def run_karp_pipeline(
     # Get info item, check for changes and remove exports if necessary
     source_changed = config_changed = False
     try:
-        info_item = registry.get(resource_id)
+        info_item = route_utils.get_info_from_auth(auth_data)
         source_changed, config_changed = storage.get_file_changes(resource_id, info_item)
     except exceptions.JobNotFoundError:
         pass
@@ -336,7 +336,7 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
     # Get info_item, check for changes and remove exports if necessary
     sources_changed = config_changed = False
     try:
-        info_item = registry.get(resource_id)
+        info_item = route_utils.get_info_from_auth(auth_data)
         sources_changed, config_changed = storage.get_file_changes(resource_id, info_item)
     except exceptions.JobNotFoundError:
         pass
