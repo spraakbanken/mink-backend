@@ -741,6 +741,11 @@ async def download_sources(
 async def upload_config(
     yaml_file: UploadFile | None = models.upload_file_opt_param,
     yaml_txt: str | None = Query(None, alias="config", description="The config file as plain text"),
+    custom_config: bool = Query(
+        True,
+        alias="custom-config",
+        description="Whether this upload should be marked as a custom config upload",
+    ),
     auth_data: dict = Depends(AUTH_CORPUS_WRITE),
 ) -> JSONResponse:
     """Upload a corpus configuration as file or plain text (using the `config` parameter).
@@ -760,17 +765,20 @@ async def upload_config(
     ```
     """
     resource_id = auth_data["resource_id"]
+    info_obj = route_utils.get_info_from_auth(auth_data)
     config_path = storage.get_config_file(resource_id)
     source_files = storage.list_contents(storage.get_source_dir(resource_id))
 
-    return await route_utils.upload_yaml_file(
+    response = await route_utils.upload_yaml_file(
         yaml_file=yaml_file,
         yaml_txt=yaml_txt,
-        res_obj=registry.get(resource_id).resource,
+        res_obj=info_obj.resource,
         standardize_fn=lambda contents: sparv_utils.standardize_config(contents, resource_id),
         write_fn=lambda data: storage.write_file_contents(config_path, data, resource_id),
         validate_fn=lambda contents: sparv_utils.require_compatible_config(contents, source_files),
     )
+    info_obj.resource.set_custom_config(custom_config)
+    return response
 
 
 @router.get(

@@ -268,6 +268,11 @@ async def list_metadata(auth_data: dict = Depends(AUTH_METADATA_NO_ID)) -> JSONR
 async def upload_metadata_yaml(
     yaml_file: UploadFile = models.upload_file_opt_param,
     yaml_txt: str | None = Query(None, alias="yaml", description="The yaml metadata in plain text"),
+    custom_config: bool = Query(
+        True,
+        alias="custom-config",
+        description="Whether this upload should be marked as a custom config upload",
+    ),
     auth_data: dict = Depends(AUTH_METADATA_WRITE),
 ) -> JSONResponse:
     """Upload a YAML metadata file or provide metadata as plain text.
@@ -280,15 +285,18 @@ async def upload_metadata_yaml(
     ```
     """
     resource_id = auth_data["resource_id"]
+    info_obj = route_utils.get_info_from_auth(auth_data)
     yaml_path = storage.get_yaml_file(resource_id)
 
-    return await route_utils.upload_yaml_file(
+    response = await route_utils.upload_yaml_file(
         yaml_file=yaml_file,
         yaml_txt=yaml_txt,
-        res_obj=registry.get(resource_id).resource,
+        res_obj=info_obj.resource,
         standardize_fn=metadata_utils.standardize_yaml,
         write_fn=lambda data: storage.write_file_contents(yaml_path, data, resource_id),
     )
+    info_obj.resource.set_custom_config(custom_config)
+    return response
 
 
 @router.get(

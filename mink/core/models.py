@@ -151,6 +151,7 @@ resource_model_example = {
     "public_id": "mink-dxh6e6wtff",
     "name": {"swe": "Min testkorpus", "eng": ""},
     "type": "corpus",
+    "custom_config": False,
     "source_files": [*file_model_examples],
 }
 
@@ -198,6 +199,10 @@ class ResourceModel(BaseModel):
     )
     resource_type: str = Field(
         default="", alias="type", description="Type of the resource (e.g., 'corpus', 'metadata')"
+    )
+    custom_config: bool = Field(
+        default=False,
+        description="Whether the current resource config was uploaded as a custom config",
     )
     source_files: list[FileModel] = Field(
         default=[],
@@ -670,10 +675,18 @@ class StatusesResponse(BaseResponse):
                         {
                             "job_status": "done",
                             "info": "Job was completed successfully",
+                            "resource": resource_model_example,
+                            "job": job_model_example,
+                        },
+                        {
+                            "job_status": "done",
+                            "info": "Job was completed successfully",
                             "resource": {
                                 "id": "mink-ezodmp4wxm",
+                                "public_id": "mink-ezodmp4wxm",
                                 "name": {"swe": "txt-korpus", "eng": "txt-korpus"},
                                 "type": "corpus",
+                                "custom_config": False,
                                 "source_files": [
                                     {
                                         "name": "text1.txt",
@@ -688,46 +701,6 @@ class StatusesResponse(BaseResponse):
                                         "last_modified": "2023-05-15T10:40:45+02:00",
                                         "size": 1169,
                                         "path": "text2.txt",
-                                    },
-                                ],
-                            },
-                            "job": job_model_example,
-                        },
-                        {
-                            "job_status": "done",
-                            "info": "Job was completed successfully",
-                            "resource": {
-                                "id": "mink-dxh6e6wtff",
-                                "name": {"swe": "Annes och Martins testkorpus", "eng": ""},
-                                "type": "corpus",
-                                "source_files": [
-                                    {
-                                        "name": "dokument2.xml",
-                                        "type": "text/xml",
-                                        "last_modified": "2022-12-22T11:25:25+01:00",
-                                        "size": 115,
-                                        "path": "dokument2.xml",
-                                    },
-                                    {
-                                        "name": "dokument3.xml",
-                                        "type": "text/xml",
-                                        "last_modified": "2023-06-13T13:26:44+02:00",
-                                        "size": 41,
-                                        "path": "dokument3.xml",
-                                    },
-                                    {
-                                        "name": "dokument4.xml",
-                                        "type": "text/xml",
-                                        "last_modified": "2023-06-13T13:26:44+02:00",
-                                        "size": 461,
-                                        "path": "dokument4.xml",
-                                    },
-                                    {
-                                        "name": "dokument1.xml",
-                                        "type": "text/xml",
-                                        "last_modified": "2023-06-13T13:26:49+02:00",
-                                        "size": 1394,
-                                        "path": "dokument1.xml",
                                     },
                                 ],
                             },

@@ -19,6 +19,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added checks for unused config variables in the .env file upon app start to help identify typos or misconfigurations.
 - Added fields `idp` and `sub` to the User class and model (used in the responses from `/resource/status/list` and
   `/resource/status/list`).
+- Added a query param `custom_config` to the `/<resource-type>/config/upload` routes which allows marking a resource as
+  having a custom config. This is used for tracking whether the user has modified the config from the default generated
+  by the frontend.
 
 ### Removed
 

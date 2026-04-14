@@ -34,6 +34,7 @@ class Resource:
         name: dict | None = None,
         source_files: list | None = None,
         sources_deleted: str = "",
+        custom_config: bool = False,
     ) -> None:
         """Init resource by setting class variables.
 
@@ -44,6 +45,7 @@ class Resource:
             type: The type of the resource.
             source_files: List of source files.
             sources_deleted: Timestamp of when sources were last deleted (used for knowing what to re-annotate).
+            custom_config: Whether the current config was uploaded as a custom config.
         """
         self.id = id
         self.public_id = public_id or self.id
@@ -63,6 +65,7 @@ class Resource:
         self.type = resource_type
         self.source_files = source_files or []
         self.sources_deleted = sources_deleted or ""
+        self.custom_config = custom_config
 
     def __str__(self) -> str:
         """Return a string representation of the resource instance."""
@@ -77,6 +80,7 @@ class Resource:
             "type": self.type,
             "source_files": self.source_files,
             "sources_deleted": self.sources_deleted,
+            "custom_config": self.custom_config,
         }
         return utils.serialize_obj(raw, depth=depth)
 
@@ -109,4 +113,9 @@ class Resource:
         self.source_files = spec.storage.list_contents(spec.storage.get_source_dir(self.id))
         if deleted_sources:
             self.sources_deleted = utils.get_current_time()
+        self.parent.update()
+
+    def set_custom_config(self, custom_config: bool) -> None:
+        """Set whether the resource currently has a custom config and save."""
+        self.custom_config = custom_config
         self.parent.update()
