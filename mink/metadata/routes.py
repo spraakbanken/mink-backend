@@ -17,11 +17,12 @@ from mink.metadata.storage import storage
 from mink.sb_auth import login
 
 router = APIRouter(tags=["Manage Metadata"], prefix="/metadata")
-SBAUTH_METADATA = get_spec(METADATA).sbauth_resource_type
-AUTH_METADATA = login.AuthDependency(sbauth_resource_type=SBAUTH_METADATA)
-AUTH_METADATA_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_METADATA)
-AUTH_METADATA_ADMIN = login.AuthDependency(min_level="ADMIN", sbauth_resource_type=SBAUTH_METADATA)
-AUTH_METADATA_NO_ID = login.AuthDependencyNoResourceId(sbauth_resource_type=SBAUTH_METADATA)
+sbauth_meta = get_spec(METADATA).sbauth_resource_type
+metadata = str(METADATA)
+AUTH_METADATA = login.AuthDependency(sbauth_resource_type=sbauth_meta, resource_type=metadata)
+AUTH_METADATA_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=sbauth_meta, resource_type=metadata)
+AUTH_METADATA_ADMIN = login.AuthDependency(min_level="ADMIN", sbauth_resource_type=sbauth_meta, resource_type=metadata)
+AUTH_METADATA_NO_ID = login.AuthDependencyNoResourceId(sbauth_resource_type=sbauth_meta, resource_type=metadata)
 
 
 # ------------------------------------------------------------------------------

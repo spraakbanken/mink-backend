@@ -17,8 +17,9 @@ from mink.sparv.spec import CORPUS, ProcessName
 from mink.sparv.storage import storage
 
 router = APIRouter(tags=["Manage Corpora"], prefix="/corpus")
-SBAUTH_CORPUS = get_spec(CORPUS).sbauth_resource_type
-AUTH_CORPUS_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_CORPUS)
+sbauth_corpus = get_spec(CORPUS).sbauth_resource_type
+corpus = str(CORPUS)
+AUTH_CORPUS_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=sbauth_corpus, resource_type=corpus)
 
 
 def _require_job(job: object) -> SparvJob:

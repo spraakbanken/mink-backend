@@ -16,8 +16,9 @@ from mink.karp.storage import storage
 from mink.sb_auth import login
 
 router = APIRouter(tags=["Manage Lexicons"], prefix="/lexicon")
-SBAUTH_LEXICON = get_spec(LEXICON).sbauth_resource_type
-AUTH_LEXICON_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=SBAUTH_LEXICON)
+sbauth_corpus = get_spec(LEXICON).sbauth_resource_type
+lexicon = str(LEXICON)
+AUTH_LEXICON_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=sbauth_corpus, resource_type=lexicon)
 
 
 def _require_job(job: object) -> KarpJob:

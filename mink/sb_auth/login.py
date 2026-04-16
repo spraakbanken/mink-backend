@@ -1,5 +1,6 @@
 """Login functions."""
 
+import json
 import re
 from contextvars import ContextVar
 from pathlib import Path
@@ -35,6 +36,7 @@ async def get_auth_data(
     api_key: str | None = Security(api_key_scheme),
     min_level: str = "READ",
     sbauth_resource_type: str | None = None,
+    resource_type: str | None = None,
     require_resource_id: bool = True,
     require_resource_exists: bool = True,
     require_admin: bool = False,
@@ -49,6 +51,7 @@ async def get_auth_data(
         api_key: The API key from the request.
         min_level: Minimum access level to filter user's resources by.
         sbauth_resource_type: Optional SB Auth resource type key to filter accessible resources by.
+        resource_type: The type of the resource being accessed.
         require_resource_id: The route requires the user to supply a resource ID.
         require_resource_exists: The route requires that the supplied resource ID occurs in the JWT.
         require_admin: The route requires the user to be a mink admin.
@@ -114,6 +117,8 @@ async def get_auth_data(
     # Give access to all resources if admin mode is on and user is mink admin
     if admin_mode and is_admin:
         resources = all_resources
+        if resource_type:
+            resources = _filter_resource_ids_by_type(resources, resource_type)
 
     # Check if resource ID was provided
     if require_resource_id and not resource_id:
@@ -158,6 +163,7 @@ class AuthDependency:
         self,
         min_level: str = "READ",
         sbauth_resource_type: str | None = None,
+        resource_type: str | None = None,
         require_resource_id: bool = True,
         require_resource_exists: bool = True,
         require_admin: bool = False,
@@ -165,6 +171,7 @@ class AuthDependency:
         """Initialize the AuthDependency class."""
         self.min_level = min_level
         self.sbauth_resource_type = sbauth_resource_type
+        self.resource_type = resource_type
         self.require_resource_id = require_resource_id
         self.require_resource_exists = require_resource_exists
         self.require_admin = require_admin
@@ -186,6 +193,7 @@ class AuthDependency:
             api_key=api_key,
             min_level=self.min_level,
             sbauth_resource_type=self.sbauth_resource_type,
+            resource_type=self.resource_type,
             require_resource_id=self.require_resource_id,
             require_resource_exists=self.require_resource_exists,
             require_admin=self.require_admin,
@@ -210,6 +218,7 @@ class AuthDependencyNoResourceId(AuthDependency):
             api_key=api_key,
             min_level=self.min_level,
             sbauth_resource_type=self.sbauth_resource_type,
+            resource_type=self.resource_type,
             require_resource_id=False,
             require_resource_exists=False,
             require_admin=self.require_admin,
@@ -458,3 +467,21 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
         return False
     message = str(response.content)
     raise exceptions.RemoveResourceError(resource_id, message)
+
+
+# ------------------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------------------
+
+def _filter_resource_ids_by_type(resource_ids: list[str], resource_type: str) -> list[str]:
+    """Filter local resource IDs by resource type using cached registry metadata."""
+    filtered_resource_ids = []
+    for resource_id in resource_ids:
+        try:
+            rtype = json.loads(jobs_cache.get_job(resource_id)).get("resource", {}).get("type")
+        except (TypeError, AttributeError, json.JSONDecodeError):
+            logger.warning("Failed to read cached metadata for resource '%s' while filtering auth data.", resource_id)
+            continue
+        if rtype == resource_type:
+            filtered_resource_ids.append(resource_id)
+    return filtered_resource_ids
