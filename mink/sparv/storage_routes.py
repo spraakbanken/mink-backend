@@ -959,85 +959,18 @@ async def download_exports(
 -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    if download_file and download_folder:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.VALIDATION_ERROR, info="Both 'file' and 'dir' parameters were provided"
-        )
-
     resource_id = auth_data["resource_id"]
-    storage_export_dir = storage.get_export_dir(resource_id)
-    local_corpus_dir = storage.get_local_resource_dir(resource_id, mkdir=True)
-    local_export_dir = storage.get_local_export_dir(resource_id, mkdir=True)
-    blacklist = sparv_settings.SPARV_EXPORT_BLACKLIST
-
-    try:
-        export_contents = storage.list_contents(storage_export_dir, exclude_dirs=False, blacklist=blacklist)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
-    if export_contents == []:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FILE_NOT_FOUND, info="No exports available for corpus"
-        )
-
-    # Download and zip folder specified in args
-    if download_folder:
-        download_folder_name = "_".join(Path(download_folder).parts)
-        full_download_folder = storage_export_dir / download_folder
-        if download_folder not in [i.get("path") for i in export_contents]:
-            logger.error(
-                "Requested download folder '%s' not found in export contents for corpus '%s'",
-                download_folder,
-                resource_id,
-            )
-            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
-        try:
-            zip_out = local_corpus_dir / f"{resource_id}_{download_folder_name}.zip"
-            (local_export_dir / download_folder).mkdir(exist_ok=True)
-            storage.download_dir(
-                full_download_folder, local_export_dir / download_folder, resource_id, zipped=True, zippath=zip_out
-            )
-            return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
-        except Exception as e:
-            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
-
-    # Download and zip file specified in args
-    if download_file:
-        download_file_name = Path(download_file).name
-        download_file_path = storage_export_dir / download_file
-        if download_file not in [i.get("path") for i in export_contents]:
-            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, file=download_file)
-        try:
-            local_path = local_export_dir / download_file
-            (local_export_dir / download_file).parent.mkdir(exist_ok=True)
-            if zipped:
-                outfile_path = local_corpus_dir / f"{resource_id}_{download_file_name}.zip"
-                storage.download_file(download_file_path, local_path, resource_id)
-                utils.create_zip(local_path, outfile_path, zip_rootdir=resource_id)
-                return FileResponse(outfile_path, media_type="application/zip", filename=outfile_path.name)
-            storage.download_file(download_file_path, local_path, resource_id)
-            # Determine content type
-            content_type = "application/xml"
-            for file_obj in export_contents:
-                if file_obj.get("name") == download_file_name:
-                    content_type = file_obj.get("type")
-                    break
-            return FileResponse(local_path, media_type=content_type, filename=local_path.name)
-        except FileNotFoundError as e:
-            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
-        except Exception as e:
-            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
-
-    # Download all export files (if not (download_file or download_folder))
-    else:
-        try:
-            zip_out = local_corpus_dir / f"{resource_id}_export.zip"
-            # Get files from storage server
-            storage.download_dir(
-                storage_export_dir, local_export_dir, resource_id, zipped=True, zippath=zip_out, excludes=blacklist
-            )
-            return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
-        except Exception as e:
-            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+    return route_utils.download_exports_response(
+        storage=storage,
+        resource_id=resource_id,
+        remote_dir=storage.get_export_dir(resource_id),
+        local_resource_dir=storage.get_local_resource_dir(resource_id, mkdir=True),
+        local_exports_dir=storage.get_local_export_dir(resource_id, mkdir=True),
+        download_file=download_file,
+        download_folder=download_folder,
+        zipped=zipped,
+        blacklist=sparv_settings.SPARV_EXPORT_BLACKLIST,
+    )
 
 
 @router.delete(

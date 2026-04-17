@@ -249,8 +249,124 @@ def download_file_response(
     raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
 
 
+def download_exports_response(
+    *,
+    storage: Any,
+    resource_id: str,
+    remote_dir: Path,
+    local_resource_dir: Path,
+    local_exports_dir: Path,
+    download_file: str | None = None,
+    download_folder: str | None = None,
+    zipped: bool = True,
+    blacklist: list[str] | None = None,
+    default_media_type: str = "application/xml",
+    archive_suffix: str = "export",
+) -> FileResponse:
+    """Download all exports, one export file, or a subdirectory of exports.
+
+    Args:
+        storage: Storage backend used for listing and downloading content.
+        resource_id: Resource ID.
+        remote_dir: Remote directory containing the downloadable content.
+        local_resource_dir: Local resource directory used for zip output files.
+        local_exports_dir: Local export directory used for downloaded files.
+        download_file: Relative file path to download.
+        download_folder: Relative directory path to download.
+        zipped: Whether to zip a specific file download.
+        blacklist: Optional blacklist for listing/downloading content.
+        default_media_type: Fallback media type for direct file downloads.
+        archive_suffix: Suffix for archive names when downloading all exports.
+
+    Returns:
+        A file response for the requested download.
+    """
+    if download_file and download_folder:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.VALIDATION_ERROR,
+            info="Both 'file' and 'dir' parameters were provided",
+        )
+
+    try:
+        exports_contents = storage.list_contents(remote_dir, exclude_dirs=False, blacklist=blacklist)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+
+    if not exports_contents:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FILE_NOT_FOUND, info="No exports available for resource"
+        )
+
+    content_paths = {item.get("path") for item in exports_contents}
+
+    if download_folder:
+        if download_folder not in content_paths:
+            logger.error(
+                "Requested download folder '%s' not found in export contents for resource '%s'",
+                download_folder,
+                resource_id,
+            )
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
+        try:
+            download_folder_name = "_".join(Path(download_folder).parts)
+            zip_out = local_resource_dir / f"{resource_id}_{download_folder_name}.zip"
+            local_folder = local_exports_dir / download_folder
+            local_folder.mkdir(parents=True, exist_ok=True)
+            storage.download_dir(
+                remote_dir / download_folder,
+                local_folder,
+                resource_id,
+                zipped=True,
+                zippath=zip_out,
+            )
+            return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
+        except FileNotFoundError as e:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
+        except Exception as e:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+
+    if download_file:
+        if download_file not in content_paths:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, file=download_file)
+        try:
+            download_file_name = Path(download_file).name
+            local_path = local_exports_dir / download_file
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            storage.download_file(remote_dir / download_file, local_path, resource_id)
+            if zipped:
+                outfile_path = local_resource_dir / f"{resource_id}_{download_file_name}.zip"
+                utils.create_zip(local_path, outfile_path, zip_rootdir=resource_id)
+                return FileResponse(outfile_path, media_type="application/zip", filename=outfile_path.name)
+            content_type = default_media_type
+            for file_obj in exports_contents:
+                if file_obj.get("path") == download_file:
+                    content_type = file_obj.get("type") or default_media_type
+                    break
+            return FileResponse(local_path, media_type=content_type, filename=local_path.name)
+        except FileNotFoundError as e:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
+        except Exception as e:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+
+    try:
+        zip_out = local_resource_dir / f"{resource_id}_{archive_suffix}.zip"
+        storage.download_dir(
+            remote_dir,
+            local_exports_dir,
+            resource_id,
+            zipped=True,
+            zippath=zip_out,
+            excludes=blacklist,
+        )
+        return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
+    except FileNotFoundError as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
+    except Exception as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+
+
 def make_status_response(info: info.Info, admin: bool = False) -> dict:
-    """Check the annotation status for a given corpus and return a dict that can be used to make a response.
+    """Check the annotation status for a given resource and return a dict that can be used to make a response.
 
     Args:
         info: The info object.
