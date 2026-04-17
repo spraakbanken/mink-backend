@@ -15,6 +15,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a new route `/metadata/list` for listing all metadata resources.
 - Added a new internal route `/queue/health` which exposes monitorable queue statistics and returns a warning when
   queued or running jobs exceed the configured threshold.
+- Added a new route `/user/info/get` for retrieving information about the currently authenticated user.
 - Added regular queue health polling in `queue_manager.py`, which calls `/queue/health`, logs degraded queue state and
   optionally notifies via a Slack webhook.
 - Added a new field `queued` to the `/resource/status` responses which indicates when a job was queued.

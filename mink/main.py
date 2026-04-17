@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from mink.cache.memcached import cache
-from mink.core import config_utils, exceptions, job_routes, registry, routes, utils
+from mink.core import config_utils, exceptions, job_routes, registry, routes, user_routes, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.resource_specs import get_resource_routers, run_startup_checks
@@ -110,6 +110,7 @@ app.add_exception_handler(Exception, exceptions.internal_server_error_handler)
 app.include_router(routes.router)
 app.include_router(job_routes.router)
 app.include_router(login_routes.router)
+app.include_router(user_routes.router)
 for router in get_resource_routers():
     app.include_router(router)
 

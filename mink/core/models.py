@@ -146,6 +146,60 @@ class UserModel(BaseModel):
     }
 
 
+class UserInfoResponse(BaseResponse):
+    """Model for the /user/info/get response."""
+
+    class DetailedUserModel(BaseModel):
+        """Detailed model for the user object in the /user/info/get response."""
+        user_id: str = Field(default="", alias="id", description="User ID")
+        name: str = Field(default="", description="Name of the user")
+        email: str = Field(default="", description="Email address of the user")
+        idp: str = Field(default="", description="Identity provider of the user")
+        sub: str = Field(default="", description="Subject identifier from the identity provider")
+        ui_language: str = Field(default="swe", description="Preferred UI language of the user")
+        admin_mode: bool = Field(default=False, description="Whether the user is currently in admin mode")
+        is_admin: bool = Field(default=False, description="Whether the user has admin privileges")
+        organization_prefix: str | None = Field(
+            default=None, description="Organization prefix associated with the user"
+        )
+
+    message: str = Field(
+        default=return_codes.LISTING_CONTENT.message, description="Short message describing the response"
+    )
+    return_code: str = Field(
+        default=return_codes.LISTING_CONTENT.code, description="Short code describing the response status"
+    )
+    info: str = Field(default="Listing user info", description="More detailed information about the response")
+    user: DetailedUserModel = Field(
+        default_factory=DetailedUserModel,
+        description="Serialized user object with all available information about the user",
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "info": "Listing user info",
+                    "user": {
+                        "id": "example-idp-abc123",
+                        "name": "Anna Andersson",
+                        "email": "anna.andersson@example.com",
+                        "idp": "example-idp",
+                        "sub": "abc123",
+                        "ui_language": "swe",
+                        "admin_mode": False,
+                        "is_admin": False,
+                        "organization_prefix": None,
+                    },
+                }
+            ]
+        }
+    }
+
+
 resource_model_example = {
     "id": "mink-dxh6e6wtff",
     "public_id": "mink-dxh6e6wtff",

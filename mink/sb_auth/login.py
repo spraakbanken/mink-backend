@@ -131,6 +131,7 @@ async def get_auth_data(
         "resources": resources,
         "resource_id": resource_id,
         "admin_mode": admin_mode,
+        "is_admin": is_admin,
         "info_obj": None,
     }
 
