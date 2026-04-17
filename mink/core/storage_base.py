@@ -209,7 +209,7 @@ class BaseStorage:
                 if exclude_dirs:
                     continue
                 mimetype = "directory"
-            if any(Path(f.parts[0]).match(item) for item in blacklist_items):
+            if any(Path(f).match(item) for item in blacklist_items):
                 continue
             objlist.append(
                 {"name": f.name, "type": mimetype, "last_modified": mod_time, "size": int(size), "path": obj_path[2:]}
