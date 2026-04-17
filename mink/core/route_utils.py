@@ -11,6 +11,7 @@ from fastapi import UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.core import exceptions, info, registry, return_codes, utils
+from mink.core.config import settings
 from mink.core.info import Info
 from mink.core.logging import logger
 from mink.core.resource_specs import get_spec
@@ -24,6 +25,48 @@ def get_info_from_auth(auth_data: dict) -> Info:
     if info_obj is not None:
         return info_obj
     return registry.get(auth_data["resource_id"])
+
+
+def get_user_organization_prefix(user: Any) -> str | None:
+    """Return the normalized organization prefix for a user.
+
+    Args:
+        user: User object with an `id` attribute.
+
+    Returns:
+        The user's organization prefix in lowercase.
+    """
+    org_prefix = settings.ORGANIZATION_PREFIXES.get(user.id)
+    if org_prefix is not None:
+        org_prefix = org_prefix.strip().lower()
+    return org_prefix
+
+
+def validate_public_id_organization_prefix(
+    *, public_id: str, user: Any, return_code: Any = return_codes.FAILED_CREATING_RESOURCE
+) -> str:
+    """Validate that a public ID starts with the user's organization prefix.
+
+    Args:
+        public_id: Public ID to validate.
+        user: User object with an `id` attribute.
+        return_code: Return code used if validation fails.
+
+    Returns:
+        The user's normalized organization prefix.
+    """
+    org_prefix = get_user_organization_prefix(user)
+    if org_prefix is None:
+        raise exceptions.MinkHTTPException(
+            return_code=return_code,
+            info=f"No organization prefix found for user with ID '{user.id}'",
+        )
+    if not public_id.startswith(f"{org_prefix}-"):
+        raise exceptions.MinkHTTPException(
+            return_code=return_code,
+            info=f"Public ID '{public_id}' does not start with organization prefix '{org_prefix}'",
+        )
+    return org_prefix
 
 
 async def create_resource_id(

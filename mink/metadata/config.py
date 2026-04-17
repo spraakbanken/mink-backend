@@ -1,6 +1,5 @@
 """Default configuration for metadata module."""
 
-from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -21,9 +20,6 @@ class MetadataSettings(BaseSettings):
 
     # Dir for storing resource files belonging to a metadata resource
     METADATA_SOURCE_DIR: str = "source"
-
-    # Mapping from user IDs to organisation prefixes
-    METADATA_ORG_PREFIXES: dict[str, str] = Field(default_factory=dict)
 
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists

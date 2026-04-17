@@ -5,6 +5,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [unreleased]
 
+### Changed
+
+- The config setting "METADATA_ORG_PREFIXES" has been renamed to "ORGANIZATION_PREFIXES".
+
 ### Added
 
 - Added a new resource type: lexicons. This includes routes for creating, listing, uploading and downloading lexicons.

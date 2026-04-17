@@ -71,6 +71,9 @@ class Settings(BaseSettings):
         default_factory=lambda: ["corpora", "lexica", "metadata"]
     )  # Resource types in SB Auth
 
+    # Mapping from user IDs to organisation prefixes
+    ORGANIZATION_PREFIXES: dict[str, str] = Field(default_factory=dict)
+
     # Settings for queue manager
     MAX_WORKERS: int = 1  # Number of jobs that can be run simultaneously
     CHECK_QUEUE_FREQUENCY: int = 20  # How often the queue will be checked for new jobs (in seconds)

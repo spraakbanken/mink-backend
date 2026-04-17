@@ -75,20 +75,8 @@ async def create_metadata(
     curl -X POST '{{host}}/metadata/create?public_id=org-prefix-resource-id' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    # TODO: better solution for getting user's organization prefix!
     user = auth_data["user"]
-    org_prefix = metadata_settings.METADATA_ORG_PREFIXES.get(user.id)
-    if org_prefix is None:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FAILED_CREATING_RESOURCE,
-            info=f"No organization prefix found for user with ID '{user.id}'",
-        )
-    org_prefix = org_prefix.lower()
-    if not public_id.startswith(f"{org_prefix}-"):
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FAILED_CREATING_RESOURCE,
-            info=f"Public ID '{public_id}' does not start with organization prefix '{org_prefix}'",
-        )
+    route_utils.validate_public_id_organization_prefix(public_id=public_id, user=user)
 
     # Check availability of ID in SBX metadata and the Mink backend resource registry
     check_id_url = metadata_settings.METADATA_ID_AVAILABLE_URL + public_id
