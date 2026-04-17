@@ -96,7 +96,7 @@ addopts = "-s -v --tb=no --custom-log-level=info"
 log_cli = false
 markers = [
     "general: marks tests as general tests (deselect with '-m \"not general\"')",
-    "admin: marks tests for admin routes (deselect with '-m \"not admin\"')",
+    "user: marks tests for user management routes (deselect with '-m \"not user\"')",
     "corpus: marks tests as corpus tests (deselect with '-m \"not corpus\"')",
     "metadata: marks tests as metadata tests (deselect with '-m \"not metadata\"')",
     "lexicon: marks tests as lexicon tests (deselect with '-m \"not lexicon\"')",

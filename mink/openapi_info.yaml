@@ -79,6 +79,8 @@ servers:
     description: Development server
 
 tags:
+  - name: User Management
+    description: Routes for managing information about the authenticated user and admin mode status.
   - name: Manage Resources
     description: Routes for listing and getting information about all resources, regardless of type.
   - name: Manage Corpora
@@ -87,7 +89,5 @@ tags:
     description: Routes for managing lexicon resources with Karp.
   - name: Manage Metadata
     description: Routes for creating, uploading, and downloading metadata resources.
-  - name: Admin Mode
-    description: Routes for activating and deactivating admin mode, and checking the admin mode status.
   - name: Documentation
     description: Routes used for documentation purposes.

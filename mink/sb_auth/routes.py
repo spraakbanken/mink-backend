@@ -8,12 +8,13 @@ from mink.core import exceptions, models, return_codes, utils
 from mink.sb_auth import cache
 from mink.sb_auth.login import AuthDependencyNoResourceId
 
-router = APIRouter(tags=["Admin Mode"])
+router = APIRouter(tags=["User Management"])
 
 
+@router.post("/admin-mode-on", deprecated=True, name="admin-mode-on-deprecated")
 @router.post(
-    "/admin-mode-on",
-    operation_id="admin-mode-on",
+    "/user/admin-mode/activate",
+    operation_id="activate-admin-mode",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -41,18 +42,18 @@ router = APIRouter(tags=["Admin Mode"])
         **models.common_auth_error_responses,
     },
 )
-async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(require_admin=True))) -> JSONResponse:
+async def activate_admin_mode(
+    auth_data: dict = Depends(AuthDependencyNoResourceId(require_admin=True)),
+) -> JSONResponse:
     """Turn on admin mode for the user if the user can be verified as a Mink admin in the authentication system.
 
-    When admin mode is activated the user will have full access to all corpora in Mink. This works by setting a session
-    cookie in the client. Admin mode will be activated until [turned off](#admin-mode-off) or until the
+    When admin mode is activated the user will have full access to all resources in Mink. This works by setting a
+    session cookie in the client. Admin mode will be activated until [turned off](#deactivate-admin-mode) or until the
     session expires.
 
     ### Example
 
-    ```bash
-    curl -X POST '{{host}}/admin-mode-on' -H 'Authorization: Bearer YOUR_JWT'
-    ```
+    ```bash curl -X POST '{{host}}/user/admin-mode/activate' -H 'Authorization: Bearer YOUR_JWT' ```
     """
     session_id = auth_data["session_id"]
     if session_id is None:
@@ -63,9 +64,10 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
     )
 
 
+@router.post("/admin-mode-off", deprecated=True, name="admin-mode-off-deprecated")
 @router.post(
-    "/admin-mode-off",
-    operation_id="admin-mode-off",
+    "/user/admin-mode/deactivate",
+    operation_id="deactivate-admin-mode",
     response_model=models.BaseResponse,
     responses={
         status.HTTP_200_OK: {
@@ -93,14 +95,14 @@ async def admin_mode_on(auth_data: dict = Depends(AuthDependencyNoResourceId(req
         **models.common_auth_error_responses
     }
 )
-async def admin_mode_off(
+async def deactivate_admin_mode(
     auth_data: dict = Depends(AuthDependencyNoResourceId())) -> JSONResponse:
     """Turn off admin mode for the user by removing the session cookie from the client.
 
     ### Example
 
     ```bash
-    curl -X POST '{{host}}/admin-mode-off' -H 'Authorization: Bearer YOUR_JWT'
+    curl -X POST '{{host}}/user/admin-mode/deactivate' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
     session_id = auth_data["session_id"]
@@ -113,6 +115,7 @@ async def admin_mode_off(
 
 @router.get(
     "/admin-mode-status",
+    deprecated=True,
     operation_id="admin-mode-status",
     response_model=models.BaseResponse,
     responses={
@@ -132,7 +135,7 @@ async def admin_mode_off(
     },
 )
 async def admin_mode_status(auth_data: dict = Depends(AuthDependencyNoResourceId())) -> JSONResponse:
-    """Check whether admin mode is turned on or off.
+    """Check whether admin mode is activated.
 
     ### Example
 

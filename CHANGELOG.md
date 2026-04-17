@@ -46,6 +46,12 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Deprecated
 
 - The route `/corpus/korp/list` is deprecated and will be removed in a future release.
+- The route `/admin-mode-on` is deprecated and will be removed in a future release. Use `/user/admin-mode/activate`
+  instead.
+- The route `/admin-mode-off` is deprecated and will be removed in a future release. Use `/user/admin-mode/deactivate`
+  instead.
+- The route `/admin-mode-status` is deprecated and will be removed in a future release. Use `/user/info/get` (field
+  `user.admin_mode`) instead.
 
 ## [2.2.0] - 2026-04-02
 

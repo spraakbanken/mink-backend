@@ -36,14 +36,15 @@ def test_documentation_route() -> None:
 
 
 @pytest.mark.general
-@pytest.mark.admin
-def test_admin_mode() -> None:
-    """Test admin mode routes."""
+@pytest.mark.user
+def test_user_mode() -> None:
+    """Test user management routes."""
     routes = [
-        ("1", "POST", "/admin-mode-on"),
-        ("2", "GET", "/admin-mode-status"),
-        ("3", "POST", "/admin-mode-off"),
-        ("4", "GET", "/admin-mode-status"),
+        ("1", "GET", "/user/info/get"),
+        ("2", "POST", "/user/admin-mode/activate"),
+        ("3", "GET", "/user/info/get"),
+        ("4", "POST", "/user/admin-mode/deactivate"),
+        ("5", "GET", "/user/info/get"),
     ]
     admin_cookie = None
     for n, method, path in routes:
@@ -51,22 +52,34 @@ def test_admin_mode() -> None:
             method, path, headers=HEADERS, cookies={"session_id": admin_cookie} if admin_cookie else None
         )
         if n == "1":
+            # Check if user info contains all required fields
+            user_info = response.json().get("user", {})
+            assert "id" in user_info, "User info should contain 'id'"
+            assert "name" in user_info, "User info should contain 'name'"
+            assert "email" in user_info, "User info should contain 'email'"
+            assert "idp" in user_info, "User info should contain 'idp'"
+            assert "sub" in user_info, "User info should contain 'sub'"
+            assert "is_admin" in user_info, "User info should contain 'is_admin'"
+            assert "admin_mode" in user_info, "User info should contain 'admin_mode'"
+            assert user_info.get("admin_mode") is False, "Admin mode should be off by default"
+            assert "organization_prefix" in user_info, "User info should contain 'organization_prefix'"
+        if n == "2":
             assert response.json().get("return_code") == return_codes.ADMIN_ON.code, (
                 f"Route {method} {path} did not enable admin mode"
             )
             admin_cookie = response.cookies.get("session_id")
             assert admin_cookie is not None, "No session_id cookie set when enabling admin mode"
-        elif n == "2":
-            assert response.json().get("admin_mode_status") is True, (
-                f"Admin mode should be on after enabling, but got {response.json().get('admin_mode_status')}"
+        elif n == "3":
+            assert response.json().get("user", {}).get("admin_mode") is True, (
+                f"Admin mode should be on after enabling, but got {response.json().get('user', {}).get('admin_mode')}"
             )
-        if n == "3":
+        if n == "4":
             assert response.json().get("return_code") == return_codes.ADMIN_OFF.code, (
                 f"Route {method} {path} did not disable admin mode"
             )
-        elif n == "4":
-            assert response.json().get("admin_mode_status") is False, (
-                f"Admin mode should be off after disabling, but got {response.json().get('admin_mode_status')}"
+        elif n == "5":
+            assert response.json().get("user", {}).get("admin_mode") is False, (
+                f"Admin mode should be off after disabling, but got {response.json().get('user', {}).get('admin_mode')}"
             )
 
 
