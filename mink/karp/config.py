@@ -1,5 +1,6 @@
 """Default configuration for Karp module."""
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -22,6 +23,15 @@ class KarpSettings(BaseSettings):
     KARP_SOURCE_DIR: str = "source"  # Dir for storing source files
     KARP_OUTPUT_DIR: str = "output"  # Dir for storing karp output
     KARP_CONFIG: str = "config.yaml"  # Name of the config file
+
+    # Glob patterns for output files that will be excluded from listings and downloads
+    KARP_OUTPUT_BLACKLIST: list[str] = Field(
+        default_factory=lambda: [
+            "schema",
+            "schema/*",
+            "**/*.yaml",
+        ]
+    )
 
     KARP_NOHUP_FILE: str = "mink.out"  # File collecting Karp output for a job
     KARP_TMP_RUN_SCRIPT: str = "run_karp.sh"  # Temporary Karp run script created for every job

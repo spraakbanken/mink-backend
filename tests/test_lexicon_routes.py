@@ -131,12 +131,37 @@ def lexicon_processed(lexicon_with_data_and_config: str) -> str:
 
 
 @pytest.mark.lexicon
+def test_manage_lexicon_exports(lexicon_processed: str) -> None:
+    """Test manage lexicon exports routes."""
+    routes = [
+        ("GET", f"/lexicon/exports/list/{lexicon_processed}", None),
+        ("GET", f"/lexicon/exports/download/{lexicon_processed}", None),
+        ("DELETE", f"/lexicon/exports/remove/{lexicon_processed}", None),
+    ]
+    for method, path, query in routes:
+        response = call_route(method, path, query=query, headers=HEADERS)
+        if path.startswith("/lexicon/exports/list/"):
+            json_data = response.json()
+            assert isinstance(json_data.get("contents"), list), "Response should be a list of exports"
+        elif path.startswith("/lexicon/exports/download/"):
+            assert response.headers.get("Content-Disposition") is not None, (
+                "Download response should have Content-Disposition header"
+            )
+            assert response.headers.get("Content-Type") == "application/zip", "Download response should be a zip file"
+            assert len(response.content) > 0, "Downloaded exports file should not be empty"
+        elif path.startswith("/lexicon/exports/remove/"):
+            json_data = response.json()
+            assert json_data.get("return_code") == return_codes.REMOVED_CONTENT.code, (
+                f"Exports removal failed: {json_data}"
+            )
+
+
+@pytest.mark.lexicon
 def test_processing_lexicons(lexicon_processed: str) -> None:
     """Test routes for processing lexicons."""
     routes = [
-        ("PUT", f"/lexicon/job/run/{lexicon_processed}", None),
+        ("PUT", f"/lexicon/job/run/{lexicon_processed}", None),  # No process name because we want to abort before done
         ("POST", f"/lexicon/job/abort/{lexicon_processed}", None),
-        ("DELETE", f"/lexicon/output/remove/{lexicon_processed}", None),
         ("PUT", f"/lexicon/job/run/{lexicon_processed}", "karp_pipeline"),  # Needs to run again after output removal
         ("PUT", f"/lexicon/karps/install/{lexicon_processed}", "karps"),
         ("DELETE", f"/lexicon/karps/uninstall/{lexicon_processed}", None),

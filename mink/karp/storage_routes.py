@@ -1,5 +1,6 @@
 """Routes for lexicon resources."""
 
+from pathlib import Path
 from typing import cast
 
 from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
@@ -9,10 +10,12 @@ from mink.cache import jobs_cache
 from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
+from mink.core.logging import logger
 from mink.core.resource import Resource
 from mink.core.resource_specs import get_spec
 from mink.karp import models as karp_models
 from mink.karp import utils as karp_utils
+from mink.karp.config import karp_settings
 from mink.karp.jobs import KarpJob
 from mink.karp.spec import LEXICON
 from mink.karp.storage import storage
@@ -645,3 +648,297 @@ async def download_config(auth_data: dict = Depends(AUTH_LEXICON)) -> FileRespon
         download_fn=lambda: storage.download_file(storage_yaml_file, local_yaml_file, resource_id),
         media_type="text/yaml",
     )
+
+
+# ------------------------------------------------------------------------------
+# Output file operations
+# ------------------------------------------------------------------------------
+
+@router.get(
+    "/exports/list/{resource_id}",
+    operation_id="list-lexicon-exports",
+    response_model=models.ListingFilesResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.LISTING_CONTENT.message,
+                        "return_code": return_codes.LISTING_CONTENT.code,
+                        "info": "Listing export files",
+                        "contents": [
+                            {
+                                "name": "dokument1.csv",
+                                "type": "text/csv",
+                                "last_modified": "2022-06-10T17:55:37+02:00",
+                                "size": 4876,
+                                "path": "csv_export/dokument1.csv",
+                            },
+                            {
+                                "name": "dokument1_export.xml",
+                                "type": "application/xml",
+                                "last_modified": "2022-06-10T17:55:38+02:00",
+                                "size": 13429,
+                                "path": "xml_export.pretty/dokument1_export.xml",
+                            },
+                        ],
+                    }
+                }
+            },
+        },
+        **models.common_auth_error_responses,
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_LISTING_CONTENT.message,
+                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
+                        "info": "Failed to list export files",
+                    }
+                }
+            },
+        },
+    },
+)
+async def list_exports(auth_data: dict = Depends(AUTH_LEXICON)) -> JSONResponse:
+    """List the available export files created by Karp Pipeline.
+
+    ### Example
+
+    ```bash
+    curl '{{host}}/lexicon/exports/list/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    resource_id = auth_data["resource_id"]
+    try:
+        objlist = storage.list_contents(
+            storage.get_output_dir(resource_id), blacklist=karp_settings.KARP_OUTPUT_BLACKLIST
+        )
+        return utils.response(return_code=return_codes.LISTING_CONTENT, info="Listing export files", contents=objlist)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed to list export files: {e}"
+        ) from e
+
+
+@router.get(
+    "/exports/download/{resource_id}",
+    operation_id="download-lexicon-exports",
+    response_model=models.FileResponse,
+    response_class=FileResponse,
+    responses={
+        status.HTTP_200_OK: {"content": {"application/octet-stream": {}}, "description": "A file download response"},
+        **models.common_auth_error_responses,
+        status.HTTP_404_NOT_FOUND: {"model": models.ErrorResponse404File},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
+            "model": models.BaseErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.VALIDATION_ERROR.message,
+                        "return_code": return_codes.VALIDATION_ERROR.code,
+                        "info": "Both 'file' and 'dir' parameters were provided"
+                    }
+                }
+            },
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_DOWNLOADING.message,
+                        "return_code": return_codes.FAILED_DOWNLOADING.code,
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+    },
+)
+async def download_exports(
+    download_file: str | None = Query(None, alias="file", description="The file name or path to download"),
+    download_folder: str | None = Query(None, alias="dir", description="The directory to download"),
+    zipped: bool = Query(True, alias="zip", description="Whether to zip the file or not"),
+    auth_data: dict = Depends(AUTH_LEXICON),
+) -> FileResponse:
+    """Download all available export files created by the Karp Pipeline.
+
+    The parameters `file` and `dir` may be used to download a specific export file or a directory of export files. These
+    parameters must be supplied as  paths relative to the export directory. Only one of these parameters may be applied
+    at a time.
+
+    The `zip` parameter may be set to `false` in combination with the `file` param to avoid zipping the file to be
+    downloaded. If `zip` is used without the file parameter it will have no effect.
+
+    ### Example
+
+    ```bash
+    curl '{{host}}/lexicon/exports/download/<resource_id>?file=some_file_name&zip=true' \
+-H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    if download_file and download_folder:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.VALIDATION_ERROR, info="Both 'file' and 'dir' parameters were provided"
+        )
+
+    resource_id = auth_data["resource_id"]
+    storage_output_dir = storage.get_output_dir(resource_id)
+    local_resource_dir = storage.get_local_resource_dir(resource_id, mkdir=True)
+    local_output_dir = storage.get_local_output_dir(resource_id, mkdir=True)
+    blacklist = karp_settings.KARP_OUTPUT_BLACKLIST
+
+    try:
+        export_contents = storage.list_contents(storage_output_dir, exclude_dirs=False, blacklist=blacklist)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+    if export_contents == []:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FILE_NOT_FOUND, info="No exports available for resource"
+        )
+
+    # Download and zip folder specified in args
+    if download_folder:
+        download_folder_name = "_".join(Path(download_folder).parts)
+        full_download_folder = storage_output_dir / download_folder
+        if download_folder not in [i.get("path") for i in export_contents]:
+            logger.error(
+                "Requested download folder '%s' not found in export contents for resource '%s'",
+                download_folder,
+                resource_id,
+            )
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
+        try:
+            zip_out = local_resource_dir / f"{resource_id}_{download_folder_name}.zip"
+            (local_output_dir / download_folder).mkdir(exist_ok=True)
+            storage.download_dir(
+                full_download_folder, local_output_dir / download_folder, resource_id, zipped=True, zippath=zip_out
+            )
+            return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
+        except Exception as e:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+
+    # Download and zip file specified in args
+    if download_file:
+        download_file_name = Path(download_file).name
+        download_file_path = storage_output_dir / download_file
+        if download_file not in [i.get("path") for i in export_contents]:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, file=download_file)
+        try:
+            local_path = local_output_dir / download_file
+            (local_output_dir / download_file).parent.mkdir(exist_ok=True)
+            if zipped:
+                outfile_path = local_resource_dir / f"{resource_id}_{download_file_name}.zip"
+                storage.download_file(download_file_path, local_path, resource_id)
+                utils.create_zip(local_path, outfile_path, zip_rootdir=resource_id)
+                return FileResponse(outfile_path, media_type="application/zip", filename=outfile_path.name)
+            storage.download_file(download_file_path, local_path, resource_id)
+            # Determine content type
+            content_type = "application/xml"
+            for file_obj in export_contents:
+                if file_obj.get("name") == download_file_name:
+                    content_type = file_obj.get("type")
+                    break
+            return FileResponse(local_path, media_type=content_type, filename=local_path.name)
+        except Exception as e:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+
+    # Download all export files (if not (download_file or download_folder))
+    else:
+        try:
+            zip_out = local_resource_dir / f"{resource_id}_export.zip"
+            # Get files from storage server
+            storage.download_dir(
+                storage_output_dir,
+                local_output_dir,
+                resource_id,
+                zipped=True,
+                zippath=zip_out,
+                excludes=blacklist,
+            )
+            return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
+        except Exception as e:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
+
+
+@router.delete(
+    "/exports/remove/{resource_id}",
+    operation_id="remove-lexicon-exports",
+    response_model=models.BaseResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.REMOVED_CONTENT.message,
+                        "return_code": return_codes.REMOVED_CONTENT.code,
+                        "info": "Removed output",
+                        "karp_output": "Karp Pipeline output removed"
+                    }
+                }
+            }
+        },
+        **models.common_auth_error_responses,
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                        "info": "Failed to remove output",
+                    }
+                }
+            },
+        },
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "model": models.BaseErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.PROCESS_RUNNING.message,
+                        "return_code": return_codes.PROCESS_RUNNING.code,
+                        "info": "Cannot remove output while a job is running",
+                    }
+                }
+            },
+        },
+    },
+)
+async def remove_exports(auth_data: dict = Depends(AUTH_WRITE)) -> JSONResponse:
+    """Remove all output files for the resource from the Karp Pipeline server.
+
+    This action cannot be performed while a job is running.
+
+    ### Example
+
+    ```bash
+    curl -X DELETE '{{host}}/lexicon/exports/remove/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    resource_id = auth_data["resource_id"]
+    # Check if there is an active job
+    job = _require_job(registry.get(resource_id).job)
+    if job.status.is_running():
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.PROCESS_RUNNING, info="Cannot remove output while a job is running"
+        )
+
+    try:
+        karp_output = job.clean()
+        return utils.response(
+            return_code=return_codes.REMOVED_CONTENT, info="Removed output", karp_output=karp_output
+        )
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_REMOVING_CONTENT, info=f"Failed to remove output: {e}"
+        ) from e
