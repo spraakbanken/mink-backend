@@ -539,10 +539,16 @@ class SparvJob(BaseJob):
 
             progress = parsed_output.get("progress") or 0
             final_msg = parsed_output.get("final")
-            if final_msg:
-                misc += ("\n" if misc else "") + final_msg
             if final_msg == "Nothing to be done.":
                 progress = PROGRESS_DONE
+
+            # If Sparv reports a final message but is not done, add message to the errors.
+            if final_msg and progress != PROGRESS_DONE:
+                errors += ("\n" if errors else "") + "Sparv reported an error: " + final_msg
+
+            # If Sparv reports a final message and is done, add message to the misc output.
+            elif final_msg:
+                misc += ("\n" if misc else "") + final_msg
 
             self.progress_output = progress
 
