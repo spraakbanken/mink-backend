@@ -53,7 +53,9 @@ async def activate_admin_mode(
 
     ### Example
 
-    ```bash curl -X POST '{{host}}/user/admin-mode/activate' -H 'Authorization: Bearer YOUR_JWT' ```
+    ```bash
+    curl -X POST '{{host}}/user/admin-mode/activate' -H 'Authorization: Bearer YOUR_JWT'
+    ```
     """
     session_id = auth_data["session_id"]
     if session_id is None:
