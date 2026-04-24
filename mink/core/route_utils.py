@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import shortuuid
-from fastapi import UploadFile
+from fastapi import Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
 from mink.core import exceptions, info, registry, return_codes, utils
@@ -25,6 +25,123 @@ def get_info_from_auth(auth_data: dict) -> Info:
     if info_obj is not None:
         return info_obj
     return registry.get(auth_data["resource_id"])
+
+
+def get_validated_source_dir(
+    *, request: Request, resource_id: str, get_source_dir: Callable[[str], Path], storage: Any
+) -> Path:
+    """Return the resource's source dir after validating the incoming request size.
+
+    Args:
+        request: The incoming request containing the content-length header.
+        resource_id: Resource ID for which to get the source directory.
+        get_source_dir: Callable that returns the source directory Path for a given resource ID.
+        storage: Storage backend used for validating content size.
+    """
+    try:
+        content_length = int(request.headers.get("content-length", "0"))
+        source_dir = get_source_dir(resource_id)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_UPLOADING, info=str(e)) from e
+
+    if not utils.size_ok(storage, source_dir, content_length):
+        max_size_mb = int(settings.MAX_RESOURCE_LENGTH / (1024 * 1024))
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.CONTENT_TOO_LARGE,
+            info="max resource size exceeded",
+            max_size_mb=max_size_mb,
+        )
+
+    return source_dir
+
+
+async def prepare_source_upload(
+    *,
+    upload_file: UploadFile,
+    normalize_name: Callable[[Path], Path] | None = None,
+    allowed_extensions: tuple[str, ...] | list[str] | None = None,
+) -> tuple[Path, Path, bytes]:
+    """Validate and read an uploaded source file.
+
+    Args:
+        upload_file: The uploaded file to prepare.
+        normalize_name: Optional function for normalizing the filename (e.g. making extension lowercase).
+        allowed_extensions: Optional list of allowed file extensions (e.g. [".xml", ".txt"]).
+
+    Returns:
+        A tuple of (original_name, normalized_name, file_contents).
+    """
+    if upload_file.filename is None:
+        raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_FILE, info="missing filename")
+
+    original_name = utils.secure_filename(upload_file.filename)
+    name = normalize_name(original_name) if normalize_name is not None else original_name
+
+    if allowed_extensions and not any(name.suffix.lower() == ext.lower() for ext in allowed_extensions):
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.INVALID_FILE,
+            file=upload_file.filename,
+            info="invalid file extension",
+        )
+
+    file_contents = await upload_file.read()
+    if len(file_contents) > settings.MAX_FILE_LENGTH:
+        max_file_size_mb = int(settings.MAX_FILE_LENGTH / (1024 * 1024))
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.CONTENT_TOO_LARGE,
+            file=upload_file.filename,
+            info="max file size exceeded",
+            max_size_mb=max_file_size_mb,
+        )
+
+    return original_name, name, file_contents
+
+
+def uploaded_source_exists(
+    *,
+    storage: Any,
+    source_dir: Path,
+    existing_file_names: set[str],
+    file_contents: bytes,
+    name: Path,
+    original_name: Path,
+    warnings: list[str],
+) -> bool:
+    """Append warnings for an existing file and return True if upload should be skipped.
+
+    Args:
+        storage: Storage backend used for checking existing files.
+        source_dir: Source directory Path where the file would be uploaded.
+        existing_file_names: Set of existing file names in the source directory.
+        file_contents: Contents of the file being uploaded.
+        name: Normalized file name for the uploaded file.
+        original_name: Original file name for the uploaded file.
+        warnings: List to which any warnings about existing files will be appended.
+    """
+    file_exists = str(name) in existing_file_names
+    renamed_during_upload = name != original_name
+
+    if not file_exists:
+        if renamed_during_upload:
+            warnings.append(f"File '{original_name}' was renamed to '{name}' during upload.")
+        return False
+
+    identical_file = storage.identical_file_exists(file_contents, source_dir / name)
+    if identical_file and not renamed_during_upload:
+        warnings.append(
+            f"File '{name}' already existed with the same name, size and content. File was not uploaded again."
+        )
+        return True
+
+    if identical_file:
+        warnings.append(
+            f"File '{original_name}' was renamed to '{name}' during upload and it replaced an existing file with the "
+            "same name."
+        )
+    else:
+        warnings.append(f"File called '{name}' already existed and was replaced during upload.")
+
+    return False
 
 
 def get_user_organization_prefix(user: Any) -> str | None:

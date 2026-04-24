@@ -257,63 +257,35 @@ async def upload_sources(
 
     ```bash
     curl -X PUT '{{host}}/lexicon/sources/upload/<resource_id>' -H 'Authorization: Bearer YOUR_JWT' \
--F 'file=@path_to_file'
+-F 'files=@path_to_file'
     ```
     """
     resource_id = auth_data["resource_id"]
-
-    # Check request size constraint
-    try:
-        content_length = int(request.headers.get("content-length", "0"))
-        source_dir = storage.get_source_dir(resource_id)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_UPLOADING, info=str(e)) from e
-    if not utils.size_ok(storage, source_dir, content_length):
-        max_size_mb = int(settings.MAX_RESOURCE_LENGTH / (1024 * 1024))
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.CONTENT_TOO_LARGE,
-            info="max resource size exceeded",
-            max_size_mb=max_size_mb,
-        )
-
-    existing_files = storage.list_contents(source_dir)
-    max_file_size_mb = int(settings.MAX_FILE_LENGTH / (1024 * 1024))
+    source_dir = route_utils.get_validated_source_dir(
+        request=request,
+        resource_id=resource_id,
+        get_source_dir=storage.get_source_dir,
+        storage=storage,
+    )
+    existing_file_names = {name for i in storage.list_contents(source_dir) if (name := i.get("name")) is not None}
     warnings = []
     spec = get_spec(LEXICON)
 
     for f in files:
-        # Check if file has a name
-        if f.filename is None:
-            raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_FILE, info="missing filename")
-        name = utils.secure_filename(f.filename)
-
-        # Check if file extension is allowed for this resource type
-        if spec.allowed_extensions and not any(name.suffix.lower() == i.lower() for i in spec.allowed_extensions):
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.INVALID_FILE, file=f.filename, info="invalid file extension"
-            )
-
-        # Check file size constraint
-        file_contents = await f.read()
-        if len(file_contents) > settings.MAX_FILE_LENGTH:
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.CONTENT_TOO_LARGE,
-                file=f.filename,
-                info="max file size exceeded",
-                max_size_mb=max_file_size_mb,
-            )
-
-        # Skip uploading existing files (identical in name, size and md5 checksum)
-        if str(name) in [i.get("name") for i in existing_files]:
-            if storage.identical_file_exists(file_contents, source_dir / name):
-                # File with same name is identical; it will not be replaced during upload
-                warnings.append(
-                    f"File '{name}' already existed with the same name, size and content. File was "
-                    "not uploaded again."
-                )
-                continue
-            # File with same name is not identical; it will be replaced during upload
-            warnings.append(f"File called '{name}' already existed and was replaced during upload.")
+        original_name, name, file_contents = await route_utils.prepare_source_upload(
+            upload_file=f,
+            allowed_extensions=spec.allowed_extensions,
+        )
+        if route_utils.uploaded_source_exists(
+            storage=storage,
+            source_dir=source_dir,
+            existing_file_names=existing_file_names,
+            file_contents=file_contents,
+            name=name,
+            original_name=original_name,
+            warnings=warnings,
+        ):
+            continue
 
         # Upload data
         storage.write_file_contents(source_dir / name, file_contents, resource_id)

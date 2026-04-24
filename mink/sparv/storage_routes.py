@@ -336,41 +336,28 @@ async def upload_sources(
     ```
     """
     resource_id = auth_data["resource_id"]
-
-    # Check request size constraint
-    try:
-        content_length = int(request.headers.get("content-length", "0"))
-        source_dir = storage.get_source_dir(resource_id)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_UPLOADING, info=str(e)) from e
-    if not utils.size_ok(storage, source_dir, content_length):
-        max_size_mb = int(settings.MAX_RESOURCE_LENGTH / (1024 * 1024))
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.CONTENT_TOO_LARGE,
-            info="max corpus size exceeded",
-            max_size_mb=max_size_mb,
-        )
-
-    existing_file_names = {i.get("name") for i in storage.list_contents(source_dir)}
-    max_file_size_mb = int(settings.MAX_FILE_LENGTH / (1024 * 1024))
+    source_dir = route_utils.get_validated_source_dir(
+        request=request,
+        resource_id=resource_id,
+        get_source_dir=storage.get_source_dir,
+        storage=storage,
+    )
+    existing_file_names = {name for i in storage.list_contents(source_dir) if (name := i.get("name")) is not None}
     warnings = []
     spec = get_spec(CORPUS)
 
-    for f in files:
-        if f.filename is None:
-            raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_FILE, info="missing filename")
-        name = utils.secure_filename(f.filename)
-        original_name = name
-
-        # Make sure the file suffix is lower case (issue warning later if name was changed)
+    def normalize_source_name(name: Path) -> Path:
+        """Make the file extension lowercase."""
         if name.suffix.lower() != name.suffix:
-            name = Path(name.stem + name.suffix.lower())
+            return Path(name.stem + name.suffix.lower())
+        return name
 
-        # Check if file can be processed by Sparv
-        if spec.allowed_extensions and not any(name.suffix.lower() == i.lower() for i in spec.allowed_extensions):
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.INVALID_FILE, file=f.filename, info="invalid file extension"
-            )
+    for f in files:
+        original_name, name, file_contents = await route_utils.prepare_source_upload(
+            upload_file=f,
+            normalize_name=normalize_source_name,
+            allowed_extensions=spec.allowed_extensions,
+        )
 
         # Check if file extension is compatible with existing files
         compatible, current_ext, existing_ext = sparv_utils.file_ext_compatible(name, source_dir)
@@ -383,43 +370,16 @@ async def upload_sources(
                 existing_file_extension=existing_ext,
             )
 
-        # Check file size constraint
-        file_contents = await f.read()
-        if len(file_contents) > settings.MAX_FILE_LENGTH:
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.CONTENT_TOO_LARGE,
-                file=f.filename,
-                info="max file size exceeded",
-                max_size_mb=max_file_size_mb,
-            )
-
-        # Skip uploading existing files (identical in name, size and md5 checksum)
-        file_exists = str(name) in existing_file_names
-        renamed_during_upload = name != original_name
-        if file_exists:
-            identical_file = storage.identical_file_exists(file_contents, source_dir / name)
-            if identical_file and not renamed_during_upload:
-                # File with same name is identical; it will not be replaced during upload
-                warnings.append(
-                    f"File '{name}' already existed with the same name, size and content. File was not uploaded again."
-                )
-                continue
-
-            if identical_file:
-                # File extension was changed during upload and a file was replaced
-                warnings.append(
-                    f"File '{original_name}' did not have a lower case file extension. Its name was changed to "
-                    f"'{name}' during upload and it replaced an existing file with the same name."
-                )
-            else:
-                # File with same name is not identical; it will be replaced during upload
-                warnings.append(f"File called '{name}' already existed and was replaced during upload.")
-        # File extension was changed during upload (but no files were replaced)
-        elif renamed_during_upload:
-            warnings.append(
-                f"File '{original_name}' did not have a lower case file extension. Its name was changed to '{name}' "
-                "during upload."
-            )
+        if route_utils.uploaded_source_exists(
+            storage=storage,
+            source_dir=source_dir,
+            existing_file_names=existing_file_names,
+            file_contents=file_contents,
+            name=name,
+            original_name=original_name,
+            warnings=warnings,
+        ):
+            continue
 
         # Validate XML files
         if current_ext == ".xml":
