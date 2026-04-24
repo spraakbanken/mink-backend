@@ -178,6 +178,18 @@ def custom_openapi() -> dict:
     Returns:
         dict: The OpenAPI schema
     """
+
+    def rewrite_file_upload_schema(schema: object) -> None:
+        """Rewrite OpenAPI 3.1 octet-stream file fields to Swagger-friendly binary fields."""
+        if isinstance(schema, dict):
+            if schema.get("type") == "string" and schema.get("contentMediaType") == "application/octet-stream":
+                schema["format"] = "binary"
+            for value in schema.values():
+                rewrite_file_upload_schema(value)
+        elif isinstance(schema, list):
+            for item in schema:
+                rewrite_file_upload_schema(item)
+
     if app.openapi_schema:
         return app.openapi_schema
     # Load OpenAPI info from the YAML file
@@ -202,6 +214,10 @@ def custom_openapi() -> dict:
         "OAuth2PasswordBearer": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
         "APIKeyHeader": {"type": "apiKey", "in": "header", "name": "X-Api-Key"}
     }
+
+    # Make Swagger UI render OpenAPI 3.1 file upload schemas
+    for schema in openapi_schema.get("components", {}).get("schemas", {}).values():
+        rewrite_file_upload_schema(schema)
 
     # Adapt some settings for the OpenAPI schema
     host = settings.MINK_URL
