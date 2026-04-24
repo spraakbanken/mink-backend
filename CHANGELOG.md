@@ -42,6 +42,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Fixed bug: "Try it out" button in Swagger UI did not work for routes requiring a resource ID as a path parameter.
 - Fixed bug: When in admin mode resources were not filtered by type.
+- Fixed bug: `installed_*` flags were set to True before the installation process was completed.
 
 ### Deprecated
 

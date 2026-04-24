@@ -331,7 +331,6 @@ class SparvJob(BaseJob):
             self.set_status(Status.error, ProcessName.korp)
             raise exceptions.JobError(f"Failed to install corpus in Korp: {stderr}")
 
-        self.installed_korp = True
         # Get pid from Sparv process and store job info
         try:
             float(p.stdout.decode())
@@ -339,6 +338,7 @@ class SparvJob(BaseJob):
         except ValueError:
             pass
         self.set_status(Status.running, ProcessName.korp)
+        # Set 'installed_korp' flag to True when setting job status to 'done' (in process_running)
 
     def uninstall_korp(self) -> tuple[str, str]:
         """Uninstall corpus from Korp.
@@ -403,7 +403,6 @@ class SparvJob(BaseJob):
             self.set_status(Status.error, ProcessName.strix)
             raise exceptions.JobError(f"Failed to install corpus in Strix: {stderr}")
 
-        self.installed_strix = True
         # Get pid from Sparv process and store job info
         try:
             float(p.stdout.decode())
@@ -411,6 +410,7 @@ class SparvJob(BaseJob):
         except ValueError:
             pass
         self.set_status(Status.running, ProcessName.strix)
+        # Set 'installed_strix' flag to True when setting job status to 'done' (in process_running)
 
     def uninstall_strix(self) -> tuple[str, str]:
         """Uninstall corpus from Strix.
@@ -504,7 +504,13 @@ class SparvJob(BaseJob):
         _warnings, errors, misc, _sparv_ended = self.get_output()
         if self.progress_output == PROGRESS_DONE:
             if self.status.is_running(self.current_process):
+                # Set 'installed_*' flags to True if applicable
+                if self.current_process == ProcessName.korp:
+                    self.installed_korp = True
+                elif self.current_process == ProcessName.strix:
+                    self.installed_strix = True
                 self.set_status(Status.done)
+
         else:
             if errors:
                 logger.debug("Error in Sparv (corpus %s): %s", self.id, errors)

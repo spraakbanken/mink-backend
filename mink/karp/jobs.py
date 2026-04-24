@@ -236,7 +236,6 @@ class KarpJob(BaseJob):
             self.set_status(Status.error, ProcessName.karps)
             raise exceptions.JobError(f"Failed to install resource in KarpS: {stderr}")
 
-        self.installed_karps = True
         # Get pid from process and store job info
         try:
             float(p.stdout.decode())
@@ -244,6 +243,7 @@ class KarpJob(BaseJob):
         except ValueError:
             pass
         self.set_status(Status.running, ProcessName.karps)
+        # Set 'installed_karps' flag to True when setting job status to 'done' (in process_running)
 
     def uninstall_karps(self) -> tuple[str, str]:
         """Uninstall resource from KarpS.
@@ -334,6 +334,9 @@ class KarpJob(BaseJob):
         _warnings, errors, misc, _karp_ended = self.get_output()
         if self.progress_output == PROGRESS_DONE:
             if self.status.is_running(self.current_process):
+                # Set 'installed_karps' to True if current process is 'karps'
+                if self.current_process == ProcessName.karps:
+                    self.installed_karps = True
                 self.set_status(Status.done)
         else:
             if errors:
