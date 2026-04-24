@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import ipaddress
 import mimetypes
 import shlex
@@ -244,6 +245,21 @@ class BaseStorage:
             "size": int(size),
             "path": self.relative_path(filepath),
         }
+
+    def identical_file_exists(self, incoming_file_contents: bytes, existing_file: Path) -> bool:
+        """Check if the incoming file is identical (in size and md5 hash) to the existing file.
+
+        Args:
+            incoming_file_contents: The incoming file contents.
+            existing_file: Path to the existing file.
+        """
+        if len(incoming_file_contents) == self.get_size(existing_file):
+            remote_file_contents = self.get_file_contents(existing_file, as_bytes=True)
+            remote_file_hash = hashlib.md5(remote_file_contents).hexdigest()  # type: ignore
+            incoming_file_hash = hashlib.md5(incoming_file_contents).hexdigest()
+            if incoming_file_hash == remote_file_hash:
+                return True
+        return False
 
     def download_file(self, remote_file_path: Path, local_file: Path, resource_id: str) -> bool:
         """Download a file from the remote server.

@@ -41,7 +41,7 @@ types currently supported are:
 - **Corpus** (`/corpus` routes): A collection of text files that can be processed with Sparv to generate annotations and
   exports. Corpus resources require source files and a config file to run Sparv jobs.
 - **Lexicon** (`/lexicon` routes): A collection of entries that can be processed with the Karp Pipeline to generate
-  annotations and exports. Lexicon resources require a source file in JSONL format and a config file.
+  annotations and exports. Lexicon resources require source files in JSONL format and a config file.
 - **Metadata** (`/metadata` routes): A YAML file containing descriptive information about a corpus, lexicon, analysis,
   or collection. Metadata resources are used to generate [Språkbanken Text's resources
   page](https://spraakbanken.gu.se/en/resources) and do not require source files. A Metadata "config file" is the
@@ -66,9 +66,8 @@ resource, use the appropriate route (e.g., `/corpus/create`, `/lexicon/create`, 
 
 When uploading source files, they are stored on the [storage server](#server-setup) in a directory named after the
 resource ID. When uploading multiple corpus files, Mink checks that all file extensions match, as Sparv requires source
-files to be of the same type. Lexicon resources only support a single source file. Metadata resources don't support
-source file uploads. Use the `/corpus/sources/upload/<resource_id>` and `/lexicon/sources/upload/<resource_id>` routes
-to upload your source files.
+files to be of the same type. Use the `/corpus/sources/upload/<resource_id>` and `/lexicon/sources/upload/<resource_id>`
+routes to upload your source files. Metadata resources don't support source file uploads.
 
 ### Uploading a Config File
 
@@ -106,7 +105,7 @@ The Sparv job is then added to the [job queue](#job-queue). Once all previous jo
 
 #### Lexicon Jobs
 
-When a lexicon has both a source file and a valid config file, it can be processed with the Karp Pipeline. To start
+When a lexicon has both source files and a valid config file, it can be processed with the Karp Pipeline. To start
 processing, use the `/lexicon/job/run/<resource_id>` route. The Karp job is added to the [job queue](#job-queue) and
 will be run by the [queue manager](#queue-manager) when its turn comes.
 

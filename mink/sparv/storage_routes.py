@@ -351,12 +351,11 @@ async def upload_sources(
             max_size_mb=max_size_mb,
         )
 
-    existing_files = storage.list_contents(source_dir)
+    existing_file_names = {i.get("name") for i in storage.list_contents(source_dir)}
     max_file_size_mb = int(settings.MAX_FILE_LENGTH / (1024 * 1024))
     warnings = []
     spec = get_spec(CORPUS)
 
-    # Upload data
     for f in files:
         if f.filename is None:
             raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_FILE, info="missing filename")
@@ -395,29 +394,31 @@ async def upload_sources(
             )
 
         # Skip uploading existing files (identical in name, size and md5 checksum)
-        if str(name) in [i.get("name") for i in existing_files]:
-            if sparv_utils.identical_file_exists(file_contents, source_dir / name):
-                if name == original_name:
-                    # File with same name is identical; it will not be replaced during upload
-                    warnings.append(
-                        f"File '{name}' already existed with the same name, size and content. File was "
-                        "not uploaded again."
-                    )
-                    continue
+        file_exists = str(name) in existing_file_names
+        renamed_during_upload = name != original_name
+        if file_exists:
+            identical_file = storage.identical_file_exists(file_contents, source_dir / name)
+            if identical_file and not renamed_during_upload:
+                # File with same name is identical; it will not be replaced during upload
+                warnings.append(
+                    f"File '{name}' already existed with the same name, size and content. File was not uploaded again."
+                )
+                continue
+
+            if identical_file:
                 # File extension was changed during upload and a file was replaced
                 warnings.append(
-                    f"File '{original_name}' did not have a lower case file extension. Its name was "
-                    f"changed to '{name}' during upload and it replaced an existing file with the same "
-                    "name."
+                    f"File '{original_name}' did not have a lower case file extension. Its name was changed to "
+                    f"'{name}' during upload and it replaced an existing file with the same name."
                 )
             else:
                 # File with same name is not identical; it will be replaced during upload
                 warnings.append(f"File called '{name}' already existed and was replaced during upload.")
         # File extension was changed during upload (but no files were replaced)
-        elif name != original_name:
+        elif renamed_during_upload:
             warnings.append(
-                f"File '{original_name}' did not have a lower case file extension. Its name was "
-                f"changed to '{name}' during upload."
+                f"File '{original_name}' did not have a lower case file extension. Its name was changed to '{name}' "
+                "during upload."
             )
 
         # Validate XML files
@@ -430,12 +431,13 @@ async def upload_sources(
                     file=f.filename,
                     info=f"invalid XML: {e}",
                 ) from e
+
+        # Upload data
         storage.write_file_contents(source_dir / name, file_contents, resource_id)
 
     res = registry.get(resource_id).resource
     res.set_source_files()
 
-    # Check if file extensions were changed during the upload process and produce a warning
     if warnings:
         logger.warning("Warnings occurred during upload:\n%s", "\n".join(warnings))
     return utils.response(return_code=return_codes.FILE_UPLOADED, warnings=warnings)

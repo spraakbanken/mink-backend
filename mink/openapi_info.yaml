@@ -27,7 +27,8 @@ info:
     ## Workflow for lexicons
 
     1. [Create a new lexicon](#create-lexicon)
-    2. [Upload a lexicon source file](#upload-lexicon-sources)
+    2. [Upload some lexicon source files](#upload-lexicon-sources)
+    3. [Upload a lexicon config file](#upload-lexicon-config)
     4. [Run Karp](#run-lexicon-job)
     5. [Check the job status](#get-resource-status)
     6. [Install the lexicon in KarpS](#install-karps)

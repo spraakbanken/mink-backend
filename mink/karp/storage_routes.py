@@ -9,6 +9,7 @@ from mink.cache import jobs_cache
 from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
+from mink.core.logging import logger
 from mink.core.resource import Resource
 from mink.core.resource_specs import get_spec
 from mink.karp import models as karp_models
@@ -244,10 +245,13 @@ async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
 )
 async def upload_sources(
     request: Request,
-    source_file: UploadFile = File(..., alias="file", description="The file to upload"),
+    files: list[UploadFile] = File(..., description="The files to upload"),
     auth_data: dict = Depends(AUTH_WRITE),
 ) -> JSONResponse:
-    """Upload the attached file as source file.
+    """Upload the attached files as source files.
+
+    Attached files will be added to the resource or replace existing ones. Files identical in name, size and md5
+    checksum will not be uploaded again.
 
     ### Example
 
@@ -272,46 +276,54 @@ async def upload_sources(
             max_size_mb=max_size_mb,
         )
 
-    # Check if resource already has a source file and abort if if does
     existing_files = storage.list_contents(source_dir)
-    if existing_files:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.METHOD_NOT_ALLOWED,
-            info="Only one source file is allowed per resource. Remove the existing source file before uploading a new "
-            "one or create a new resource.",
-        )
-
     max_file_size_mb = int(settings.MAX_FILE_LENGTH / (1024 * 1024))
+    warnings = []
     spec = get_spec(LEXICON)
 
-    # Check if file has a name
-    if source_file.filename is None:
-        raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_FILE, info="missing filename")
-    name = utils.secure_filename(source_file.filename)
+    for f in files:
+        # Check if file has a name
+        if f.filename is None:
+            raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_FILE, info="missing filename")
+        name = utils.secure_filename(f.filename)
 
-    # Check if file extension is allowed for this resource type
-    if spec.allowed_extensions and not any(name.suffix.lower() == i.lower() for i in spec.allowed_extensions):
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.INVALID_FILE, file=source_file.filename, info="invalid file extension"
-        )
+        # Check if file extension is allowed for this resource type
+        if spec.allowed_extensions and not any(name.suffix.lower() == i.lower() for i in spec.allowed_extensions):
+            raise exceptions.MinkHTTPException(
+                return_code=return_codes.INVALID_FILE, file=f.filename, info="invalid file extension"
+            )
 
-    # Check file size constraint
-    file_contents = await source_file.read()
-    if len(file_contents) > settings.MAX_FILE_LENGTH:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.CONTENT_TOO_LARGE,
-            file=source_file.filename,
-            info="max file size exceeded",
-            max_size_mb=max_file_size_mb,
-        )
+        # Check file size constraint
+        file_contents = await f.read()
+        if len(file_contents) > settings.MAX_FILE_LENGTH:
+            raise exceptions.MinkHTTPException(
+                return_code=return_codes.CONTENT_TOO_LARGE,
+                file=f.filename,
+                info="max file size exceeded",
+                max_size_mb=max_file_size_mb,
+            )
 
-    # Upload data
-    storage.write_file_contents(source_dir / name, file_contents, resource_id)
+        # Skip uploading existing files (identical in name, size and md5 checksum)
+        if str(name) in [i.get("name") for i in existing_files]:
+            if storage.identical_file_exists(file_contents, source_dir / name):
+                # File with same name is identical; it will not be replaced during upload
+                warnings.append(
+                    f"File '{name}' already existed with the same name, size and content. File was "
+                    "not uploaded again."
+                )
+                continue
+            # File with same name is not identical; it will be replaced during upload
+            warnings.append(f"File called '{name}' already existed and was replaced during upload.")
+
+        # Upload data
+        storage.write_file_contents(source_dir / name, file_contents, resource_id)
 
     res = registry.get(resource_id).resource
     res.set_source_files()
 
-    return utils.response(return_code=return_codes.FILE_UPLOADED)
+    if warnings:
+        logger.warning("Warnings occurred during upload:\n%s", "\n".join(warnings))
+    return utils.response(return_code=return_codes.FILE_UPLOADED, warnings=warnings)
 
 
 @router.get(

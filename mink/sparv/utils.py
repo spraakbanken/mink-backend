@@ -1,6 +1,5 @@
 """Utility functions for Sparv module."""
 
-import hashlib
 from pathlib import Path
 from typing import Any
 
@@ -143,22 +142,3 @@ def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, st
         return True, current_ext, None
     existing_ext = Path(existing_files[0].get("name")).suffix
     return current_ext == existing_ext, current_ext, existing_ext
-
-
-def identical_file_exists(incoming_file_contents: bytes, existing_file: Path) -> bool:
-    """Check if the incoming file is identical to the existing file.
-
-    Args:
-        incoming_file_contents: The incoming file contents.
-        existing_file: Path to the existing file.
-
-    Returns:
-        True if the files are identical (in size and md5 hash), False otherwise.
-    """
-    if len(incoming_file_contents) == storage.get_size(existing_file):
-        remote_file_contents = storage.get_file_contents(existing_file, as_bytes=True)
-        remote_file_hash = hashlib.md5(remote_file_contents).hexdigest()  # type: ignore
-        incoming_file_hash = hashlib.md5(incoming_file_contents).hexdigest()
-        if incoming_file_hash == remote_file_hash:
-            return True
-    return False

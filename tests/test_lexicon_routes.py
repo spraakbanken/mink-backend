@@ -54,7 +54,7 @@ def lexicon_with_data(lexicon: str) -> str:
             status_code=status.HTTP_201_CREATED,
             headers=HEADERS,
             files=[
-                ("file", ("test_lexicon.jsonl", f1)),
+                ("files", ("test_lexicon.jsonl", f1)),
             ],
         )
     return lexicon
@@ -98,7 +98,8 @@ def lexicon_with_data_and_config(lexicon: str) -> str:
             status_code=status.HTTP_201_CREATED,
             headers=HEADERS,
             files=[
-                ("file", ("test_lexicon.jsonl", f1)),
+                ("files", ("test_lexicon1.jsonl", f1)),
+                ("files", ("test_lexicon2.jsonl", f1)),
             ],
         )
 
