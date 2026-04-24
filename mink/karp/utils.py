@@ -24,8 +24,8 @@ def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, str]
     # Set path to parent config
     config_yaml["parent"] = karp_settings.KARP_PARENT_CONFIG
 
-    # Set link
-    config_yaml.setdefault("karps", {}).setdefault("link", f"/library/lexicon/{resource_id}")
+    # Set link if missing
+    config_yaml.setdefault("karps", {}).setdefault("link", "no link available")
 
     # Set empty description if missing
     config_yaml.setdefault("description", {"eng": "", "swe": ""})
