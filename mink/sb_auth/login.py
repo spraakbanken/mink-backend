@@ -8,7 +8,7 @@ from pathlib import Path
 import httpx
 import jwt
 import shortuuid
-from fastapi import Cookie, Request, Security, status
+from fastapi import Cookie, Query, Request, Security, status
 from fastapi import Path as FastAPIPath
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 
@@ -224,6 +224,40 @@ class AuthDependencyNoResourceId(AuthDependency):
             require_resource_exists=False,
             require_admin=self.require_admin,
         )
+
+
+async def secret_key_or_admin_mode(
+    request: Request,
+    secret_key: str | None = Query(None, alias="secret_key"),
+    session_id: str | None = Cookie(None, description="Session ID"),
+    jwt_token: str | None = Security(oauth2_scheme),
+    api_key: str | None = Security(api_key_scheme),
+) -> dict:
+    """Allow access with either a valid secret key or normal auth credentials where the user must be in admin mode."""
+    if secret_key == settings.MINK_SECRET_KEY:
+        return {"auth_mode": "secret"}
+
+    # If normal auth credentials are present, require a Mink admin with admin mode activated.
+    if jwt_token or api_key:
+        auth_data = await get_auth_data(
+            request,
+            session_id=session_id,
+            jwt_token=jwt_token,
+            api_key=api_key,
+            require_resource_id=False,
+            require_resource_exists=False,
+            require_admin=True,
+        )
+        if not auth_data["admin_mode"]:
+            raise exceptions.MinkHTTPException(return_code=return_codes.NOT_ADMIN, info="Admin mode is not activated")
+        return auth_data
+
+    # Secret key was supplied but wrong.
+    if secret_key is not None:
+        raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_SECRET_KEY)
+
+    # No secret key and no login.
+    raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_LOGIN_CREDENTIALS)
 
 
 def read_jwt_key() -> str:

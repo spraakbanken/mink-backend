@@ -187,13 +187,15 @@ async def advance_queue(
         },
     },
 )
-async def queue_health(
-    secret_key: str = Query(..., alias="secret_key", description="Secret key for authentication"),
-) -> JSONResponse:
-    """Return monitorable queue health statistics for internal checks."""
-    if secret_key != settings.MINK_SECRET_KEY:
-        raise exceptions.MinkHTTPException(return_code=return_codes.INVALID_SECRET_KEY)
+async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) -> JSONResponse:
+    """Return monitorable queue health statistics for internal checks and for admins.
 
+    ### Example
+
+    ```bash
+    curl -X GET '{{host}}/queue/health' -H 'Authorization: Bearer YOUR_JWT' -H 'cookie: session_id=MY_SESSION_ID'
+    ```
+    """
     warning_threshold_seconds = settings.QUEUE_HEALTH_WARNING_SECONDS
     queue_jobs = []
     last_started: str | None = None
