@@ -7,6 +7,7 @@ import mimetypes
 import shlex
 import socket
 import subprocess
+from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import ClassVar
 
@@ -209,7 +210,8 @@ class BaseStorage:
                 if exclude_dirs:
                     continue
                 mimetype = "directory"
-            if any(Path(f).match(item) for item in blacklist_items):
+            # Filter out blacklisted paths using glob-style matching
+            if any(fnmatchcase(str(f), item) for item in blacklist_items):
                 continue
             objlist.append(
                 {"name": f.name, "type": mimetype, "last_modified": mod_time, "size": int(size), "path": obj_path[2:]}
