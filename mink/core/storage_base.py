@@ -346,6 +346,7 @@ class BaseStorage:
         zipped: bool = False,
         zippath: Path | None = None,
         excludes: list | None = None,
+        skip_empty_dirs: bool = True,
     ) -> Path:
         """Download remote_dir on server to local_dir by rsyncing.
 
@@ -356,6 +357,7 @@ class BaseStorage:
             zipped: Whether to zip the downloaded contents.
             zippath: The path to save the zipped file.
             excludes: List of paths to exclude.
+            skip_empty_dirs: Whether to skip empty directories in the download.
 
         Returns:
             The path to the local directory or the zipped file.
@@ -373,6 +375,8 @@ class BaseStorage:
             raise exceptions.ParameterError("'zippath' may not be None if 'zipped=True'")
 
         args = ["--recursive", *(f"--exclude={e}" for e in excludes)]
+        if skip_empty_dirs:
+            args.append("--prune-empty-dirs")
         p = self.rsync(f"{remote_dir}/", local_dir, src_remote=True, args=args)
         if p.stderr:
             raise exceptions.ReadError(remote_dir, p.stderr.decode())
