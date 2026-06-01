@@ -27,8 +27,11 @@ class KarpSettings(BaseSettings):
     # Glob patterns for output files that will be excluded from listings and downloads
     KARP_OUTPUT_BLACKLIST: list[str] = Field(
         default_factory=lambda: [
+            "schema",
             "schema/*",
             "**/*.yaml",
+            "generate_categorical_values",
+            "generate_categorical_values/*",
         ]
     )
 
