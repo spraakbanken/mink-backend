@@ -12,6 +12,7 @@ from mink.core.info import Info
 from mink.core.logging import logger
 from mink.core.resource import Resource
 from mink.core.resource_specs import get_spec
+from mink.karp import cache as karp_cache
 from mink.karp import models as karp_models
 from mink.karp import utils as karp_utils
 from mink.karp.config import karp_settings
@@ -696,9 +697,12 @@ async def list_exports(auth_data: dict = Depends(AUTH_LEXICON)) -> JSONResponse:
     """
     resource_id = auth_data["resource_id"]
     try:
-        objlist = storage.list_contents(
-            storage.get_output_dir(resource_id), blacklist=karp_settings.KARP_OUTPUT_BLACKLIST
-        )
+        objlist = karp_cache.get_lexicon_output_contents(resource_id)
+        if objlist is None:
+            objlist = storage.list_contents(
+                storage.get_output_dir(resource_id), blacklist=karp_settings.KARP_OUTPUT_BLACKLIST
+            )
+            karp_cache.set_lexicon_output_contents(resource_id, objlist)
         return utils.response(return_code=return_codes.LISTING_CONTENT, info="Listing export files", contents=objlist)
     except Exception as e:
         raise exceptions.MinkHTTPException(

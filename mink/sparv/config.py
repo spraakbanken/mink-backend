@@ -10,6 +10,7 @@ class SparvSettings(BaseSettings):
     SPARV_RES_INFO: str = "The corpus resource type is used to store corpora that can be processed with Sparv."
 
     SPARV_CACHE_LIFETIME: int = 60 * 60 * 24 * 10  # How long to cache output from static Sparv commands (in seconds)
+    SPARV_EXPORT_CONTENTS_CACHE_LIFETIME: int = 60 * 60  # Cache time for per-corpus export listings
 
     SPARV_RECOMMENDED_MIN_FILE_LENGTH: int = 1024 * 1024 * 1  # Recommended min size (bytes) for one corpus source file
     SPARV_RECOMMENDED_MAX_FILE_LENGTH: int = 1024 * 1024 * 5  # Recommended max size (bytes) for one corpus source file

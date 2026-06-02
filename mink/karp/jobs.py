@@ -7,6 +7,7 @@ from mink.core.jobs import BaseJob
 from mink.core.logging import logger
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
+from mink.karp import cache
 from mink.karp.config import karp_settings
 from mink.karp.spec import LEXICON, ProcessName
 from mink.karp.storage import storage
@@ -332,6 +333,8 @@ class KarpJob(BaseJob):
             self.set_attribute("pid", None)
 
         _warnings, errors, misc, _karp_ended = self.get_output()
+        if self.current_process == ProcessName.karp_pipeline:
+            cache.remove_lexicon_output_contents(self.id)
         if self.progress_output == PROGRESS_DONE:
             if self.status.is_running(self.current_process):
                 # Set 'installed_karps' to True if current process is 'karps'
@@ -426,4 +429,5 @@ class KarpJob(BaseJob):
             )
 
         karp_output = p.stdout.decode() if p.stdout else ""
+        cache.set_lexicon_output_contents(self.id, [])
         return ", ".join([line for line in karp_output.split("\n") if line])

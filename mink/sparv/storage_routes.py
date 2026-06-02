@@ -15,6 +15,7 @@ from mink.core.logging import logger
 from mink.core.resource import Resource
 from mink.core.resource_specs import get_spec
 from mink.sb_auth import login
+from mink.sparv import cache as sparv_cache
 from mink.sparv import models as sparv_models
 from mink.sparv import utils as sparv_utils
 from mink.sparv.config import sparv_settings
@@ -852,9 +853,12 @@ async def list_exports(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
     """
     resource_id = auth_data["resource_id"]
     try:
-        objlist = storage.list_contents(
-            storage.get_export_dir(resource_id), blacklist=sparv_settings.SPARV_EXPORT_BLACKLIST
-        )
+        objlist = sparv_cache.get_corpus_export_contents(resource_id)
+        if objlist is None:
+            objlist = storage.list_contents(
+                storage.get_export_dir(resource_id), blacklist=sparv_settings.SPARV_EXPORT_BLACKLIST
+            )
+            sparv_cache.set_corpus_export_contents(resource_id, objlist)
         return utils.response(return_code=return_codes.LISTING_CONTENT, info="Listing export files", contents=objlist)
     except Exception as e:
         raise exceptions.MinkHTTPException(

@@ -1,4 +1,4 @@
-"""Cache helpers for Sparv schema."""
+"""Cache helpers for Sparv-related data."""
 
 from mink.cache.memcached import cache, cache_namespace
 from mink.sparv.config import sparv_settings
@@ -20,6 +20,11 @@ def _key_sparv_languages() -> str:
 def _key_sparv_exports() -> str:
     """Return the cache key for the Sparv exports."""
     return cache_namespace("sparv_exports")
+
+
+def _key_corpus_export_contents(resource_id: str) -> str:
+    """Return the cache key for a corpus export file listing."""
+    return cache_namespace(f"corpus_export_contents:{resource_id}")
 
 
 # ------------------------------------------------------------------------------
@@ -59,3 +64,25 @@ def get_sparv_exports() -> list | None:
     """Return cached Sparv exports as a list, or None if not found."""
     with cache.get_client() as client:
         return client.get(_key_sparv_exports())
+
+
+def set_corpus_export_contents(resource_id: str, contents: list) -> None:
+    """Store cached export listing for one corpus resource."""
+    with cache.get_client() as client:
+        client.set(
+            _key_corpus_export_contents(resource_id),
+            contents,
+            expire=sparv_settings.SPARV_EXPORT_CONTENTS_CACHE_LIFETIME,
+        )
+
+
+def get_corpus_export_contents(resource_id: str) -> list | None:
+    """Return cached export listing for one corpus resource, or None if not found."""
+    with cache.get_client() as client:
+        return client.get(_key_corpus_export_contents(resource_id))
+
+
+def remove_corpus_export_contents(resource_id: str) -> None:
+    """Remove cached export listing for one corpus resource."""
+    with cache.get_client() as client:
+        client.delete(_key_corpus_export_contents(resource_id))

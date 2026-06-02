@@ -9,6 +9,8 @@ class KarpSettings(BaseSettings):
     KARP_ENABLED: bool = True  # Whether Karp integration is enabled
     KARP_RES_INFO: str = "The lexicon resource type is used to store lexicons that can be processed with Karp."
 
+    KARP_OUTPUT_CONTENTS_CACHE_LIFETIME: int = 60 * 60  # Cache time for per-lexicon output listings
+
     # Karp server settings
     KARP_HOST: str = ""  # Host where Karp is run
     KARP_USER: str = ""  # User for running Karp

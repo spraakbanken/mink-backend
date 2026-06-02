@@ -630,6 +630,7 @@ class SparvJob(BaseJob):
             logger.warning(e)
             raise exceptions.WriteError(remote_corpus_dir, "Failed to upload plain text sources") from e
 
+        cache.remove_corpus_export_contents(self.id)
         self.set_status(Status.done)
 
     def remove_from_sparv(self) -> None:
@@ -660,6 +661,7 @@ class SparvJob(BaseJob):
             raise exceptions.WriteError(self.remote_corpus_dir_esc, f"Failed to clean corpus dir: {p.stderr.decode()}")
 
         sparv_output = p.stdout.decode() if p.stdout else ""
+        cache.set_corpus_export_contents(self.id, [])
         return ", ".join([line for line in sparv_output.split("\n") if line])
 
     def clean_export(self) -> tuple[bool, str]:
@@ -684,6 +686,7 @@ class SparvJob(BaseJob):
                 sparv_output,
             )
             return False, sparv_output
+        cache.set_corpus_export_contents(self.id, [])
         return True, sparv_output
 
 
