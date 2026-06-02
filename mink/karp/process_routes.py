@@ -82,7 +82,7 @@ def _require_job(job: object) -> KarpJob:
 async def run_karp_pipeline(
     auth_data: dict = Depends(AUTH_LEXICON_WRITE),
 ) -> JSONResponse:
-    """Add a Karp Pipeline job to the queue.
+    """Add a Karp pipeline job to the queue.
 
     There can only be one active job ('run' or 'install') for each resource at a time. A job must finish or be
     aborted before a new one can be started.
@@ -108,11 +108,11 @@ async def run_karp_pipeline(
         try:
             job = _require_job(info_item.job)
             karp_output = job.clean()
-            logger.debug(f"Removed outdated Karp output before running Karp Pipeline. Output: {karp_output}")
+            logger.debug(f"Removed outdated Karp output before running Karp pipeline. Output: {karp_output}")
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 return_code=return_codes.FAILED_RUNNING,
-                info=f"Failed to remove outdated export files before running Karp Pipeline: {e}",
+                info=f"Failed to remove outdated export files before running Karp pipeline: {e}",
             ) from e
 
     # Check that all required files are present
@@ -247,7 +247,7 @@ async def abort_job(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRespon
     },
 )
 async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONResponse:
-    """Install the resource in KarpS.
+    """Install the resource in Karp's search mode.
 
     ### Example
 
@@ -274,7 +274,7 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 return_code=return_codes.FAILED_RUNNING,
-                info=f"Failed to remove outdated export files before running Karp Pipeline: {e}",
+                info=f"Failed to remove outdated export files before running Karp pipeline: {e}",
                 karp_message=karp_output,
             ) from e
 
@@ -339,7 +339,7 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
     },
 )
 async def uninstall_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONResponse:
-    """Uninstall the lexicon from KarpS.
+    """Uninstall the lexicon from Karp's search mode.
 
     ### Example
 
@@ -359,9 +359,12 @@ async def uninstall_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSON
         job = _require_job(job)
         warnings, output = job.uninstall_karps()
         return utils.response(
-            return_code=return_codes.UNINSTALLED, info="Uninstalled from KarpS", output=output, warnings=warnings
+            return_code=return_codes.UNINSTALLED,
+            info="Uninstalled from Karp's search mode",
+            output=output,
+            warnings=warnings,
         )
     except Exception as e:
         raise exceptions.MinkHTTPException(
-            return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from KarpS: {e}"
+            return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from Karp's search mode: {e}"
         ) from e

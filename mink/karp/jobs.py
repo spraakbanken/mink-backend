@@ -43,9 +43,9 @@ class KarpJob(BaseJob):
             id: Job ID.
             processes: List of process names to include in the status.
             status: Job status dictionary.
-            current_process: Current process (e.g. 'karp-pipeline', 'karps').
+            current_process: Current process (e.g. 'karp_pipeline', 'karps').
             pid: Process ID in the Karp server.
-            installed_karps: Whether resource is installed in KarpS.
+            installed_karps: Whether resource is installed in Karp's search mode.
             priority: Number in queue.
             warnings: Latest Karp warnings.
             errors: Latest Karp errors.
@@ -183,12 +183,12 @@ class KarpJob(BaseJob):
             raise exceptions.PrerequisiteError(f"No input file provided for '{self.id}'")
 
     def run_karp_pipeline(self) -> None:
-        """Run the Karp Pipeline.
+        """Run the Karp pipeline.
 
         Raises:
-            exceptions.JobError: If running Karp Pipeline fails.
+            exceptions.JobError: If running Karp pipeline fails.
         """
-        # Run Karp Pipeline and capture the exit code and the time it took to run
+        # Run Karp pipeline and capture the exit code and the time it took to run
         script_content = (
             f'nohup bash -c "time -p {karp_settings.KARP_COMMAND} {karp_settings.KARP_RUN}; rc=\\$?; '
             f'printf \'{{\\"exit_code\\":\\"%s\\"}}\\n\' \\"\\$rc\\"" >{self.nohupfile} 2>&1 &\necho $!'
@@ -215,10 +215,10 @@ class KarpJob(BaseJob):
         self.set_status(Status.running, ProcessName.karp_pipeline)
 
     def install_karps(self) -> None:
-        """Install a lexicon in KarpS.
+        """Install a lexicon in Karp's search mode.
 
         Raises:
-            exceptions.JobError: If installing lexicon in KarpS fails.
+            exceptions.JobError: If installing lexicon in Karp's search mode fails.
         """
         script_content = (
             f'nohup bash -c "time -p {karp_settings.KARP_COMMAND} {karp_settings.KARP_INSTALL}; rc=\\$?; '
@@ -235,7 +235,7 @@ class KarpJob(BaseJob):
             stderr = p.stderr.decode() if p.stderr else ""
             self.reset_time()
             self.set_status(Status.error, ProcessName.karps)
-            raise exceptions.JobError(f"Failed to install resource in KarpS: {stderr}")
+            raise exceptions.JobError(f"Failed to install resource in Karp's search mode: {stderr}")
 
         # Get pid from process and store job info
         try:
@@ -247,10 +247,10 @@ class KarpJob(BaseJob):
         # Set 'installed_karps' flag to True when setting job status to 'done' (in process_running)
 
     def uninstall_karps(self) -> tuple[str, str]:
-        """Uninstall resource from KarpS.
+        """Uninstall resource from Karp's search mode.
 
         Raises:
-            exceptions.JobError: If uninstalling resource from KarpS fails.
+            exceptions.JobError: If uninstalling resource from Karp's search mode fails.
         """
         try:
             self.abort()
@@ -265,8 +265,8 @@ class KarpJob(BaseJob):
 
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
-            logger.error("Failed to uninstall resource %s from KarpS: %s", self.id, stderr)
-            raise exceptions.JobError(f"Failed to uninstall resource from KarpS: {stderr}")
+            logger.error("Failed to uninstall resource %s from Karp's search mode: %s", self.id, stderr)
+            raise exceptions.JobError(f"Failed to uninstall resource from Karp's search mode: {stderr}")
 
         self.set_attribute("installed_karps", False)
 
@@ -278,10 +278,10 @@ class KarpJob(BaseJob):
         return warnings, output
 
     def abort(self) -> None:
-        """Abort running Karp Pipeline.
+        """Abort running Karp pipeline.
 
         Raises:
-            exceptions.ProcessNotRunningError: If Karp Pipeline is not running.
+            exceptions.ProcessNotRunningError: If Karp pipeline is not running.
             exceptions.JobError: If aborting job fails.
         """
         if self.status.is_waiting(self.current_process):
@@ -289,7 +289,7 @@ class KarpJob(BaseJob):
             self.set_status(Status.aborted)
             return
         if not self.status.is_running():
-            raise exceptions.ProcessNotRunningError("Failed to abort job because Karp Pipeline was not running")
+            raise exceptions.ProcessNotRunningError("Failed to abort job because Karp pipeline was not running")
         if not self.pid:
             logger.debug("Resetting time during abort due to missing PID (resource %s)", self.id)
             self.reset_time(reset_started=False)
@@ -314,7 +314,7 @@ class KarpJob(BaseJob):
                 raise exceptions.JobError(f"Failed to abort job: {stderr}")
 
     def process_running(self) -> bool:
-        """Check if process with this job's pid is still running on Karp server.
+        """Check if process with this job's pid is still running on the Karp server.
 
         Returns:
             True if process is running, False otherwise.
@@ -343,10 +343,10 @@ class KarpJob(BaseJob):
                 self.set_status(Status.done)
         else:
             if errors:
-                logger.debug("Error in Karp Pipeline (resource %s): %s", self.id, errors)
+                logger.debug("Error in Karp pipeline (resource %s): %s", self.id, errors)
             if misc:
-                logger.debug("Karp Pipeline output (resource %s): %s", self.id, misc)
-            logger.debug("Karp Pipeline process was not completed successfully (resource %s).", self.id)
+                logger.debug("Karp pipeline output (resource %s): %s", self.id, misc)
+            logger.debug("Karp pipeline process was not completed successfully (resource %s).", self.id)
             self.set_status(Status.error)
         return False
 
@@ -386,7 +386,7 @@ class KarpJob(BaseJob):
 
     @property
     def progress(self) -> str | None:
-        """Get the Karp Pipeline progress but don't report 100% before the job status has been changed to done.
+        """Get the Karp pipeline progress but don't report 100% before the job status has been changed to done.
 
         Returns:
             Progress percentage as a string.
@@ -416,7 +416,7 @@ class KarpJob(BaseJob):
         """Remove output files from Karp server by running 'karp-pipeline clean'.
 
         Returns:
-            Karp Pipeline output.
+            Karp pipeline output.
         """
         p = storage.ssh_run(
             f"cd {self.remote_resource_dir_esc} && "

@@ -127,7 +127,7 @@ def lexicon_processed(lexicon_with_data_and_config: str) -> str:
     call_route("PUT", f"/lexicon/job/run/{lexicon_with_data_and_config}", headers=HEADERS)
     json_data = check_resource_loop(resource_id=lexicon_with_data_and_config, process_name="karp_pipeline")
     karp_status = json_data.get("job", {}).get("status", {}).get("karp_pipeline")
-    assert karp_status == "done", f"Lexicon processing failed. Karp Pipeline status: {karp_status}"
+    assert karp_status == "done", f"Lexicon processing failed. Karp pipeline status: {karp_status}"
     return lexicon_with_data_and_config
 
 

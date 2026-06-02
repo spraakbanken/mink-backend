@@ -152,7 +152,7 @@ async def list_lexicons(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
                         "status": "error",
                         "message": return_codes.FAILED_REMOVING_CONTENT.message,
                         "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
-                        "info": "Failed to remove resource from KarpS",
+                        "info": "Failed to remove resource from Karp's search mode",
                     }
                 }
             },
@@ -180,7 +180,8 @@ async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
             job.uninstall_karps()
         except Exception as e:
             raise exceptions.MinkHTTPException(
-                return_code=return_codes.FAILED_REMOVING_CONTENT, info=f"Failed to remove resource from KarpS: {e}"
+                return_code=return_codes.FAILED_REMOVING_CONTENT,
+                info=f"Failed to remove resource from Karp's search mode: {e}",
             ) from e
 
     return await route_utils.remove_resource(
@@ -687,7 +688,7 @@ async def download_config(auth_data: dict = Depends(AUTH_LEXICON)) -> FileRespon
     },
 )
 async def list_exports(auth_data: dict = Depends(AUTH_LEXICON)) -> JSONResponse:
-    """List the available export files created by Karp Pipeline.
+    """List the available export files created by Karp pipeline.
 
     ### Example
 
@@ -753,7 +754,7 @@ async def download_exports(
     zipped: bool = Query(True, alias="zip", description="Whether to zip the file or not"),
     auth_data: dict = Depends(AUTH_LEXICON),
 ) -> FileResponse:
-    """Download all available export files created by the Karp Pipeline.
+    """Download all available export files created by the Karp pipeline.
 
     The parameters `file` and `dir` may be used to download a specific export file or a directory of export files. These
     parameters must be supplied as  paths relative to the export directory. Only one of these parameters may be applied
@@ -796,7 +797,7 @@ async def download_exports(
                         "message": return_codes.REMOVED_CONTENT.message,
                         "return_code": return_codes.REMOVED_CONTENT.code,
                         "info": "Removed output",
-                        "karp_output": "Karp Pipeline output removed"
+                        "karp_output": "Karp pipeline output removed"
                     }
                 }
             }
@@ -831,7 +832,7 @@ async def download_exports(
     },
 )
 async def remove_exports(auth_data: dict = Depends(AUTH_WRITE)) -> JSONResponse:
-    """Remove all output files for the resource from the Karp Pipeline server.
+    """Remove all output files for the resource from the Karp pipeline server.
 
     This action cannot be performed while a job is running.
 

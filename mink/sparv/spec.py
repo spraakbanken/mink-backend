@@ -1,6 +1,6 @@
 """Sparv resource spec registration."""
 
-from enum import StrEnum
+from enum import StrEnum, auto
 from typing import Any, cast
 
 from mink.core import return_codes
@@ -13,11 +13,11 @@ CORPUS = ResourceType("corpus")
 class ProcessName(StrEnum):
     """Enum class for Sparv process names."""
 
-    sync2sparv = "sync2sparv"
-    sync2storage = "sync2storage"
-    sparv = "sparv"
-    korp = "korp"
-    strix = "strix"
+    sync2sparv = auto()
+    sync2storage = auto()
+    sparv = auto()
+    korp = auto()
+    strix = auto()
 
 
 def register() -> None:

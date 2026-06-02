@@ -1,6 +1,6 @@
-"""Sparv resource spec registration."""
+"""Karp resource spec registration."""
 
-from enum import StrEnum
+from enum import StrEnum, auto
 from typing import Any, cast
 
 from mink.core.resource import ResourceType
@@ -10,14 +10,14 @@ LEXICON = ResourceType("lexicon")
 
 
 class ProcessName(StrEnum):
-    """Enum class for Sparv process names."""
+    """Enum class for Karp process names."""
 
-    karp_pipeline = "karp-pipeline"
-    karps = "karps"
+    karp_pipeline = auto()
+    karps = auto()
 
 
 def register() -> None:
-    """Register the Sparv resource spec."""
+    """Register the Karp resource spec."""
     from mink.core import exceptions  # noqa: PLC0415, avoids circular import
     from mink.core.config import settings  # noqa: PLC0415, avoids circular import
     from mink.core.logging import logger  # noqa: PLC0415, avoids circular import

@@ -4,7 +4,7 @@ Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s data platform, enabli
 
 - upload corpus data, annotate it with [Sparv](https://spraakbanken.gu.se/sparv), and view or search it in
 [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
-- upload lexicon data and view it in [KarpS](https://spraakbanken.gu.se/karps).
+- upload lexicon data and view it in [Karp's search mode](https://spraakbanken.gu.se/karp).
 - manage metadata resources that are used to generate [Språkbanken Text's resources
   page](https://spraakbanken.gu.se/en/resources).
 
@@ -28,7 +28,7 @@ The Mink backend can be distributed across several servers, each serving a speci
   Sparv are also stored here and later synchronized back to the storage server. In the current Mink setup, the Sparv
   server also serves as the storage server, so no synchronization is needed.
 - **Karp server**: This server concept does not currently exist but might be added in the future. As of now it is
-  assumed that the Karp Pipeline runs on the same server as the Mink backend, so no synchronization is needed for
+  assumed that the Karp pipeline runs on the same server as the Mink backend, so no synchronization is needed for
   lexicon processing.
 - **Installation targets**: Installing corpora from Mink involves synchronizing specific Sparv export files to servers
   hosting other applications, such as Korp and Strix.
@@ -40,7 +40,7 @@ types currently supported are:
 
 - **Corpus** (`/corpus` routes): A collection of text files that can be processed with Sparv to generate annotations and
   exports. Corpus resources require source files and a config file to run Sparv jobs.
-- **Lexicon** (`/lexicon` routes): A collection of entries that can be processed with the Karp Pipeline to generate
+- **Lexicon** (`/lexicon` routes): A collection of entries that can be processed with the Karp pipeline to generate
   annotations and exports. Lexicon resources require source files in JSONL format and a config file.
 - **Metadata** (`/metadata` routes): A YAML file containing descriptive information about a corpus, lexicon, analysis,
   or collection. Metadata resources are used to generate [Språkbanken Text's resources
@@ -105,7 +105,7 @@ The Sparv job is then added to the [job queue](#job-queue). Once all previous jo
 
 #### Lexicon Jobs
 
-When a lexicon has both source files and a valid config file, it can be processed with the Karp Pipeline. To start
+When a lexicon has both source files and a valid config file, it can be processed with the Karp pipeline. To start
 processing, use the `/lexicon/job/run/<resource_id>` route. The Karp job is added to the [job queue](#job-queue) and
 will be run by the [queue manager](#queue-manager) when its turn comes.
 
@@ -139,12 +139,12 @@ are private, meaning only the logged-in user who owns the installed corpus can v
 
 #### Lexicon Installations
 
-In Mink, a user can install their lexicon in KarpS using the `/lexicon/karps/install/<resource_id>` route. Installation
-is performed by the Karp Pipeline, and the installation job is added to the job queue in the same way as annotation
-jobs.
+In Mink, a user can install their lexicon in Karp's search mode using the `/lexicon/karps/install/<resource_id>` route.
+Installation is performed by the Karp pipeline, and the installation job is added to the job queue in the same way as
+annotation jobs.
 
-After a successful installation, users can log in to KarpS and view their own lexicons as usual. Installations are
-private, meaning only the logged-in user who owns the installed lexicon can view it.
+After a successful installation, users can log in to Karp's search mode and view their own lexicons as usual.
+Installations are private, meaning only the logged-in user who owns the installed lexicon can view it.
 
 ## Authentication and Authorization
 

@@ -7,7 +7,7 @@ info:
     platform. It enables users to:
     
     - upload corpus data, process it using Sparv and install it in Korp and Strix
-    - upload lexicon data and install it in KarpS
+    - upload lexicon data and install it in Karp's search mode
     - manage metadata resources (limited support)
     
     This documentation provides a comprehensive reference for all available API routes.
@@ -29,9 +29,9 @@ info:
     1. [Create a new lexicon](#create-lexicon)
     2. [Upload some lexicon source files](#upload-lexicon-sources)
     3. [Upload a lexicon config file](#upload-lexicon-config)
-    4. [Run Karp](#run-lexicon-job)
+    4. [Run the Karp pipeline](#run-lexicon-job)
     5. [Check the job status](#get-resource-status)
-    6. [Install the lexicon in KarpS](#install-karps)
+    6. [Install the lexicon in Karp's search mode](#install-karps)
 
     ## Authentication
 
