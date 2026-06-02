@@ -22,6 +22,7 @@ def register() -> None:
     from mink.core.config import settings  # noqa: PLC0415, avoids circular import
     from mink.core.logging import logger  # noqa: PLC0415, avoids circular import
     from mink.core.resource_specs import ResourceSpec, register_spec  # noqa: PLC0415, avoids circular import
+    from mink.karp import models as karp_models  # noqa: PLC0415, avoids circular import
     from mink.karp.jobs import KarpJob  # noqa: PLC0415, avoids circular import
     from mink.karp.storage import storage  # noqa: PLC0415, avoids circular import
 
@@ -60,6 +61,12 @@ def register() -> None:
             sync_processes=(),
             no_output_processes=(),
             startup_check=startup_check,
+            openapi_examples={
+                "JobModel": [karp_models.job_model_example],
+                "JobStatusModel": karp_models.job_status_examples,
+                "StatusResponse": karp_models.status_response_examples,
+                "StatusesResponse": karp_models.statuses_response_examples,
+            },
             info_builder=lambda: {
                 "description": karp_settings.KARP_RES_INFO,
             },
