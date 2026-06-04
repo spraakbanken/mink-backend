@@ -215,12 +215,14 @@ def build_docs() -> None:
     """Build the MkDocs documentation if source files are present and newer than the existing site output."""
     try:
         docs_root = Path("docs")
+        env_file = Path(".env")
         mkdocs_config = docs_root / "mkdocs.yml"
         docs_source_dir = docs_root / "mkdocs"
         developers_guide = docs_root / "developers-guide.md"
         site_dir = docs_root / "site"
 
         source_paths = [mkdocs_config, docs_source_dir, developers_guide]
+        freshness_paths = source_paths + ([env_file] if env_file.exists() else [])
         missing_sources = [path for path in source_paths if not path.exists()]
         if missing_sources:
             logger.warning("Skipping MkDocs build because required source path(s) are missing: %s", missing_sources)
@@ -237,7 +239,7 @@ def build_docs() -> None:
         # Check if the site output is at least as new as the source files; if so, skip the build
         has_site_output = site_dir.exists() and site_dir.is_dir() and any(site_dir.iterdir())
         if has_site_output:
-            newest_source = latest_mtime(source_paths)
+            newest_source = latest_mtime(freshness_paths)
             newest_output = site_dir.stat().st_mtime
             if newest_source <= newest_output:
                 logger.debug("Skipping MkDocs build: docs/site is up to date.")
