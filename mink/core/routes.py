@@ -62,11 +62,11 @@ async def openapi(request: Request) -> JSONResponse:
 
 
 @router.get("/redoc", response_class=HTMLResponse, operation_id="redoc")
-async def redoc(request: Request) -> HTMLResponse:
+async def redoc() -> HTMLResponse:
     """Render ReDoc HTML (documentation for this API)."""
     return get_redoc_html(
-        openapi_url=str(request.url_for("openapi")),
-        redoc_favicon_url=str(request.url_for("static", path="favicon.ico")),
+        openapi_url="openapi.json",
+        redoc_favicon_url="static/favicon.ico",
         title="Mink API documentation",
     )
 
@@ -93,8 +93,8 @@ async def swagger_openapi(request: Request) -> JSONResponse:
 async def swagger(request: Request) -> HTMLResponse:
     """Render Swagger UI HTML (documentation for this API)."""
     html_body = get_swagger_ui_html(
-        openapi_url=str(request.url_for("swagger_openapi")),
-        swagger_favicon_url=str(request.url_for("static", path="favicon.ico")),
+        openapi_url="swagger-openapi.json",
+        swagger_favicon_url="static/favicon.ico",
         title=request.app.title + " - Swagger UI",
     ).body
     # Decode the HTML body
@@ -104,7 +104,7 @@ async def swagger(request: Request) -> HTMLResponse:
     if api_key:
         # Insert a requestInterceptor into the swagger UI html
         intercept = f"""requestInterceptor: (req) => {{ req.headers["X-API-Key"] = "{api_key}"; return req; }},\n"""
-        html_body = re.sub(r"(url: '\S+/swagger-openapi.json',\n)", r"\1" + " " * 8 + intercept, html_body)
+        html_body = re.sub(r"(url: '.*swagger-openapi\.json',\n)", r"\1" + " " * 8 + intercept, html_body)
     return HTMLResponse(html_body)
 
 
