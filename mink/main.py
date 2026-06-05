@@ -25,6 +25,40 @@ from mink.sb_auth import routes as login_routes
 MINK_VERSION = utils.get_version_from_pyproject()
 
 
+def preflight() -> None:
+    """Perform preflight checks before starting the app."""
+    logger.info("Starting Mink version: %s", MINK_VERSION)
+    logger.debug("Environment: %s. Log level: %s", settings.ENV, settings.LOG_LEVEL)
+
+    # Check for unused environment variables
+    config_utils.check_unused_env_vars()
+
+    # Make sure required config variables are set
+    if not settings.CACHE_CLIENT:
+        logger.exception("CACHE_CLIENT not set, cannot start Mink!")
+        raise exceptions.ConfigVariableNotSetError("CACHE_CLIENT")
+    if not settings.INSTANCE_PATH:
+        logger.exception("INSTANCE_PATH not set, cannot start Mink!")
+        raise exceptions.ConfigVariableNotSetError("INSTANCE_PATH")
+    if not settings.SBAUTH_PUBKEY_FILE:
+        logger.exception("SBAUTH_PUBKEY_FILE not set, cannot start Mink!")
+        raise exceptions.ConfigVariableNotSetError("SBAUTH_PUBKEY_FILE")
+
+    # Run any registered startup checks from resource specs
+    try:
+        run_startup_checks()
+    except Exception as e:
+        logger.exception("Error occurred while running startup checks: %s", e)
+        raise
+
+    # Create instance directory if it does not exist
+    Path(settings.INSTANCE_PATH).mkdir(exist_ok=True)
+
+    # Initialize the cache client and the resource registry
+    cache.initialize(settings.CACHE_CLIENT)
+    registry.initialize_if_needed()
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
     """Lifespan context manager for the FastAPI app.
@@ -38,30 +72,6 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     # -------------------------------
     # Startup logic
     # -------------------------------
-    logger.info("Starting Mink version: %s", MINK_VERSION)
-    logger.debug("Environment: %s. Log level: %s", settings.ENV, settings.LOG_LEVEL)
-
-    # Check for unused environment variables
-    config_utils.check_unused_env_vars()
-
-    # Make sure required config variables are set
-    if not settings.CACHE_CLIENT:
-        raise exceptions.ConfigVariableNotSetError("CACHE_CLIENT")
-    if not settings.INSTANCE_PATH:
-        raise exceptions.ConfigVariableNotSetError("INSTANCE_PATH")
-    if not settings.SBAUTH_PUBKEY_FILE:
-        raise exceptions.ConfigVariableNotSetError("SBAUTH_PUBKEY_FILE")
-
-    # Run any registered startup checks from resource specs
-    run_startup_checks()
-
-    # Create instance directory if it does not exist
-    Path(settings.INSTANCE_PATH).mkdir(exist_ok=True)
-
-    # Initialize the cache client and the resource registry
-    cache.initialize(settings.CACHE_CLIENT)
-    registry.initialize_if_needed()
-
     # Build the MkDocs documentation
     if settings.ENV != "testing":
         utils.build_docs()
@@ -76,6 +86,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused asyn
     shutil.rmtree(str(tmp_dir), ignore_errors=True)
     logger.info("Done")
 
+
+preflight()
 
 # Deactivate default Redoc, Swagger UI and openapi_url because we use custom routes
 app = FastAPI(

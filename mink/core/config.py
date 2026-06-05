@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     LOG_DATEFORMAT: str = "%Y-%m-%d %H:%M:%S"
 
     # Cache settings
-    CACHE_CLIENT: str = "127.0.0.1:11211"  # Server address or a path to a socket, e.g. "/var/run/memcached.sock"
+    CACHE_CLIENT: str = ""  # Server address or a path to a socket, e.g. "127.0.0.1:11211" or "/var/run/memcached.sock"
     CACHE_NAMESPACE: str = "mink"  # Namespace prefix for cache keys
     ADMIN_MODE_LIFETIME: int = 60 * 60 * 12  # How long the admin mode is active (in seconds)
 

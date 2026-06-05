@@ -24,6 +24,9 @@ def initialize_if_needed() -> None:
         _INITIALIZING_STATE["in_progress"] = True
         try:
             initialize()
+        except Exception:
+            logger.exception("Failed to initialize registry")
+            raise
         finally:
             _INITIALIZING_STATE["in_progress"] = False
 

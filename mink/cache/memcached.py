@@ -7,6 +7,7 @@ from pymemcache import serde
 from pymemcache.client.base import Client
 
 from mink.core.config import settings
+from mink.core.logging import logger
 
 
 def cache_namespace(key: str) -> str:
@@ -24,7 +25,6 @@ class CacheManager:
     def initialize(self, cache_server: str) -> None:
         """Initialize the cache client."""
         from mink.core import exceptions  # noqa: PLC0415
-        from mink.core.logging import logger  # noqa: PLC0415
 
         self.server = cache_server
 
@@ -33,12 +33,14 @@ class CacheManager:
                 cache_client.get("test_connection")
             logger.info("Connected to memcached on %s", cache_server)
         except Exception as e:
+            logger.exception("Failed to connect to memcached on %s: %s", cache_server, e)
             raise exceptions.CacheConnectionError(self.server, e) from e
 
     @contextmanager
     def get_client(self) -> Generator[Client, None, None]:
         """Retrieve a connected Memcached client."""
         if self.server is None:
+            logger.exception("Cache client not initialized. Call 'initialize' first.")
             raise RuntimeError("Cache client not initialized. Call 'initialize' first.")
         # Set default_noreply to False to avoid strange behaviour during registry initialization
         # (e.g. missing resources in cache and queue)
