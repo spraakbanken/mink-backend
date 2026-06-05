@@ -35,13 +35,13 @@ def preflight() -> None:
 
     # Make sure required config variables are set
     if not settings.CACHE_CLIENT:
-        logger.exception("CACHE_CLIENT not set, cannot start Mink!")
+        logger.error("CACHE_CLIENT not set, cannot start Mink!")
         raise exceptions.ConfigVariableNotSetError("CACHE_CLIENT")
     if not settings.INSTANCE_PATH:
-        logger.exception("INSTANCE_PATH not set, cannot start Mink!")
+        logger.error("INSTANCE_PATH not set, cannot start Mink!")
         raise exceptions.ConfigVariableNotSetError("INSTANCE_PATH")
     if not settings.SBAUTH_PUBKEY_FILE:
-        logger.exception("SBAUTH_PUBKEY_FILE not set, cannot start Mink!")
+        logger.error("SBAUTH_PUBKEY_FILE not set, cannot start Mink!")
         raise exceptions.ConfigVariableNotSetError("SBAUTH_PUBKEY_FILE")
 
     # Run any registered startup checks from resource specs
@@ -133,9 +133,10 @@ for router in get_resource_routers():
 @app.middleware("http")
 async def log_request(request: Request, call_next: Callable) -> Response:
     """Middleware to log info about each request (except when serving static files)."""
-    # Normalize path to strip any configured root_path
     root_path = request.scope.get("root_path") or ""
-    path = request.url.path[len(root_path):]
+    path = request.scope.get("path") or request.url.path
+    if root_path and path.startswith(root_path):
+        path = path[len(root_path):] or "/"
 
     # Log request info, but don't log options and queue advance requests (too much spam)
     if request.method != "OPTIONS" and not path.startswith(("/queue/advance", "/queue/health")):
