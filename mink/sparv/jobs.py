@@ -510,6 +510,8 @@ class SparvJob(BaseJob):
                 elif self.current_process == ProcessName.strix:
                     self.installed_strix = True
                 self.set_status(Status.done)
+                # Clear cache for exports to trigger cache refresh when reqeusted next time
+                cache.remove_corpus_export_contents(self.id)
 
         else:
             if errors:

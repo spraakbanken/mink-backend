@@ -333,9 +333,10 @@ class KarpJob(BaseJob):
             self.set_attribute("pid", None)
 
         _warnings, errors, misc, _karp_ended = self.get_output()
-        if self.current_process == ProcessName.karp_pipeline:
-            cache.remove_lexicon_output_contents(self.id)
         if self.progress_output == PROGRESS_DONE:
+            if self.current_process == ProcessName.karp_pipeline:
+                # Clear cache for exports to trigger cache refresh when reqeusted next time
+                cache.remove_lexicon_output_contents(self.id)
             if self.status.is_running(self.current_process):
                 # Set 'installed_karps' to True if current process is 'karps'
                 if self.current_process == ProcessName.karps:
