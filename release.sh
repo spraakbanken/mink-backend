@@ -12,6 +12,7 @@
 # - Retrieve current version from latest git tag
 # - Release a new version based on the specified version bump type:
 #   - Bump version in pyproject.toml
+#   - Update the production OpenAPI server URL on major releases
 #   - Update CHANGELOG.md
 #   - Commit changes to development branch
 #   - Merge development branch into release branch
@@ -24,6 +25,7 @@
 
 
 human_readable_project_name="Mink Backend"  # Used in GitHub release title
+openapi_info_file="mink/openapi_info.yaml"
 
 ######################################################
 # Define and parse command line options
@@ -86,8 +88,9 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 print_abort_commit() {
+  local restore_files="${*:-pyproject.toml CHANGELOG.md}"
   echo -e "Commit aborted. You can commit later or revert the changes:\n"
-  echo -e "${YELLOW}git restore --source=HEAD --staged --worktree pyproject.toml CHANGELOG.md${NC}"
+  echo -e "${YELLOW}git restore --source=HEAD --staged --worktree ${restore_files}${NC}"
 }
 
 print_push_reminder_and_exit() {
@@ -180,6 +183,9 @@ fi
 # Check required files
 [[ -f pyproject.toml ]] || error_exit "pyproject.toml not found."
 [[ -f CHANGELOG.md ]] || error_exit "CHANGELOG.md not found."
+if [[ "$version_bump" == "major" ]]; then
+  [[ -f "$openapi_info_file" ]] || error_exit "$openapi_info_file not found."
+fi
 
 # Check for uncommitted changes
 if [[ -n $(git status --porcelain) ]]; then
@@ -191,6 +197,8 @@ fi
 # Save current branch to restore later
 original_branch=$(git rev-parse --abbrev-ref HEAD)
 
+release_files=(pyproject.toml CHANGELOG.md)
+
 # Update version in pyproject.toml
 echo -e "Updating pyproject.toml"
 sed -i "s/^version = \".*\"/version = \"$new_version\"/" pyproject.toml
@@ -201,13 +209,21 @@ today=$(date +%Y-%m-%d)
 sed -i "0,/## \[unreleased\]/s/## \[unreleased\]/## [$new_version] - $today/" CHANGELOG.md
 sed -i "/^\[unreleased\]:/c\\[$new_version]: ${github_url}/releases/tag/v$new_version" CHANGELOG.md
 
+if [[ "$version_bump" == "major" ]]; then
+  echo -e "Updating $openapi_info_file"
+  current_openapi_prod_url=$(grep -m1 -E '^[[:space:]]*- url: .*/ws/mink/v[0-9]+$' "$openapi_info_file")
+  [[ -n "$current_openapi_prod_url" ]] || error_exit "Failed to find versioned production server URL in $openapi_info_file."
+  sed -Ei "0,/ws\\/mink\\/v[0-9]+/s//ws\\/mink\\/v$major/" "$openapi_info_file"
+  release_files+=("$openapi_info_file")
+fi
+
 # Add and commit changes
-git add pyproject.toml CHANGELOG.md
+git add "${release_files[@]}"
 echo -e "\nChanges to be committed:"
 git diff --cached
 read -p "$(echo -e "\nCommit these changes to ${GREEN}$release_branch${NC} and create tag ${GREEN}v$new_version${NC}? (y/n): ")" confirm_commit
 if [[ "$confirm_commit" != "y" ]]; then
-  print_abort_commit
+  print_abort_commit "${release_files[*]}"
   exit 0
 fi
 git commit -m "Bump version to $new_version"
