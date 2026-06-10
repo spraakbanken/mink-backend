@@ -60,7 +60,7 @@ def preflight() -> None:
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator:  # noqa: RUF029 unused async
+async def lifespan(_app: FastAPI) -> AsyncGenerator:
     """Lifespan context manager for the FastAPI app.
 
     Args:
@@ -136,7 +136,7 @@ async def log_request(request: Request, call_next: Callable) -> Response:
     root_path = request.scope.get("root_path") or ""
     path = request.scope.get("path") or request.url.path
     if root_path and path.startswith(root_path):
-        path = path[len(root_path):] or "/"
+        path = path[len(root_path) :] or "/"
 
     # Log request info, but don't log options and queue advance requests (too much spam)
     if request.method != "OPTIONS" and not path.startswith(("/queue/advance", "/queue/health")):
@@ -150,6 +150,14 @@ async def log_request(request: Request, call_next: Callable) -> Response:
 # Add middleware to enforce the request size limit
 app.add_middleware(utils.LimitRequestSizeMiddleware)
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOW_ORIGINS,
+    allow_credentials=True,
+    allow_methods=settings.ALLOW_METHODS,
+    allow_headers=settings.ALLOW_HEADERS,
+)
 
 # Add Matomo middleware for tracking
 if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
@@ -170,16 +178,6 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
     )
 elif settings.ENV not in {"testing", "development"}:
     logger.warning("Tracking to Matomo disabled, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE.")
-
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOW_ORIGINS,
-    allow_credentials=True,
-    allow_methods=settings.ALLOW_METHODS,
-    allow_headers=settings.ALLOW_HEADERS,
-)
 
 
 # ------------------------------------------------------------------------------
@@ -225,7 +223,7 @@ def custom_openapi() -> dict:
 
     openapi_schema["components"]["securitySchemes"] = {
         "OAuth2PasswordBearer": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
-        "APIKeyHeader": {"type": "apiKey", "in": "header", "name": "X-Api-Key"}
+        "APIKeyHeader": {"type": "apiKey", "in": "header", "name": "X-Api-Key"},
     }
 
     # Make Swagger UI render OpenAPI 3.1 file upload schemas
@@ -241,7 +239,6 @@ def custom_openapi() -> dict:
 
     for path_item in openapi_schema.get("paths", {}).values():
         for operation in path_item.values():
-
             # Remove auto-generated "title" from response schemas in paths
             for response in operation.get("responses", {}).values():
                 for schema in (media.get("schema", {}) for media in response.get("content", {}).values()):
@@ -258,6 +255,7 @@ def custom_openapi() -> dict:
 
     # Inject resource-specific OpenAPI examples
     from mink.core.resource_specs import get_all_specs  # noqa: PLC0415
+
     for spec in get_all_specs().values():
         if not spec.openapi_examples:
             continue
