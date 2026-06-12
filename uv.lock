@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.11"
 
 [options]
-exclude-newer = "2026-05-28T10:46:57.452673087Z"
+exclude-newer = "2026-06-03T08:25:19.064973343Z"
 exclude-newer-span = "P7D"
 
 [[package]]
@@ -606,7 +606,7 @@ wheels = [
 
 [[package]]
 name = "mink-backend"
-version = "3.0.0.dev0"
+version = "3.1.0.dev0"
 source = { virtual = "." }
 dependencies = [
     { name = "apscheduler" },

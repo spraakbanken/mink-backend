@@ -77,6 +77,7 @@ class Settings(BaseSettings):
     # Settings for queue manager
     MAX_WORKERS: int = 1  # Number of jobs that can be run simultaneously
     CHECK_QUEUE_FREQUENCY: int = 20  # How often the queue will be checked for new jobs (in seconds)
+    CHECK_QUEUE_HEALTH_FREQUENCY: int = 60  # How often the queue health will be checked (in seconds)
     QUEUE_HEALTH_WARNING_SECONDS: int = 60 * 60  # Warn if a queued/running job stays active longer than this
     MINK_SECRET_KEY: str = ""
     HEALTHCHECKS_URL: str = ""

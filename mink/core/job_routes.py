@@ -209,6 +209,7 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
     running_queue, waiting_queue = registry.get_running_waiting()
     running_jobs = len(running_queue)
     waiting_jobs = len(waiting_queue)
+    waiting_priorities = {job.id: index + 1 for index, job in enumerate(waiting_queue)}
 
     def seconds_since(timestamp: str) -> int | None:
         """Return elapsed seconds since an ISO timestamp, or None if unavailable."""
@@ -236,8 +237,7 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
             logger.warning("Job '%s' missing parent info, skipping queue health entry", job.id)
             return
 
-        priority = registry.get_priority(job)
-        priority = priority if priority != -1 else ""
+        priority = waiting_priorities.get(job.id, "")
         queued_seconds = seconds_since(job.queued) or 0
         started_seconds = seconds_since(job.started)
 
