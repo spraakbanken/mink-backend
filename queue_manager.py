@@ -64,6 +64,7 @@ def send_slack_webhook(message: str) -> None:
 
 def check_queue_health() -> None:
     """Poll queue health and log or notify when the health state changes."""
+    logger.info("Calling '/queue/health'")
     url = f"{settings.MINK_URL}/queue/health"
     params = {"secret_key": settings.MINK_SECRET_KEY}
     try:
@@ -114,6 +115,7 @@ if __name__ == "__main__":
         log_file_path = Path(settings.LOG_DIR) / f"queue-{time.strftime('%Y-%m-%d')}.log"
         Path(log_file_path).parent.mkdir(parents=True, exist_ok=True)
         loghandler = logging.FileHandler(log_file_path)
+        loghandler.setFormatter(logging.Formatter(settings.LOG_FORMAT, datefmt=settings.LOG_DATEFORMAT))
         logger.addHandler(loghandler)
 
     logger.info("Starting Mink queue manager")
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     scheduler = BlockingScheduler()
     scheduler.add_executor("threadpool", max_workers=1)
     scheduler.add_job(advance_queue, "interval", seconds=settings.CHECK_QUEUE_FREQUENCY)
-    scheduler.add_job(check_queue_health, "interval", seconds=settings.CHECK_QUEUE_FREQUENCY)
+    scheduler.add_job(check_queue_health, "interval", seconds=settings.CHECK_QUEUE_HEALTH_FREQUENCY)
     if settings.HEALTHCHECKS_URL:
         scheduler.add_job(
             ping_healthchecks,

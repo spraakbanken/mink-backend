@@ -5,6 +5,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [unreleased]
 
+### Added
+
+- Added a setting for CHECK_QUEUE_HEALTH_FREQUENCY to control how often the queue health is checked.
+
+### Fixed
+
+- Fixed a log formatting issue in the queue manager.
+
 ## [3.0.0] - 2026-06-04
 
 ### Changed
