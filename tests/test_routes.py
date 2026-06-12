@@ -29,7 +29,7 @@ def test_untagged_routes() -> None:
 
 
 @pytest.mark.general
-def test_documentation_route() -> None:
+def test_documentation_routes() -> None:
     """Test documentation routes."""
     for method, path in ROUTE_INFO.tag_dict.get("Documentation", []):
         call_route(method, path)
