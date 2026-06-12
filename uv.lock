@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.11"
 
 [options]
-exclude-newer = "2026-06-03T08:25:19.064973343Z"
+exclude-newer = "2026-06-05T12:35:43.230730053Z"
 exclude-newer-span = "P7D"
 
 [[package]]
@@ -629,6 +629,7 @@ dependencies = [
 [package.optional-dependencies]
 server = [
     { name = "gunicorn" },
+    { name = "uvicorn-worker" },
     { name = "uvloop" },
 ]
 
@@ -657,7 +658,8 @@ requires-dist = [
     { name = "rich", specifier = ">=15.0.0" },
     { name = "shortuuid", specifier = "==1.0.13" },
     { name = "uvicorn", extras = ["standard"], specifier = "==0.44.0" },
-    { name = "uvloop", marker = "extra == 'server'" },
+    { name = "uvicorn-worker", marker = "extra == 'server'", specifier = ">=0.4.0" },
+    { name = "uvloop", marker = "extra == 'server'", specifier = "==0.22.1" },
 ]
 provides-extras = ["server"]
 
@@ -1287,6 +1289,19 @@ standard = [
     { name = "uvloop", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'" },
     { name = "watchfiles" },
     { name = "websockets" },
+]
+
+[[package]]
+name = "uvicorn-worker"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "gunicorn" },
+    { name = "uvicorn" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/80/59/9101b9c0680fd80e9d26c07deb822a5d18a324339fcf9cd017885ee808ad/uvicorn_worker-0.4.0.tar.gz", hash = "sha256:8ee5306070d8f38dce124adce488c3c0b50f20cf0c0222b12c66188da7214493", size = 9361, upload-time = "2025-09-20T10:47:01.218Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/25/09cd7a90c8bb7fb693be0d6704fccd5f9778d5513214b7a01cc4a94ff314/uvicorn_worker-0.4.0-py3-none-any.whl", hash = "sha256:e2ed952cef976f5e9e429d7269640bbcafbd36c80aa80f1003c8c77a6797abde", size = 5364, upload-time = "2025-09-20T10:46:59.776Z" },
 ]
 
 [[package]]

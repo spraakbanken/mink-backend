@@ -61,6 +61,32 @@ python queue_manager.py
 Once started, your development server will be running and you can access the API documentation at:
 <http://localhost:8000/docs>
 
+## How to Run in Production
+
+For production, run Mink behind Gunicorn and use Uvicorn's worker class:
+
+```bash
+.venv/bin/gunicorn mink.main:app \
+  --worker-class uvicorn_worker.UvicornWorker \
+  --bind 127.0.0.1:9001 \
+  --workers 1 \
+  --forwarded-allow-ips="*"
+```
+
+Recommended production notes:
+
+* Run the queue manager as a separate process:
+
+  ```bash
+  .venv/bin/python queue_manager.py
+  ```
+
+* If Mink is served from a URL prefix such as `/mink`, set `ROOT_PATH=/mink` in the app environment.
+* When using `uvicorn_worker.UvicornWorker`, do not rely on Gunicorn's `--root-path` flag; configure `ROOT_PATH` in
+  Mink instead.
+* Set `MINK_URL` to the complete URL where Mink is served (e.g. `https://example.com/mink`) to ensure correct URL
+  generation in the API responses.
+
 ## Configuration
 
 The default core configuration is defined in `mink/core/config.py` and module-specific settings live in their respective

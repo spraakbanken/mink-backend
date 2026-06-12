@@ -221,6 +221,10 @@ Upon application startup, all settings are loaded from the core and module confi
 validated using the helper functions in `config_utils.py`. A warning will be logged for any unused variables in the
 `.env` file.
 
+For production deployments, Mink is expected to run behind Gunicorn using `uvicorn_worker.UvicornWorker`. If the API is
+served under a path prefix, configure that prefix via `ROOT_PATH` in Mink's environment rather than relying on
+Gunicorn's `--root-path` flag. This keeps route generation and internal callers consistent across worker classes.
+
 #### Using Configuration Variables in Code
 
 Core configuration variables are available via the `mink.core.config.settings` object, while module settings are

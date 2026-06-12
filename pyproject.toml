@@ -29,7 +29,8 @@ dependencies = [
 [project.optional-dependencies]
 server = [
     "gunicorn>=26.0.0",
-    "uvloop"  # Used by Gunicorn's ASGI worker for improved performance
+    "uvicorn-worker>=0.4.0",
+    "uvloop==0.22.1", # Used by Gunicorn's ASGI worker for improved performance
 ]
 
 [dependency-groups]
