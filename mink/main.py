@@ -173,7 +173,7 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
         idsite=settings.TRACKING_MATOMO_IDSITE,
         access_token=settings.TRACKING_MATOMO_AUTH_TOKEN,
         http_timeout=settings.TRACKING_MATOMO_HTTP_TIMEOUT,
-        exclude_paths=["/queue/advance", "/queue/health"],
+        exclude_paths=[settings.ROOT_PATH + "/queue/advance", settings.ROOT_PATH + "/queue/health"],
         ignored_methods=["OPTIONS"],
     )
 elif settings.ENV not in {"testing", "development"}:
