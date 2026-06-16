@@ -22,11 +22,11 @@ To install the dependencies, we recommend using [uv](https://docs.astral.sh/uv/)
 2. While in the mink-backend directory, run:
 
    ```sh
-   uv sync --no-install-project
+   uv sync
    ```
 
    This will create a virtual environment in the `.venv` directory and install the dependencies listed in
-   `pyproject.toml`.
+   `pyproject.toml` and pinned in `uv.lock`.
 
 Alternatively, you can set up a virtual environment manually using Python's built-in `venv` module and install the
 dependencies using pip:
@@ -36,6 +36,9 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
+
+The `pip install -e .` path is convenient for local development, but it does not use `uv.lock`. For production,
+prefer rebuilding the virtual environment from the lockfile with `uv sync --frozen`.
 
 ## How to Run a Development Server
 
@@ -62,6 +65,12 @@ Once started, your development server will be running and you can access the API
 <http://localhost:8000/docs>
 
 ## How to Run in Production
+
+Install production dependencies with the server extra:
+
+```bash
+uv sync --frozen --no-dev --extra server
+```
 
 For production, run Mink behind Gunicorn and use Uvicorn's worker class:
 
