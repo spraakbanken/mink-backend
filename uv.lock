@@ -3,8 +3,8 @@ revision = 3
 requires-python = ">=3.11"
 
 [options]
-exclude-newer = "2026-06-05T12:35:43.230730053Z"
-exclude-newer-span = "P7D"
+exclude-newer = "2026-06-16T09:52:12.338232345Z"
+exclude-newer-span = "PT0S"
 
 [[package]]
 name = "annotated-doc"
@@ -576,14 +576,14 @@ wheels = [
 
 [[package]]
 name = "matomo-core"
-version = "0.3.2"
+version = "0.3.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/de/267a0310c05d093f002972027b39f70f2b7244dc4c2080bcfbbb57f846e7/matomo_core-0.3.2.tar.gz", hash = "sha256:fea807f63db4061d18249218017deabed595b322f41374350bb98079ec2fa844", size = 38737, upload-time = "2026-01-13T12:37:09.647Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/b6/40cb900418a13b57408647df900ab3deae9941226b8edd4d91a33630401f/matomo_core-0.3.4.tar.gz", hash = "sha256:943744d84cd123e35a94131513d4de0498ad74d315046f7999e262f90273755b", size = 4522, upload-time = "2026-06-12T13:56:43.771Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/05/d4c24204f082a906b1e0ae9ecba48749e7f78ca678c7e59c954060ab9f2d/matomo_core-0.3.2-py3-none-any.whl", hash = "sha256:6dd3ee10f9ceb628b8cf9771d229edccdbd3fa1859ebdd0bc5d582d002c1899e", size = 5572, upload-time = "2026-01-13T12:37:08.46Z" },
+    { url = "https://files.pythonhosted.org/packages/24/45/e948d35c2d13aecdee26db81dc33c73199387c4a69e3b56c3e5168a0ebbe/matomo_core-0.3.4-py3-none-any.whl", hash = "sha256:3edc831e7f277e86015856319a183d695f45e8c8f0d004c39a43761e06df844d", size = 5876, upload-time = "2026-06-12T13:56:42.677Z" },
 ]
 
 [[package]]

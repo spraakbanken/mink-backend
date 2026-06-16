@@ -13,6 +13,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Fixed a log formatting issue in the queue manager.
+- Upgraded matomo-core dependency which includes a fix for a serialization bug.
 
 ## [3.0.0] - 2026-06-04
 
