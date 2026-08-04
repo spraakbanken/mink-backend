@@ -9,21 +9,21 @@ authors = [
     { name = "Språkbanken Text", email = "sb-info@svenska.gu.se" }
 ]
 dependencies = [
-    "apscheduler==3.11.2",
+    "apscheduler==3.11.3",
     "asgi-matomo==0.6.2",
-    "fastapi==0.136.3",
+    "fastapi==0.140.7",
     "mkdocs-macros-plugin==1.5.0",
-    "mkdocs-material==9.7.6",
-    "pydantic-settings==2.14.1",
+    "mkdocs-material==9.7.7",
+    "pydantic-settings==2.14.2",
     "pyjwt[crypto]==2.13.0",
     "pymemcache==4.0.0",
     "python-dateutil==2.9.0.post0",
     "python-dotenv==1.2.2",
-    "python-multipart==0.0.24",
+    "python-multipart==0.0.32",
     "pyyaml==6.0.3",
     "rich>=15.0.0",
     "shortuuid==1.0.13",
-    "uvicorn[standard]==0.44.0",
+    "uvicorn[standard]==0.51.0",
 ]
 
 [project.optional-dependencies]
@@ -36,7 +36,7 @@ server = [
 [dependency-groups]
 dev = [
     "ruff",
-    "pytest==9.0.3",
+    "pytest==9.1.1",
     "pytest-sugar==1.1.1"
 ]
 
