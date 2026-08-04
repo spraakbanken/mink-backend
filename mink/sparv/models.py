@@ -86,7 +86,10 @@ class SchemaResponse(models.BaseResponse):
 
 class LanguagesResponse(models.BaseResponse):
     """Model for the /corpus/sparv/list-languages response."""
-    languages: list[str] = Field(default=[], description="List of supported languages (language names and ISO codes)")
+
+    languages: list[str] = Field(
+        default=[], description="List of supported languages (language names, ISO codes and varieties if applicable)"
+    )
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
             "examples": [
@@ -96,20 +99,12 @@ class LanguagesResponse(models.BaseResponse):
                     "return_code": return_codes.LISTING_CONTENT.code,
                     "info": "Listing languages available in Sparv",
                     "languages": [
-
-                        {
-                            "name": "English",
-                            "code": "eng"
-                        },
-                        {
-                            "name": "Finnish",
-                            "code": "fin"
-                        },
-                        {
-                            "name": "Swedish",
-                            "code": "swe"
-                        }
-                    ]
+                        {"name": "English", "code": "eng"},
+                        {"name": "Finnish", "code": "fin"},
+                        {"name": "Swedish", "code": "swe"},
+                        {"name": "Swedish (1800)", "code": "swe", "variety": "1800"},
+                        {"name": "Swedish (fsv)", "code": "swe", "variety": "fsv"},
+                    ],
                 }
             ]
         }

@@ -8,6 +8,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Added a setting for CHECK_QUEUE_HEALTH_FREQUENCY to control how often the queue health is checked.
+- The `/corpus/sparv/list-languages` route now includes language varieties in the response.
 - Added production deployment documentation recommending Gunicorn with `uvicorn_worker.UvicornWorker`.
 
 ### Fixed

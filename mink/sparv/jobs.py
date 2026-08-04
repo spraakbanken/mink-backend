@@ -756,7 +756,6 @@ class SparvDefaultJob:
             f"{sparv_settings.SPARV_ENVIRON} {sparv_settings.SPARV_COMMAND} "
             f"--dir {self.remote_corpus_dir_esc} languages"
         )
-
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
             raise exceptions.JobError(f"Failed to run Sparv: {stderr}")
@@ -765,11 +764,14 @@ class SparvDefaultJob:
         stdout = p.stdout.decode() if p.stdout else ""
         lines = [line.strip() for line in stdout.split("\n") if line.strip()][1:]
         for line in lines:
-            if line.startswith("Supported language varieties"):
-                break
-            matchobj = re.match(r"(.+?)\s+(\S+)$", line)
+            if line.startswith(("Supported language varieties", "Name")):
+                continue
+            matchobj = re.match(r"(.+?)\s+(\S+)(\s+(\S+))?$", line)
             if matchobj:
-                languages.append({"name": matchobj.group(1), "code": matchobj.group(2)})
+                langobj = {"name": matchobj.group(1), "code": matchobj.group(2)}
+                if matchobj.group(4):
+                    langobj["variety"] = matchobj.group(4)
+                languages.append(langobj)
 
         cache.set_sparv_languages(languages)
 
