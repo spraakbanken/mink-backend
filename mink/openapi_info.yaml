@@ -31,7 +31,8 @@ info:
     3. [Upload a lexicon config file](#upload-lexicon-config)
     4. [Run the Karp pipeline](#run-lexicon-job)
     5. [Check the job status](#get-resource-status)
-    6. [Install the lexicon in Karp's search mode](#install-karps)
+    6. [Download export files](#download-lexicon-exports)
+    7. [Install the lexicon in Karp's search mode](#install-karps)
 
     ## Authentication
 
@@ -53,13 +54,13 @@ info:
 
     ## Responses
 
-    - Most responses will be in json format.
-    - Json responses contain a `status` field which will have the value `success` if the response status code is
+    - Most responses will be in JSON format.
+    - JSON responses contain a `status` field which will have the value `success` if the response status code is
       anything between 200 and 299 and `error` otherwise. Thus this `status` merely reports whether the call was
       processed correctly.
-    - All json responses also contain a `return_code` field with a unique code that can be used for mapping to
+    - All JSON responses also contain a `return_code` field with a unique code that can be used for mapping to
       human-friendly error messages.
-    - All json responses contain a `message` field with information about what was done during the call or where things
+    - All JSON responses contain a `message` field with information about what was done during the call or where things
       went wrong.
     - Each call may have an arbitrary amount of additional fields containing more information or data.
 

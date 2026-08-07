@@ -3,6 +3,10 @@
 # Script for creating PDFs from markdown
 # Requires pandoc and latex.
 
+# Set title for the common (frontend + backend) report, escape single quotes
+COMMON_REPORT_TITLE="Mink 2026: Språkbanken''s data platform – Technical Report"
+
+
 # Define help message
 show_help() {
   echo "Usage: $0 [--host HOST] [--port PORT] [-h]"
@@ -108,7 +112,7 @@ output/mink_api.md
 "
   header="
 ---
-title: Mink 2025: Språkbanken's data platform – Technical Report"
+title: '$COMMON_REPORT_TITLE'"
 else
   filename="mink_backend_report"
   filelist="

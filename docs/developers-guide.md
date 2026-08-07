@@ -58,9 +58,10 @@ steps a user would typically take when working with Mink.
 ### Creating a New Resource
 
 Before any data can be uploaded or processed, a user must create a resource. Creating a new corpus, lexicon or metadata
-resource generates a unique resource ID (prefixed with `mink-`) and an [info object](#info-object). The resource ID is
-registered in the authentication system, and the user who creates the resource is assigned owner rights. To create a new
-resource, use the appropriate route (e.g., `/corpus/create`, `/lexicon/create`, `/metadata/create`).
+resource generates a unique resource ID (prefixed with the value specified in the `RESOURCE_PREFIX` configuration
+variable; defaults to `mink-`) and an [info object](#info-object). The resource ID is registered in the authentication
+system, and the user who creates the resource is assigned owner rights. To create a new resource, use the appropriate
+route (e.g., `/corpus/create`, `/lexicon/create`, `/metadata/create`).
 
 ### Uploading Source Files
 
@@ -122,8 +123,8 @@ synchronized.
 
 ### Downloading Export Files
 
-This function is currently only available for corpora. After a Sparv job completes, users can download the resulting
-export files for further analysis or use. This is done via the `/corpus/exports/download/<resource_id>` route. Users may
+After a corpus or lexicon job completes, users can download the resulting export files for further analysis or use. This
+is done via the `/corpus/exports/download/<resource_id>` and `/lexicon/exports/download/<resource_id>` routes. Users may
 choose to download all available exports, or select specific subdirectories or files as needed.
 
 ### Installing to other platforms
@@ -172,7 +173,8 @@ After authentication, Mink enforces fine-grained authorization using SB Auth. Wh
 registered with SB Auth, and ownership is assigned to the user who created it. By default:
 
 - **Only the resource owner** can view, modify, or delete their resources.
-- **Resource sharing** is not currently supported via the API.
+- **Resource sharing** is not currently supported via the API (but some sharing functionality is available in the
+  frontend).
 - **SB Auth administrators** (Språkbanken staff) can manually add collaborators to resources upon request if special
   access is needed.
 
@@ -214,7 +216,7 @@ run the script, use the following command:
 python config_helper.py
 ```
 
-`config_helper.py` discovers module settings via the `CONFIG_MODULES` list in `mink/core/config.py`, so new module
+The `config_helper.py` discovers module settings via the `CONFIG_MODULES` list in `mink/core/config.py`, so new module
 config files should be added there to appear in the report.
 
 Upon application startup, all settings are loaded from the core and module config files, as well as the `.env` file, and
@@ -249,7 +251,7 @@ instance. Its contents include:
 - `registry/`: Stores the resource registry.
 - `tmp/`: Temporary storage for files downloaded by users.
 - `pubkey.pem`: Public key used for verifying JWT tokens.
-- `queue`: Maintains the job queue.
+- `queue`: On-disk storage for the job queue.
 
 ### Resource ID
 
@@ -266,8 +268,8 @@ An info object is generated whenever a new resource is created. It is composed o
 - `resource`: Contains general properties of the resource, such as its [resource ID](#resource-id), names in different
   languages, resource type, and the list of available source files.
 - `owner`: Provides information about the user who created the resource, including user ID, name, and email address.
-- `job`: Provides details about the most recent Sparv job for the resource, including job status, annotation progress,
-  and queue priority.
+- `job`: Provides details about the most recent Sparv job for the resource, including job status, queue priority, and
+  annotation progress.
 
 The info object is saved as a JSON file in the instance directory and is also cached using
 [Memcached](https://memcached.org/) for faster access. It is updated whenever a Sparv process is run, when file
@@ -276,16 +278,16 @@ operations occur (such as uploading a new source file), or when `/resource/info`
 ### Job Queue
 
 To prevent the processing server(s) from being overloaded by too many simultaneous jobs, the Mink backend uses a job
-queue system. When a user requests to process or install a corpus or lexicon, a job is added to the queue. The [queue
+queue system. When a user requests to process or install a resource, a job is added to the queue. The [queue
 manager](#queue-manager), which runs as a separate process, regularly checks whether there is available capacity —
 determined by the `MAX_WORKERS` configuration variable, which specifies how many jobs can run concurrently. If capacity
 is available, the next job in the queue is started. The queue manager communicates with the Mink API by calling the
 `/queue/advance` route.
 
-The job queue consists of a list of queued resource IDs. It is stored as plain text in the instance directory and is
-also cached using [Memcached](https://memcached.org/) for fast access.
+The job queue consists of a list of queued resource IDs. It is stored as plain text on disk in the instance directory
+and is also cached using [Memcached](https://memcached.org/) for fast access.
 
-Currently, the job queue is shared for both corpus and lexicon jobs.
+Currently, the job queue is shared for jobs of all resource types.
 
 ### Queue Manager
 
@@ -303,9 +305,9 @@ communicates with the Mink API by calling the `/queue/advance` API route, which 
 The resource registry keeps track of all resources managed by Mink. It acts as a dictionary, mapping each resource ID to
 its corresponding [info object](#info-object).
 
-At application startup, all info objects are loaded from their JSON files and cached for fast access. The job queue is
-also read from the instance directory and cached. This approach enables Mink to efficiently manage resources and queue
-positions.
+At application startup, all info objects are loaded from their JSON files in the instance directory and cached for fast
+access. The job queue is also read from the instance directory and cached. This approach enables Mink to efficiently
+manage resources and queue positions.
 
 A resource remains in the registry from creation until it is deleted.
 
@@ -349,8 +351,9 @@ includes the following modules:
 
 These packages implement behavior for concrete resource types and register a `spec.py` so core can discover their
 storage, job, and route behavior via the `SPEC_MODULES` setting. When adding a new resource package, register its
-`spec.py`, add its config module to `CONFIG_MODULES` (for `config_helper.py`), and ensure its storage/job classes avoid
-importing core modules that would introduce circular dependencies.
+`spec.py` (by adding its path to `SPEC_MODULES` in the core configuration), add its config module to `CONFIG_MODULES`
+(used by `config_helper.py`), and ensure its storage/job classes do not import core modules that introduce circular
+dependencies.
 
 When adding routes within a resource package, the router modules should be listed in the resource spec so they can be
 loaded dynamically by the core.
@@ -358,13 +361,13 @@ loaded dynamically by the core.
 Here are some examples of what you might find in a resource-specific package:
 
 - `cache.py`: Caching logic specific to the resource type.
-- `config.py`: Module-specific settings instance (loaded from `.env`).
+- `config.py`: Module-specific settings instance.
 - `jobs.py`: Job classes specific to the resource type, extending the base job class (e.g. SparvJob for corpora).
 - `spec.py`: A resource spec that configures how the resource type integrates with the core system (e.g. which storage
   backend to use, which job class to use, allowed file extensions, etc.).
 - `*_routes.py`: API routes specific to the resource type.
 - `storage.py`: Storage backend implementation specific to the resource type, extending the base storage backend with
-  resource-specific logic (e.g. rsync/SSH for corpora).
+  resource-specific logic.
 
 Currently, there are three resource-specific packages:
 
