@@ -1,6 +1,5 @@
 """Routes for the sb-auth module."""
 
-
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
@@ -61,9 +60,7 @@ async def activate_admin_mode(
     if session_id is None:
         raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_SESSION_ID)
     cache.set_cookie_data(session_id, {"admin_mode": True})
-    return utils.response(
-        return_code=return_codes.ADMIN_ON, cookie=(True, "session_id", session_id)
-    )
+    return utils.response(return_code=return_codes.ADMIN_ON, cookie=(True, "session_id", session_id))
 
 
 @router.post("/admin-mode-off", deprecated=True, name="admin-mode-off-deprecated")
@@ -94,11 +91,10 @@ async def activate_admin_mode(
                 }
             }
         },
-        **models.common_auth_error_responses
-    }
+        **models.common_auth_error_responses,
+    },
 )
-async def deactivate_admin_mode(
-    auth_data: dict = Depends(AuthDependencyNoResourceId())) -> JSONResponse:
+async def deactivate_admin_mode(auth_data: dict = Depends(AuthDependencyNoResourceId())) -> JSONResponse:
     """Turn off admin mode for the user by removing the session cookie from the client.
 
     ### Example

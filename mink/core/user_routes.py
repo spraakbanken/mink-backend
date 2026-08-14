@@ -31,8 +31,6 @@ async def get_user_info(auth_data: dict = Depends(login.AuthDependencyNoResource
         user["admin_mode"] = auth_data.get("admin_mode", False)
         user["organization_prefix"] = route_utils.get_user_organization_prefix(auth_data["user"])
 
-        return utils.response(
-            return_code=return_codes.LISTING_CONTENT, info="Listing user info", user=user
-        )
+        return utils.response(return_code=return_codes.LISTING_CONTENT, info="Listing user info", user=user)
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_LISTING_CONTENT, info=str(e)) from e

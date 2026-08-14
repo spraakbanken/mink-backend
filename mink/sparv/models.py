@@ -10,6 +10,7 @@ from mink.core import models, return_codes
 
 class ListResourcesResponse(models.BaseResponse):
     """Model for responses where corpus resources are listed."""
+
     resources: list[str] = Field(default=[], description="List of resource IDs")
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
@@ -19,7 +20,7 @@ class ListResourcesResponse(models.BaseResponse):
                     "message": return_codes.LISTING_CONTENT.message,
                     "return_code": return_codes.LISTING_CONTENT.code,
                     "info": "Listing available corpus resources",
-                    "resources": ["mink-dxh6e6wtff", "mink-j86tfreaf9", "mink-3qbh7tra6g"]
+                    "resources": ["mink-dxh6e6wtff", "mink-j86tfreaf9", "mink-3qbh7tra6g"],
                 }
             ]
         }
@@ -28,6 +29,7 @@ class ListResourcesResponse(models.BaseResponse):
 
 class CheckInputResponse(models.BaseResponse):
     """Model for the /corpus/job/check-input response."""
+
     input_changed: bool = Field(
         default=False, description="Indicates if the input for the corpus has changed since the last run"
     )
@@ -113,6 +115,7 @@ class LanguagesResponse(models.BaseResponse):
 
 class ExportsResponse(models.BaseResponse):
     """Model for the /corpus/sparv/list-exports response."""
+
     exports: list[str] = Field(default=[], description="List of available export formats")
     language: str = Field(default="swe", description="ISO code of the language chosen for the export listing")
     model_config: ClassVar[dict] = {
@@ -150,7 +153,7 @@ class ExportsResponse(models.BaseResponse):
                             "description": "Scrambled XML export",
                             "export_files": ["xml_export.scrambled/{file}_export.xml"],
                         },
-                    ]
+                    ],
                 }
             ]
         }
@@ -271,7 +274,7 @@ statuses_response_examples = [
                 "info": "Job was completed successfully",
                 "resource": models.resource_model_example,
                 "job": job_model_examples[1],
-            }
+            },
         ],
     }
 ]

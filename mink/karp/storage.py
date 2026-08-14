@@ -71,9 +71,7 @@ class KarpStorage(BaseStorage):
 
     def get_resource_dir(self, resource_id: str, mkdir: bool = False) -> Path:
         """Get dir for given lexicon."""
-        resource_dir = (
-            Path(karp_settings.KARP_DATA_DIR) / resource_id[len(settings.RESOURCE_PREFIX)] / resource_id
-        )
+        resource_dir = Path(karp_settings.KARP_DATA_DIR) / resource_id[len(settings.RESOURCE_PREFIX)] / resource_id
         if mkdir:
             self.make_dir(resource_dir)
         return resource_dir

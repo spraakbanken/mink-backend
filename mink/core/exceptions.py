@@ -51,6 +51,7 @@ class MinkHTTPException(HTTPException):
 # Custom exception handlers
 # ------------------------------------------------------------------------------
 
+
 def custom_http_exception_handler(_request: Request, exc: MinkHTTPException) -> JSONResponse:
     """Handle custom HTTP exceptions."""
     # Make sure exc.detail is a mapping with string keys and serializable values
@@ -111,6 +112,7 @@ def internal_server_error_handler(_request: Request, exc: Exception) -> JSONResp
 
 # Job related exceptions
 
+
 class JobError(Exception):
     """Exception used for when something is wrong with a job."""
 
@@ -129,12 +131,14 @@ class ProcessNotFoundError(JobError):
 
 class JobNotFoundError(JobError):
     """Exception used for when a job could not be found."""
+
     def __init__(self, resource_id: str) -> None:
         """Initialize the exception with a message."""
         super().__init__(f"No resource found with ID '{resource_id}'")
 
 
 # Authentication/authorization related exceptions
+
 
 class ApikeyCheckFailedError(Exception):
     """Exception used for when an API key fails to validate."""
@@ -150,6 +154,7 @@ class ApikeyNotFoundError(Exception):
 
 class CreateResourceError(Exception):
     """Exception used for when a resource could not be created."""
+
     def __init__(self, resource_id: str, message: str) -> None:
         """Initialize the exception with a message."""
         super().__init__(f"Failed to create resource '{resource_id}': {message}")
@@ -157,6 +162,7 @@ class CreateResourceError(Exception):
 
 class RemoveResourceError(Exception):
     """Exception used for when a resource could not be removed."""
+
     def __init__(self, resource_id: str, message: str) -> None:
         """Initialize the exception with a message."""
         super().__init__(f"Failed to remove resource '{resource_id}': {message}")
@@ -164,8 +170,10 @@ class RemoveResourceError(Exception):
 
 # Storage related exceptions
 
+
 class ReadError(Exception):
     """Exception used for when reading/downloading from the storage server fails."""
+
     def __init__(self, path: Path | str, error: str) -> None:
         """Initialize the exception with the path and error message."""
         super().__init__(f"Failed to read or download '{path}': {error}")
@@ -173,6 +181,7 @@ class ReadError(Exception):
 
 class WriteError(Exception):
     """Exception used for when writing to the storage server fails."""
+
     def __init__(self, path: Path | str, error: str) -> None:
         """Initialize the exception with the path and error message."""
         super().__init__(f"Failed to write to '{path}': {error}")
@@ -180,8 +189,10 @@ class WriteError(Exception):
 
 # Misc exceptions
 
+
 class CacheConnectionError(Exception):
     """Exception used for when the cache client could not connect."""
+
     def __init__(self, server: str, error: Exception) -> None:
         """Initialize the exception with a message."""
         super().__init__(f"Could not connect to cache server at {server}: {error}")
@@ -189,6 +200,7 @@ class CacheConnectionError(Exception):
 
 class ConfigVariableNotSetError(ValueError):
     """Exception used for when a config variable is not set."""
+
     def __init__(self, config_variable: str) -> None:
         """Initialize the exception with the config variable name."""
         super().__init__(f"Config variable '{config_variable}' is not set.")
@@ -196,6 +208,7 @@ class ConfigVariableNotSetError(ValueError):
 
 class ConfigurationError(Exception):
     """Exception used for when there is a configuration error."""
+
     def __init__(self, message: str) -> None:
         """Initialize the exception with a message."""
         super().__init__(f"Configuration error: {message}")
@@ -203,6 +216,7 @@ class ConfigurationError(Exception):
 
 class ResourceExistsError(Exception):
     """Exception used for when a resource ID already exists."""
+
     def __init__(self, resource_id: str) -> None:
         """Initialize the exception with the resource ID."""
         super().__init__(f"Resource {resource_id} already exists")
@@ -214,6 +228,7 @@ class CouldNotListSourcesError(Exception):
 
 class InvalidResourceTypeError(TypeError):
     """Exception used for when a resource type is invalid."""
+
     def __init__(self, resource_type: str) -> None:
         """Initialize the exception with the resource type."""
         super().__init__(f"Invalid resource type: {resource_type}")

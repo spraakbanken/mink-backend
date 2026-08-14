@@ -229,9 +229,7 @@ FAILED_LISTING_CONTENT = ReturnCode(
 QUEUE_ADVANCED = ReturnCode(
     "advanced_queue", message="Queue advancing completed", status_code=status.HTTP_200_OK, tag=JOB
 )
-QUEUE_HEALTHY = ReturnCode(
-    "queue_healthy", message="Queue health looks good", status_code=status.HTTP_200_OK, tag=JOB
-)
+QUEUE_HEALTHY = ReturnCode("queue_healthy", message="Queue health looks good", status_code=status.HTTP_200_OK, tag=JOB)
 QUEUE_DEGRADED = ReturnCode(
     "queue_degraded",
     message="Queue health warning detected",

@@ -39,10 +39,7 @@ LOGGING_CONFIG = {
             "filename": log_file_path,
         },
     },
-    "root": {
-        "level": "INFO",
-        "handlers": ["file" if settings.LOG_TO_FILE else "console"]
-    },
+    "root": {"level": "INFO", "handlers": ["file" if settings.LOG_TO_FILE else "console"]},
 }
 
 dictConfig(LOGGING_CONFIG)

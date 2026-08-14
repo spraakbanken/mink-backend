@@ -60,7 +60,7 @@ def _require_job(job: object) -> SparvJob:
                         "status": "error",
                         "message": return_codes.FILE_NOT_FOUND.message,
                         "return_code": return_codes.FILE_NOT_FOUND.code,
-                        "info": "No source files found for this resource"
+                        "info": "No source files found for this resource",
                     }
                 }
             },
@@ -308,7 +308,7 @@ async def abort_job(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRespons
                         "message": return_codes.REMOVED_CONTENT.message,
                         "return_code": return_codes.REMOVED_CONTENT.code,
                         "info": "Removed annotations",
-                        "sparv_output": "'sparv-workdir' directory removed"
+                        "sparv_output": "'sparv-workdir' directory removed",
                     }
                 }
             }

@@ -29,6 +29,7 @@ AUTH_METADATA_NO_ID = login.AuthDependencyNoResourceId(sbauth_resource_type=sbau
 # Resource creation and removal
 # ------------------------------------------------------------------------------
 
+
 @router.post(
     "/create",
     status_code=status.HTTP_201_CREATED,
@@ -208,6 +209,7 @@ async def list_metadata(auth_data: dict = Depends(AUTH_METADATA_NO_ID)) -> JSONR
 # ------------------------------------------------------------------------------
 # Metadata (yaml) file operations
 # ------------------------------------------------------------------------------
+
 
 @router.put(
     "/config/upload/{resource_id}",

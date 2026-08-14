@@ -14,11 +14,12 @@ from mink.core import return_codes
 
 class BaseResponse(BaseModel):
     """Base response model with common fields."""
+
     status: str = Field(default="success", description="Response status, usually 'success' or 'error'")
     message: str = Field(default="", description="Short message describing the response")
     return_code: str = Field(
         default="",
-        description="Return code indicating the status of the request, mostly used for frontend error handling"
+        description="Return code indicating the status of the request, mostly used for frontend error handling",
     )
     info: str | None = Field(default=None, description="More detailed information about the response")
     warnings: list[str] | None = Field(default=None, description="List of warnings, if any")
@@ -26,6 +27,7 @@ class BaseResponse(BaseModel):
 
 class CreateResourceResponse(BaseResponse):
     """Model for the response to a resource creation request."""
+
     resource_id: str = Field(default="", description="The ID of the created resource")
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
@@ -43,6 +45,7 @@ class CreateResourceResponse(BaseResponse):
 
 class StatusCodeModel(BaseModel):
     """Status codes for job processes."""
+
     name: str = Field(default="", description="Name of the status code")
     description: str = Field(default="", description="Description of the status code")
 
@@ -67,21 +70,19 @@ file_model_examples = [
 
 class FileModel(BaseModel):
     """Model for file list."""
+
     name: str = Field(default="", description="Name of the file")
     file_type: str = Field(default="", alias="type", description="MIME type of the file")
     last_modified: str = Field(default="", description="Last modified date of the file")
     size: int = Field(default=0, description="Size of the file in bytes")
     path: str = Field(default="", description="Path to the file in the storage system")
 
-    model_config = {
-        "json_schema_extra": {
-            "examples": [*file_model_examples]
-        }
-    }
+    model_config = {"json_schema_extra": {"examples": [*file_model_examples]}}
 
 
 class ListingFilesResponse(BaseResponse):
     """Model for responses with file contents field."""
+
     contents: list[FileModel] = Field(
         default=[FileModel()], description="List of contents, each containing information about a file"
     )
@@ -89,6 +90,7 @@ class ListingFilesResponse(BaseResponse):
 
 class ListResourcesResponse(BaseResponse):
     """Model for responses listing resource IDs."""
+
     resources: list[str] = Field(default=[], description="List of resource IDs")
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
@@ -107,6 +109,7 @@ class ListResourcesResponse(BaseResponse):
 
 class FileResponse(BaseModel):
     """Model for file response."""
+
     filename: str = Field(default="", description="Name of the file")
     content_type: str = Field(default="application/octet-stream", description="MIME type of the file")
     content: str  # Base64-encoded file content
@@ -125,16 +128,17 @@ class FileResponse(BaseModel):
 
 
 user_model_example = {
-        "id": "example-idp-abc123",
-        "name": "Anna Andersson",
-        "email": "anna.andersson@example.com",
-        "idp": "example-idp",
-        "sub": "abc123",
-    }
+    "id": "example-idp-abc123",
+    "name": "Anna Andersson",
+    "email": "anna.andersson@example.com",
+    "idp": "example-idp",
+    "sub": "abc123",
+}
 
 
 class UserModel(BaseModel):
     """Model for the user object."""
+
     user_id: str = Field(default="", alias="id", description="User ID")
     name: str = Field(default="", description="Name of the user")
     email: str = Field(default="", description="Email address of the user")
@@ -151,6 +155,7 @@ class UserInfoResponse(BaseResponse):
 
     class DetailedUserModel(BaseModel):
         """Detailed model for the user object in the /user/info/get response."""
+
         user_id: str = Field(default="", alias="id", description="User ID")
         name: str = Field(default="", description="Name of the user")
         email: str = Field(default="", description="Email address of the user")
@@ -226,6 +231,7 @@ job_model_example = {
 
 class JobModel(BaseModel):
     """Model for a generic job."""
+
     status: dict[str, str] = Field(default_factory=dict, description="Statuses for the job's processes")
     current_process: str | None = Field(default=None, description="The current process being executed")
     pid: int | None = Field(default=None, description="The process ID of the current job")
@@ -238,13 +244,12 @@ class JobModel(BaseModel):
     duration: int = Field(default=0, description="Duration of the job in seconds")
     progress: str = Field(default="0%", description="Progress percentage as a string")
 
-    model_config: ClassVar[dict] = {
-        "json_schema_extra": {"examples": [job_model_example]}
-    }
+    model_config: ClassVar[dict] = {"json_schema_extra": {"examples": [job_model_example]}}
 
 
 class ResourceModel(BaseModel):
     """Model for the resource object."""
+
     resource_id: str = Field(default="", alias="id", description="Mink resource ID")
     public_id: str = Field(default="", description="Public resource ID")
     name: dict[str, str] = Field(
@@ -268,6 +273,7 @@ class ResourceModel(BaseModel):
 
 class QueueHealthJobModel(BaseModel):
     """Model for one active queue entry."""
+
     resource_id: str = Field(default="", description="Mink resource ID")
     resource_type: str = Field(default="", description="Resource type")
     current_process: str | None = Field(default=None, description="Current queue process")
@@ -281,6 +287,7 @@ class QueueHealthJobModel(BaseModel):
 
 class QueueHealthResponse(BaseResponse):
     """Model for queue health responses."""
+
     healthy: bool = Field(default=True, description="Whether the queue is considered healthy")
     warning_threshold_seconds: int = Field(
         default=3600, description="Threshold used for warning on old queued or running jobs"
@@ -374,14 +381,17 @@ class QueueHealthResponse(BaseResponse):
 # Error response models
 # ----------------------------------------------------
 
+
 class BaseErrorResponse(BaseResponse):
     """Abstract base model for error responses."""
+
     status: str = Field(default="error", description="Response status, usually 'success' or 'error'")
     info: str | None = Field(default=None, description="Additional information about the error")
 
 
 class ErrorResponse400(BaseErrorResponse):
     """Model for 400 error responses."""
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -397,6 +407,7 @@ class ErrorResponse400(BaseErrorResponse):
 
 class ErrorResponse401(BaseErrorResponse):
     """Model for 401 error responses."""
+
     info: str | None = Field(default=None, description="Additional information about the error")
     model_config = {
         "json_schema_extra": {
@@ -438,6 +449,7 @@ class ErrorResponse401(BaseErrorResponse):
 
 class ErrorResponse404Resource(BaseErrorResponse):
     """Model for 404 resource not found error responses."""
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -453,6 +465,7 @@ class ErrorResponse404Resource(BaseErrorResponse):
 
 class ErrorResponse404File(BaseErrorResponse):
     """Model for 404 file not found error responses."""
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -468,6 +481,7 @@ class ErrorResponse404File(BaseErrorResponse):
 
 class ErrorResponse413(BaseErrorResponse):
     """Model for 413 error responses."""
+
     return_code: str = Field(default=return_codes.CONTENT_TOO_LARGE.code, description="Short code describing the error")
     message: str = Field(
         default=return_codes.CONTENT_TOO_LARGE.message, description="Short message describing the error"
@@ -492,12 +506,15 @@ class ErrorResponse413(BaseErrorResponse):
 
 class ErrorResponse422(BaseErrorResponse):
     """Model for 422 error responses."""
+
     message: str = Field(
         default=return_codes.VALIDATION_ERROR.message, description="Short message describing the error"
     )
     return_code: str = Field(default=return_codes.VALIDATION_ERROR.code, description="Short code describing the error")
-    info: str = Field(default="Could not process the request due to errors in the input (see errors for details).",
-                      description="More detailed information about the response")
+    info: str = Field(
+        default="Could not process the request due to errors in the input (see errors for details).",
+        description="More detailed information about the response",
+    )
     errors: list[str]
 
     model_config = {
@@ -517,13 +534,14 @@ class ErrorResponse422(BaseErrorResponse):
 
 class ErrorResponse500(BaseErrorResponse):
     """Model for 500 error responses."""
+
     model_config = {
         "json_schema_extra": {
             "examples": [
                 {
                     "status": "error",
                     "message": return_codes.INTERNAL_SERVER_ERROR.message,
-                    "return_code": return_codes.INTERNAL_SERVER_ERROR.code
+                    "return_code": return_codes.INTERNAL_SERVER_ERROR.code,
                 },
                 {
                     "status": "error",
@@ -534,8 +552,8 @@ class ErrorResponse500(BaseErrorResponse):
                     "status": "error",
                     "message": return_codes.API_KEY_ERROR.message,
                     "return_code": return_codes.API_KEY_ERROR.code,
-                    "info": "Signature verification failed"
-                }
+                    "info": "Signature verification failed",
+                },
             ]
         }
     }
@@ -546,7 +564,7 @@ common_auth_error_responses = {
     status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponse401},
     status.HTTP_404_NOT_FOUND: {"model": ErrorResponse404Resource},
     status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponse422},
-    status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": ErrorResponse500}
+    status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": ErrorResponse500},
 }
 
 # ------------------------------------------------------------------------------
@@ -568,11 +586,13 @@ class InfoResponse(BaseResponse):
 
     class InfoDataModel(BaseModel, Generic[T]):
         """Abstract base model for models with 'info' and 'data' fields."""
+
         info: str = Field(default="", description="Description of the data")
         data: list[T] = Field(default_factory=list, description="List of data items")
 
     class NameDescriptionValue(BaseModel):
         """Model containing name, description, and value."""
+
         name: str = Field(default="", description="Name of the value")
         description: str = Field(default="", description="Description of the value")
         value: int
@@ -630,6 +650,7 @@ class InfoResponse(BaseResponse):
 
 class ReturnCodesResponse(BaseResponse):
     """Model for the /return-codes response."""
+
     data: dict[str, list[dict[str, str]]] = Field(
         default_factory=dict,
         description="Dictionary containing lists of return codes keyed by tag",
@@ -663,6 +684,7 @@ class ReturnCodesResponse(BaseResponse):
 
 class JobStatusModel(BaseModel):
     """Model for the status of a resource (used as base for StatusResponse and StatusesResponse)."""
+
     job_status: str = Field(default="", description="Status of the current job for the resource")
     info: str = Field(default="", description="Info about the job status")
     resource: ResourceModel = Field(
@@ -680,13 +702,13 @@ class JobStatusModel(BaseModel):
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
             "examples": [
-                    {
-                "job_status": "waiting",
-                "info": "Job has been queued",
-                "resource": resource_model_example,
-                "owner": user_model_example,
-                "job": job_model_example,
-            }
+                {
+                    "job_status": "waiting",
+                    "info": "Job has been queued",
+                    "resource": resource_model_example,
+                    "owner": user_model_example,
+                    "job": job_model_example,
+                }
             ]
         }
     }
@@ -694,6 +716,7 @@ class JobStatusModel(BaseModel):
 
 class StatusResponse(BaseResponse, JobStatusModel):
     """Model for job status responses."""
+
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
             "examples": [
@@ -713,6 +736,7 @@ class StatusResponse(BaseResponse, JobStatusModel):
 
 class StatusesResponse(BaseResponse):
     """Model for multiple job statuses responses."""
+
     resources: list[JobStatusModel] = Field(
         default=[], description="List of resource objects containing information about the corpus"
     )
@@ -759,8 +783,8 @@ class StatusesResponse(BaseResponse):
                                 ],
                             },
                             "job": job_model_example,
-                        }
-                    ]
+                        },
+                    ],
                 }
             ]
         }

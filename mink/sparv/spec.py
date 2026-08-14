@@ -106,8 +106,7 @@ def register() -> None:
                 "importer_modules": {
                     "info": "Sparv importer modules for different file extensions",
                     "data": [
-                        {"file_extension": k, "importer": v}
-                        for k, v in sparv_settings.SPARV_IMPORTER_MODULES.items()
+                        {"file_extension": k, "importer": v} for k, v in sparv_settings.SPARV_IMPORTER_MODULES.items()
                     ],
                 },
                 "recommended_file_size": {

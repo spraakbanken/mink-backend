@@ -313,8 +313,7 @@ async def get_yaml_payload(*, yaml_file: UploadFile | None, yaml_txt: str | None
     """
     if yaml_file and yaml_txt:
         raise exceptions.MinkHTTPException(
-            return_code=return_codes.VALIDATION_ERROR,
-            info="Both a file and plain text config were provided"
+            return_code=return_codes.VALIDATION_ERROR, info="Both a file and plain text config were provided"
         )
 
     if yaml_file:

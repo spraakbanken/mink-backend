@@ -20,6 +20,7 @@ settings.ENV = "testing"
 
 class ColorFormatter(logging.Formatter):
     """Custom logging formatter that adds color to log messages based on their level."""
+
     COLORS: ClassVar[dict] = {
         logging.DEBUG: Fore.CYAN,
         logging.INFO: Fore.GREEN,
@@ -37,18 +38,8 @@ class ColorFormatter(logging.Formatter):
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     """Add custom command line options for pytest."""
-    parser.addoption(
-        "--custom-log-level",
-        action="store",
-        default="INFO",
-        help="Set custom log level for test logging"
-    )
-    parser.addoption(
-        "--mink-log-level",
-        action="store",
-        default="WARNING",
-        help="Set log level for the 'mink' logger"
-    )
+    parser.addoption("--custom-log-level", action="store", default="INFO", help="Set custom log level for test logging")
+    parser.addoption("--mink-log-level", action="store", default="WARNING", help="Set log level for the 'mink' logger")
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -99,6 +90,7 @@ def pytest_runtest_logstart(nodeid: str) -> None:
 
 class RouteInfo:
     """Class to store route tags and methods from the Mink app."""
+
     def __init__(self) -> None:
         """Initialize the RouteInfo and populate it with route tags and methods."""
         # Collect all route-method pairs
@@ -147,6 +139,7 @@ ROUTE_INFO = RouteInfo()
 # ------------------------------------------------------------------------------
 # Wrap up
 # ------------------------------------------------------------------------------
+
 
 def pytest_sessionfinish(session: object) -> None:
     """Test that all routes have been tested."""

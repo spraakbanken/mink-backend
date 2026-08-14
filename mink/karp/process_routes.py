@@ -59,7 +59,7 @@ def _require_job(job: object) -> KarpJob:
                         "status": "error",
                         "message": return_codes.FILE_NOT_FOUND.message,
                         "return_code": return_codes.FILE_NOT_FOUND.code,
-                        "info": "No source files found for this resource"
+                        "info": "No source files found for this resource",
                     }
                 }
             },

@@ -26,6 +26,7 @@ class BaseStorage:
     Expected usage is to subclass this and implement the required methods, while the capability flags can be set
     according to what the specific storage backend supports.
     """
+
     # ------------------------------------------------------------------------------
     # Capability flags
     # ------------------------------------------------------------------------------

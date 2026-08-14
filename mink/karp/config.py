@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 
 class KarpSettings(BaseSettings):
     """Settings for the Karp module."""
+
     KARP_ENABLED: bool = True  # Whether Karp integration is enabled
     KARP_RES_INFO: str = "The lexicon resource type is used to store lexicons that can be processed with Karp."
 
@@ -43,7 +44,7 @@ class KarpSettings(BaseSettings):
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists
         "env_file_encoding": "utf-8",
-        "extra": "ignore"  # Ignore extra environment variables from other modules
+        "extra": "ignore",  # Ignore extra environment variables from other modules
     }
 
 

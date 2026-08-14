@@ -83,9 +83,7 @@ async def swagger_openapi(request: Request) -> JSONResponse:
         for tag in operation.get("tags", [])
     }
     # Rewrite markdown anchor links to Swagger links, e.g. (#install-strix)->(#/Process%20Corpus/install-strix)
-    oas = _rewrite_operation_links(
-        oas, lambda operation_id: f"(#/{opid_dict.get(operation_id, '')}/{operation_id})"
-    )
+    oas = _rewrite_operation_links(oas, lambda operation_id: f"(#/{opid_dict.get(operation_id, '')}/{operation_id})")
     return JSONResponse(content=oas)
 
 
@@ -134,12 +132,14 @@ async def openapi_to_markdown(request: Request) -> PlainTextResponse:
     for path, operations in openapi_schema["paths"].items():
         for method, operation in operations.items():
             for tag in operation.get("tags", []):
-                tags_dict[tag].append({
-                    "path": path,
-                    "method": method,
-                    "operation": operation,
-                    "summary": operation.get("summary", ""),
-                })
+                tags_dict[tag].append(
+                    {
+                        "path": path,
+                        "method": method,
+                        "operation": operation,
+                        "summary": operation.get("summary", ""),
+                    }
+                )
             # Add another markdown header level to "Example" in description
             if "description" in operation:
                 operation["description"] = re.sub(
@@ -203,7 +203,7 @@ async def info() -> JSONResponse:
         status_codes=status_codes,
         file_size_limits=file_size_limits,
         resource_info=resource_info,
-)
+    )
 
 
 @router.get("/return-codes", response_model=ReturnCodesResponse, operation_id="return-codes")

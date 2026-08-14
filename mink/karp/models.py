@@ -9,6 +9,7 @@ from mink.core import models, return_codes
 
 class ListResourcesResponse(models.BaseResponse):
     """Model for responses where lexicon resources are listed."""
+
     resources: list[str] = Field(default=[], description="List of resource IDs")
     model_config: ClassVar[dict] = {
         "json_schema_extra": {
@@ -18,7 +19,7 @@ class ListResourcesResponse(models.BaseResponse):
                     "message": return_codes.LISTING_CONTENT.message,
                     "return_code": return_codes.LISTING_CONTENT.code,
                     "info": "Listing lexicons",
-                    "resources": ["mink-dxh6e6wtff", "mink-j86tfreaf9", "mink-3qbh7tra6g"]
+                    "resources": ["mink-dxh6e6wtff", "mink-j86tfreaf9", "mink-3qbh7tra6g"],
                 }
             ]
         }
@@ -36,7 +37,7 @@ lexicon_model_example = {
             "type": "unknown",
             "last_modified": "2026-04-22T12:50:37+02:00",
             "size": 62,
-            "path": "test_lexicon_data2.jsonl"
+            "path": "test_lexicon_data2.jsonl",
         }
     ],
     "sources_deleted": "2026-04-22T12:50:37+02:00",
@@ -44,10 +45,7 @@ lexicon_model_example = {
 
 
 job_model_example = {
-    "status": {
-        "karp_pipeline": "waiting",
-        "karps": "none"
-    },
+    "status": {"karp_pipeline": "waiting", "karps": "none"},
     "current_process": "karp_pipeline",
     "pid": None,
     "installed_karps": False,
@@ -68,7 +66,7 @@ job_model_example = {
     "started": "",
     "ended": "",
     "duration": 0,
-    "progress": "0%"
+    "progress": "0%",
 }
 
 

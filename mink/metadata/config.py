@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings
 
 class MetadataSettings(BaseSettings):
     """Settings for metadata upload."""
+
     METADATA_RES_INFO: str = (
         "This resource type is used to store metadata yaml files to be used for the Språkbanken resource page."
     )
@@ -24,7 +25,7 @@ class MetadataSettings(BaseSettings):
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists
         "env_file_encoding": "utf-8",
-        "extra": "ignore"  # Ignore extra environment variables from other modules (e.g. SPARV_*)
+        "extra": "ignore",  # Ignore extra environment variables from other modules (e.g. SPARV_*)
     }
 
 

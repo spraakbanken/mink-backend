@@ -43,6 +43,7 @@ def _require_job(job: object) -> KarpJob:
 # Resource management
 # ------------------------------------------------------------------------------
 
+
 @router.post(
     "/create",
     operation_id="create-lexicon",
@@ -196,6 +197,7 @@ async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
 # ------------------------------------------------------------------------------
 # Source file operations
 # ------------------------------------------------------------------------------
+
 
 @router.put(
     "/sources/upload/{resource_id}",
@@ -505,6 +507,7 @@ async def download_sources(
 # Config file operations
 # ------------------------------------------------------------------------------
 
+
 @router.put(
     "/config/upload/{resource_id}",
     operation_id="upload-lexicon-config",
@@ -531,7 +534,7 @@ async def download_sources(
                         "status": "error",
                         "message": return_codes.VALIDATION_ERROR.message,
                         "return_code": return_codes.VALIDATION_ERROR.code,
-                        "info": "Both a file and plain text config were provided"
+                        "info": "Both a file and plain text config were provided",
                     }
                 }
             },
@@ -584,7 +587,7 @@ async def upload_config(
         yaml_txt=yaml_txt,
         res_obj=info_obj.resource,
         standardize_fn=lambda contents: karp_utils.standardize_config(contents, resource_id),
-        write_fn=lambda data: storage.write_file_contents(config_path, data, resource_id)
+        write_fn=lambda data: storage.write_file_contents(config_path, data, resource_id),
     )
     info_obj.resource.set_custom_config(custom_config)
     return response
@@ -637,6 +640,7 @@ async def download_config(auth_data: dict = Depends(AUTH_LEXICON)) -> FileRespon
 # ------------------------------------------------------------------------------
 # Output file operations
 # ------------------------------------------------------------------------------
+
 
 @router.get(
     "/exports/list/{resource_id}",
@@ -728,7 +732,7 @@ async def list_exports(auth_data: dict = Depends(AUTH_LEXICON)) -> JSONResponse:
                         "status": "error",
                         "message": return_codes.VALIDATION_ERROR.message,
                         "return_code": return_codes.VALIDATION_ERROR.code,
-                        "info": "Both 'file' and 'dir' parameters were provided"
+                        "info": "Both 'file' and 'dir' parameters were provided",
                     }
                 }
             },
@@ -797,7 +801,7 @@ async def download_exports(
                         "message": return_codes.REMOVED_CONTENT.message,
                         "return_code": return_codes.REMOVED_CONTENT.code,
                         "info": "Removed output",
-                        "karp_output": "Karp pipeline output removed"
+                        "karp_output": "Karp pipeline output removed",
                     }
                 }
             }
@@ -852,9 +856,7 @@ async def remove_exports(auth_data: dict = Depends(AUTH_WRITE)) -> JSONResponse:
 
     try:
         karp_output = job.clean()
-        return utils.response(
-            return_code=return_codes.REMOVED_CONTENT, info="Removed output", karp_output=karp_output
-        )
+        return utils.response(return_code=return_codes.REMOVED_CONTENT, info="Removed output", karp_output=karp_output)
     except Exception as e:
         raise exceptions.MinkHTTPException(
             return_code=return_codes.FAILED_REMOVING_CONTENT, info=f"Failed to remove output: {e}"

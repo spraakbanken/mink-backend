@@ -113,6 +113,7 @@ class LimitRequestSizeMiddleware:
          - If size ever exceeds the limit: send 413 and return.
          - If within limit: replay the buffered chunks to the app.
     """
+
     def __init__(self, app: ASGIApp) -> None:
         """Initialize the middleware."""
         self.app = app

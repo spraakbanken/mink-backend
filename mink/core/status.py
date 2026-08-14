@@ -19,12 +19,12 @@ class Status(StrEnum):
     def description(self) -> str:
         """Description for the status."""
         docs = {
-                "none": "Process does not exist",
-                "waiting": "Waiting to be processed",
-                "running": "Process is running",
-                "done": "Process has finished",
-                "error": "An error occurred in the process",
-                "aborted": "Process was aborted by the user"
+            "none": "Process does not exist",
+            "waiting": "Waiting to be processed",
+            "running": "Process is running",
+            "done": "Process has finished",
+            "error": "An error occurred in the process",
+            "aborted": "Process was aborted by the user",
         }
         return docs[self.value]
 

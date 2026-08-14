@@ -33,6 +33,7 @@ def initialize_if_needed() -> None:
 
 def ensure_initialized(func: Callable) -> Callable:
     """Ensure the registry is initialized before calling a function."""
+
     @wraps(func)
     def wrapper(*args, **kwargs):  # ruff: ignore[missing-return-type-private-function, missing-type-args, missing-type-kwargs]
         initialize_if_needed()

@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 
 class SparvSettings(BaseSettings):
     """Settings for the Sparv module."""
+
     SPARV_ENABLED: bool = True  # Whether Sparv integration is enabled
     SPARV_RES_INFO: str = "The corpus resource type is used to store corpora that can be processed with Sparv."
 
@@ -119,7 +120,7 @@ class SparvSettings(BaseSettings):
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists
         "env_file_encoding": "utf-8",
-        "extra": "ignore"  # Ignore extra environment variables from other modules
+        "extra": "ignore",  # Ignore extra environment variables from other modules
     }
 
 

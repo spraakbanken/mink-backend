@@ -406,12 +406,8 @@ def main() -> None:
         settings_tables.append((name, [_stringify_entry(e) for e in entries]))
 
     if args.format == "json":
-        json_out["extra_env_file"] = [
-            {"name": e.name, "value": e.value, "source": e.source} for e in env_file_extras
-        ]
-        json_out["extra_env"] = [
-            {"name": e.name, "value": e.value, "source": e.source} for e in env_extras
-        ]
+        json_out["extra_env_file"] = [{"name": e.name, "value": e.value, "source": e.source} for e in env_file_extras]
+        json_out["extra_env"] = [{"name": e.name, "value": e.value, "source": e.source} for e in env_extras]
         warnings: list[str] = []
         if env_file_extras:
             warnings.append(
@@ -446,8 +442,7 @@ def main() -> None:
 
         if env_file_extras:
             console.print(
-                "WARNING: Extra config values found in .env (not defined in any settings class). "
-                "These have no effect.",
+                "WARNING: Extra config values found in .env (not defined in any settings class). These have no effect.",
                 style="yellow",
             )
             console.print("\n  extra .env values", style="bold", markup=False)

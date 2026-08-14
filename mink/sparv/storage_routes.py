@@ -45,6 +45,7 @@ def _require_job(job: object) -> SparvJob:
 # Corpus operations
 # ------------------------------------------------------------------------------
 
+
 @router.post(
     "/corpus/create",
     operation_id="create-corpus",
@@ -270,6 +271,7 @@ async def remove_corpus(auth_data: dict = Depends(AUTH_CORPUS_ADMIN)) -> JSONRes
 # ------------------------------------------------------------------------------
 # Source file operations
 # ------------------------------------------------------------------------------
+
 
 @router.put(
     "/corpus/sources/upload/{resource_id}",
@@ -656,6 +658,7 @@ async def download_sources(
 # Config file operations
 # ------------------------------------------------------------------------------
 
+
 @router.put(
     "/corpus/config/upload/{resource_id}",
     operation_id="upload-corpus-config",
@@ -682,7 +685,7 @@ async def download_sources(
                         "status": "error",
                         "message": return_codes.VALIDATION_ERROR.message,
                         "return_code": return_codes.VALIDATION_ERROR.code,
-                        "info": "Both a file and plain text config were provided"
+                        "info": "Both a file and plain text config were provided",
                     }
                 }
             },
@@ -793,6 +796,7 @@ async def download_config(auth_data: dict = Depends(AUTH_CORPUS)) -> FileRespons
 # Export file operations
 # ------------------------------------------------------------------------------
 
+
 @router.get(
     "/corpus/exports/list/{resource_id}",
     operation_id="list-corpus-exports",
@@ -883,7 +887,7 @@ async def list_exports(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
                         "status": "error",
                         "message": return_codes.VALIDATION_ERROR.message,
                         "return_code": return_codes.VALIDATION_ERROR.code,
-                        "info": "Both 'file' and 'dir' parameters were provided"
+                        "info": "Both 'file' and 'dir' parameters were provided",
                     }
                 }
             },
@@ -951,7 +955,7 @@ async def download_exports(
                         "status": "success",
                         "message": return_codes.REMOVED_CONTENT.message,
                         "return_code": return_codes.REMOVED_CONTENT.code,
-                        "info": "Removed export files"
+                        "info": "Removed export files",
                     },
                 }
             },

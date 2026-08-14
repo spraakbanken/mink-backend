@@ -9,6 +9,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     """Default app configuration."""
+
     ENV: str = "production"  # Environment type (production, development or testing)
     DEFAULT_RESOURCE_ID: str = ""  # Default resource ID to be used for testing in development mode
 
@@ -18,9 +19,7 @@ class Settings(BaseSettings):
     RESOURCE_PREFIX: str = "mink-"  # Prefix for resource IDs
 
     # Modules that register resource specs
-    SPEC_MODULES: list[str] = Field(
-        default_factory=lambda: ["mink.sparv.spec", "mink.metadata.spec", "mink.karp.spec"]
-    )
+    SPEC_MODULES: list[str] = Field(default_factory=lambda: ["mink.sparv.spec", "mink.metadata.spec", "mink.karp.spec"])
 
     # Modules that contain config
     CONFIG_MODULES: list[str] = Field(
@@ -93,7 +92,7 @@ class Settings(BaseSettings):
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists
         "env_file_encoding": "utf-8",
-        "extra": "ignore"  # Ignore extra environment variables from other modules (e.g. SPARV_*)
+        "extra": "ignore",  # Ignore extra environment variables from other modules (e.g. SPARV_*)
     }
 
 

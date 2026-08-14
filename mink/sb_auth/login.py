@@ -146,6 +146,7 @@ async def get_auth_data(
     # Refresh persisted owner metadata for the requested resource
     try:
         from mink.core import registry  # ruff: ignore[import-outside-top-level], avoids circular import
+
         info_obj = registry.get(resource_id)
         info_obj.sync_owner(user)
         auth_data["info_obj"] = info_obj
@@ -491,7 +492,6 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
         response = await client.send(request)
 
     if response.status_code == status.HTTP_204_NO_CONTENT:
-
         if not is_jwt(auth_token):
             # Remove cached API key data to force refresh next time
             auth_cache.remove_apikey_data(auth_token)
@@ -507,6 +507,7 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
 # ------------------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------------------
+
 
 def _filter_resource_ids_by_type(resource_ids: list[str], resource_type: str) -> list[str]:
     """Filter local resource IDs by resource type using cached registry metadata."""

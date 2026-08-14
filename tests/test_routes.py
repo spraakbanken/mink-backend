@@ -153,9 +153,9 @@ def test_queue_health_healthy(create_queue_job: Callable[..., info_module.Info])
 @pytest.mark.general
 def test_queue_health_degraded_for_stale_waiting_job(create_queue_job: Callable[..., info_module.Info]) -> None:
     """Test queue health route for a stale waiting job."""
-    queued = (
-        datetime.now().astimezone() - timedelta(seconds=settings.QUEUE_HEALTH_WARNING_SECONDS + 120)
-    ).isoformat(timespec="seconds")
+    queued = (datetime.now().astimezone() - timedelta(seconds=settings.QUEUE_HEALTH_WARNING_SECONDS + 120)).isoformat(
+        timespec="seconds"
+    )
     info_obj = create_queue_job(job_status=Status.waiting, queued=queued)
     response = call_route(
         "GET",

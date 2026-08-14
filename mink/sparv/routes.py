@@ -1,4 +1,3 @@
-
 """General Sparv routes (not directly related to resources)."""
 
 from fastapi import APIRouter, Query, status
