@@ -146,7 +146,7 @@ def test_queue_health_healthy(create_queue_job: Callable[..., info_module.Info])
     assert json_data.get("healthy") is True
     assert json_data.get("running_jobs") >= 1
     assert json_data.get("waiting_jobs") == 0
-    assert json_data.get("oldest_running_seconds", 0) >= 240  # noqa: PLR2004
+    assert json_data.get("oldest_running_seconds", 0) >= 240  # ruff: ignore[magic-value-comparison]
     assert any(job.get("resource_id") == info_obj.id for job in json_data.get("queue_jobs", []))
 
 

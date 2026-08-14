@@ -145,7 +145,7 @@ async def get_auth_data(
 
     # Refresh persisted owner metadata for the requested resource
     try:
-        from mink.core import registry  # noqa: PLC0415, Import lazily to avoid import cycle
+        from mink.core import registry  # ruff: ignore[import-outside-top-level], avoids circular import
         info_obj = registry.get(resource_id)
         info_obj.sync_owner(user)
         auth_data["info_obj"] = info_obj

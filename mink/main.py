@@ -76,15 +76,19 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:
     if settings.ENV != "testing":
         utils.build_docs()
 
-    yield
-
-    # -------------------------------
-    # Shutdown logic
-    # -------------------------------
-    logger.info("Shutting down Mink, removing temporary files")
-    tmp_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR
-    shutil.rmtree(str(tmp_dir), ignore_errors=True)
-    logger.info("Done")
+    try:
+        yield
+    except Exception:
+        logger.exception("Unhandled exception during application lifespan")
+        raise
+    finally:
+        # -------------------------------
+        # Shutdown logic
+        # -------------------------------
+        logger.info("Shutting down Mink, removing temporary files")
+        tmp_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR
+        shutil.rmtree(str(tmp_dir), ignore_errors=True)
+        logger.info("Done")
 
 
 preflight()
@@ -254,7 +258,7 @@ def custom_openapi() -> dict:
             operation["description"] = operation.get("description", "").replace("{{host}}", host)
 
     # Inject resource-specific OpenAPI examples
-    from mink.core.resource_specs import get_all_specs  # noqa: PLC0415
+    from mink.core.resource_specs import get_all_specs  # ruff: ignore[import-outside-top-level]
 
     for spec in get_all_specs().values():
         if not spec.openapi_examples:

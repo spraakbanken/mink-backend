@@ -15,7 +15,7 @@ class BaseJob:
 
     def __init__(
         self,
-        id: str,  # noqa: A002
+        id: str,  # ruff: ignore[builtin-argument-shadowing]
         processes: list[str],
         status: dict | None = None,
         current_process: str | None = None,
@@ -88,7 +88,7 @@ class BaseJob:
 
     @property
     def progress(self) -> str:
-        """Return progress as percentage string."""
+        """Progress as percentage string."""
         return f"{self.progress_output}%"
 
     def abort(self) -> None:
@@ -131,26 +131,9 @@ class BaseJob:
             "real_seconds": None,
         }
         for line in output.split("\n"):
+            json_output = None
             try:
                 json_output = json.loads(line)
-                msg = json_output.get("message")
-                level = json_output.get("level")
-
-                if level == "WARNING":
-                    if msg is not None:
-                        parsed_output["warnings"].append(str(msg))
-                elif level in {"ERROR", "CRITICAL"}:
-                    if msg is not None:
-                        parsed_output["errors"].append(str(msg))
-                elif level == "PROGRESS":
-                    if msg is not None:
-                        parsed_output["progress"] = int(str(msg).strip("%"))
-                elif level == "FINAL":
-                    parsed_output["final"] = str(msg) if msg is not None else ""
-                elif json_output.get("exit_code") is not None:
-                    parsed_output["exit_code"] = str(json_output["exit_code"])
-                elif msg is not None:
-                    parsed_output["misc"].append(str(msg))
             except json.JSONDecodeError:
                 # Catch "real" time output
                 if re.match(r"real \d.+", line):
@@ -161,6 +144,26 @@ class BaseJob:
                     pass
                 else:
                     logger.debug("Failed to parse line in output as JSON: %s", line)
+                continue
+
+            msg = json_output.get("message")
+            level = json_output.get("level")
+
+            if level == "WARNING":
+                if msg is not None:
+                    parsed_output["warnings"].append(str(msg))
+            elif level in {"ERROR", "CRITICAL"}:
+                if msg is not None:
+                    parsed_output["errors"].append(str(msg))
+            elif level == "PROGRESS":
+                if msg is not None:
+                    parsed_output["progress"] = int(str(msg).strip("%"))
+            elif level == "FINAL":
+                parsed_output["final"] = str(msg) if msg is not None else ""
+            elif json_output.get("exit_code") is not None:
+                parsed_output["exit_code"] = str(json_output["exit_code"])
+            elif msg is not None:
+                parsed_output["misc"].append(str(msg))
         return parsed_output
 
     # ------------------------------------------------------------------------------

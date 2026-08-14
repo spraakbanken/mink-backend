@@ -54,7 +54,16 @@ job_model_example = {
     "priority": 1,
     "warnings": "",
     "errors": "",
-    "output": "Running mink-vajfgwcqdw\nReading source files: /data/sbdata01/mink-dev-data/lexicon/v/mink-vajfgwcqdw/source/test_lexicon_data2.jsonl\nUsing entry schema: {\"baseform\":{\"type\":\"text\",\"name\":\"baseform\",\"collection\":false,\"fields\":{},\"extra\":{\"length\":4},\"categories\":[]}}\nReading source files: /data/sbdata01/mink-dev-data/lexicon/v/mink-vajfgwcqdw/source/test_lexicon_data2.jsonl",
+    "output": (
+        "Running mink-vajfgwcqdw\n"
+        "Reading source files: /data/sbdata01/mink-dev-data/lexicon/v/"
+        "mink-vajfgwcqdw/source/test_lexicon_data2.jsonl\n"
+        'Using entry schema: {"baseform":{"type":"text","name":'
+        '"baseform","collection":false,"fields":{},"extra":'
+        '{"length":4},"categories":[]}}\n'
+        "Reading source files: /data/sbdata01/mink-dev-data/lexicon/v/"
+        "mink-vajfgwcqdw/source/test_lexicon_data2.jsonl"
+    ),
     "queued": "2026-06-02T10:25:14+02:00",
     "started": "",
     "ended": "",

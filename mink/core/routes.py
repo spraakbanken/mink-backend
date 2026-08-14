@@ -164,7 +164,7 @@ async def openapi_to_markdown(request: Request) -> PlainTextResponse:
 @router.get("/info", response_model=InfoResponse, operation_id="info")
 async def info() -> JSONResponse:
     """Show info about data processing, e.g. job status codes, file size limits and Sparv importer modules."""
-    from mink.core.status import Status  # noqa: PLC0415
+    from mink.core.status import Status  # ruff: ignore[import-outside-top-level]
 
     status_codes = {"info": "job status codes", "data": []}
     for s in Status:

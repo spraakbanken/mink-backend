@@ -1,6 +1,6 @@
 """Generate a config report for Mink settings."""
 
-# ruff: noqa: T201, allow print for this script
+# ruff: file-ignore[print]
 
 from __future__ import annotations
 
@@ -345,7 +345,7 @@ def _display_module_name(label: str) -> str:
     if label == "core":
         return "core"
     parts = label.split(".")
-    if len(parts) >= 2 and parts[0] == "mink":  # noqa: PLR2004
+    if len(parts) >= 2 and parts[0] == "mink":  # ruff: ignore[magic-value-comparison]
         return parts[1]
     return label
 

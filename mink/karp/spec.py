@@ -1,5 +1,7 @@
 """Karp resource spec registration."""
 
+# ruff: file-ignore[import-outside-top-level], avoids circular import
+
 from enum import StrEnum, auto
 from typing import Any, cast
 
@@ -18,13 +20,13 @@ class ProcessName(StrEnum):
 
 def register() -> None:
     """Register the Karp resource spec."""
-    from mink.core import exceptions  # noqa: PLC0415, avoids circular import
-    from mink.core.config import settings  # noqa: PLC0415, avoids circular import
-    from mink.core.logging import logger  # noqa: PLC0415, avoids circular import
-    from mink.core.resource_specs import ResourceSpec, register_spec  # noqa: PLC0415, avoids circular import
-    from mink.karp import models as karp_models  # noqa: PLC0415, avoids circular import
-    from mink.karp.jobs import KarpJob  # noqa: PLC0415, avoids circular import
-    from mink.karp.storage import storage  # noqa: PLC0415, avoids circular import
+    from mink.core import exceptions
+    from mink.core.config import settings
+    from mink.core.logging import logger
+    from mink.core.resource_specs import ResourceSpec, register_spec
+    from mink.karp import models as karp_models
+    from mink.karp.jobs import KarpJob
+    from mink.karp.storage import storage
 
     def startup_check() -> None:
         for var in ["KARP_HOST", "KARP_USER", "KARP_DATA_DIR", "KARP_PARENT_CONFIG", "KARP_COMMAND"]:

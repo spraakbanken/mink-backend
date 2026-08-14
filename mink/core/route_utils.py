@@ -362,7 +362,7 @@ async def upload_yaml_file(
     """
     yaml_contents = await get_yaml_payload(yaml_file=yaml_file, yaml_txt=yaml_txt)
 
-    try:
+    def _process_yaml_upload() -> None:
         if validate_fn is not None:
             validate_fn(yaml_contents)
         if standardize_fn is not None:
@@ -371,6 +371,9 @@ async def upload_yaml_file(
         else:
             new_yaml = str(yaml_contents)
         write_fn(new_yaml.encode("UTF-8"))
+
+    try:
+        _process_yaml_upload()
     except exceptions.MinkHTTPException:
         raise
     except Exception as e:

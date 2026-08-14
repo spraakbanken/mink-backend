@@ -22,7 +22,7 @@ class SparvJob(BaseJob):
 
     def __init__(
         self,
-        id: str,  # noqa: A002
+        id: str,  # ruff: ignore[builtin-argument-shadowing]
         processes: list[str] | None = None,
         status: dict | None = None,
         current_process: str | None = None,
@@ -564,7 +564,7 @@ class SparvJob(BaseJob):
 
     @property
     def progress(self) -> str | None:
-        """Get the Sparv progress but don't report 100% before the job status has been changed to done.
+        """Sparv progress, but won't report 100% before the job status has been changed to done.
 
         Returns:
             Progress percentage as a string.

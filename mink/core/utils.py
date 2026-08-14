@@ -52,7 +52,7 @@ def response(
         The updated JSONResponse object.
     """
     # Remove key-value pairs if the value is an empty string
-    args = {k: v for k, v in kwargs.items() if v != ""}  # noqa: PLC1901
+    args = {k: v for k, v in kwargs.items() if v != ""}  # ruff: ignore[compare-to-empty-string]
 
     if isinstance(return_code, return_codes.ReturnCode):
         resolved_status = return_code.status_code if status_code is None else status_code
@@ -178,7 +178,7 @@ class LimitRequestSizeMiddleware:
         replay_index = 0
         total = len(buffered)
 
-        async def replay_receive() -> Message:  # noqa: RUF029 (Function declared `async` but never awaits)
+        async def replay_receive() -> Message:  # ruff: ignore[unused-async]
             """Replay the pre-read body chunks to the app."""
             nonlocal replay_index
             if replay_index < total:
@@ -213,38 +213,38 @@ def get_version_from_pyproject(path: Path = Path("pyproject.toml")) -> str:
 
 def build_docs() -> None:
     """Build the MkDocs documentation if source files are present and newer than the existing site output."""
-    try:
-        docs_root = Path("docs")
-        env_file = Path(".env")
-        mkdocs_config = docs_root / "mkdocs.yml"
-        docs_source_dir = docs_root / "mkdocs"
-        developers_guide = docs_root / "developers-guide.md"
-        site_dir = docs_root / "site"
+    docs_root = Path("docs")
+    env_file = Path(".env")
+    mkdocs_config = docs_root / "mkdocs.yml"
+    docs_source_dir = docs_root / "mkdocs"
+    developers_guide = docs_root / "developers-guide.md"
+    site_dir = docs_root / "site"
 
-        source_paths = [mkdocs_config, docs_source_dir, developers_guide]
-        freshness_paths = source_paths + ([env_file] if env_file.exists() else [])
-        missing_sources = [path for path in source_paths if not path.exists()]
-        if missing_sources:
-            logger.warning("Skipping MkDocs build because required source path(s) are missing: %s", missing_sources)
+    source_paths = [mkdocs_config, docs_source_dir, developers_guide]
+    freshness_paths = source_paths + ([env_file] if env_file.exists() else [])
+    missing_sources = [path for path in source_paths if not path.exists()]
+    if missing_sources:
+        logger.warning("Skipping MkDocs build because required source path(s) are missing: %s", missing_sources)
+        return
+
+    def latest_mtime(paths: list[Path]) -> float:
+        latest = 0.0
+        for path in paths:
+            latest = max(latest, path.stat().st_mtime)
+            for p in path.rglob("*"):
+                latest = max(latest, p.stat().st_mtime)
+        return latest
+
+    # Check if the site output is at least as new as the source files; if so, skip the build
+    has_site_output = site_dir.exists() and site_dir.is_dir() and any(site_dir.iterdir())
+    if has_site_output:
+        newest_source = latest_mtime(freshness_paths)
+        newest_output = site_dir.stat().st_mtime
+        if newest_source <= newest_output:
+            logger.debug("Skipping MkDocs build: docs/site is up to date.")
             return
 
-        def latest_mtime(paths: list[Path]) -> float:
-            latest = 0.0
-            for path in paths:
-                latest = max(latest, path.stat().st_mtime)
-                for p in path.rglob("*"):
-                    latest = max(latest, p.stat().st_mtime)
-            return latest
-
-        # Check if the site output is at least as new as the source files; if so, skip the build
-        has_site_output = site_dir.exists() and site_dir.is_dir() and any(site_dir.iterdir())
-        if has_site_output:
-            newest_source = latest_mtime(freshness_paths)
-            newest_output = site_dir.stat().st_mtime
-            if newest_source <= newest_output:
-                logger.debug("Skipping MkDocs build: docs/site is up to date.")
-                return
-
+    try:
         # Load the MkDocs configuration and build the documentation
         os.environ["BASE_URL"] = settings.MINK_URL
         config = load_config(str(mkdocs_config))

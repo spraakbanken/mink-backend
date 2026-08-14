@@ -58,15 +58,15 @@ def call_route(
     with TestClient(app) as client:
         if cookies:
             client.cookies.update(cookies)
+        url = f"{path}?{query}" if query else path
+        if log:
+            log_request(method, path, query)
         try:
-            if log:
-                log_request(method, path, query)
-            url = f"{path}?{query}" if query else path
             response = client.request(method, url, headers=headers, files=files)
-            if log:
-                log_response(response, method)
         except Exception as e:
             pytest.fail(f"Route {method} {path} raised exception: {e}")
+        if log:
+            log_response(response, method)
         if not fail_ok:
             assert response.status_code == status_code, (
                 f"Route {method} {path} failed with status code {response.status_code}"

@@ -56,7 +56,7 @@ def pytest_configure(config: pytest.Config) -> None:
     default_formatter = ColorFormatter("  %(name)s: %(levelname)s - %(message)s")
 
     # Get custom log level from command line options
-    log_level_str = config.getoption("--custom-log-level").upper()
+    log_level_str = str(config.getoption("--custom-log-level") or "INFO").upper()
     log_level = getattr(logging, log_level_str, logging.INFO)
 
     # Remove all handlers from root logger
@@ -74,7 +74,7 @@ def pytest_configure(config: pytest.Config) -> None:
     mink_test_logger.propagate = False
 
     # Set mink logger level from flag
-    mink_log_level_str = config.getoption("--mink-log-level").upper()
+    mink_log_level_str = str(config.getoption("--mink-log-level") or "WARNING").upper()
     mink_log_level = getattr(logging, mink_log_level_str, logging.WARNING)
     mink_logger = logging.getLogger("mink")
     mink_logger.setLevel(mink_log_level)
@@ -94,7 +94,7 @@ def pytest_runtest_logstart(nodeid: str) -> None:
         nodeid (str): The test node identifier, in the format 'path/to/file.py::test_name'
     """
     test_name = nodeid.rsplit("::", maxsplit=1)[-1]
-    print(f"\n\n{Fore.CYAN}>>> Running {Fore.WHITE}{test_name}{Style.RESET_ALL}")  # noqa: T201
+    print(f"\n\n{Fore.CYAN}>>> Running {Fore.WHITE}{test_name}{Style.RESET_ALL}")  # ruff: ignore[print]
 
 
 class RouteInfo:
@@ -116,11 +116,11 @@ class RouteInfo:
                 self.route_patterns.append((route.path, route.path_regex))
                 # Get tags from the route if available and non-empty
                 if hasattr(route, "tags") and route.tags:
-                    self.tag_dict[route.tags[0]].extend((method, route.path) for method in route.methods)
+                    self.tag_dict[route.tags[0]].extend((method, route.path) for method in (route.methods or []))
                     self.tagged_routes += 1
                     self.routes.add(route.path)
                 elif hasattr(route, "methods") and hasattr(route, "path"):
-                    self.untagged_routes.extend((method, route.path) for method in route.methods)
+                    self.untagged_routes.extend((method, route.path) for method in (route.methods or []))
                     self.routes.add(route.path)
 
     def set_tested(self, path: str) -> None:

@@ -18,7 +18,7 @@ class Info:
 
     def __init__(
         self,
-        id: str,  # noqa: A002
+        id: str,  # ruff: ignore[builtin-argument-shadowing]
         owner: User,
         resource: Resource,
         job: BaseJob | None = None,

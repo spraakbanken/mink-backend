@@ -24,7 +24,7 @@ class CacheManager:
 
     def initialize(self, cache_server: str) -> None:
         """Initialize the cache client."""
-        from mink.core import exceptions  # noqa: PLC0415
+        from mink.core import exceptions  # ruff: ignore[import-outside-top-level]
 
         self.server = cache_server
 

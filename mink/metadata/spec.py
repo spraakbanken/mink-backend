@@ -1,5 +1,7 @@
 """Metadata resource spec registration."""
 
+# ruff: file-ignore[import-outside-top-level], avoids circular import
+
 from mink.core.resource import ResourceType
 from mink.metadata.config import metadata_settings
 
@@ -8,9 +10,9 @@ METADATA = ResourceType("metadata")
 
 def register() -> None:
     """Register the metadata resource spec."""
-    from mink.core.jobs import BaseJob  # noqa: PLC0415
-    from mink.core.resource_specs import ResourceSpec, register_spec  # noqa: PLC0415
-    from mink.metadata.storage import storage  # noqa: PLC0415
+    from mink.core.jobs import BaseJob
+    from mink.core.resource_specs import ResourceSpec, register_spec
+    from mink.metadata.storage import storage
 
     register_spec(
         METADATA,

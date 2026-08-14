@@ -1,5 +1,7 @@
 """Registry for resource type specifications."""
 
+# ruff: file-ignore[import-outside-top-level], avoids circular import
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -69,9 +71,9 @@ def load_specs() -> None:
         return
     _SPECS_STATE["loading"] = True
     try:
-        from importlib import import_module  # noqa: PLC0415
+        from importlib import import_module
 
-        from mink.core.config import settings  # noqa: PLC0415
+        from mink.core.config import settings
 
         # Find all modules containing resource specs and call their register function
         for module in settings.SPEC_MODULES:
@@ -86,7 +88,7 @@ def load_specs() -> None:
 
 def register_spec(resource_type: ResourceType, spec: ResourceSpec) -> None:
     """Register a spec for a resource type."""
-    from mink.core.config import settings  # noqa: PLC0415, avoids circular import
+    from mink.core.config import settings
 
     # Check if spec for this resource type is already registered
     if resource_type in _SPEC_REGISTRY:
@@ -117,7 +119,7 @@ def get_all_specs() -> dict[ResourceType, ResourceSpec]:
 def get_resource_routers() -> list[Any]:
     """Load and return APIRouter instances from registered resource specs."""
     load_specs()
-    from importlib import import_module  # noqa: PLC0415
+    from importlib import import_module
 
     routers: list[Any] = []
     seen_modules: set[str] = set()

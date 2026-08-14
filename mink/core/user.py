@@ -10,7 +10,7 @@ class User:
 
     def __init__(
         self,
-        id: str,  # noqa: A002
+        id: str,  # ruff: ignore[builtin-argument-shadowing]
         name: str,
         email: str,
         idp: str | None = None,

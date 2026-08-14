@@ -27,8 +27,8 @@ class Resource:
 
     def __init__(
         self,
-        id: str,  # noqa: A002
-        type: ResourceType,  # noqa: A002,
+        id: str,  # ruff: ignore[builtin-argument-shadowing]
+        type: ResourceType,  # ruff: ignore[builtin-argument-shadowing]
         *,
         public_id: str | None = "",
         name: dict | None = None,
@@ -56,7 +56,7 @@ class Resource:
             resource_type = ResourceType(type)
         else:
             raise exceptions.InvalidResourceTypeError(type)
-        from mink.core.resource_specs import get_spec  # noqa: PLC0415, avoid circular import
+        from mink.core.resource_specs import get_spec  # ruff: ignore[import-outside-top-level]
 
         try:
             get_spec(resource_type)
@@ -107,7 +107,7 @@ class Resource:
         Args:
             deleted_sources: Whether source files have been deleted.
         """
-        from mink.core.resource_specs import get_spec  # noqa: PLC0415, avoid circular import
+        from mink.core.resource_specs import get_spec  # ruff: ignore[import-outside-top-level]
 
         spec = get_spec(self.type)
         self.source_files = spec.storage.list_contents(spec.storage.get_source_dir(self.id))

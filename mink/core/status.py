@@ -17,7 +17,7 @@ class Status(StrEnum):
 
     @property
     def description(self) -> str:
-        """Return the description for the status."""
+        """Description for the status."""
         docs = {
                 "none": "Process does not exist",
                 "waiting": "Waiting to be processed",
