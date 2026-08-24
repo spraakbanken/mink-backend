@@ -201,8 +201,10 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
     last_started: str | None = None
     seconds_since_last_start: int | None = None
     oldest_running_started: str | None = None
+    oldest_running_job_id: str | None = None
     oldest_running_seconds = 0
     oldest_waiting_queued: str | None = None
+    oldest_waiting_job_id: str | None = None
     oldest_waiting_seconds = 0
 
     # Only active queued jobs should contribute to this health summary.
@@ -229,7 +231,9 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
             seconds_since_last_start, \
             oldest_running_started, \
             oldest_running_seconds, \
+            oldest_running_job_id, \
             oldest_waiting_queued, \
+            oldest_waiting_job_id, \
             oldest_waiting_seconds
 
         info_obj = getattr(job, "parent", None)
@@ -254,6 +258,7 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
             age_seconds = started_seconds or job.duration
             if age_seconds >= oldest_running_seconds:
                 oldest_running_started = job.started or None
+                oldest_running_job_id = job.id
                 oldest_running_seconds = age_seconds
         else:
             # Waiting jobs have not started yet, so queue age is the useful signal.
@@ -261,6 +266,7 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
             age_seconds = queued_seconds
             if age_seconds >= oldest_waiting_seconds:
                 oldest_waiting_queued = job.queued or None
+                oldest_waiting_job_id = job.id
                 oldest_waiting_seconds = age_seconds
 
         queue_jobs.append(
@@ -286,9 +292,9 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
     # queued job exceeds the configured threshold
     warnings = []
     if oldest_running_seconds >= warning_threshold_seconds:
-        warnings.append(f"Oldest running job has been active for {oldest_running_seconds} seconds")
+        warnings.append(f"Running job {oldest_running_job_id} has been active for {oldest_running_seconds} seconds")
     if oldest_waiting_seconds >= warning_threshold_seconds:
-        warnings.append(f"Oldest waiting job has been queued for {oldest_waiting_seconds} seconds")
+        warnings.append(f"Waiting job {oldest_waiting_job_id} has been queued for {oldest_waiting_seconds} seconds")
 
     healthy = not warnings
     return utils.response(

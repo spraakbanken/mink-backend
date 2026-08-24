@@ -171,4 +171,5 @@ def test_queue_health_degraded_for_stale_waiting_job(create_queue_job: Callable[
     assert json_data.get("oldest_waiting_seconds", 0) >= settings.QUEUE_HEALTH_WARNING_SECONDS
     assert json_data.get("warnings")
     assert any("queued for" in warning for warning in json_data["warnings"])
+    assert any(info_obj.id in warning for warning in json_data["warnings"])
     assert any(job.get("resource_id") == info_obj.id for job in json_data.get("queue_jobs", []))

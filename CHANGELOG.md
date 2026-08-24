@@ -21,6 +21,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Upgraded matomo-core dependency which includes a fix for a serialization bug.
 - Matomo `exclude_paths` setting now respects the ROOT_PATH setting to ensure correct path matching when Mink is served
   from a URL prefix.
+- Fixed a bug with the queue manager where queue health warnings were sent repeatedly for the same warning. Now,
+  warnings are only sent when the queue health state changes.
 
 ## [3.0.0] - 2026-06-04
 

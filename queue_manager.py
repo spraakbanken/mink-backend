@@ -4,6 +4,7 @@ This scheduler will make calls to the '/queue/advance' and '/queue/health' route
 """
 
 import logging
+import re
 import sys
 import time
 from datetime import datetime
@@ -93,13 +94,15 @@ def check_queue_health() -> None:
             else:
                 warning_text = str(payload.get("info") or response.text or return_codes.QUEUE_DEGRADED.message)
 
-            if _QUEUE_HEALTH_STATE["healthy"] is not False or _QUEUE_HEALTH_STATE["warning"] != warning_text:
+            normalized_warning_text = re.sub(r"\bfor \d+ seconds\b", "for <duration> seconds", warning_text)
+
+            if _QUEUE_HEALTH_STATE["healthy"] is not False or _QUEUE_HEALTH_STATE["warning"] != normalized_warning_text:
                 logger.warning("Queue health warning: %s", warning_text)
                 send_slack_webhook(f"Mink queue health warning: {warning_text}")
             else:
                 logger.debug("Queue health still degraded: %s", warning_text)
             _QUEUE_HEALTH_STATE["healthy"] = False
-            _QUEUE_HEALTH_STATE["warning"] = warning_text
+            _QUEUE_HEALTH_STATE["warning"] = normalized_warning_text
             return
 
         response.raise_for_status()
