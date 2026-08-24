@@ -36,6 +36,7 @@ server = [
 [dependency-groups]
 dev = [
     "ruff",
+    "pyright==1.1.411",
     "pytest==9.1.1",
     "pytest-sugar==1.1.1"
 ]
@@ -109,3 +110,7 @@ markers = [
     "metadata: marks tests as metadata tests (deselect with '-m \"not metadata\"')",
     "lexicon: marks tests as lexicon tests (deselect with '-m \"not lexicon\"')",
 ]
+
+[tool.pyright]
+typeCheckingMode = "standard"
+include = ["mink", "tests"]
