@@ -1,5 +1,7 @@
 """Default configuration for Sparv module."""
 
+from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -38,6 +40,10 @@ class SparvSettings(BaseSettings):
     SPARV_LOG_DIR: str = "logs"  # Dir for Sparv log files
     SPARV_CORPUS_CONFIG: str = "config.yaml"  # Name of the corpus config file
     SPARV_PLAIN_TEXT_FILE: str = "@text"  # Name of the plain text file in Sparv
+
+    # Path to the JSON file listing available Sparv analyses. If overridden in .env the path becomes relative to the
+    # instance dir, unless an absolute path is given. The file must contain valid JSON.
+    SPARV_AVAILABLE_ANALYSES_FILE: str = str(Path(__file__).resolve().parent / "data" / "available_analyses.json")
 
     # File extensions for corpus input and the modules that handle them
     SPARV_IMPORTER_MODULES: dict[str, str] = Field(

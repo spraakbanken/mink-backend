@@ -22,6 +22,11 @@ def _key_sparv_exports() -> str:
     return cache_namespace("sparv_exports")
 
 
+def _key_sparv_analyses() -> str:
+    """Return the cache key for the Sparv analyses."""
+    return cache_namespace("sparv_analyses")
+
+
 def _key_corpus_export_contents(resource_id: str) -> str:
     """Return the cache key for a corpus export file listing."""
     return cache_namespace(f"corpus_export_contents:{resource_id}")
@@ -64,6 +69,18 @@ def get_sparv_exports() -> list | None:
     """Return cached Sparv exports as a list, or None if not found."""
     with cache.get_client() as client:
         return client.get(_key_sparv_exports())
+
+
+def set_sparv_analyses(analyses: list) -> None:
+    """Store Sparv analyses in cache."""
+    with cache.get_client() as client:
+        client.set(_key_sparv_analyses(), analyses, expire=sparv_settings.SPARV_CACHE_LIFETIME)
+
+
+def get_sparv_analyses() -> list | None:
+    """Return cached Sparv analyses as a list, or None if not found."""
+    with cache.get_client() as client:
+        return client.get(_key_sparv_analyses())
 
 
 def set_corpus_export_contents(resource_id: str, contents: list) -> None:

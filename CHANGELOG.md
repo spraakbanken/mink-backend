@@ -14,6 +14,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a setting for CHECK_QUEUE_HEALTH_FREQUENCY to control how often the queue health is checked.
 - The `/corpus/sparv/list-languages` route now includes language varieties in the response.
 - Added production deployment documentation recommending Gunicorn with `uvicorn_worker.UvicornWorker`.
+- Added a new route `/corpus/sparv/list-analyses` for listing all available Sparv analyses, optionally filtered by
+  language and variety. The list of analyses is read from a JSON file which can be overridden in the Mink config.
 
 ### Fixed
 

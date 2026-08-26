@@ -227,6 +227,79 @@ For production deployments, Mink is expected to run behind Gunicorn using `uvico
 served under a path prefix, configure that prefix via `ROOT_PATH` in Mink's environment rather than relying on
 Gunicorn's `--root-path` flag. This keeps route generation and internal callers consistent across worker classes.
 
+#### Available Sparv Analyses
+
+The `GET /corpus/sparv/list-analyses` endpoint returns a curated list of analyses that Mink makes available. The list
+is stored as JSON, not as a structured value in `.env`.
+
+`SPARV_AVAILABLE_ANALYSES_FILE` controls which JSON file is loaded. Its default value is Mink's packaged file,
+`mink/sparv/data/available_analyses.json`. To use an instance-specific list, create the JSON file inside the instance
+directory and set a relative path in `.env`. Relative paths are resolved from `INSTANCE_PATH`.
+
+```ini
+# Resolves to <INSTANCE_PATH>/available_analyses.json
+SPARV_AVAILABLE_ANALYSES_FILE=available_analyses.json
+```
+
+An absolute path may also be used. Once this setting is explicitly overridden, the configured file must exist and
+contain valid JSON; Mink does not fall back to the packaged file.
+
+The JSON must be a list of analyses. In the current implementation, each analysis contains an `id`, an `annotations`
+list containing strings, and additional other metadata fields, such as information about which languages the analysis
+supports. The following is an example of a single analysis entry:
+
+```json
+[
+    {
+        "id": "sbx-swe-dependency-stanza-stanzasynt",
+        "name": {
+            "swe": "Dependensparsning med Stanza",
+            "eng": "Dependency parsing with Stanza"
+        },
+        "annotations": [
+            "<token>:stanza.dephead_ref as dephead",
+            "<token>:stanza.deprel",
+            "<token>:stanza.ref"
+        ],
+        "task": {
+            "eng": "dependency parsing",
+            "swe": "dependensparsning"
+        },
+        "analysis_unit": {
+            "eng": "token",
+            "swe": "token"
+        },
+        "languages": [
+            {
+                "code": "swe",
+                "name": {
+                    "swe": "svenska",
+                    "eng": "Swedish"
+                }
+            }
+        ]
+    }
+]
+```
+
+`get_analyses_metadata.py` downloads and filters metadata from the Spraakbanken Metadata API, then writes an
+instance-specific list to `instance/available_analyses.json`. Run it from the project root:
+
+```bash
+python scripts/get_analyses_metadata.py
+```
+
+The list endpoint is cached for `SPARV_CACHE_LIFETIME`. After changing the JSON file, request
+`/corpus/sparv/list-analyses?update_cache=true` to reload it immediately.
+
+Add an ISO 639-3 `language` query parameter to return analyses applicable to one language, for example
+`/corpus/sparv/list-analyses?language=swe`. Analyses marked as `mul` or `zxx`, and analyses with no language metadata,
+are included for every language.
+
+Add `variety` to limit the result to a language variety, for example
+`/corpus/sparv/list-analyses?language=swe&variety=1800`. Analyses without `language_varieties` metadata are included for
+every variety. Analyses with `language_varieties` metadata are excluded unless a matching `variety` is requested.
+
 #### Using Configuration Variables in Code
 
 Core configuration variables are available via the `mink.core.config.settings` object, while module settings are

@@ -1,11 +1,13 @@
 """Utility functions for Sparv module."""
 
+import json
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 from mink.core import exceptions, return_codes
+from mink.core.config import settings
 from mink.sparv.config import sparv_settings
 from mink.sparv.storage import storage
 
@@ -142,3 +144,59 @@ def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, st
         return True, current_ext, None
     existing_ext = Path(existing_files[0].get("name")).suffix
     return current_ext == existing_ext, current_ext, existing_ext
+
+
+def load_available_analyses() -> list[dict[str, Any]]:
+    """Load and validate the available Sparv analyses from a JSON file."""
+    # Load the instance analyses file, or the packaged default when it is absent.
+    path = Path(sparv_settings.SPARV_AVAILABLE_ANALYSES_FILE).expanduser()
+    if not path.is_absolute():
+        path = Path(settings.INSTANCE_PATH) / path
+
+    try:
+        with path.open(encoding="utf-8") as file:
+            analyses = json.load(file)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Invalid JSON in available analyses file {path}: {error}") from error
+    except OSError as error:
+        raise ValueError(f"Could not read available analyses file {path}: {error}") from error
+
+    if not isinstance(analyses, list):
+        raise TypeError(f"Available analyses file {path} must contain a JSON list.")
+
+    for analysis in analyses:
+        if not isinstance(analysis, dict) or not isinstance(analysis.get("id"), str):
+            raise TypeError(f"Each available analysis in {path} must have a string 'id'.")
+        annotations = analysis.get("annotations")
+        if not isinstance(annotations, list) or not all(isinstance(annotation, str) for annotation in annotations):
+            raise TypeError(f"Each available analysis in {path} must have a list of string 'annotations'.")
+
+    return analyses
+
+
+def filter_available_analyses(
+    analyses: list[dict[str, Any]], language: str | None, variety: str | None
+) -> list[dict[str, Any]]:
+    """Return analyses applicable to the requested language and variety."""
+    if language is None and variety is None:
+        return analyses
+
+    # `mul`, `zxx`, and missing language metadata mean that an analysis applies to every language.
+    applicable_codes = {language, "mul", "zxx"}
+    return [
+        analysis
+        for analysis in analyses
+        # Match the requested language, or include language-independent analyses.
+        if (
+            language is None
+            or not analysis.get("languages")
+            or any(language_info.get("code") in applicable_codes for language_info in analysis["languages"])
+        )
+        # Without a variety query, list only standard-language analyses. A requested variety also includes
+        # analyses without a variety restriction.
+        and (
+            not analysis.get("language_varieties")
+            if variety is None
+            else variety in analysis.get("language_varieties", []) or not analysis.get("language_varieties")
+        )
+    ]

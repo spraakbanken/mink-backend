@@ -1,6 +1,6 @@
 """Response data models for the sparv module."""
 
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from fastapi import Query
 from pydantic import Field
@@ -278,6 +278,52 @@ statuses_response_examples = [
         ],
     }
 ]
+
+
+class AnalysesResponse(models.BaseResponse):
+    """Model for the /corpus/sparv/list-analyses response."""
+
+    language: str | None = Field(default=None, description="Language used to filter the analyses")
+    variety: str | None = Field(default=None, description="Language variety used to filter the analyses")
+    analyses: list[dict[str, Any]] = Field(default=[], description="List of available Sparv analyses")
+    model_config: ClassVar[dict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "info": "Listing available Sparv analyses",
+                    "analyses": [
+                        {
+                            "id": "sbx-swe-dependency-stanza-stanzasynt",
+                            "name": {"swe": "Dependensparsning med Stanza", "eng": "Dependency parsing with Stanza"},
+                            "annotations": [
+                                "<token>:stanza.dephead_ref as dephead",
+                                "<token>:stanza.deprel",
+                                "<token>:stanza.ref",
+                            ],
+                            "task": {"eng": "dependency parsing", "swe": "dependensparsning"},
+                            "analysis_unit": {"eng": "token", "swe": "token"},
+                            "languages": [{"code": "swe", "name": {"swe": "svenska", "eng": "Swedish"}}],
+                        },
+                        {
+                            "id": "sbx-swe-msd-hunpos-suc3_1800",
+                            "name": {
+                                "swe": "Morfosyntaktisk SUC-taggning med Hunpos för 1800-talssvenska",
+                                "eng": "Tagging of morphological features (SUC) by Hunpos for Swedish from the 1800s",
+                            },
+                            "annotations": ["<token>:hunpos.msd"],
+                            "task": {"eng": "morphosyntactic tagging", "swe": "morfosyntaktisk taggning"},
+                            "analysis_unit": {"eng": "token", "swe": "token"},
+                            "languages": [{"code": "swe", "name": {"swe": "svenska", "eng": "Swedish"}}],
+                            "language_varieties": ["1800"],
+                        },
+                    ],
+                }
+            ]
+        }
+    }
 
 
 # ------------------------------------------------------------------------------
