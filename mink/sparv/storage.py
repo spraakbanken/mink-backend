@@ -28,11 +28,6 @@ class SparvStorage(BaseStorage):
         """Check if path points to a permitted location for the resource."""
         return self.get_corpus_dir(resource_id).resolve() in {*list(path.resolve().parents), path.resolve()}
 
-    @staticmethod
-    def relative_path(filepath: Path) -> str:
-        """Return a path string relative to the corpus directory (for API responses)."""
-        return "/".join(filepath.parts[4:])
-
     def get_file_changes(self, resource_id: str, info_item: "Info") -> tuple[bool, bool, bool]:
         """Get changes for source files and config file.
 

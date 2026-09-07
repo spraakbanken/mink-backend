@@ -103,11 +103,6 @@ class BaseStorage:
     # ------------------------------------------------------------------------------
     # Shared implementations
     # ------------------------------------------------------------------------------
-    @staticmethod
-    def relative_path(filepath: Path) -> str:
-        """Return a path string for API responses."""
-        return str(filepath)
-
     def file_exists(self, filepath: Path) -> bool:
         """Check if a remote file exists at the given path."""
         try:
@@ -244,7 +239,7 @@ class BaseStorage:
             "type": mimetype,
             "last_modified": mod_time,
             "size": int(size),
-            "path": self.relative_path(filepath),
+            "path": filepath.as_posix(),
         }
 
     def identical_file_exists(self, incoming_file_contents: bytes, existing_file: Path) -> bool:

@@ -27,11 +27,6 @@ class KarpStorage(BaseStorage):
         """Check if path points to a permitted location for the resource."""
         return self.get_resource_dir(resource_id).resolve() in {*list(path.resolve().parents), path.resolve()}
 
-    @staticmethod
-    def relative_path(filepath: Path) -> str:
-        """Return a path string relative to the lexicon directory (for API responses)."""
-        return "/".join(filepath.parts[4:])
-
     def get_file_changes(self, resource_id: str, info_item: "Info") -> tuple[bool, bool]:
         """Get changes for source file and config file.
 
