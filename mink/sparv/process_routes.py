@@ -151,11 +151,10 @@ xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     try:
         info_item = route_utils.get_info_from_auth(auth_data)
         _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
-    except exceptions.JobNotFoundError:
-        pass
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_deleted or config_changed:
+        sparv_output = None
         try:
             job = _require_job(info_item.job)
             success, sparv_output = job.clean_export()
@@ -414,11 +413,10 @@ async def install_korp(
     try:
         info_item = route_utils.get_info_from_auth(auth_data)
         _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
-    except exceptions.JobNotFoundError:
-        pass
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_deleted or config_changed:
+        sparv_output = ""
         try:
             job = _require_job(info_item.job)
             success, sparv_output = job.clean_export()
@@ -557,11 +555,10 @@ async def install_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRes
     try:
         info_item = route_utils.get_info_from_auth(auth_data)
         _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
-    except exceptions.JobNotFoundError:
-        pass
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_deleted or config_changed:
+        sparv_output = ""
         try:
             job = _require_job(info_item.job)
             success, sparv_output = job.clean_export()

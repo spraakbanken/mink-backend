@@ -83,6 +83,7 @@ async def create_lexicon(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
     )
     resource_dir = storage.get_resource_dir(resource_id)
 
+    info_obj: Info | None = None
     try:
         # Create info object in registry
         res = Resource(id=resource_id, type=LEXICON)
@@ -100,7 +101,7 @@ async def create_lexicon(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
         await route_utils.cleanup_partial_resource(
             resource_id=resource_id,
             auth_token=auth_data["auth_token"],
-            info_obj=info_obj or None,
+            info_obj=info_obj,
             remove_from_storage_fn=lambda: storage.remove_dir(resource_dir, resource_id),
         )
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_CREATING_RESOURCE, info=str(e)) from e

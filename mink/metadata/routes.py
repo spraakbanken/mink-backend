@@ -99,6 +99,8 @@ async def create_metadata(
         resource_prefix=settings.RESOURCE_PREFIX,
     )
 
+    info_obj: Info | None = None
+    resource_dir = storage.get_resource_dir(resource_id)
     try:
         # Create info object in registry
         res = Resource(resource_id, type=METADATA, public_id=public_id)

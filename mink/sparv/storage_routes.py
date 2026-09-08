@@ -84,6 +84,8 @@ async def create_corpus(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONRes
         resource_prefix=settings.RESOURCE_PREFIX,
     )
 
+    info_obj: Info | None = None
+    corpus_dir = storage.get_corpus_dir(resource_id)
     try:
         # Create info object in registry
         res = Resource(resource_id, type=CORPUS)
