@@ -22,18 +22,8 @@ def require_compatible_config(config: str | bytes, source_files: list[dict]) -> 
     if not source_files:
         return
 
-    file_ext = Path(source_files[0]["name"]).suffix
-    config_yaml = yaml.load(config, Loader=yaml.FullLoader)
-    current_importer = config_yaml.get("import", {}).get("importer", "").split(":")[0] or None
-    importer_dict = sparv_settings.SPARV_IMPORTER_MODULES
-
-    # If no importer is specified xml is default
-    if current_importer is None and file_ext == ".xml":
-        return
-
-    expected_importer = importer_dict.get(file_ext)
-
-    if current_importer == expected_importer:
+    compatible, current_importer, expected_importer = config_compatible(config, source_files[0])
+    if compatible:
         return
 
     raise exceptions.MinkHTTPException(
