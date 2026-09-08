@@ -92,7 +92,7 @@ class Resource:
         """
         self.parent = parent
 
-    def set_resource_name(self, name: str) -> None:
+    def set_resource_name(self, name: dict) -> None:
         """Set name for resource and save.
 
         Args:

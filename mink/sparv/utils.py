@@ -59,7 +59,7 @@ def config_compatible(config: str | bytes, source_file: dict) -> tuple[bool, Any
     return False, current_importer, expected_importer
 
 
-def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, str]:
+def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, dict]:
     """Set the correct corpus ID and remove the compression setting in the corpus config.
 
     Args:

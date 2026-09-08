@@ -3,7 +3,7 @@
 import yaml
 
 
-def standardize_yaml(metadata_yaml: str | bytes) -> tuple[str, str]:
+def standardize_yaml(metadata_yaml: str | bytes) -> tuple[str, dict]:
     """Get resource name from metadata yaml and remove comments etc.
 
     Args:

@@ -5,7 +5,7 @@ import yaml
 from mink.karp.config import karp_settings
 
 
-def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, str]:
+def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, dict]:
     """Set the correct resource ID, path to parent config and link.
 
     Args:

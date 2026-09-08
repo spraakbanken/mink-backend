@@ -343,7 +343,7 @@ async def upload_yaml_file(
     yaml_txt: str | None,
     res_obj: Any,
     write_fn: Callable[[bytes], None],
-    standardize_fn: Callable[[str | bytes], tuple[str, str]] | None = None,
+    standardize_fn: Callable[[str | bytes], tuple[str, dict]] | None = None,
     validate_fn: Callable[[str | bytes], None] | None = None,
 ) -> JSONResponse:
     """Upload YAML from file or plain text, then write standardized output.
