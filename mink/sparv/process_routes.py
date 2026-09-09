@@ -1,7 +1,6 @@
 """Routes related to processing corpora with Sparv."""
 
 import time
-from typing import cast
 
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
@@ -10,9 +9,7 @@ from mink.core import exceptions, models, registry, return_codes, route_utils, u
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
 from mink.sb_auth import login
-from mink.sparv import utils as sparv_utils
-from mink.sparv.config import sparv_settings
-from mink.sparv.jobs import SparvJob
+from mink.sparv import processing
 from mink.sparv.spec import CORPUS, ProcessName
 from mink.sparv.storage import storage
 
@@ -20,15 +17,6 @@ router = APIRouter(tags=["Manage Corpora"], prefix="/corpus")
 sbauth_corpus = get_spec(CORPUS).sbauth_resource_type
 corpus = str(CORPUS)
 AUTH_CORPUS_WRITE = login.AuthDependency(min_level="WRITE", sbauth_resource_type=sbauth_corpus, resource_type=corpus)
-
-
-def _require_job(job: object) -> SparvJob:
-    """Ensure that 'job' is a Sparv job, raise an error if not."""
-    if not isinstance(job, SparvJob):
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.INVALID_RESOURCE_TYPE, info="Expected a corpus resource"
-        )
-    return cast(SparvJob, job)
 
 
 @router.put(
@@ -103,93 +91,11 @@ async def run_sparv(
 xml_export:pretty' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data["resource_id"]
-    # Parse requested exports
-    if exports is None:
-        exports = []
-    exports = [i.strip() for i in exports if i] or sparv_settings.SPARV_DEFAULT_EXPORTS
-
-    # Parse list of files to be processed
-    if files is None:
-        files = []
-    files = [i.strip() for i in files if i]
-
-    # Get list of available source files to be stored in the job info
-    try:
-        source_files = storage.list_contents(storage.get_source_dir(resource_id))
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FAILED_RUNNING, info=f"Failed to list source files: {e}"
-        ) from e
-
-    if not source_files:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FILE_NOT_FOUND, info="No source files found for this resource"
-        )
-
-    # Check compatibility between source files and config
-    try:
-        config_contents = storage.get_file_contents(storage.get_config_file(resource_id))
-    except Exception as e:
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.FAILED_RUNNING, info=f"Failed to get config file: {e}"
-        ) from e
-    if source_files:
-        compatible, current_importer, expected_importer = sparv_utils.config_compatible(
-            config_contents, source_files[0]
-        )
-        if not compatible:
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.INVALID_CONFIG,
-                info="The importer in your config file is incompatible with your source files",
-                current_importer=current_importer,
-                expected_importer=expected_importer,
-            )
-
-    # Get info_item, check for changes and remove exports if necessary
-    sources_deleted = config_changed = False
     try:
         info_item = route_utils.get_info_from_auth(auth_data)
-        _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
-    if sources_deleted or config_changed:
-        sparv_output = None
-        try:
-            job = _require_job(info_item.job)
-            success, sparv_output = job.clean_export()
-            assert success
-        except Exception as e:
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.FAILED_RUNNING,
-                info=f"Failed to remove outdated export files before running Sparv: {e}",
-                sparv_message=sparv_output,
-            ) from e
-
-    job = _require_job(info_item.job)
-    job.set_attribute("sparv_exports", exports)
-    job.set_attribute("current_files", files)
-
-    # Queue job
-    try:
-        job = registry.add_to_queue(job)
-    except Exception as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_QUEUING, info=str(e)) from e
-
-    # Check that all required files are present
-    job = _require_job(job)
-    job.check_requirements()
-
-    if storage.local:
-        job.set_status(Status.waiting, ProcessName.sparv)
-    else:
-        # Sync files
-        try:
-            job.sync_to_sparv()
-        except Exception as e:
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.FAILED_RUNNING, info=f"Failed to sync files to Sparv: {e}"
-            ) from e
+    processing.run_sparv(info_item, exports, files)
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(3)
@@ -266,7 +172,7 @@ async def abort_job(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRespons
     ```
     """
     resource_id = auth_data["resource_id"]
-    job = _require_job(registry.get(resource_id).job)
+    job = processing.require_job(registry.get(resource_id).job)
     # Syncing
     if job.status.is_syncing(get_spec(CORPUS).sync_processes):
         raise exceptions.MinkHTTPException(
@@ -285,7 +191,7 @@ async def abort_job(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRespons
         raise exceptions.MinkHTTPException(return_code=return_codes.NO_RUNNING_JOB)
     # Running job, try to abort
     try:
-        job = _require_job(job)
+        job = processing.require_job(job)
         job.abort()
     except exceptions.ProcessNotRunningError as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.NO_RUNNING_JOB) from e
@@ -354,7 +260,7 @@ async def clear_annotations(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSO
     """
     resource_id = auth_data["resource_id"]
     # Check if there is an active job
-    job = _require_job(registry.get(resource_id).job)
+    job = processing.require_job(registry.get(resource_id).job)
     if job.status.is_running():
         raise exceptions.MinkHTTPException(
             return_code=return_codes.PROCESS_RUNNING, info="Cannot clear annotations while a job is running"
@@ -418,7 +324,7 @@ async def install_korp(
     if sources_deleted or config_changed:
         sparv_output = ""
         try:
-            job = _require_job(info_item.job)
+            job = processing.require_job(info_item.job)
             success, sparv_output = job.clean_export()
             assert success
         except Exception as e:
@@ -429,7 +335,7 @@ async def install_korp(
             ) from e
 
     # Queue job
-    job = _require_job(info_item.job)
+    job = processing.require_job(info_item.job)
     job.set_attribute("install_scrambled", scramble)
     try:
         job = registry.add_to_queue(job)
@@ -500,14 +406,14 @@ async def uninstall_korp(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRe
     """
     resource_id = auth_data["resource_id"]
     # Check if there is an active job
-    job = _require_job(registry.get(resource_id).job)
+    job = processing.require_job(registry.get(resource_id).job)
     if job.status.is_running():
         raise exceptions.MinkHTTPException(
             return_code=return_codes.PROCESS_RUNNING, info="Cannot uninstall while a job is running"
         )
 
     try:
-        job = _require_job(job)
+        job = processing.require_job(job)
         warnings, output = job.uninstall_korp()
         return utils.response(
             return_code=return_codes.UNINSTALLED, info="Uninstalled from Korp", output=output, warnings=warnings
@@ -560,7 +466,7 @@ async def install_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRes
     if sources_deleted or config_changed:
         sparv_output = ""
         try:
-            job = _require_job(info_item.job)
+            job = processing.require_job(info_item.job)
             success, sparv_output = job.clean_export()
             assert success
         except Exception as e:
@@ -571,7 +477,7 @@ async def install_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRes
             ) from e
 
     # Queue job
-    job = _require_job(info_item.job)
+    job = processing.require_job(info_item.job)
     try:
         job = registry.add_to_queue(job)
     except Exception as e:
@@ -641,14 +547,14 @@ async def uninstall_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONR
     """
     resource_id = auth_data["resource_id"]
     # Check if there is an active job
-    job = _require_job(registry.get(resource_id).job)
+    job = processing.require_job(registry.get(resource_id).job)
     if job.status.is_running():
         raise exceptions.MinkHTTPException(
             return_code=return_codes.PROCESS_RUNNING, info="Cannot uninstall while a job is running"
         )
 
     try:
-        job = _require_job(job)
+        job = processing.require_job(job)
         warnings, output = job.uninstall_strix()
         return utils.response(
             message=return_codes.UNINSTALLED.message,
