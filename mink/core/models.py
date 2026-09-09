@@ -3,7 +3,8 @@
 from typing import ClassVar, Generic, TypeVar
 
 from fastapi import File, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic.config import JsonDict
 
 from mink.core import return_codes
 
@@ -29,7 +30,7 @@ class CreateResourceResponse(BaseResponse):
     """Model for the response to a resource creation request."""
 
     resource_id: str = Field(default="", description="The ID of the created resource")
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -50,7 +51,7 @@ class StatusCodeModel(BaseModel):
     description: str = Field(default="", description="Description of the status code")
 
 
-file_model_examples = [
+file_model_examples: list[JsonDict] = [
     {
         "name": "dokument1.xml",
         "type": "application/xml",
@@ -92,7 +93,7 @@ class ListResourcesResponse(BaseResponse):
     """Model for responses listing resource IDs."""
 
     resources: list[str] = Field(default=[], description="List of resource IDs")
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -127,7 +128,7 @@ class FileResponse(BaseModel):
     }
 
 
-user_model_example = {
+user_model_example: JsonDict = {
     "id": "example-idp-abc123",
     "name": "Anna Andersson",
     "email": "anna.andersson@example.com",
@@ -174,7 +175,7 @@ class UserInfoResponse(BaseResponse):
     return_code: str = Field(
         default=return_codes.LISTING_CONTENT.code, description="Short code describing the response status"
     )
-    info: str = Field(default="Listing user info", description="More detailed information about the response")
+    info: str | None = Field(default="Listing user info", description="More detailed information about the response")
     user: DetailedUserModel = Field(
         default_factory=DetailedUserModel,
         description="Serialized user object with all available information about the user",
@@ -205,7 +206,7 @@ class UserInfoResponse(BaseResponse):
     }
 
 
-resource_model_example = {
+resource_model_example: JsonDict = {
     "id": "mink-dxh6e6wtff",
     "public_id": "mink-dxh6e6wtff",
     "name": {"swe": "Min testkorpus", "eng": ""},
@@ -214,7 +215,7 @@ resource_model_example = {
     "source_files": [*file_model_examples],
 }
 
-job_model_example = {
+job_model_example: JsonDict = {
     "status": {},
     "current_process": "",
     "pid": None,
@@ -244,7 +245,7 @@ class JobModel(BaseModel):
     duration: int = Field(default=0, description="Duration of the job in seconds")
     progress: str = Field(default="0%", description="Progress percentage as a string")
 
-    model_config: ClassVar[dict] = {"json_schema_extra": {"examples": [job_model_example]}}
+    model_config: ClassVar[ConfigDict] = {"json_schema_extra": {"examples": [job_model_example]}}
 
 
 class ResourceModel(BaseModel):
@@ -308,7 +309,7 @@ class QueueHealthResponse(BaseResponse):
         default_factory=list, description="Active jobs currently in the queue"
     )
 
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -511,7 +512,7 @@ class ErrorResponse422(BaseErrorResponse):
         default=return_codes.VALIDATION_ERROR.message, description="Short message describing the error"
     )
     return_code: str = Field(default=return_codes.VALIDATION_ERROR.code, description="Short code describing the error")
-    info: str = Field(
+    info: str | None = Field(
         default="Could not process the request due to errors in the input (see errors for details).",
         description="More detailed information about the response",
     )
@@ -686,7 +687,7 @@ class JobStatusModel(BaseModel):
     """Model for the status of a resource (used as base for StatusResponse and StatusesResponse)."""
 
     job_status: str = Field(default="", description="Status of the current job for the resource")
-    info: str = Field(default="", description="Info about the job status")
+    info: str | None = Field(default="", description="Info about the job status")
     resource: ResourceModel = Field(
         default=ResourceModel(),
         description="Object containing information about the resource",
@@ -699,7 +700,7 @@ class JobStatusModel(BaseModel):
         description="Job object containing information about the job status",
     )
 
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -717,7 +718,7 @@ class JobStatusModel(BaseModel):
 class StatusResponse(BaseResponse, JobStatusModel):
     """Model for job status responses."""
 
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -741,7 +742,7 @@ class StatusesResponse(BaseResponse):
         default=[], description="List of resource objects containing information about the corpus"
     )
 
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {

@@ -2,7 +2,7 @@
 
 from typing import ClassVar
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from mink.core import models, return_codes
 
@@ -11,7 +11,7 @@ class ListResourcesResponse(models.BaseResponse):
     """Model for responses where lexicon resources are listed."""
 
     resources: list[str] = Field(default=[], description="List of resource IDs")
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {

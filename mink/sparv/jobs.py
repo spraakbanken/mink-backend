@@ -563,7 +563,7 @@ class SparvJob(BaseJob):
         return warnings, errors, misc, sparv_ended
 
     @property
-    def progress(self) -> str | None:
+    def progress(self) -> str:
         """Sparv progress, but won't report 100% before the job status has been changed to done.
 
         Returns:

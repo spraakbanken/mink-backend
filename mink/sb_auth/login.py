@@ -158,8 +158,8 @@ async def get_auth_data(
     return auth_data
 
 
-class AuthDependency:
-    """Dependency to get authentication data."""
+class BaseAuthDependency:
+    """Base class for authentication dependencies."""
 
     def __init__(
         self,
@@ -177,6 +177,10 @@ class AuthDependency:
         self.require_resource_id = require_resource_id
         self.require_resource_exists = require_resource_exists
         self.require_admin = require_admin
+
+
+class AuthDependency(BaseAuthDependency):
+    """Dependency to get authentication data."""
 
     async def __call__(
         self,
@@ -202,7 +206,7 @@ class AuthDependency:
         )
 
 
-class AuthDependencyNoResourceId(AuthDependency):
+class AuthDependencyNoResourceId(BaseAuthDependency):
     """AuthDependency variant that excludes resource_id."""
 
     async def __call__(

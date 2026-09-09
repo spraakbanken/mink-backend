@@ -386,7 +386,7 @@ class KarpJob(BaseJob):
         return warnings, errors, misc, karp_ended
 
     @property
-    def progress(self) -> str | None:
+    def progress(self) -> str:
         """Karp pipeline progress, but won't report 100% before the job status is changed to done.
 
         Returns:

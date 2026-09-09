@@ -3,7 +3,7 @@
 from typing import Any, ClassVar
 
 from fastapi import Query
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from mink.core import models, return_codes
 
@@ -12,7 +12,7 @@ class ListResourcesResponse(models.BaseResponse):
     """Model for responses where corpus resources are listed."""
 
     resources: list[str] = Field(default=[], description="List of resource IDs")
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -44,7 +44,7 @@ class CheckInputResponse(models.BaseResponse):
     )
     last_run_started: str | None = Field(default=None, description="Timestamp of when the last run started")
 
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -69,7 +69,7 @@ class SchemaResponse(models.BaseResponse):
     sparv_schema: dict = Field(
         default={}, alias="schema", description="The JSON schema for the Sparv configuration format"
     )
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -92,7 +92,7 @@ class LanguagesResponse(models.BaseResponse):
     languages: list[str] = Field(
         default=[], description="List of supported languages (language names, ISO codes and varieties if applicable)"
     )
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -118,7 +118,7 @@ class ExportsResponse(models.BaseResponse):
 
     exports: list[str] = Field(default=[], description="List of available export formats")
     language: str = Field(default="swe", description="ISO code of the language chosen for the export listing")
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {
@@ -286,7 +286,7 @@ class AnalysesResponse(models.BaseResponse):
     language: str | None = Field(default=None, description="Language used to filter the analyses")
     variety: str | None = Field(default=None, description="Language variety used to filter the analyses")
     analyses: list[dict[str, Any]] = Field(default=[], description="List of available Sparv analyses")
-    model_config: ClassVar[dict] = {
+    model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
                 {

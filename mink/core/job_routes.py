@@ -181,7 +181,7 @@ async def advance_queue(
             "model": models.QueueHealthResponse,
             "content": {
                 "application/json": {
-                    "example": models.QueueHealthResponse.model_config["json_schema_extra"]["examples"][1]
+                    "example": models.QueueHealthResponse.model_json_schema()["examples"][1]
                 }
             },
         },
