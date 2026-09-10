@@ -5,7 +5,7 @@ import logging
 import time
 import typing
 
-import httpx
+import httpx2
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -39,7 +39,7 @@ def call_route(
     cookies: dict | None = None,
     fail_ok: bool = False,
     log: bool = True,
-) -> httpx._models.Response:
+) -> httpx2.Response:
     """Call a route with the specified method, path and query and check if it returns the expected status code.
 
     Args:
