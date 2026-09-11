@@ -30,6 +30,9 @@ def run_sparv(info_item: Info, exports: list[str] | None = None, files: list[str
     """
     resource_id = info_item.id
 
+    # Update last_accessed timestamp for the resource
+    info_item.resource.touch()
+
     # Parse requested exports
     if exports is None:
         exports = []
