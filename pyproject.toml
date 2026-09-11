@@ -108,6 +108,7 @@ markers = [
     "general: marks tests as general tests (deselect with '-m \"not general\"')",
     "user: marks tests for user management routes (deselect with '-m \"not user\"')",
     "corpus: marks tests as corpus tests (deselect with '-m \"not corpus\"')",
+    "demo_corpus: marks tests as demo corpus tests (deselect with '-m \"not demo_corpus\"')",
     "metadata: marks tests as metadata tests (deselect with '-m \"not metadata\"')",
     "lexicon: marks tests as lexicon tests (deselect with '-m \"not lexicon\"')",
 ]
