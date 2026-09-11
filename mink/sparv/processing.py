@@ -1,7 +1,8 @@
-"""Shared services for starting Sparv corpus jobs."""
+"""Shared services for managing Sparv corpus jobs."""
 
 from mink.core import exceptions, registry, return_codes
 from mink.core.info import Info
+from mink.core.resource_specs import get_spec
 from mink.core.status import Status
 from mink.sparv import utils as sparv_utils
 from mink.sparv.config import sparv_settings
@@ -106,3 +107,39 @@ def run_sparv(info_item: Info, exports: list[str] | None = None, files: list[str
             raise exceptions.MinkHTTPException(
                 return_code=return_codes.FAILED_RUNNING, info=f"Failed to sync files to Sparv: {e}"
             ) from e
+
+
+def abort_job(info_item: Info) -> SparvJob:
+    """Abort a waiting or running Sparv job, rejecting jobs that are syncing.
+
+    Args:
+        info_item: The corpus resource and job to abort.
+
+    Returns:
+        The aborted job.
+    """
+    job = require_job(info_item.job)
+    # Resource is syncing, reject abort request to avoid leaving the resource in an inconsistent state
+    if job.status.is_syncing(get_spec(info_item.resource.type).sync_processes):
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.PROCESS_RUNNING, info="Cannot abort job while syncing files"
+        )
+    # Job is waiting, remove it from the queue and mark as aborted
+    if job.status.is_waiting():
+        try:
+            registry.pop_from_queue(job)
+            job.set_status(Status.aborted)
+        except Exception as e:
+            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_UNQUEUING, info=str(e)) from e
+        return job
+    # Job is not running, reject abort request
+    if not job.status.is_running():
+        raise exceptions.MinkHTTPException(return_code=return_codes.NO_RUNNING_JOB)
+    # Job is running, try to abort
+    try:
+        job.abort()
+    except exceptions.ProcessNotRunningError as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.NO_RUNNING_JOB) from e
+    except Exception as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_ABORTING, info=str(e)) from e
+    return job

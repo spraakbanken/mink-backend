@@ -171,32 +171,8 @@ async def abort_job(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRespons
     curl -X POST '{{host}}/corpus/job/abort/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
-    resource_id = auth_data["resource_id"]
-    job = processing.require_job(registry.get(resource_id).job)
-    # Syncing
-    if job.status.is_syncing(get_spec(CORPUS).sync_processes):
-        raise exceptions.MinkHTTPException(
-            return_code=return_codes.PROCESS_RUNNING, info="Cannot abort job while syncing files"
-        )
-    # Waiting
-    if job.status.is_waiting():
-        try:
-            registry.pop_from_queue(job)
-            job.set_status(Status.aborted)
-            return utils.response(return_code=return_codes.ABORTED_JOB, job_status=job.status.serialize())
-        except Exception as e:
-            raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_UNQUEUING, info=str(e)) from e
-    # No running job
-    if not job.status.is_running():
-        raise exceptions.MinkHTTPException(return_code=return_codes.NO_RUNNING_JOB)
-    # Running job, try to abort
-    try:
-        job = processing.require_job(job)
-        job.abort()
-    except exceptions.ProcessNotRunningError as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.NO_RUNNING_JOB) from e
-    except Exception as e:
-        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_ABORTING, info=str(e)) from e
+    info_item = registry.get(auth_data["resource_id"])
+    job = processing.abort_job(info_item)
     return utils.response(return_code=return_codes.ABORTED_JOB, job_status=job.status.serialize())
 
 
