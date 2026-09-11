@@ -25,6 +25,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
   from a URL prefix.
 - Fixed a bug with the queue manager where queue health warnings were sent repeatedly for the same warning. Now,
   warnings are only sent when the queue health state changes.
+- Fixed a bug in parsing the output of `sparv languages`.
 
 ## [3.0.0] - 2026-06-04
 

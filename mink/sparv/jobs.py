@@ -766,11 +766,11 @@ class SparvDefaultJob:
         for line in lines:
             if line.startswith(("Supported language varieties", "Name")):
                 continue
-            matchobj = re.match(r"(.+?)\s+(\S+)(\s+(\S+))?$", line)
+            matchobj = re.match(r"^\s*(.+?)\s+([a-z]{3})(?:\s+(\S+))?\s*$", line)
             if matchobj:
                 langobj = {"name": matchobj.group(1), "code": matchobj.group(2)}
-                if matchobj.group(4):
-                    langobj["variety"] = matchobj.group(4)
+                if matchobj.group(3):
+                    langobj["variety"] = matchobj.group(3)
                 languages.append(langobj)
 
         cache.set_sparv_languages(languages)
