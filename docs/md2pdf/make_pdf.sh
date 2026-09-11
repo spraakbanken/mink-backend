@@ -6,7 +6,6 @@
 # Set title for the common (frontend + backend) report, escape single quotes
 COMMON_REPORT_TITLE="Mink 2026: Språkbanken''s data platform – Technical Report"
 
-
 # Define help message
 show_help() {
   echo "Usage: $0 [--host HOST] [--port PORT] [-h]"
@@ -130,7 +129,7 @@ fi
 # Add author to header
 header="$header
 author: |
-  | Språkbanken Text
+  | Språkbanken
   | Institutionen för svenska, flerspråkighet och språkteknologi
   | Göteborgs universitet
   |
