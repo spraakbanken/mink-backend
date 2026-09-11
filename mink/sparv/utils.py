@@ -9,6 +9,7 @@ import yaml
 from mink.core import exceptions, return_codes
 from mink.core.config import settings
 from mink.sparv.config import sparv_settings
+from mink.sparv.demo import is_demo_id
 from mink.sparv.storage import storage
 
 
@@ -69,6 +70,7 @@ def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, dict
     Returns:
         A tuple containing the standardized config and the corpus name.
     """
+    is_demo = is_demo_id(resource_id)
     config_yaml = yaml.load(config, Loader=yaml.FullLoader)
 
     # Set correct corpus ID
@@ -78,7 +80,11 @@ def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, dict
         config_yaml["metadata"]["id"] = resource_id
 
     # Get corpus name
-    name = config_yaml.get("metadata", {}).get("name", {})
+    if is_demo:
+        config_yaml.get("metadata", {}).pop("name", None)
+        name = {}
+    else:
+        name = config_yaml.get("metadata", {}).get("name", {})
 
     # Remove the compression setting in order to use the standard one given by the default config
     if config_yaml.get("sparv", {}).get("compression") is not None:
@@ -99,6 +105,12 @@ def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, dict
     # Remove all install and uninstall targets (this is handled in the installation step instead)
     config_yaml.pop("install", None)
     config_yaml.pop("uninstall", None)
+
+    if is_demo:
+        # Remove all Korp and Strix settings for demo resources
+        config_yaml.pop("korp", None)
+        config_yaml.pop("sbx_strix", None)
+        return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 
     # Add Korp settings
     korp = config_yaml.setdefault("korp", {})

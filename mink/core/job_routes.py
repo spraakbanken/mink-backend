@@ -179,11 +179,7 @@ async def advance_queue(
         },
         status.HTTP_503_SERVICE_UNAVAILABLE: {
             "model": models.QueueHealthResponse,
-            "content": {
-                "application/json": {
-                    "example": models.QueueHealthResponse.model_json_schema()["examples"][1]
-                }
-            },
+            "content": {"application/json": {"example": models.QueueHealthResponse.model_json_schema()["examples"][1]}},
         },
     },
 )

@@ -1,0 +1,286 @@
+"""Routes for unauthenticated Sparv usage (demo mode)."""
+
+import time
+
+from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import JSONResponse
+
+import mink.sparv.models as sparv_models
+from mink.core import exceptions, models, return_codes, route_utils, utils
+from mink.core.config import settings
+from mink.core.logging import logger
+from mink.sb_auth.login import secret_key_or_admin_mode
+from mink.sparv import demo, processing
+from mink.sparv.config import sparv_settings
+from mink.sparv.storage import storage
+
+DEMO_XML_EXPORT_NAME = f"xml_export.pretty/{demo.DEMO_INPUT_FILENAME.replace('.txt', '_export.xml')}"
+
+router = APIRouter(tags=["Sparv Demo"], prefix="/demo/corpus")
+
+
+@router.post(
+    "/run",
+    operation_id="run-demo-corpus-job",
+    response_model=models.StatusResponse,
+    responses={
+        **models.common_auth_error_responses,
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_QUEUING.message,
+                        "return_code": return_codes.FAILED_QUEUING.code,
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+    },
+)
+async def run_sparv_demo(
+    text: str = Query(..., description="The text to be processed"),
+    config: str = Query(None, description="The config file as plain text"),
+) -> JSONResponse:
+    """Run a Sparv annotation job for the current input.
+
+    ### Example
+
+    ```bash
+    curl -X POST --get 'http://localhost:8000/demo/corpus/run' --data-urlencode 'text=Detta är en text.'
+    ```
+    """
+    # Reject if input text is empty or only whitespace
+    text = text.strip()
+    if not text:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.VALIDATION_ERROR,
+            info="Input text must not be empty or only whitespace",
+        )
+    # Reject if input text is too long
+    size = len(text.encode("UTF-8"))
+    if size > settings.MAX_FILE_LENGTH:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.VALIDATION_ERROR,
+            info=f"Input text is too long (max {settings.MAX_FILE_LENGTH} bytes)",
+        )
+
+    # Get existing demo resource or create a new one
+    info_item = demo.get_demo_resource(text, config)
+
+    processing.run_sparv(info_item, exports=sparv_settings.SPARV_DEMO_DEFAULT_EXPORTS, files=None)
+
+    # Wait a few seconds to check whether anything terminated early
+    time.sleep(3)
+    return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
+
+
+# abort current job: `/demo/corpus/abort/{resource_id}` (POST)
+@router.post(
+    "/job/abort/{resource_id}",
+    operation_id="abort-demo-corpus-job",
+    response_model=models.StatusResponse,
+)
+async def abort_demo_corpus_job(resource_id: str) -> JSONResponse:
+    """Abort the current job for a demo corpus resource."""
+    # Validate demo access and refresh the resource expiry timestamp
+    info_item = demo.get_demo_resource_by_id(resource_id)
+    job = processing.abort_job(info_item)
+    return utils.response(return_code=return_codes.ABORTED_JOB, job_status=job.status.serialize())
+
+
+@router.get(
+    "/status/get/{resource_id}",
+    operation_id="get-demo-corpus-status",
+    response_model=models.StatusResponse,
+)
+async def get_demo_corpus_status(resource_id: str) -> JSONResponse:
+    """Get the status of a demo corpus resource."""
+    # Validate demo access and refresh the resource expiry timestamp
+    info_item = demo.get_demo_resource_by_id(resource_id)
+    return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
+
+
+@router.get(
+    "/input/get/{resource_id}",
+    operation_id="get-demo-corpus-input",
+    response_model=sparv_models.InputResponse,
+)
+async def get_demo_corpus_input(resource_id: str) -> JSONResponse:
+    """Get the input text and config of a demo corpus resource.
+
+    ### Example
+
+    ```bash
+    curl -X GET '{{host}}/demo/corpus/input/get/{resource_id}'
+    ```
+    """
+    # Validate demo access and refresh the resource expiry timestamp
+    _info_item = demo.get_demo_resource_by_id(resource_id)
+
+    # Get input text
+    input_text = ""
+    try:
+        input_file_path = storage.get_source_dir(resource_id) / demo.DEMO_INPUT_FILENAME
+        input_text = storage.get_file_contents(input_file_path)
+    except Exception as e:
+        logger.exception(f"Failed to retrieve input text for resource {resource_id}: {e}")
+
+    # Get config
+    config_text = ""
+    try:
+        config_file_path = storage.get_config_file(resource_id)
+        config_text = storage.get_file_contents(config_file_path)
+    except Exception as e:
+        logger.exception(f"Failed to retrieve config for resource {resource_id}: {e}")
+
+    if not input_text and not config_text:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_RETRIEVING_CONTENT, info="Failed to retrieve input text and config"
+        )
+
+    return utils.response(return_code=return_codes.RETRIEVED_CONTENT, input_text=input_text, config=config_text)
+
+
+@router.get(
+    "/export/get/{resource_id}",
+    operation_id="get-demo-corpus-output",
+    response_model=sparv_models.OutputResponse,
+)
+async def get_demo_corpus_output(resource_id: str) -> JSONResponse:
+    """Get the output of a demo corpus resource.
+
+    ### Example
+
+    ```bash
+    curl -X GET '{{host}}/demo/corpus/export/get/{resource_id}'
+    ```
+    """
+    # Make sure the resource exists and is a demo resource, and update its last_accessed timestamp
+    _info_item = demo.get_demo_resource_by_id(resource_id)
+
+    # # Check if resource is done processing
+    # status = info_item.job.status[ProcessName.sparv]
+    # if status != Status.done:
+    #     raise exceptions.MinkHTTPException(
+    #         return_code=return_codes.RESOURCE_NOT_READY, info="The resource has not finished processing"
+    #     )
+
+    output = ""
+    try:
+        export_dir = storage.get_export_dir(resource_id)
+        export_contents = storage.list_contents(export_dir)
+        assert any(item["path"] == DEMO_XML_EXPORT_NAME for item in export_contents)
+        xml_file_path = export_dir / DEMO_XML_EXPORT_NAME
+        output = storage.get_file_contents(xml_file_path)
+    except Exception as e:
+        logger.exception(f"Failed to retrieve output for resource {resource_id}: {e}")
+
+    if not output:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_RETRIEVING_CONTENT, info="Failed to retrieve output"
+        )
+
+    return utils.response(return_code=return_codes.RETRIEVED_CONTENT, output=output)
+
+
+@router.delete(
+    "/remove/{resource_id}",
+    operation_id="remove-demo-corpus",
+    response_model=models.BaseResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.REMOVED_RESOURCE.message,
+                        "return_code": return_codes.REMOVED_RESOURCE.code,
+                    }
+                }
+            }
+        },
+        **models.common_auth_error_responses,
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                        "info": "Failed to remove resource from Korp",
+                    }
+                }
+            },
+        },
+    },
+)
+async def remove_demo_corpus(resource_id: str, _access: dict = Depends(secret_key_or_admin_mode)) -> JSONResponse:
+    """Remove a demo corpus resource (for admin use only).
+
+    ### Example
+
+    ```bash
+    curl -X DELETE '{{host}}/demo/corpus/remove/{resource_id}' -H 'Authorization: Bearer YOUR_JWT' -H 'cookie: \
+session_id=MY_SESSION_ID'
+    ```
+    """
+    # Validate demo access
+    info_item = demo.get_demo_resource_by_id(resource_id)
+
+    # Remove from storage
+    try:
+        storage.remove_dir(storage.get_corpus_dir(resource_id), resource_id)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_REMOVING_CONTENT,
+            info=f"Failed to remove resource from storage: {e}",
+        ) from e
+
+    # Remove from registry and abort job if running
+    try:
+        info_item.remove(abort_job=True)
+    except Exception:
+        logger.exception("Failed to remove resource '%s' from registry.", resource_id)
+
+    return utils.response(return_code=return_codes.REMOVED_RESOURCE)
+
+
+@router.delete(
+    "/remove-expired",
+    operation_id="remove-expired-demo-corpora",
+    response_model=sparv_models.RemovedResourcesResponse,
+)
+async def remove_expired_demo_corpora(_access: dict = Depends(secret_key_or_admin_mode)) -> JSONResponse:
+    """Remove all expired demo corpus resources (for admin use only).
+
+    ### Example
+
+    ```bash
+    curl -X DELETE '{{host}}/demo/corpus/remove-expired' -H 'Authorization: Bearer YOUR_JWT' -H 'cookie: \
+session_id=MY_SESSION_ID'
+    ```
+    """
+    expired_resources = demo.get_expired_demo_resources()
+    removed_resources = []
+    failed_removals = []
+    for info_item in expired_resources:
+        resource_id = info_item.resource.id
+        try:
+            # Remove from storage
+            storage.remove_dir(storage.get_corpus_dir(resource_id), resource_id)
+            # Remove from registry
+            info_item.remove(abort_job=False)
+            removed_resources.append(resource_id)
+        except Exception:
+            failed_removals.append(resource_id)
+            logger.exception("Failed to remove expired demo resource '%s'.", resource_id)
+
+    return utils.response(
+        return_code=return_codes.REMOVED_RESOURCES,
+        removed_resources=removed_resources,
+        failed_removals=failed_removals,
+    )

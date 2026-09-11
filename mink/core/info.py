@@ -65,6 +65,13 @@ class Info:
         jobs_cache.set_all_resources(all_resources)
         self.update()
 
+    @property
+    def registry_path(self) -> Path:
+        """The resource's registry backup path."""
+        registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
+        subdir = "demo" if self.resource.demo_mode else self.id[len(settings.RESOURCE_PREFIX)]
+        return registry_dir / subdir / self.id
+
     def update(self) -> None:
         """Write an info item to the cache and filesystem."""
         dump = json.dumps(self, default=lambda x: x.serialize())
@@ -72,12 +79,9 @@ class Info:
         jobs_cache.set_job(self.id, dump)
 
         # Save backup to file system queue
-        registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
-        subdir = registry_dir / self.id[len(settings.RESOURCE_PREFIX)]
-        subdir.mkdir(parents=True, exist_ok=True)
-        backup_file = subdir / self.id
-        with backup_file.open("w") as f:
-            f.write(dump)
+        backup_file = self.registry_path
+        backup_file.parent.mkdir(parents=True, exist_ok=True)
+        backup_file.write_text(dump, encoding="utf-8")
 
     def sync_owner(self, user: User) -> None:
         """Update stored owner metadata from an authenticated owner.
@@ -135,10 +139,7 @@ class Info:
             logger.error("Failed to delete job ID from cache client: %s", e)
 
         # Remove backup from file system
-        registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
-        subdir = registry_dir / self.id[len(settings.RESOURCE_PREFIX)]
-        filename = subdir / self.id
-        filename.unlink(missing_ok=True)
+        self.registry_path.unlink(missing_ok=True)
 
 
 def load_from_str(jsonstr: str) -> Info:

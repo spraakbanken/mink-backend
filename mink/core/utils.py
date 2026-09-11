@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime
 import gzip
 import logging
 import os
@@ -12,6 +11,7 @@ import tomllib
 import unicodedata
 import zipfile
 from collections.abc import Mapping, Sequence
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -295,7 +295,15 @@ def serialize_obj(obj: Any, *, depth: int | None = None, seen: set[int] | None =
 
 def get_current_time() -> str:
     """Get the current timestamp as an ISO 8601 string."""
-    return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+    return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def is_older_than(timestamp: str, seconds: int) -> bool:
+    """Check if a timestamp (ISO 8601 string) is older than a given number of seconds."""
+    dt = datetime.fromisoformat(timestamp)
+    if dt.tzinfo is None:
+        raise ValueError("Timestamp must include timezone offset")
+    return datetime.now(UTC) - dt.astimezone(UTC) > timedelta(seconds=seconds)
 
 
 def uncompress_gzip(inpath: Path, outpath: Path | None = None) -> None:

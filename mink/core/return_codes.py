@@ -151,6 +151,9 @@ INVALID_RESOURCE_TYPE = ReturnCode(
 REMOVED_RESOURCE = ReturnCode(
     "removed_resource", message="Resource successfully removed", status_code=status.HTTP_200_OK, tag=RESOURCE
 )
+REMOVED_RESOURCES = ReturnCode(
+    "removed_resources", message="Resources successfully removed", status_code=status.HTTP_200_OK, tag=RESOURCE
+)
 INVALID_CONFIG = ReturnCode(
     "invalid_config",
     message="The config file is invalid or incompatible with your resource",
@@ -219,6 +222,15 @@ LISTING_CONTENT = ReturnCode("listing_content", message="Listing contents", stat
 FAILED_LISTING_CONTENT = ReturnCode(
     "failed_listing_content",
     message="Failed to list contents",
+    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    tag=CONTENT,
+)
+RETRIEVED_CONTENT = ReturnCode(
+    "retrieved_content", message="Retrieved content successfully", status_code=status.HTTP_200_OK, tag=CONTENT
+)
+FAILED_RETRIEVING_CONTENT = ReturnCode(
+    "failed_retrieving_content",
+    message="Failed to retrieve content",
     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     tag=CONTENT,
 )

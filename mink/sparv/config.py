@@ -123,6 +123,23 @@ class SparvSettings(BaseSettings):
         ]
     )
 
+    # -----------------------------------------
+    # Sparv demo mode settings
+    # -----------------------------------------
+
+    # Dir for running demo corpora, e.g. "/home/user/mink-data/corpus/demo"
+    SPARV_DEMO_CORPORA_DIR: str = ""
+
+    # Default demo export formats to create
+    SPARV_DEMO_DEFAULT_EXPORTS: list[str] = Field(
+        default_factory=lambda: [
+            "xml_export:pretty",
+        ]
+    )
+
+    # How long a demo resource is kept before it expires (in seconds)
+    SPARV_DEMO_RESOURCE_LIFETIME: int = 60 * 60 * 24 * 7
+
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists
         "env_file_encoding": "utf-8",

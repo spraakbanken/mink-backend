@@ -326,6 +326,39 @@ class AnalysesResponse(models.BaseResponse):
     }
 
 
+class InputResponse(models.BaseResponse):
+    """Model for the /demo/corpus/input/get/{resource_id} response."""
+
+    input_text: str = Field(default="", description="The input text of the corpus resource")
+    config: str = Field(default="", description="The Sparv configuration of the corpus resource")
+
+
+class OutputResponse(models.BaseResponse):
+    """Model for the /demo/corpus/export/get/{resource_id} response."""
+
+    output: str = Field(default="", description="The annotated output from the processed corpus")
+
+
+class RemovedResourcesResponse(models.BaseResponse):
+    """Model for the /demo/corpus/remove-expired response."""
+
+    removed_resources: list[str] = Field(default=[], description="List of removed resource IDs")
+    failed_removals: list[str] = Field(default=[], description="List of resource IDs that failed to be removed")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.REMOVED_RESOURCES.message,
+                    "return_code": return_codes.REMOVED_RESOURCES.code,
+                    "removed_resources": ["mink-demo-871eabc3", "mink-demo-845eabgh"],
+                    "failed_removals": ["mink-demo-abc12345"],
+                }
+            ]
+        }
+    }
+
+
 # ------------------------------------------------------------------------------
 # Reusable query parameters
 # ------------------------------------------------------------------------------
