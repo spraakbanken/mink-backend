@@ -5,6 +5,7 @@ This script sets up the Uvicorn server with custom logging and reload capabiliti
 
 import argparse
 import logging.config
+from pathlib import Path
 
 import uvicorn
 
@@ -60,6 +61,7 @@ if __name__ == "__main__":
             "docs/mkdocs/index.md",
         ],
         reload_excludes=[
+            str(Path(mink_settings.INSTANCE_PATH).resolve()),
             "run.py",
             "queue_manager.py",
             "tests/*.py",
