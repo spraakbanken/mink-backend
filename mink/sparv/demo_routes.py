@@ -24,7 +24,7 @@ router = APIRouter(tags=["Sparv Demo"], prefix="/demo/corpus")
     operation_id="run-demo-corpus-job",
     response_model=models.StatusResponse,
     responses={
-        **models.common_auth_error_responses,
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
@@ -77,11 +77,62 @@ async def run_sparv_demo(
     return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
 
 
-# abort current job: `/demo/corpus/abort/{resource_id}` (POST)
 @router.post(
     "/job/abort/{resource_id}",
     operation_id="abort-demo-corpus-job",
     response_model=models.StatusResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.ABORTED_JOB.message,
+                        "return_code": return_codes.ABORTED_JOB.code,
+                    }
+                }
+            }
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": models.ErrorResponse404Resource,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.NO_RUNNING_JOB.message,
+                        "return_code": return_codes.NO_RUNNING_JOB.code,
+                    }
+                }
+            },
+        },
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_ABORTING.message,
+                        "return_code": return_codes.FAILED_ABORTING.code,
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "model": models.BaseErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.PROCESS_RUNNING.message,
+                        "return_code": return_codes.PROCESS_RUNNING.code,
+                        "info": "Cannot abort job while syncing files",
+                    }
+                }
+            },
+        },
+    },
 )
 async def abort_demo_corpus_job(resource_id: str) -> JSONResponse:
     """Abort the current job for a demo corpus resource."""
@@ -95,6 +146,22 @@ async def abort_demo_corpus_job(resource_id: str) -> JSONResponse:
     "/status/get/{resource_id}",
     operation_id="get-demo-corpus-status",
     response_model=models.StatusResponse,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "model": models.ErrorResponse404Resource,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.RESOURCE_NOT_FOUND.message,
+                        "return_code": return_codes.RESOURCE_NOT_FOUND.code,
+                        "info": "Error getting job info for resource",
+                    }
+                }
+            },
+        },
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+    },
 )
 async def get_demo_corpus_status(resource_id: str) -> JSONResponse:
     """Get the status of a demo corpus resource."""
@@ -107,6 +174,35 @@ async def get_demo_corpus_status(resource_id: str) -> JSONResponse:
     "/input/get/{resource_id}",
     operation_id="get-demo-corpus-input",
     response_model=sparv_models.InputResponse,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "model": models.ErrorResponse404Resource,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.RESOURCE_NOT_FOUND.message,
+                        "return_code": return_codes.RESOURCE_NOT_FOUND.code,
+                        "info": "Error getting job info for resource",
+                    }
+                }
+            },
+        },
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_RETRIEVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_RETRIEVING_CONTENT.code,
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+    },
 )
 async def get_demo_corpus_input(resource_id: str) -> JSONResponse:
     """Get the input text and config of a demo corpus resource.
@@ -148,6 +244,22 @@ async def get_demo_corpus_input(resource_id: str) -> JSONResponse:
     "/export/get/{resource_id}",
     operation_id="get-demo-corpus-output",
     response_model=sparv_models.OutputResponse,
+    responses={
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_RETRIEVING_CONTENT.message,
+                        "return_code": return_codes.FAILED_RETRIEVING_CONTENT.code,
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+    },
 )
 async def get_demo_corpus_output(resource_id: str) -> JSONResponse:
     """Get the output of a demo corpus resource.
@@ -211,7 +323,7 @@ async def get_demo_corpus_output(resource_id: str) -> JSONResponse:
                         "status": "error",
                         "message": return_codes.FAILED_REMOVING_CONTENT.message,
                         "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
-                        "info": "Failed to remove resource from Korp",
+                        "info": "Failed to remove resource from storage",
                     }
                 }
             },
@@ -253,6 +365,9 @@ session_id=MY_SESSION_ID'
     "/remove-expired",
     operation_id="remove-expired-demo-corpora",
     response_model=sparv_models.RemovedResourcesResponse,
+    responses={
+        **models.common_auth_error_responses,
+    },
 )
 async def remove_expired_demo_corpora(_access: dict = Depends(secret_key_or_admin_mode)) -> JSONResponse:
     """Remove all expired demo corpus resources (for admin use only).

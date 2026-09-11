@@ -331,12 +331,56 @@ class InputResponse(models.BaseResponse):
 
     input_text: str = Field(default="", description="The input text of the corpus resource")
     config: str = Field(default="", description="The Sparv configuration of the corpus resource")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": "Retrieved content successfully",
+                    "return_code": "retrieved_content",
+                    "input_text": "Detta är en text.",
+                    "config": (
+                        "export:\n  annotations:\n  - <sentence>\n  - <token>:saldo.baseform2 as baseform\n  - "
+                        "<token>:saldo.lemgram\n  - <token>:wsd.sense\n  - <token>:stanza.pos\n  - <token>:stanza.msd\n"
+                        "import:\n  importer: text_import:parse\nmetadata:\n  id: mink-demo-220fee71\n"
+                    ),
+                }
+            ]
+        }
+    }
 
 
 class OutputResponse(models.BaseResponse):
     """Model for the /demo/corpus/export/get/{resource_id} response."""
 
     output: str = Field(default="", description="The annotated output from the processed corpus")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": "Retrieved content successfully",
+                    "return_code": "retrieved_content",
+                    "output": (
+                        "<?xml version='1.0' encoding='utf-8'?>\n"
+                        "<sentence>\n"
+                        "  <text>\n"
+                        '    <token baseform="|denna|" lemgram="|denna..pn.1|" msd="PN.NEU.SIN.DEF.SUB+OBJ" '
+                        'pos="PN" sense="|denna..1:-1.000|">Detta</token>\n'
+                        '    <token baseform="|vara|" lemgram="|vara..vb.1|" msd="VB.PRS.AKT" pos="VB" '
+                        'sense="|vara..1:-1.000|">är</token>\n'
+                        '    <token baseform="|en|" lemgram="|en..al.1|" msd="DT.UTR.SIN.IND" pos="DT" '
+                        'sense="|den..1:-1.000|en..2:-1.000|">en</token>\n'
+                        '    <token baseform="|text|" lemgram="|text..nn.1|" msd="NN.UTR.SIN.IND.NOM" '
+                        'pos="NN" sense="|text..1:-1.000|">text</token>\n'
+                        '    <token baseform="|" lemgram="|" msd="MAD" pos="MAD" sense="|">.</token>\n'
+                        "  </text>\n"
+                        "</sentence>\n"
+                    ),
+                }
+            ]
+        }
+    }
 
 
 class RemovedResourcesResponse(models.BaseResponse):
