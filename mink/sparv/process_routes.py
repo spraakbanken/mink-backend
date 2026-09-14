@@ -294,6 +294,7 @@ async def install_korp(
     sources_deleted = config_changed = False
     try:
         info_item = route_utils.get_info_from_auth(auth_data)
+        processing.require_installable(info_item)
         _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
@@ -436,6 +437,7 @@ async def install_strix(auth_data: dict = Depends(AUTH_CORPUS_WRITE)) -> JSONRes
     sources_deleted = config_changed = False
     try:
         info_item = route_utils.get_info_from_auth(auth_data)
+        processing.require_installable(info_item)
         _, sources_deleted, config_changed = storage.get_file_changes(resource_id, info_item)
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e

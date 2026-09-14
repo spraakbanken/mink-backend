@@ -47,6 +47,12 @@ def register() -> None:
                 logger.warning(f"'{var}' not set, Sparv will not be available!")
                 sparv_settings.SPARV_ENABLED = False
 
+        # Ensure SPARV_DEMO_DEFAULT_EXPORTS is a subset of SPARV_DEMO_ALLOWED_EXPORTS
+        if not set(sparv_settings.SPARV_DEMO_DEFAULT_EXPORTS).issubset(sparv_settings.SPARV_DEMO_ALLOWED_EXPORTS):
+            raise exceptions.ConfigurationError(
+                "SPARV_DEMO_DEFAULT_EXPORTS must be a subset of SPARV_DEMO_ALLOWED_EXPORTS"
+            )
+
     def process_running(job: Any) -> bool:
         return cast(SparvJob, job).process_running()
 

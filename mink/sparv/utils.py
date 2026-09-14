@@ -8,6 +8,7 @@ import yaml
 
 from mink.core import exceptions, return_codes
 from mink.core.config import settings
+from mink.core.info import Info
 from mink.sparv.config import sparv_settings
 from mink.sparv.demo import is_demo_id
 from mink.sparv.storage import storage
@@ -146,6 +147,27 @@ def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, st
         return True, current_ext, None
     existing_ext = Path(existing_files[0].get("name")).suffix
     return current_ext == existing_ext, current_ext, existing_ext
+
+
+def resolve_exports(info_item: Info, exports: list[str] | None) -> list[str]:
+    """Resolve the requested export formats, taking into account demo mode restrictions."""
+    requested = [value.strip() for value in exports or [] if value.strip()]
+
+    if not info_item.resource.demo_mode:
+        return requested or list(sparv_settings.SPARV_DEFAULT_EXPORTS)
+
+    requested = requested or list(sparv_settings.SPARV_DEMO_DEFAULT_EXPORTS)
+    allowed = frozenset(sparv_settings.SPARV_DEMO_ALLOWED_EXPORTS)
+    rejected = sorted(set(requested) - allowed)
+
+    if rejected:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.VALIDATION_ERROR,
+            info="One or more exports are not available in demo mode",
+            invalid_exports=rejected,
+        )
+
+    return requested
 
 
 def load_available_analyses() -> list[dict[str, Any]]:

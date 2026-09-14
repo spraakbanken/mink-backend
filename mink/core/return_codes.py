@@ -286,6 +286,12 @@ PROCESS_RUNNING = ReturnCode(
     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
     tag=JOB,
 )
+INSTALLATION_NOT_ALLOWED = ReturnCode(
+    "installation_not_allowed",
+    message="Demo resources cannot be installed",
+    status_code=status.HTTP_403_FORBIDDEN,
+    tag=JOB,
+)
 
 
 # ------------------------------------------------------------------------------
