@@ -170,16 +170,21 @@ def get_demo_resource_by_id(resource_id: str) -> Info:
     return info_item
 
 
+def resource_is_expired(info_item: Info) -> bool:
+    """Check if a demo resource has expired based on its last accessed timestamp."""
+    lifetime_seconds = sparv_settings.SPARV_DEMO_RESOURCE_LIFETIME
+    return utils.is_older_than(info_item.resource.last_accessed, lifetime_seconds)
+
+
 def get_expired_demo_resources() -> list[Info]:
     """Get a list of expired demo resources (info items)."""
-    lifetime_seconds = sparv_settings.SPARV_DEMO_RESOURCE_LIFETIME
     expired_resources = []
     all_resources = jobs_cache.get_all_resources()
     for resource_id in all_resources:
         if is_demo_id(resource_id):
             try:
                 info_item = registry.get(resource_id)
-                is_expired = utils.is_older_than(info_item.resource.last_accessed, lifetime_seconds)
+                is_expired = resource_is_expired(info_item)
                 # Check if the resource is a demo corpus and has expired
                 if info_item.resource.demo_mode and info_item.resource.type == CORPUS and is_expired:
                     expired_resources.append(info_item)

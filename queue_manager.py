@@ -111,6 +111,31 @@ def check_queue_health() -> None:
         logger.exception("Error checking queue health")
 
 
+def cleanup_demo_corpora() -> None:
+    """Remove expired demo corpora."""
+    logger.info("Calling '/demo/corpus/remove-expired'")
+    url = f"{settings.MINK_URL}/demo/corpus/remove-expired"
+    params = {"secret_key": settings.MINK_SECRET_KEY}
+    response = None
+    try:
+        with httpx.Client(timeout=60.0) as client:
+            response = client.delete(url, params=params)
+            response.raise_for_status()
+            logger.debug(response.text)
+    except httpx.HTTPError:
+        logger.exception("Error cleaning up demo corpora")
+    finally:
+        # Report failed removals to Slack
+        payload = response.json() if response else {}
+        failed_removals = payload.get("failed_removals") or []
+        if failed_removals:
+            try:
+                failed_removals_text = ", ".join(str(removal) for removal in failed_removals)
+                send_slack_webhook(f"Failed to remove expired demo corpora: {failed_removals_text}")
+            except ValueError:
+                logger.debug("No JSON payload in response to expired demo corpora cleanup")
+
+
 if __name__ == "__main__":
     # Configure logging
     # If script is not run interactively, log to file, otherwise log to console
@@ -134,6 +159,7 @@ if __name__ == "__main__":
     scheduler.add_executor("threadpool", max_workers=1)
     scheduler.add_job(advance_queue, "interval", seconds=settings.CHECK_QUEUE_FREQUENCY)
     scheduler.add_job(check_queue_health, "interval", seconds=settings.CHECK_QUEUE_HEALTH_FREQUENCY)
+    scheduler.add_job(cleanup_demo_corpora, "interval", hours=settings.CLEANUP_DEMO_JOBS_FREQUENCY)
     if settings.HEALTHCHECKS_URL:
         scheduler.add_job(
             ping_healthchecks,

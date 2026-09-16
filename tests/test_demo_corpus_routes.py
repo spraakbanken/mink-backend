@@ -90,3 +90,19 @@ def test_get_demo_corpus_output(demo_corpus_processed: str) -> None:
 #             assert json_data.get("return_code") == return_codes.REMOVED_CONTENT.code, (
 #                 f"Exports removal failed: {json_data}"
 #             )
+
+
+@pytest.mark.demo_corpus
+def test_remove_expired_demo_corpora() -> None:
+    """Test removing expired demo corpora."""
+    response = call_route(
+        "DELETE",
+        "/demo/corpus/remove-expired",
+        query=f"secret_key={settings.MINK_SECRET_KEY}",
+        status_code=status.HTTP_200_OK,
+    )
+    json_data = response.json()
+    assert json_data.get("return_code") == return_codes.REMOVED_RESOURCES.code, (
+        f"Removing expired demo corpora failed: {json_data}"
+    )
+    assert isinstance(json_data.get("removed_resources"), list), "Response should contain a list of removed resources"

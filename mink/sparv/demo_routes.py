@@ -24,7 +24,7 @@ router = APIRouter(tags=["Sparv Demo"], prefix="/demo/corpus")
     operation_id="run-demo-corpus-job",
     response_model=models.StatusResponse,
     responses={
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": models.ErrorResponse422},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
@@ -105,7 +105,7 @@ async def run_sparv_demo(
                 }
             },
         },
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": models.ErrorResponse422},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
@@ -160,7 +160,7 @@ async def abort_demo_corpus_job(resource_id: str) -> JSONResponse:
                 }
             },
         },
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": models.ErrorResponse422},
     },
 )
 async def get_demo_corpus_status(resource_id: str) -> JSONResponse:
@@ -188,7 +188,7 @@ async def get_demo_corpus_status(resource_id: str) -> JSONResponse:
                 }
             },
         },
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": models.ErrorResponse422},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
@@ -245,7 +245,7 @@ async def get_demo_corpus_input(resource_id: str) -> JSONResponse:
     operation_id="get-demo-corpus-output",
     response_model=sparv_models.OutputResponse,
     responses={
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": models.ErrorResponse422},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": models.ErrorResponse422},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": models.ErrorResponse500,
             "content": {
@@ -385,6 +385,9 @@ session_id=MY_SESSION_ID'
     for info_item in expired_resources:
         resource_id = info_item.resource.id
         try:
+            # Recheck the timestamp immediately before deletion to avoid racing with a request
+            if not demo.resource_is_expired(info_item):
+                continue
             # Remove from storage
             storage.remove_dir(storage.get_corpus_dir(resource_id), resource_id)
             # Remove from registry
