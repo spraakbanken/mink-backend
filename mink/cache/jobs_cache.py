@@ -1,6 +1,9 @@
 """Cache helpers for registry and job queue."""
 
+from pymemcache.exceptions import MemcacheServerError
+
 from mink.cache.memcached import cache, cache_namespace
+from mink.core.logging import logger
 
 
 # ------------------------------------------------------------------------------
@@ -82,7 +85,10 @@ def set_job(job: str, value: str) -> None:
         value: The job as a serialized dictionary.
     """
     with cache.get_client() as client:
-        client.set(_key_job(job), value)
+        try:
+            client.set(_key_job(job), value)
+        except MemcacheServerError:
+            logger.error("Failed to cache job '%s': value too large for cache", job)
 
 
 def remove_job(job: str) -> None:

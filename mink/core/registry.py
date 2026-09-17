@@ -81,6 +81,32 @@ def initialize() -> None:
     logger.info("Total resources in cache: %d", len(jobs_cache.get_all_resources()))
 
 
+def _get_job_str(resource_id: str) -> str | None:
+    """Get a job as a JSON string, falling back to the filesystem backup if missing from the cache.
+
+    If the job is found on the filesystem but missing from the cache (e.g. evicted), the cache is repopulated.
+
+    Args:
+        resource_id: The ID of the resource to retrieve.
+
+    Returns:
+        The job as a JSON string, or None if the job could not be found in the cache or on the filesystem.
+    """
+    job_str = jobs_cache.get_job(resource_id)
+    if job_str != "null":
+        return job_str
+
+    registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
+    backup_file = registry_dir / resource_id[len(settings.RESOURCE_PREFIX)] / resource_id
+    if not backup_file.is_file():
+        return None
+
+    logger.warning("Job '%s' missing from cache, restoring from filesystem backup", resource_id)
+    job_str = backup_file.read_text()
+    jobs_cache.set_job(resource_id, job_str)
+    return job_str
+
+
 @ensure_initialized
 def get(resource_id: str) -> info.Info:
     """Get an existing info instance from the cache.
@@ -94,9 +120,9 @@ def get(resource_id: str) -> info.Info:
     Raises:
         exceptions.JobNotFoundError: If no resource is found with the given ID.
     """
-    info_obj = jobs_cache.get_job(resource_id)
+    info_obj = _get_job_str(resource_id)
     logger.debug("Info object from cache: %s", info_obj)
-    if info_obj == "null":
+    if info_obj is None:
         raise exceptions.JobNotFoundError(resource_id)
     return info.load_from_str(info_obj)
 
@@ -208,7 +234,11 @@ def get_running_waiting() -> tuple[list[jobs.BaseJob], list[jobs.BaseJob]]:
     # queue is None before it is done initializing
     if queue is not None:
         for res_id in queue:
-            job = info.load_from_str(jobs_cache.get_job(res_id)).job
+            job_str = _get_job_str(res_id)
+            if job_str is None:
+                logger.warning("Job '%s' is in queue but missing from cache and filesystem, skipping", res_id)
+                continue
+            job = info.load_from_str(job_str).job
             if job.status.is_running():
                 running_jobs.append(job)
             elif job.status.is_waiting():
@@ -223,7 +253,12 @@ def unqueue_inactive() -> None:
     queue = jobs_cache.get_job_queue()
     old_jobs = []
     for res_id in queue:
-        job = info.load_from_str(jobs_cache.get_job(res_id)).job
+        job_str = _get_job_str(res_id)
+        if job_str is None:
+            logger.warning("Job '%s' is in queue but missing from cache and filesystem, removing from queue", res_id)
+            old_jobs.append(res_id)
+            continue
+        job = info.load_from_str(job_str).job
         if job.status.is_inactive():
             old_jobs.append(res_id)
 

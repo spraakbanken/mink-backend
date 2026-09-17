@@ -8,6 +8,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - Made minor changes to the developer's guide.
+- Retrieving a job from the cache is more robust: if the job is missing from the cache, it will be loaded from the
+  filesystem instead. If it is missing from both, a warning is logged and a `JobNotFoundError` is raised.
 
 ### Added
 
