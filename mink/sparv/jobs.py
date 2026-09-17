@@ -560,6 +560,11 @@ class SparvJob(BaseJob):
 
             self.progress_output = progress
 
+        max_length = sparv_settings.SPARV_OUTPUT_MAX_LENGTH
+        warnings = warnings[:max_length]
+        errors = errors[:max_length]
+        misc = misc[:max_length]
+
         return warnings, errors, misc, sparv_ended
 
     @property

@@ -10,6 +10,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Made minor changes to the developer's guide.
 - Retrieving a job from the cache is more robust: if the job is missing from the cache, it will be loaded from the
   filesystem instead. If it is missing from both, a warning is logged and a `JobNotFoundError` is raised.
+- Output from Sparv and Karp is now truncated to a maximum length (configurable via `SPARV_OUTPUT_MAX_LENGTH` and
+  `KARP_OUTPUT_MAX_LENGTH`) to prevent oversized cache items.
 
 ### Added
 

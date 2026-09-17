@@ -58,6 +58,8 @@ class SparvSettings(BaseSettings):
 
     SPARV_NOHUP_FILE: str = "mink.out"  # File collecting Sparv output for a job
     SPARV_TMP_RUN_SCRIPT: str = "run_sparv.sh"  # Temporary Sparv run script created for every job
+    # Max size (chars) to keep for each of the warnings/errors/misc output fields (prevents oversized cache items)
+    SPARV_OUTPUT_MAX_LENGTH: int = 1024 * 200
 
     # Default export formats to create if nothing is specified
     SPARV_DEFAULT_EXPORTS: list[str] = Field(

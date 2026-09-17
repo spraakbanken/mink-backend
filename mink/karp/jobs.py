@@ -383,6 +383,11 @@ class KarpJob(BaseJob):
 
             self.progress_output = progress
 
+        max_length = karp_settings.KARP_OUTPUT_MAX_LENGTH
+        warnings = warnings[:max_length]
+        errors = errors[:max_length]
+        misc = misc[:max_length]
+
         return warnings, errors, misc, karp_ended
 
     @property

@@ -40,6 +40,8 @@ class KarpSettings(BaseSettings):
 
     KARP_NOHUP_FILE: str = "mink.out"  # File collecting Karp output for a job
     KARP_TMP_RUN_SCRIPT: str = "run_karp.sh"  # Temporary Karp run script created for every job
+    # Max size (chars) to keep for each of the warnings/errors/misc output fields (prevents oversized cache items)
+    KARP_OUTPUT_MAX_LENGTH: int = 1024 * 200
 
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists
