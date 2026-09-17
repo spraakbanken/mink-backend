@@ -97,7 +97,13 @@ def _get_job_str(resource_id: str) -> str | None:
         return job_str
 
     registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
-    backup_file = registry_dir / resource_id[len(settings.RESOURCE_PREFIX)] / resource_id
+    subdir = (
+        settings.DEMO_REGISTRY_DIR
+        if resource_id.startswith(settings.DEMO_PREFIX)
+        else resource_id[len(settings.RESOURCE_PREFIX)]
+    )
+    backup_file = registry_dir / subdir / resource_id
+
     if not backup_file.is_file():
         return None
 

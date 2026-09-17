@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     MINK_URL: str = ""  # URL for mink API
     ROOT_PATH: str = ""  # Root path for the API, e.g. "/mink" if served from a subpath
     RESOURCE_PREFIX: str = "mink-"  # Prefix for resource IDs
+    DEMO_PREFIX: str = "mink-demo-"  # Prefix for demo resource IDs
+    DEMO_REGISTRY_DIR: str = "demo"  # Subdir in the registry for demo resources
 
     # Modules that register resource specs
     SPEC_MODULES: list[str] = Field(default_factory=lambda: ["mink.sparv.spec", "mink.metadata.spec", "mink.karp.spec"])

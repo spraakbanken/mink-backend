@@ -69,7 +69,7 @@ class Info:
     def registry_path(self) -> Path:
         """The resource's registry backup path."""
         registry_dir = Path(settings.INSTANCE_PATH) / settings.REGISTRY_DIR
-        subdir = "demo" if self.resource.demo_mode else self.id[len(settings.RESOURCE_PREFIX)]
+        subdir = settings.DEMO_REGISTRY_DIR if self.resource.demo_mode else self.id[len(settings.RESOURCE_PREFIX)]
         return registry_dir / subdir / self.id
 
     def update(self) -> None:

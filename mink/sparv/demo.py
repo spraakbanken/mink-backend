@@ -14,9 +14,8 @@ from mink.core.user import User
 from mink.sparv.config import sparv_settings
 from mink.sparv.spec import CORPUS
 
-DEMO_ID_PREFIX = f"{settings.RESOURCE_PREFIX}demo-"
-DEMO_ID_PATTERN = re.compile(rf"{re.escape(DEMO_ID_PREFIX)}[0-9a-f]{{8}}\Z")
-DEMO_DUMMY_ID = f"{DEMO_ID_PREFIX}dummy"
+DEMO_ID_PATTERN = re.compile(rf"{re.escape(settings.DEMO_PREFIX)}[0-9a-f]{{8}}\Z")
+DEMO_DUMMY_ID = f"{settings.DEMO_PREFIX}dummy"
 DEMO_RESOURCE_NAME = {"swe": "Demo", "eng": "Demo"}
 DEMO_INPUT_FILENAME = "input.txt"
 # TODO: Make this configurable through settings?
@@ -44,7 +43,7 @@ def compute_demo_id(text: str, config: str) -> str:
     salt = "v1"  # Change this if the hashing scheme changes
     unique_string = f"{text}|{config}|{salt}"
     demo_hash = hashlib.sha256(unique_string.encode()).hexdigest()[:8]
-    return f"{DEMO_ID_PREFIX}{demo_hash}"
+    return f"{settings.DEMO_PREFIX}{demo_hash}"
 
 
 def is_demo_id(resource_id: str) -> bool:
