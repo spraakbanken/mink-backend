@@ -17,7 +17,6 @@ from dateutil.parser import parse
 from mink.core import exceptions, utils
 from mink.core.config import settings
 from mink.core.logging import logger
-from mink.sb_auth.login import request_id_var
 
 
 class BaseStorage:
@@ -84,10 +83,10 @@ class BaseStorage:
     @staticmethod
     def get_local_resources_dir(mkdir: bool = False) -> Path:
         """Get user specific dir for resources."""
-        if not request_id_var.get():
+        if not utils.request_id_var.get():
             logger.error("Request ID not set. Cannot get path to local resources dir.")
             raise exceptions.RequestIDNotSetError
-        resources_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / request_id_var.get()
+        resources_dir = Path(settings.INSTANCE_PATH) / settings.TMP_DIR / utils.request_id_var.get()
         if mkdir:
             resources_dir.mkdir(parents=True, exist_ok=True)
         return resources_dir

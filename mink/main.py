@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import shortuuid
 import yaml
 from asgi_matomo import MatomoMiddleware
 from fastapi import FastAPI, Request, Response
@@ -135,20 +136,28 @@ for router in get_resource_routers():
 # Middleware
 # ------------------------------------------------------------------------------
 @app.middleware("http")
-async def log_request(request: Request, call_next: Callable) -> Response:
-    """Middleware to log info about each request (except when serving static files)."""
-    root_path = request.scope.get("root_path") or ""
-    path = request.scope.get("path") or request.url.path
-    if root_path and path.startswith(root_path):
-        path = path[len(root_path) :] or "/"
+async def init_and_log_request(request: Request, call_next: Callable) -> Response:
+    """Initialize request context and log the request."""
+    request_id = shortuuid.uuid()
+    request.state.request_id = request_id
+    token = utils.request_id_var.set(request_id)
 
-    # Log request info, but don't log options and queue advance requests (too much spam)
-    if request.method != "OPTIONS" and not path.startswith(("/queue/advance", "/queue/health")):
-        request_str = f"{request.method} {path}" + (f"?{request.url.query}" if request.url.query else "")
-        logger.info("Request: %s", request_str)
+    try:
+        root_path = request.scope.get("root_path") or ""
+        path = request.scope.get("path") or request.url.path
+        if root_path and path.startswith(root_path):
+            path = path[len(root_path) :] or "/"
+        # Log request info, but don't log options and queue advance requests (too much spam)
+        if request.method != "OPTIONS" and not path.startswith(("/queue/advance", "/queue/health")):
+            request_str = f"{request.method} {path}" + (f"?{request.url.query}" if request.url.query else "")
+            logger.info("Request: %s", request_str)
 
-    # Call the actual route
-    return await call_next(request)
+        # Call the actual route
+        return await call_next(request)
+
+    finally:
+        # Reset the request ID context variable to avoid leaking it to other requests
+        utils.request_id_var.reset(token)
 
 
 # Add middleware to enforce the request size limit

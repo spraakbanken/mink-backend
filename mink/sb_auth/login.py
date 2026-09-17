@@ -2,12 +2,10 @@
 
 import json
 import re
-from contextvars import ContextVar
 from pathlib import Path
 
 import httpx
 import jwt
-import shortuuid
 from fastapi import Cookie, Query, Request, Security, status
 from fastapi import Path as FastAPIPath
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
@@ -22,9 +20,6 @@ from mink.sb_auth import cache as auth_cache
 # Setup security schemes
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="", auto_error=False)
 api_key_scheme = APIKeyHeader(name="X-Api-Key", auto_error=False)
-
-# Context variable to store request ID
-request_id_var = ContextVar("request_id_var", default="")
 
 
 async def get_auth_data(
@@ -89,9 +84,7 @@ async def get_auth_data(
         raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_LOGIN_CREDENTIALS)
 
     # Store random ID in contextvar and in request state (used for temporary file storage and cookies)
-    request_id = shortuuid.uuid()
-    request.state.request_id = request_id
-    request_id_var.set(request_id)
+    request_id = request.state.request_id
     if session_id is None:
         session_id = request_id
 

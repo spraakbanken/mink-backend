@@ -11,6 +11,7 @@ import tomllib
 import unicodedata
 import zipfile
 from collections.abc import Mapping, Sequence
+from contextvars import ContextVar
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
@@ -26,10 +27,12 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from mink.core import exceptions, return_codes
 from mink.core.config import settings
 from mink.core.logging import logger
-from mink.sb_auth.login import request_id_var
 
 if TYPE_CHECKING:
     from mink.core.storage_base import BaseStorage
+
+# Context variable to store request ID
+request_id_var = ContextVar("request_id_var", default="")
 
 
 def response(
