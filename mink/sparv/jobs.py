@@ -576,6 +576,11 @@ class SparvJob(BaseJob):
 
             self.progress_output = progress
 
+        max_length = sparv_settings.SPARV_OUTPUT_MAX_LENGTH
+        warnings = warnings[:max_length]
+        errors = errors[:max_length]
+        misc = misc[:max_length]
+
         return warnings, errors, misc, sparv_ended
 
     @property
@@ -787,11 +792,11 @@ class SparvDefaultJob:
         for line in lines:
             if line.startswith(("Supported language varieties", "Name")):
                 continue
-            matchobj = re.match(r"(.+?)\s+(\S+)(\s+(\S+))?$", line)
+            matchobj = re.match(r"^\s*(.+?)\s+([a-z]{3})(?:\s+(\S+))?\s*$", line)
             if matchobj:
                 langobj = {"name": matchobj.group(1), "code": matchobj.group(2)}
-                if matchobj.group(4):
-                    langobj["variety"] = matchobj.group(4)
+                if matchobj.group(3):
+                    langobj["variety"] = matchobj.group(3)
                 languages.append(langobj)
 
         cache.set_sparv_languages(languages)

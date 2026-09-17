@@ -1,18 +1,20 @@
 # Introduction
 
-Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s data platform for managing, annotating, and exploring corpus
-data. Users can upload their own texts, annotate them with [Sparv](https://spraakbanken.gu.se/sparv), and access or
-search the results in [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
+Mink is [Språkbanken](https://sprakbanken.se/)'s data platform. Its goal is to make our research infrastructure easily
+accessible to researchers.
 
-The goal of Mink is to make Språkbanken Text’s research infrastructure easily accessible to researchers. With Mink, you
-can apply advanced language technology methods to your own collected texts. The processed data can be downloaded or made
-available through our research tools, such as Korp and Strix, with secure access.
+As a user, you can apply advanced language technology methods to your own data, and download or explore the results in
+our research tools with secure access.
 
-The Mink frontend is a modern single-page web application written in [TypeScript](https://www.typescriptlang.org/) using
-the [Vue 3](https://vuejs.org/) framework. It communicates with the [Mink
-backend](https://github.com/spraakbanken/mink-backend/) via API calls, and leverages libraries such as
-[Axios](https://axios-http.com/) and [Tailwind CSS](https://tailwindcss.com/).
+Mink currently supports three kinds of resources:
 
-The backend is a [FastAPI](https://fastapi.tiangolo.com/) application that powers the Mink frontend. It provides
-endpoints for uploading and downloading corpus files, processing corpora with Sparv, and installing them in Korp and
-Strix for further exploration.
+- Corpora: have large text data annotated with [Sparv](https://spraakbanken.gu.se/sparv), and explore it in
+  [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix)
+- Lexicons: explore lists or tabular data in [Karp's search mode](https://spraakbanken.gu.se/karp)
+- Metadata: add language resources to [Språkbanken's resource catalogue](https://spraakbanken.gu.se/en/resources)
+
+The system is built with a client-server architecture:
+
+- **Mink frontend** runs in the user's web browser and presents a graphical user interface (GUI) to the services of the
+  backend
+- **Mink backend** runs on a server where it manages stored data and executes data processing operations

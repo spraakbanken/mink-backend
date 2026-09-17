@@ -8,6 +8,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - Made minor changes to the developer's guide.
+- Retrieving a job from the cache is more robust: if the job is missing from the cache, it will be loaded from the
+  filesystem instead. If it is missing from both, a warning is logged and a `JobNotFoundError` is raised.
+- Output from Sparv and Karp is now truncated to a maximum length (configurable via `SPARV_OUTPUT_MAX_LENGTH` and
+  `KARP_OUTPUT_MAX_LENGTH`) to prevent oversized cache items.
 
 ### Added
 
@@ -25,6 +29,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
   from a URL prefix.
 - Fixed a bug with the queue manager where queue health warnings were sent repeatedly for the same warning. Now,
   warnings are only sent when the queue health state changes.
+- Fixed a bug in parsing the output of `sparv languages`.
 
 ## [3.0.0] - 2026-06-04
 

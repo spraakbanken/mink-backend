@@ -305,6 +305,10 @@ class AnalysesResponse(models.BaseResponse):
                             ],
                             "task": {"eng": "dependency parsing", "swe": "dependensparsning"},
                             "analysis_unit": {"eng": "token", "swe": "token"},
+                            "short_description": {
+                                "swe": "Svensk dependensparsning tränad på Svensk trädbank med Stanza",
+                                "eng": "Swedish dependency parsing with Stanza trained on Sweedish treebank",
+                            },
                             "languages": [{"code": "swe", "name": {"swe": "svenska", "eng": "Swedish"}}],
                         },
                         {
@@ -316,6 +320,14 @@ class AnalysesResponse(models.BaseResponse):
                             "annotations": ["<token>:hunpos.msd"],
                             "task": {"eng": "morphosyntactic tagging", "swe": "morfosyntaktisk taggning"},
                             "analysis_unit": {"eng": "token", "swe": "token"},
+                            "short_description": {
+                                "swe": (
+                                    "Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för 1800-talssvenska"
+                                ),
+                                "eng": (
+                                    "Annotation of morphological features (SUC) by Hunpos for Swedish from the 1800s"
+                                ),
+                            },
                             "languages": [{"code": "swe", "name": {"swe": "svenska", "eng": "Swedish"}}],
                             "language_varieties": ["1800"],
                         },
