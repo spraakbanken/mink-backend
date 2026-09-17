@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from fastapi import status
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from mkdocs.commands import build
 from mkdocs.config import load_config
 from starlette.background import BackgroundTask
@@ -94,6 +94,16 @@ def response(
     response.background = BackgroundTask(remove_tmp_files, request_id_var.get())
 
     return response
+
+
+def file_response(path: Path, *, media_type: str, filename: str) -> FileResponse:
+    """Return a file response that removes request-scoped temporary files after sending."""
+    return FileResponse(
+        path,
+        media_type=media_type,
+        filename=filename,
+        background=BackgroundTask(remove_tmp_files, request_id_var.get()),
+    )
 
 
 def remove_tmp_files(request_id: str) -> None:

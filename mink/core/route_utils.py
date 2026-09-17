@@ -407,7 +407,7 @@ def download_file_response(
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
     if download_ok:
-        return FileResponse(local_path, media_type=media_type, filename=local_path.name)
+        return utils.file_response(local_path, media_type=media_type, filename=local_path.name)
     raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND)
 
 
@@ -481,7 +481,7 @@ def download_exports_response(
                 zipped=True,
                 zippath=zip_out,
             )
-            return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
+            return utils.file_response(zip_out, media_type="application/zip", filename=zip_out.name)
         except FileNotFoundError as e:
             raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
         except Exception as e:
@@ -498,13 +498,13 @@ def download_exports_response(
             if zipped:
                 outfile_path = local_resource_dir / f"{resource_id}_{download_file_name}.zip"
                 utils.create_zip(local_path, outfile_path, zip_rootdir=resource_id)
-                return FileResponse(outfile_path, media_type="application/zip", filename=outfile_path.name)
+                return utils.file_response(outfile_path, media_type="application/zip", filename=outfile_path.name)
             content_type = default_media_type
             for file_obj in exports_contents:
                 if file_obj.get("path") == download_file:
                     content_type = file_obj.get("type") or default_media_type
                     break
-            return FileResponse(local_path, media_type=content_type, filename=local_path.name)
+            return utils.file_response(local_path, media_type=content_type, filename=local_path.name)
         except FileNotFoundError as e:
             raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
         except Exception as e:
@@ -520,7 +520,7 @@ def download_exports_response(
             zippath=zip_out,
             excludes=blacklist,
         )
-        return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
+        return utils.file_response(zip_out, media_type="application/zip", filename=zip_out.name)
     except FileNotFoundError as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
     except Exception as e:

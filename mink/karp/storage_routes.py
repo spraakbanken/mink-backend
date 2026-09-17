@@ -494,9 +494,9 @@ async def download_sources(
         if zipped:
             outfile_path = local_resource_dir / f"{resource_id}_{download_file_name}.zip"
             utils.create_zip(local_path, outfile_path, zip_rootdir=resource_id)
-            return FileResponse(outfile_path, media_type="application/zip", filename=outfile_path.name)
+            return utils.file_response(outfile_path, media_type="application/zip", filename=outfile_path.name)
         # Unzippped download
-        return FileResponse(local_path, media_type=download_file_type, filename=local_path.name)
+        return utils.file_response(local_path, media_type=download_file_type, filename=local_path.name)
 
     except FileNotFoundError as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
