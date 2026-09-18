@@ -10,25 +10,26 @@ authors = [
 ]
 dependencies = [
     "apscheduler==3.11.3",
-    "asgi-matomo==0.6.2",
-    "fastapi==0.140.7",
+    "asgi-matomo==0.8.0",
+    "fastapi==0.141.1",
+    "httpx2>=2.12.0",
     "mkdocs-macros-plugin==1.5.0",
     "mkdocs-material==9.7.7",
-    "pydantic-settings==2.14.2",
+    "pydantic-settings==2.15.0",
     "pyjwt[crypto]==2.13.0",
     "pymemcache==4.0.0",
     "python-dateutil==2.9.0.post0",
-    "python-dotenv==1.2.2",
+    "python-dotenv==1.2.3",
     "python-multipart==0.0.32",
     "pyyaml==6.0.3",
     "rich>=15.0.0",
     "shortuuid==1.0.13",
-    "uvicorn[standard]==0.51.0",
+    "uvicorn[standard]==0.52.4",
 ]
 
 [project.optional-dependencies]
 server = [
-    "gunicorn>=26.0.0",
+    "gunicorn>=26.2.0",
     "uvicorn-worker>=0.4.0",
     "uvloop==0.22.1", # Used by Gunicorn's ASGI worker for improved performance
 ]
@@ -39,12 +40,10 @@ dev = [
     "pyright==1.1.411",
     "pytest==9.1.1",
     "pytest-sugar==1.1.1",
-    "httpx2>=2.12.0",
 ]
 
-
-[tool.black]
-line-length = 120
+[tool.uv]
+exclude-newer = "2026-09-18T00:00:00Z"
 
 [tool.ruff]
 line-length = 120

@@ -32,6 +32,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed a bug with the queue manager where queue health warnings were sent repeatedly for the same warning. Now,
   warnings are only sent when the queue health state changes.
 - Fixed a bug in parsing the output of `sparv languages`.
+- Adapted the parsing of Sparv output to handle a new log format introduced in [Sparv commit cde41011](https://github.com/spraakbanken/sparv/commit/cde410113ef3d696a1013076c3dc375b13eea17c).
 
 ## [3.0.0] - 2026-06-04
 

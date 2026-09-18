@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 
-import httpx
+import httpx2
 import jwt
 from fastapi import Cookie, Query, Request, Security, status
 from fastapi import Path as FastAPIPath
@@ -411,7 +411,7 @@ class ApikeyAuthentication(Authentication):
         }
         data = {"apikey": apikey}
 
-        async with httpx.AsyncClient() as client:
+        async with httpx2.AsyncClient() as client:
             response = await client.post(url, headers=headers, json=data)
 
         if response.status_code == status.HTTP_404_NOT_FOUND:
@@ -448,7 +448,7 @@ async def create_resource(auth_token: str, resource_id: str, resource_type: str)
     url = settings.SBAUTH_URL + f"resource/{resource_id}?type={resource_type}"
     headers = {"Authorization": f"apikey {settings.SBAUTH_API_KEY}", "Content-Type": "application/json"}
     data = {"jwt": auth_token} if is_jwt(auth_token) else {"apikey": auth_token}
-    async with httpx.AsyncClient() as client:
+    async with httpx2.AsyncClient() as client:
         try:
             response = await client.post(url, headers=headers, json=data)
         except Exception:
@@ -484,8 +484,8 @@ async def remove_resource(auth_token: str, resource_id: str) -> bool:
     url = settings.SBAUTH_URL + f"resource/{resource_id}"
     headers = {"Authorization": f"apikey {settings.SBAUTH_API_KEY}", "Content-Type": "application/json"}
     data = {"jwt": auth_token} if is_jwt(auth_token) else {"apikey": auth_token}
-    async with httpx.AsyncClient() as client:
-        request = httpx.Request(method="DELETE", url=url, headers=headers, json=data)
+    async with httpx2.AsyncClient() as client:
+        request = httpx2.Request(method="DELETE", url=url, headers=headers, json=data)
         response = await client.send(request)
 
     if response.status_code == status.HTTP_204_NO_CONTENT:

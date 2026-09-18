@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-import httpx
+import httpx2
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from mink.core import return_codes
@@ -30,11 +30,11 @@ def advance_queue() -> None:
     url = f"{settings.MINK_URL}/queue/advance"
     try:
         params = {"secret_key": settings.MINK_SECRET_KEY}
-        with httpx.Client(timeout=60.0) as client:
+        with httpx2.Client(timeout=60.0) as client:
             response = client.put(url, params=params)
             response.raise_for_status()
             logger.debug(response.text)
-    except httpx.HTTPError:
+    except httpx2.HTTPError:
         logger.exception("Error advancing queue")
 
 
@@ -42,11 +42,11 @@ def ping_healthchecks(url: str) -> None:
     """Ping healthchecks (https://healthchecks.io/) to tell it that the queue manager is running."""
     logger.debug("Sending ping to healthchecks")
     try:
-        with httpx.Client(timeout=60.0) as client:
+        with httpx2.Client(timeout=60.0) as client:
             response = client.get(url)
             response.raise_for_status()
             logger.debug(response.text)
-    except httpx.HTTPError:
+    except httpx2.HTTPError:
         logger.exception("Error pinging healthchecks")
 
 
@@ -56,10 +56,10 @@ def send_slack_webhook(message: str) -> None:
         return
 
     try:
-        with httpx.Client(timeout=60.0) as client:
+        with httpx2.Client(timeout=60.0) as client:
             response = client.post(settings.SLACK_NOTIFICATIONS_WEBHOOK_URL, json={"text": message})
             response.raise_for_status()
-    except httpx.HTTPError:
+    except httpx2.HTTPError:
         logger.exception("Error sending queue health Slack notification")
 
 
@@ -69,7 +69,7 @@ def check_queue_health() -> None:
     url = f"{settings.MINK_URL}/queue/health"
     params = {"secret_key": settings.MINK_SECRET_KEY}
     try:
-        with httpx.Client(timeout=60.0) as client:
+        with httpx2.Client(timeout=60.0) as client:
             response = client.get(url, params=params)
 
         if response.status_code == return_codes.QUEUE_HEALTHY.status_code:
@@ -107,7 +107,7 @@ def check_queue_health() -> None:
 
         response.raise_for_status()
         logger.debug("Unexpected queue health response: %s", response.text)
-    except httpx.HTTPError:
+    except httpx2.HTTPError:
         logger.exception("Error checking queue health")
 
 
@@ -118,11 +118,11 @@ def cleanup_demo_corpora() -> None:
     params = {"secret_key": settings.MINK_SECRET_KEY}
     response = None
     try:
-        with httpx.Client(timeout=60.0) as client:
+        with httpx2.Client(timeout=60.0) as client:
             response = client.delete(url, params=params)
             response.raise_for_status()
             logger.debug(response.text)
-    except httpx.HTTPError:
+    except httpx2.HTTPError:
         logger.exception("Error cleaning up demo corpora")
     finally:
         # Report failed removals to Slack

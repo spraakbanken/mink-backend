@@ -178,7 +178,7 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
     if settings.LOG_LEVEL == "DEBUG":
         logging.getLogger("asgi_matomo").setLevel("DEBUG")
     # Suppress some chatty logs
-    logging.getLogger("httpx").setLevel("WARNING")
+    logging.getLogger("httpx2").setLevel("WARNING")
     # Add the Matomo middleware
     app.add_middleware(
         MatomoMiddleware,
