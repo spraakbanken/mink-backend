@@ -1,6 +1,6 @@
 """Routes related to storing metadata files."""
 
-import httpx
+import httpx2
 from fastapi import APIRouter, Depends, Query, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
@@ -82,7 +82,7 @@ async def create_metadata(
     # Check availability of ID in SBX metadata and the Mink backend resource registry
     check_id_url = metadata_settings.METADATA_ID_AVAILABLE_URL + public_id
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx2.AsyncClient() as client:
             response = await client.get(check_id_url)
             id_available = response.json().get("available", False)
     except Exception as e:
