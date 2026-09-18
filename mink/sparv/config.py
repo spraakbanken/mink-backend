@@ -148,6 +148,15 @@ class SparvSettings(BaseSettings):
         ]
     )
 
+    SPARV_DEMO_ALLOWED_EXPORT_PATHS: list[str] = Field(
+        default_factory=lambda: [
+            "xml_export.pretty",
+            "csv_export",
+            "text_export",
+            "stats_export.frequency_list",
+        ]
+    )
+
     # How long a demo resource is kept before it expires (in seconds)
     SPARV_DEMO_RESOURCE_LIFETIME: int = 60 * 60 * 24 * 7
 

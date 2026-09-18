@@ -3,7 +3,7 @@
 import time
 
 from fastapi import APIRouter, Depends, Query, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 import mink.sparv.models as sparv_models
 from mink.core import exceptions, models, return_codes, route_utils, utils
@@ -296,6 +296,141 @@ async def get_demo_corpus_output(resource_id: str) -> JSONResponse:
         )
 
     return utils.response(return_code=return_codes.RETRIEVED_CONTENT, output=output)
+
+
+@router.get(
+    "/exports/list/{resource_id}",
+    operation_id="list-demo-corpus-exports",
+    response_model=models.ListingFilesResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.LISTING_CONTENT.message,
+                        "return_code": return_codes.LISTING_CONTENT.code,
+                        "info": "Listing export files",
+                        "contents": [
+                            {
+                                "name": "dokument1.csv",
+                                "type": "text/csv",
+                                "last_modified": "2022-06-10T17:55:37+02:00",
+                                "size": 4876,
+                                "path": "csv_export/dokument1.csv",
+                            },
+                            {
+                                "name": "dokument1_export.xml",
+                                "type": "application/xml",
+                                "last_modified": "2022-06-10T17:55:38+02:00",
+                                "size": 13429,
+                                "path": "xml_export.pretty/dokument1_export.xml",
+                            },
+                        ],
+                    }
+                }
+            },
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_LISTING_CONTENT.message,
+                        "return_code": return_codes.FAILED_LISTING_CONTENT.code,
+                        "info": "Failed to list export files",
+                    }
+                }
+            },
+        },
+    },
+)
+async def list_demo_corpus_exports(resource_id: str) -> JSONResponse:
+    """List the available export files for the demo corpus created by Sparv.
+
+    ### Example
+
+    ```bash
+    curl '{{host}}/demo/corpus/exports/list/<resource_id>'
+    ```
+    """
+    # Make sure the resource exists and is a demo resource, and update its last_accessed timestamp
+    _info_item = demo.get_demo_resource_by_id(resource_id)
+
+    try:
+        exports = storage.list_contents(
+            storage.get_export_dir(resource_id), blacklist=sparv_settings.SPARV_EXPORT_BLACKLIST
+        )
+        # Filter exports by SPARV_DEMO_ALLOWED_EXPORT_PATHS
+        exports = [
+            item
+            for item in exports
+            if any(
+                item["path"] == allowed_path or item["path"].startswith(f"{allowed_path}/")
+                for allowed_path in sparv_settings.SPARV_DEMO_ALLOWED_EXPORT_PATHS
+            )
+        ]
+
+        return utils.response(return_code=return_codes.LISTING_CONTENT, info="Listing export files", contents=exports)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_LISTING_CONTENT, info=f"Failed to list export files: {e}"
+        ) from e
+
+
+@router.get(
+    "/exports/download/{resource_id}",
+    operation_id="download-demo-corpus-exports",
+    response_model=models.FileResponse,
+    response_class=FileResponse,
+    responses={
+        status.HTTP_200_OK: {"content": {"application/octet-stream": {}}, "description": "A file download response"},
+        status.HTTP_404_NOT_FOUND: {"model": models.ErrorResponse404File},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_DOWNLOADING.message,
+                        "return_code": return_codes.FAILED_DOWNLOADING.code,
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+    },
+)
+async def download_demo_corpus_exports(
+    resource_id: str,
+    download_file: str = Query(..., alias="file", min_length=1, description="The file name or path to download"),
+) -> FileResponse:
+    """Download an export file created by Sparv.
+
+    Use the `file` parameter to specify the export file you want to download. This parameter must be supplied as a path
+    relative to the export directory.
+
+    ### Example
+
+    ```bash
+    curl '{{host}}/demo/corpus/exports/download/<resource_id>?file=xml_export.pretty/<input>_export.xml'
+    ```
+    """
+    # Make sure the resource exists and is a demo resource, and update its last_accessed timestamp
+    _info_item = demo.get_demo_resource_by_id(resource_id)
+
+    return route_utils.download_exports_response(
+        storage=storage,
+        resource_id=resource_id,
+        remote_dir=storage.get_export_dir(resource_id),
+        local_resource_dir=storage.get_local_resource_dir(resource_id, mkdir=True),
+        local_exports_dir=storage.get_local_export_dir(resource_id, mkdir=True),
+        download_file=download_file,
+        zipped=False,
+        blacklist=sparv_settings.SPARV_EXPORT_BLACKLIST,
+        allowed_paths=sparv_settings.SPARV_DEMO_ALLOWED_EXPORT_PATHS,
+    )
 
 
 @router.delete(

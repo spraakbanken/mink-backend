@@ -67,29 +67,37 @@ def test_get_demo_corpus_output(demo_corpus_processed: str) -> None:
     assert json_data.get("output"), "Output should not be empty"
 
 
-# @pytest.mark.demo_corpus
-# def test_get_demo_corpus_exports(demo_corpus_processed: str) -> None:
-#     """Test getting demo corpus exports routes."""
-#     routes = [
-#         ("GET", f"/demo/corpus/exports/list/{demo_corpus_processed}", None),
-#         ("GET", f"/demo/corpus/exports/download/{demo_corpus_processed}", None),
-#     ]
-#     for method, path, query in routes:
-#         response = call_route(method, path, query=query)
-#         if path.startswith("/corpus/exports/list/"):
-#             json_data = response.json()
-#             assert isinstance(json_data.get("contents"), list), "Response should be a list of exports"
-#         elif path.startswith("/corpus/exports/download/"):
-#             assert response.headers.get("Content-Disposition") is not None, (
-#                 "Download response should have Content-Disposition header"
-#             )
-#             assert response.headers.get("Content-Type") == "application/zip", "Download response should be a zip file"
-#             assert len(response.content) > 0, "Downloaded exports file should not be empty"
-#         elif path.startswith("/corpus/exports/remove/"):
-#             json_data = response.json()
-#             assert json_data.get("return_code") == return_codes.REMOVED_CONTENT.code, (
-#                 f"Exports removal failed: {json_data}"
-#             )
+@pytest.mark.demo_corpus
+def test_get_demo_corpus_exports(demo_corpus_processed: str) -> None:
+    """Test getting demo corpus exports routes."""
+    response = call_route("GET", f"/demo/corpus/exports/list/{demo_corpus_processed}")
+    json_data = response.json()
+    assert isinstance(json_data.get("contents"), list), "Response should be a list of exports"
+    assert len(json_data.get("contents")) > 0, "Response should contain at least one export"
+    # Not specifying a file should return 422
+    response = call_route("GET", f"/demo/corpus/exports/download/{demo_corpus_processed}", fail_ok=True)
+    assert response.status_code == return_codes.VALIDATION_ERROR.status_code, (
+        f"Download without specifying a file should return 422, got {response.status_code}"
+    )
+    # Requesting a file outside the allowed directories should return 404
+    response = call_route(
+        "GET", f"/demo/corpus/exports/download/{demo_corpus_processed}?file=something_forbidden/abc.xml", fail_ok=True
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND, (
+        f"Download of a file outside the allowed directories should return 404, got {response.status_code}"
+    )
+    # Test downloading a valid export file
+    response = call_route(
+        "GET",
+        f"/demo/corpus/exports/download/{demo_corpus_processed}?file=xml_export.pretty/input_export.xml",
+    )
+    assert response.headers.get("Content-Disposition") is not None, (
+        "Download response should have Content-Disposition header"
+    )
+    assert response.headers.get("Content-Type") == "application/xml", (
+        f"Download response should be an xml file, found: {response.headers.get('Content-Type')}"
+    )
+    assert len(response.content) > 0, "Downloaded exports file should not be empty"
 
 
 @pytest.mark.demo_corpus

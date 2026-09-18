@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from pathlib import Path
 from typing import Any
 
@@ -422,6 +422,7 @@ def download_exports_response(
     download_folder: str | None = None,
     zipped: bool = True,
     blacklist: list[str] | None = None,
+    allowed_paths: Collection[str] | None = None,
     default_media_type: str = "application/xml",
     archive_suffix: str = "export",
 ) -> FileResponse:
@@ -437,13 +438,20 @@ def download_exports_response(
         download_folder: Relative directory path to download.
         zipped: Whether to zip a specific file download.
         blacklist: Optional blacklist for listing/downloading content.
+        allowed_paths: Optional set of allowed paths for downloads (used for demo resources).
         default_media_type: Fallback media type for direct file downloads.
         archive_suffix: Suffix for archive names when downloading all exports.
 
     Returns:
         A file response for the requested download.
     """
-    if download_file and download_folder:
+    if allowed_paths is not None and download_file is None and download_folder is None:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.VALIDATION_ERROR,
+            info="'allowed_paths' cannot be used when downloading all exports",
+        )
+
+    if download_file is not None and download_folder is not None:
         raise exceptions.MinkHTTPException(
             return_code=return_codes.VALIDATION_ERROR,
             info="Both 'file' and 'dir' parameters were provided",
@@ -451,6 +459,16 @@ def download_exports_response(
 
     try:
         exports_contents = storage.list_contents(remote_dir, exclude_dirs=False, blacklist=blacklist)
+        if allowed_paths is not None:
+            # Filter exports_contents to only include items with paths in allowed_paths
+            exports_contents = [
+                item
+                for item in exports_contents
+                if any(
+                    item["path"] == allowed_path or item["path"].startswith(f"{allowed_path}/")
+                    for allowed_path in allowed_paths
+                )
+            ]
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
@@ -461,7 +479,7 @@ def download_exports_response(
 
     content_paths = {item.get("path") for item in exports_contents}
 
-    if download_folder:
+    if download_folder is not None:
         if download_folder not in content_paths:
             logger.error(
                 "Requested download folder '%s' not found in export contents for resource '%s'",
@@ -487,7 +505,7 @@ def download_exports_response(
         except Exception as e:
             raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 
-    if download_file:
+    if download_file is not None:
         if download_file not in content_paths:
             raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, file=download_file)
         try:
