@@ -22,7 +22,10 @@
         },
         "languages": [
             {
-                "code": "bul",
+                "identifier": {
+                    "value": "bul",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "bulgariska",
                     "eng": "Bulgarian"
@@ -53,7 +56,10 @@
         },
         "languages": [
             {
-                "code": "bul",
+                "identifier": {
+                    "value": "bul",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "bulgariska",
                     "eng": "Bulgarian"
@@ -84,7 +90,10 @@
         },
         "languages": [
             {
-                "code": "bul",
+                "identifier": {
+                    "value": "bul",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "bulgariska",
                     "eng": "Bulgarian"
@@ -115,7 +124,10 @@
         },
         "languages": [
             {
-                "code": "deu",
+                "identifier": {
+                    "value": "deu",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "tyska",
                     "eng": "German"
@@ -146,7 +158,10 @@
         },
         "languages": [
             {
-                "code": "deu",
+                "identifier": {
+                    "value": "deu",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "tyska",
                     "eng": "German"
@@ -177,43 +192,13 @@
         },
         "languages": [
             {
-                "code": "deu",
+                "identifier": {
+                    "value": "deu",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "tyska",
                     "eng": "German"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-dependency-stanford",
-        "name": {
-            "swe": "Dependensparsning för engelska med Stanford CoreNLP",
-            "eng": "Dependency parsing for English with Stanford CoreNLP"
-        },
-        "annotations": [
-            "<token>:stanford.ref",
-            "<token>:stanford.dephead_ref",
-            "<token>:stanford.deprel"
-        ],
-        "task": {
-            "eng": "dependency parsing",
-            "swe": "dependensparsning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Dependensparsning med Stanford CoreNLP's standardmodell för engelska",
-            "eng": "Dependency parsing with Stanford CoreNLP's standard model for English"
-        },
-        "languages": [
-            {
-                "code": "eng",
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
                 }
             }
         ]
@@ -243,38 +228,10 @@
         },
         "languages": [
             {
-                "code": "eng",
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-lemmatization-stanford",
-        "name": {
-            "swe": "Lemmatisering för engelska med Stanford CoreNLP",
-            "eng": "Lemmatization for English with Stanford CoreNLP"
-        },
-        "annotations": [
-            "<token>:stanford.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Lemmatisering med Stanford CoreNLP för engelska",
-            "eng": "Lemmatization with Stanford CoreNLP for English"
-        },
-        "languages": [
-            {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -305,7 +262,10 @@
         },
         "languages": [
             {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -336,7 +296,10 @@
         },
         "languages": [
             {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -367,34 +330,10 @@
         },
         "languages": [
             {
-                "code": "eng",
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-namedentity-stanford",
-        "name": {
-            "swe": "Namnigenkänning för engelska med Stanford CoreNLP",
-            "eng": "Named entity recognition for English with Stanford CoreNLP"
-        },
-        "annotations": [
-            "<token>:stanford.ne_type"
-        ],
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Namnigenkänning (NER) med Stanford CoreNLP för engelska",
-            "eng": "Named entity recognition with Stanford CoreNLP for English"
-        },
-        "languages": [
-            {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -422,38 +361,10 @@
         },
         "languages": [
             {
-                "code": "eng",
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-pos-stanford",
-        "name": {
-            "swe": "Ordklasstaggning med Stanford CoreNLP för engelska",
-            "eng": "Part-of-speech tagging with Stanford CoreNLP for English"
-        },
-        "annotations": [
-            "<token>:stanford.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av Penn-ordklasser med Stanford CoreNLP för engelska",
-            "eng": "English part-of-speech annotation with Penn tags by Stanford CoreNLP"
-        },
-        "languages": [
-            {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -484,7 +395,10 @@
         },
         "languages": [
             {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -515,7 +429,10 @@
         },
         "languages": [
             {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -546,38 +463,10 @@
         },
         "languages": [
             {
-                "code": "eng",
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-sentence-stanford",
-        "name": {
-            "swe": "Meningssegmentering för engelska med Stanford CoreNLP",
-            "eng": "Sentence segmentation for English with Stanford CoreNLP"
-        },
-        "annotations": [
-            "stanford.sentence"
-        ],
-        "task": {
-            "eng": "sentence segmentation",
-            "swe": "meningssegmentering"
-        },
-        "analysis_unit": {
-            "eng": "sentence",
-            "swe": "mening"
-        },
-        "short_description": {
-            "swe": "Meningssegmentering med Stanford CoreNLP för engelska",
-            "eng": "Sentence segmentation with Stanford CoreNLP for English"
-        },
-        "languages": [
-            {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -608,38 +497,10 @@
         },
         "languages": [
             {
-                "code": "eng",
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-tokenization-stanford",
-        "name": {
-            "swe": "Tokenisering med Stanford CoreNLP för engelska",
-            "eng": "Tokenization with Stanford CoreNLP for English"
-        },
-        "annotations": [
-            "stanford.token"
-        ],
-        "task": {
-            "eng": "tokenization",
-            "swe": "tokenisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Segmentering av text i token med Stanford CoreNLP för engelska",
-            "eng": "English tokenization with Stanford CoreNLP"
-        },
-        "languages": [
-            {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -670,38 +531,10 @@
         },
         "languages": [
             {
-                "code": "eng",
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-upos-stanford",
-        "name": {
-            "swe": "UD-Ordklasstaggning med Stanford CoreNLP för engelska",
-            "eng": "UD part-of-speech tagging with Stanford CoreNLP for English"
-        },
-        "annotations": [
-            "<token>:stanford.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för engelska som översätts från Penn-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for English translated from Penn part-of-speech tags"
-        },
-        "languages": [
-            {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -732,7 +565,10 @@
         },
         "languages": [
             {
-                "code": "eng",
+                "identifier": {
+                    "value": "eng",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "engelska",
                     "eng": "English"
@@ -763,7 +599,10 @@
         },
         "languages": [
             {
-                "code": "est",
+                "identifier": {
+                    "value": "est",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "estniska",
                     "eng": "Estonian"
@@ -794,7 +633,10 @@
         },
         "languages": [
             {
-                "code": "est",
+                "identifier": {
+                    "value": "est",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "estniska",
                     "eng": "Estonian"
@@ -825,7 +667,10 @@
         },
         "languages": [
             {
-                "code": "est",
+                "identifier": {
+                    "value": "est",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "estniska",
                     "eng": "Estonian"
@@ -856,7 +701,10 @@
         },
         "languages": [
             {
-                "code": "fin",
+                "identifier": {
+                    "value": "fin",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "finska",
                     "eng": "Finnish"
@@ -887,7 +735,10 @@
         },
         "languages": [
             {
-                "code": "fin",
+                "identifier": {
+                    "value": "fin",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "finska",
                     "eng": "Finnish"
@@ -918,7 +769,10 @@
         },
         "languages": [
             {
-                "code": "fra",
+                "identifier": {
+                    "value": "fra",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "franska",
                     "eng": "French"
@@ -949,7 +803,10 @@
         },
         "languages": [
             {
-                "code": "fra",
+                "identifier": {
+                    "value": "fra",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "franska",
                     "eng": "French"
@@ -980,7 +837,10 @@
         },
         "languages": [
             {
-                "code": "fra",
+                "identifier": {
+                    "value": "fra",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "franska",
                     "eng": "French"
@@ -1011,7 +871,10 @@
         },
         "languages": [
             {
-                "code": "ita",
+                "identifier": {
+                    "value": "ita",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "italienska",
                     "eng": "Italian"
@@ -1042,7 +905,10 @@
         },
         "languages": [
             {
-                "code": "ita",
+                "identifier": {
+                    "value": "ita",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "italienska",
                     "eng": "Italian"
@@ -1073,7 +939,10 @@
         },
         "languages": [
             {
-                "code": "ita",
+                "identifier": {
+                    "value": "ita",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "italienska",
                     "eng": "Italian"
@@ -1104,7 +973,10 @@
         },
         "languages": [
             {
-                "code": "lat",
+                "identifier": {
+                    "value": "lat",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "latin",
                     "eng": "Latin"
@@ -1135,7 +1007,10 @@
         },
         "languages": [
             {
-                "code": "lat",
+                "identifier": {
+                    "value": "lat",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "latin",
                     "eng": "Latin"
@@ -1166,7 +1041,10 @@
         },
         "languages": [
             {
-                "code": "lat",
+                "identifier": {
+                    "value": "lat",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "latin",
                     "eng": "Latin"
@@ -1417,7 +1295,10 @@
         },
         "languages": [
             {
-                "code": "nld",
+                "identifier": {
+                    "value": "nld",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "nederländska",
                     "eng": "Dutch"
@@ -1448,7 +1329,10 @@
         },
         "languages": [
             {
-                "code": "nld",
+                "identifier": {
+                    "value": "nld",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "nederländska",
                     "eng": "Dutch"
@@ -1479,7 +1363,10 @@
         },
         "languages": [
             {
-                "code": "nld",
+                "identifier": {
+                    "value": "nld",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "nederländska",
                     "eng": "Dutch"
@@ -1510,7 +1397,10 @@
         },
         "languages": [
             {
-                "code": "pol",
+                "identifier": {
+                    "value": "pol",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "polska",
                     "eng": "Polish"
@@ -1541,7 +1431,10 @@
         },
         "languages": [
             {
-                "code": "pol",
+                "identifier": {
+                    "value": "pol",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "polska",
                     "eng": "Polish"
@@ -1572,7 +1465,10 @@
         },
         "languages": [
             {
-                "code": "pol",
+                "identifier": {
+                    "value": "pol",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "polska",
                     "eng": "Polish"
@@ -1583,7 +1479,7 @@
     {
         "id": "sbx-ron-lemmatization-treetagger",
         "name": {
-            "swe": "Annotering av grundformer med TreeTagger för romänska",
+            "swe": "Annotering av grundformer med TreeTagger för rumänska",
             "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Romanian"
         },
         "annotations": [
@@ -1598,12 +1494,15 @@
             "swe": "token"
         },
         "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för romänska",
+            "swe": "Annotering av grundformer (lemman) med TreeTagger för rumänska",
             "eng": "Lemmatization with TreeTagger for Romanian"
         },
         "languages": [
             {
-                "code": "ron",
+                "identifier": {
+                    "value": "ron",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "rumänska",
                     "eng": "Romanian"
@@ -1614,7 +1513,7 @@
     {
         "id": "sbx-ron-pos-treetagger",
         "name": {
-            "swe": "Ordklasstaggning med TreeTagger för romänska",
+            "swe": "Ordklasstaggning med TreeTagger för rumänska",
             "eng": "Part-of-speech tagging with TreeTagger for Romanian"
         },
         "annotations": [
@@ -1629,12 +1528,15 @@
             "swe": "token"
         },
         "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för romänska",
+            "swe": "Annotering av ordklasser med TreeTagger för rumänska",
             "eng": "Romanian part-of-speech annotation by TreeTagger"
         },
         "languages": [
             {
-                "code": "ron",
+                "identifier": {
+                    "value": "ron",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "rumänska",
                     "eng": "Romanian"
@@ -1645,7 +1547,7 @@
     {
         "id": "sbx-ron-upos-treetagger",
         "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för romänska",
+            "swe": "UD-Ordklasstaggning med TreeTagger för rumänska",
             "eng": "UD part-of-speech tagging with TreeTagger for Romanian"
         },
         "annotations": [
@@ -1660,12 +1562,15 @@
             "swe": "token"
         },
         "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för romänska som översätts från TreeTagger-ordklasser",
+            "swe": "Annotering av UD-ordklasser (universal dependencies) för rumänska som översätts från TreeTagger-ordklasser",
             "eng": "Part-of-speech annotation with UD (universal dependency) tags for Romanian translated from TreeTagger's part-of-speech tags"
         },
         "languages": [
             {
-                "code": "ron",
+                "identifier": {
+                    "value": "ron",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "rumänska",
                     "eng": "Romanian"
@@ -1696,7 +1601,10 @@
         },
         "languages": [
             {
-                "code": "rus",
+                "identifier": {
+                    "value": "rus",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "ryska",
                     "eng": "Russian"
@@ -1727,7 +1635,10 @@
         },
         "languages": [
             {
-                "code": "rus",
+                "identifier": {
+                    "value": "rus",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "ryska",
                     "eng": "Russian"
@@ -1758,7 +1669,10 @@
         },
         "languages": [
             {
-                "code": "rus",
+                "identifier": {
+                    "value": "rus",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "ryska",
                     "eng": "Russian"
@@ -1789,7 +1703,10 @@
         },
         "languages": [
             {
-                "code": "slk",
+                "identifier": {
+                    "value": "slk",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "slovakiska",
                     "eng": "Slovak"
@@ -1820,7 +1737,10 @@
         },
         "languages": [
             {
-                "code": "slk",
+                "identifier": {
+                    "value": "slk",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "slovakiska",
                     "eng": "Slovak"
@@ -1851,7 +1771,10 @@
         },
         "languages": [
             {
-                "code": "slk",
+                "identifier": {
+                    "value": "slk",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "slovakiska",
                     "eng": "Slovak"
@@ -1882,7 +1805,10 @@
         },
         "languages": [
             {
-                "code": "spa",
+                "identifier": {
+                    "value": "spa",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "spanska",
                     "eng": "Spanish"
@@ -1913,7 +1839,10 @@
         },
         "languages": [
             {
-                "code": "spa",
+                "identifier": {
+                    "value": "spa",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "spanska",
                     "eng": "Spanish"
@@ -1944,7 +1873,10 @@
         },
         "languages": [
             {
-                "code": "spa",
+                "identifier": {
+                    "value": "spa",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "spanska",
                     "eng": "Spanish"
@@ -1975,7 +1907,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2006,7 +1941,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2039,7 +1977,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2072,7 +2013,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2105,7 +2049,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2136,7 +2083,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2167,7 +2117,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2198,15 +2151,16 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
+                    "swe": "1800-talssvenska",
+                    "eng": "19th-century Swedish"
+                },
+                "variety": "1800"
             }
-        ],
-        "language_varieties": [
-            "1800"
         ]
     },
     {
@@ -2232,15 +2186,16 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
+                    "swe": "fornsvenska",
+                    "eng": "Old Swedish"
+                },
+                "variety": "fsv"
             }
-        ],
-        "language_varieties": [
-            "fsv"
         ]
     },
     {
@@ -2266,7 +2221,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2297,7 +2255,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2328,15 +2289,16 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
+                    "swe": "1800-talssvenska",
+                    "eng": "19th-century Swedish"
+                },
+                "variety": "1800"
             }
-        ],
-        "language_varieties": [
-            "1800"
         ]
     },
     {
@@ -2362,15 +2324,16 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
+                    "swe": "fornsvenska",
+                    "eng": "Old Swedish"
+                },
+                "variety": "fsv"
             }
-        ],
-        "language_varieties": [
-            "fsv"
         ]
     },
     {
@@ -2396,7 +2359,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2427,7 +2393,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2458,7 +2427,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2489,7 +2461,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2520,7 +2495,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2551,7 +2529,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2582,15 +2563,16 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
+                    "swe": "1800-talssvenska",
+                    "eng": "19th-century Swedish"
+                },
+                "variety": "1800"
             }
-        ],
-        "language_varieties": [
-            "1800"
         ]
     },
     {
@@ -2616,7 +2598,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2647,7 +2632,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2678,7 +2666,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2709,7 +2700,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2740,15 +2734,16 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
+                    "swe": "1800-talssvenska",
+                    "eng": "19th-century Swedish"
+                },
+                "variety": "1800"
             }
-        ],
-        "language_varieties": [
-            "1800"
         ]
     },
     {
@@ -2774,7 +2769,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2805,7 +2803,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2836,7 +2837,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2867,7 +2871,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2898,7 +2905,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2929,7 +2939,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -2960,15 +2973,16 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
+                    "swe": "1800-talssvenska",
+                    "eng": "19th-century Swedish"
+                },
+                "variety": "1800"
             }
-        ],
-        "language_varieties": [
-            "1800"
         ]
     },
     {
@@ -2994,7 +3008,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -3026,7 +3043,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -3057,15 +3077,16 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
+                    "swe": "fornsvenska",
+                    "eng": "Old Swedish"
+                },
+                "variety": "fsv"
             }
-        ],
-        "language_varieties": [
-            "fsv"
         ]
     },
     {
@@ -3091,7 +3112,10 @@
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"

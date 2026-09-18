@@ -309,7 +309,12 @@ class AnalysesResponse(models.BaseResponse):
                                 "swe": "Svensk dependensparsning tränad på Svensk trädbank med Stanza",
                                 "eng": "Swedish dependency parsing with Stanza trained on Sweedish treebank",
                             },
-                            "languages": [{"code": "swe", "name": {"swe": "svenska", "eng": "Swedish"}}],
+                            "languages": [
+                                {
+                                    "identifier": {"value": "swe", "scheme": "ISO 639-3"},
+                                    "name": {"swe": "svenska", "eng": "Swedish"},
+                                }
+                            ],
                         },
                         {
                             "id": "sbx-swe-msd-hunpos-suc3_1800",
@@ -328,8 +333,13 @@ class AnalysesResponse(models.BaseResponse):
                                     "Annotation of morphological features (SUC) by Hunpos for Swedish from the 1800s"
                                 ),
                             },
-                            "languages": [{"code": "swe", "name": {"swe": "svenska", "eng": "Swedish"}}],
-                            "language_varieties": ["1800"],
+                            "languages": [
+                                {
+                                    "identifier": {"value": "swe", "scheme": "ISO 639-3"},
+                                    "name": {"swe": "1800-talssvenska", "eng": "19th-century Swedish"},
+                                    "variety": "1800",
+                                }
+                            ],
                         },
                     ],
                 }
