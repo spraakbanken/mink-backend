@@ -132,6 +132,10 @@ class SparvSettings(BaseSettings):
     # Dir for running demo corpora, e.g. "/home/user/mink-data/corpus/demo"
     SPARV_DEMO_CORPORA_DIR: str = ""
 
+    # Default config file path for demo corpora. If overridden in .env the path becomes relative to the instance dir,
+    # unless an absolute path is given. Make sure the file contains a valid Sparv config.
+    SPARV_DEMO_DEFAULT_CONFIG: str = str(Path(__file__).resolve().parent / "data" / "default_demo_config.yaml")
+
     # Default demo export formats to create
     SPARV_DEMO_DEFAULT_EXPORTS: list[str] = Field(
         default_factory=lambda: [

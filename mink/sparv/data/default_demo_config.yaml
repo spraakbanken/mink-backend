@@ -1,0 +1,11 @@
+import:
+  importer: text_import:parse
+
+export:
+  annotations:
+    - <sentence>
+    - <token>:saldo.baseform2 as baseform
+    - <token>:saldo.lemgram
+    - <token>:wsd.sense
+    - <token>:stanza.pos
+    - <token>:stanza.msd

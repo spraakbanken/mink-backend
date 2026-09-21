@@ -22,20 +22,6 @@ DEMO_ID_PATTERN = re.compile(rf"{re.escape(settings.DEMO_PREFIX)}[0-9a-f]{{8}}\Z
 DEMO_DUMMY_ID = f"{settings.DEMO_PREFIX}dummy"
 DEMO_RESOURCE_NAME = {"swe": "Demo", "eng": "Demo"}
 DEMO_INPUT_FILENAME = "input.txt"
-# TODO: Make this configurable through settings?
-DEMO_DEFAULT_CONFIG = """\
-import:
-  importer: text_import:parse
-
-export:
-  annotations:
-    - <sentence>
-    - <token>:saldo.baseform2 as baseform
-    - <token>:saldo.lemgram
-    - <token>:wsd.sense
-    - <token>:stanza.pos
-    - <token>:stanza.msd
-"""
 
 
 def compute_demo_id(text: str, config: str) -> str:
@@ -55,6 +41,22 @@ def is_demo_id(resource_id: str) -> bool:
     if resource_id == DEMO_DUMMY_ID:
         return True
     return DEMO_ID_PATTERN.fullmatch(resource_id) is not None
+
+
+def load_default_config() -> str:
+    """Load and validate the default config for demo resources."""
+    # Load the instance default config file, or the packaged default when it is absent.
+    path = Path(sparv_settings.SPARV_DEMO_DEFAULT_CONFIG).expanduser()
+    if not path.is_absolute():
+        path = Path(settings.INSTANCE_PATH) / path
+
+    try:
+        with path.open(encoding="utf-8") as file:
+            default_config = file.read()
+    except Exception as error:
+        raise ValueError(f"Could not read default config file {path}: {error}") from error
+
+    return default_config
 
 
 def sanitize_config(config: str) -> str:
@@ -89,7 +91,7 @@ def get_and_queue_demo_resource(text: str, config: str | None) -> tuple[Info, bo
     """
     # Use default config if none was uploaded
     if config is None or not config.strip():
-        resolved_config = DEMO_DEFAULT_CONFIG.strip()
+        resolved_config = load_default_config().strip()
         default_config_used = True
     else:
         resolved_config = config
