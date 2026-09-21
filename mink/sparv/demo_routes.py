@@ -40,9 +40,9 @@ router = APIRouter(tags=["Sparv Demo"], prefix="/demo/corpus")
         },
     },
 )
-async def run_sparv_demo(
+def run_sparv_demo(
     text: str = Query(..., description="The text to be processed"),
-    config: str = Query(None, description="The config file as plain text"),
+    config: str | None = Query(None, description="The config file as plain text"),
 ) -> JSONResponse:
     """Run a Sparv annotation job for the current input.
 
@@ -68,12 +68,11 @@ async def run_sparv_demo(
         )
 
     # Get existing demo resource or create a new one
-    info_item = demo.get_demo_resource(text, config)
+    info_item, queued = demo.get_and_queue_demo_resource(text, config)
 
-    processing.run_sparv(info_item, exports=sparv_settings.SPARV_DEMO_DEFAULT_EXPORTS, files=None)
-
-    # Wait a few seconds to check whether anything terminated early
-    time.sleep(3)
+    if queued:
+        # Wait a few seconds to check whether anything terminated early
+        time.sleep(3)
     return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
 
 
@@ -517,17 +516,11 @@ session_id=MY_SESSION_ID'
     expired_resources = demo.get_expired_demo_resources()
     removed_resources = []
     failed_removals = []
-    for info_item in expired_resources:
-        resource_id = info_item.resource.id
+    for expired_info_item in expired_resources:
+        resource_id = expired_info_item.resource.id
         try:
-            # Recheck the timestamp immediately before deletion to avoid racing with a request
-            if not demo.resource_is_expired(info_item):
-                continue
-            # Remove from storage
-            storage.remove_dir(storage.get_corpus_dir(resource_id), resource_id)
-            # Remove from registry
-            info_item.remove(abort_job=False)
-            removed_resources.append(resource_id)
+            if demo.remove_expired_demo_resource(resource_id):
+                removed_resources.append(resource_id)
         except Exception:
             failed_removals.append(resource_id)
             logger.exception("Failed to remove expired demo resource '%s'.", resource_id)

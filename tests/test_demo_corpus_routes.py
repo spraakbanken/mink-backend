@@ -1,12 +1,18 @@
 """Test metadata routes."""
 
+import time
 import typing
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
+from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 from fastapi import status
 
 from mink.core import return_codes
 from mink.core.config import settings
+from mink.sparv import processing
 from mink.sparv.demo import DEMO_ID_PATTERN
 from tests.utils import call_route, check_resource_loop
 
@@ -114,3 +120,46 @@ def test_remove_expired_demo_corpora() -> None:
         f"Removing expired demo corpora failed: {json_data}"
     )
     assert isinstance(json_data.get("removed_resources"), list), "Response should contain a list of removed resources"
+
+
+@pytest.mark.demo_corpus
+def test_concurrent_demo_corpus_creation() -> None:
+    """Test that concurrent identical requests create and queue the demo corpus only once."""
+    # A unique input ensures this test starts with a new resource
+    query = f"text=Identical concurrent input {uuid4().hex}"
+    start = Barrier(2)
+    original_run_sparv = processing.run_sparv
+
+    def send_request(_request_number: int) -> typing.Any:
+        # Both workers wait here and then issue their requests at the same time
+        start.wait(timeout=5)
+        return call_route("POST", "/demo/corpus/run", query=query)
+
+    def delayed_run_sparv(*args: typing.Any, **kwargs: typing.Any) -> None:
+        # Keep the first request inside the lock long enough for the second request to encounter it
+        time.sleep(0.2)
+        original_run_sparv(*args, **kwargs)
+
+    with (
+        patch.object(processing, "run_sparv", side_effect=delayed_run_sparv) as run_sparv,
+        ThreadPoolExecutor(max_workers=2) as executor,
+    ):
+        responses = list(executor.map(send_request, range(2)))
+
+    resource_ids = {response.json()["resource"]["id"] for response in responses}
+    try:
+        # Test deterministic hashing
+        assert len(resource_ids) == 1, f"Concurrent requests returned different resource IDs: {resource_ids}"
+        # Test if queueing happened only once
+        assert run_sparv.call_count == 1, "Concurrent requests queued the same demo resource more than once"
+
+    # Teardown: remove resource
+    finally:
+        resource_id = responses[0].json()["resource"]["id"]
+
+        call_route("POST", f"/demo/corpus/job/abort/{resource_id}", fail_ok=True)
+        response = call_route(
+            "DELETE", f"/demo/corpus/remove/{resource_id}", query=f"secret_key={settings.MINK_SECRET_KEY}"
+        )
+        json_data = response.json()
+        assert json_data.get("return_code") == return_codes.REMOVED_RESOURCE.code, f"Corpus removal failed: {json_data}"
