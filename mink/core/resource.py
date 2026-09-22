@@ -35,6 +35,7 @@ class Resource:
         source_files: list | None = None,
         sources_deleted: str = "",
         custom_config: bool = False,
+        **_obsolete: Any,
     ) -> None:
         """Init resource by setting class variables.
 
@@ -46,6 +47,7 @@ class Resource:
             source_files: List of source files.
             sources_deleted: Timestamp of when sources were last deleted (used for knowing what to re-annotate).
             custom_config: Whether the current config was uploaded as a custom config.
+            obsolete: Catch invalid arguments from outdated resource items.
         """
         self.id = id
         self.public_id = public_id or self.id
