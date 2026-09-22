@@ -9,26 +9,23 @@ from functools import wraps
 from pathlib import Path
 
 from mink.cache import jobs_cache
+from mink.cache.memcached import cache
 from mink.core import exceptions, info, jobs, utils
 from mink.core.config import settings
 from mink.core.logging import logger
 
-_INITIALIZING_STATE = {"in_progress": False}
-
 
 def initialize_if_needed() -> None:
     """Initialize the registry if the cache was cleared."""
-    if _INITIALIZING_STATE["in_progress"]:
-        return
     if not jobs_cache.get_queue_initialized():
-        _INITIALIZING_STATE["in_progress"] = True
         try:
-            initialize()
+            # Lock the entire registry to avoid race conditions during initialization
+            with cache.lock("registry-initialize"):
+                if not jobs_cache.get_queue_initialized():
+                    initialize()
         except Exception:
             logger.exception("Failed to initialize registry")
             raise
-        finally:
-            _INITIALIZING_STATE["in_progress"] = False
 
 
 def ensure_initialized(func: Callable) -> Callable:
@@ -57,8 +54,6 @@ def initialize() -> None:
             queue = json.loads(jsonstr) or []
     else:
         queue = []
-    jobs_cache.set_queue_initialized(True)
-
     # Load info instances into memory, append to queue if necessary
     for f in sorted(registry_dir.glob("*/*"), key=lambda x: x.stat().st_mtime):
         if f == queue_file:
@@ -76,6 +71,8 @@ def initialize() -> None:
                 queue.append(infoobj.job.id)
     jobs_cache.set_job_queue(queue)
     jobs_cache.set_all_resources(all_resources)
+    # Publish initialized state only after the complete queue and resource list are available.
+    jobs_cache.set_queue_initialized(True)
     logger.info("Queue in cache: %s", jobs_cache.get_job_queue())
     # logger.debug("All jobs in cache: %s", jobs_cache.get_all_resources())
     logger.info("Total resources in cache: %d", len(jobs_cache.get_all_resources()))
@@ -166,17 +163,19 @@ def add_to_queue(job: jobs.BaseJob) -> jobs.BaseJob:
     Raises:
         exceptions.ProcessStillRunningError: If there is an unfinished job for the resource.
     """
-    queue = jobs_cache.get_job_queue()
-    # Avoid starting multiple jobs for the same resource simultaneously
-    if job.id in queue and job.status.is_active():
-        raise exceptions.ProcessStillRunningError
-    # Unqueue if old job is queued since before
-    if job.id in queue:
-        queue.pop(queue.index(job.id))
-    # Add job to queue and save priority
-    queue.append(job.id)
-    jobs_cache.set_job_queue(queue)
-    save_priorities()
+    # Lock the queue to avoid race conditions when multiple processes are modifying it
+    with jobs_cache.lock_job_queue():
+        queue = jobs_cache.get_job_queue()
+        # Avoid starting multiple jobs for the same resource simultaneously
+        if job.id in queue and job.status.is_active():
+            raise exceptions.ProcessStillRunningError
+        # Unqueue if old job is queued since before
+        if job.id in queue:
+            queue.pop(queue.index(job.id))
+        # Add job to queue and save priority
+        queue.append(job.id)
+        jobs_cache.set_job_queue(queue)
+        save_priorities()
     # Reset time stamps for the job
     job.reset_time()
     job.set_attribute("queued", utils.get_current_time())
@@ -190,11 +189,13 @@ def pop_from_queue(job: jobs.BaseJob) -> None:
     Args:
         job: The job to remove from the queue.
     """
-    queue = jobs_cache.get_job_queue()
-    if job.id in queue:
-        queue.pop(queue.index(job.id))
-        jobs_cache.set_job_queue(queue)
-        save_priorities()
+    # Lock the queue to avoid race conditions when multiple processes are modifying it
+    with jobs_cache.lock_job_queue():
+        queue = jobs_cache.get_job_queue()
+        if job.id in queue:
+            queue.pop(queue.index(job.id))
+            jobs_cache.set_job_queue(queue)
+            save_priorities()
 
 
 @ensure_initialized
@@ -256,21 +257,25 @@ def get_running_waiting() -> tuple[list[jobs.BaseJob], list[jobs.BaseJob]]:
 @ensure_initialized
 def unqueue_inactive() -> None:
     """Unqueue jobs that are done, aborted or erroneous."""
-    queue = jobs_cache.get_job_queue()
-    old_jobs = []
-    for res_id in queue:
-        job_str = _get_job_str(res_id)
-        if job_str is None:
-            logger.warning("Job '%s' is in queue but missing from cache and filesystem, removing from queue", res_id)
-            old_jobs.append(res_id)
-            continue
-        job = info.load_from_str(job_str).job
-        if job.status.is_inactive():
-            old_jobs.append(res_id)
+    # Lock the queue to avoid race conditions when multiple processes are modifying it
+    with jobs_cache.lock_job_queue():
+        queue = jobs_cache.get_job_queue()
+        old_jobs = []
+        for res_id in queue:
+            job_str = _get_job_str(res_id)
+            if job_str is None:
+                logger.warning(
+                    "Job '%s' is in queue but missing from cache and filesystem, removing from queue", res_id
+                )
+                old_jobs.append(res_id)
+                continue
+            job = info.load_from_str(job_str).job
+            if job.status.is_inactive():
+                old_jobs.append(res_id)
 
-    if old_jobs:
-        for res_id in old_jobs:
-            logger.info("Removing job %s", res_id)
-            queue.pop(queue.index(res_id))
-        jobs_cache.set_job_queue(queue)
-        save_priorities()
+        if old_jobs:
+            for res_id in old_jobs:
+                logger.info("Removing job %s", res_id)
+                queue.pop(queue.index(res_id))
+            jobs_cache.set_job_queue(queue)
+            save_priorities()

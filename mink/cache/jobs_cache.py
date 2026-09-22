@@ -1,9 +1,29 @@
 """Cache helpers for registry and job queue."""
 
+from collections.abc import Generator
+from contextlib import contextmanager
+
 from pymemcache.exceptions import MemcacheServerError
 
 from mink.cache.memcached import cache, cache_namespace
 from mink.core.logging import logger
+
+ALL_RESOURCES_LOCK = "registry-all-resources"
+JOB_QUEUE_LOCK = "registry-job-queue"
+
+
+@contextmanager
+def lock_all_resources() -> Generator[None, None, None]:
+    """Lock read-modify-write operations on the shared resource ID list."""
+    with cache.lock(ALL_RESOURCES_LOCK):
+        yield
+
+
+@contextmanager
+def lock_job_queue() -> Generator[None, None, None]:
+    """Lock read-modify-write operations on the shared job queue."""
+    with cache.lock(JOB_QUEUE_LOCK):
+        yield
 
 
 # ------------------------------------------------------------------------------
