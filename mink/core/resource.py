@@ -37,6 +37,7 @@ class Resource:
         custom_config: bool = False,
         demo_mode: bool = False,
         last_accessed: str = "",
+        **_obsolete: Any,
     ) -> None:
         """Init resource by setting class variables.
 
@@ -50,6 +51,7 @@ class Resource:
             custom_config: Whether the current config was uploaded as a custom config.
             demo_mode: Whether the resource was created in demo mode (unauthenticated usage).
             last_accessed: Timestamp of when the resource was last accessed.
+            obsolete: Catch invalid arguments from outdated resource items.
         """
         self.id = id
         self.public_id = public_id or self.id

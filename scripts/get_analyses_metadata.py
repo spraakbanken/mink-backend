@@ -164,7 +164,6 @@ def main() -> None:
                 "analysis_unit": r.get("analysis_unit"),
                 "short_description": r.get("short_description"),
                 "languages": r.get("languages"),
-                "language_varieties": r.get("language_varieties"),
             }.items()
             if value not in (None, [], {}, "")
         }

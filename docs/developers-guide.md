@@ -271,7 +271,10 @@ supports. The following is an example of a single analysis entry:
         },
         "languages": [
             {
-                "code": "swe",
+                "identifier": {
+                    "value": "swe",
+                    "scheme": "ISO 639-3"
+                },
                 "name": {
                     "swe": "svenska",
                     "eng": "Swedish"
@@ -297,8 +300,9 @@ Add an ISO 639-3 `language` query parameter to return analyses applicable to one
 are included for every language.
 
 Add `variety` to limit the result to a language variety, for example
-`/corpus/sparv/list-analyses?language=swe&variety=1800`. Analyses without `language_varieties` metadata are included for
-every variety. Analyses with `language_varieties` metadata are excluded unless a matching `variety` is requested.
+`/corpus/sparv/list-analyses?language=swe&variety=1800`. Analyses whose matching `languages` entry has no `variety`
+are included for every variety. Analyses with a `languages[].variety` value are excluded unless that variety is
+requested.
 
 #### Using Configuration Variables in Code
 

@@ -207,20 +207,30 @@ def filter_available_analyses(
 
     # `mul`, `zxx`, and missing language metadata mean that an analysis applies to every language.
     applicable_codes = {language, "mul", "zxx"}
-    return [
-        analysis
-        for analysis in analyses
-        # Match the requested language, or include language-independent analyses.
-        if (
-            language is None
-            or not analysis.get("languages")
-            or any(language_info.get("code") in applicable_codes for language_info in analysis["languages"])
-        )
+    filtered_analyses = []
+
+    for analysis in analyses:
+        languages = analysis.get("languages", [])
+        if not languages:
+            filtered_analyses.append(analysis)
+            continue
+
+        matching_languages = [
+            language_info
+            for language_info in languages
+            if language is None or language_info.get("identifier", {}).get("value") in applicable_codes
+        ]
+
+        if not matching_languages:
+            continue
+
         # Without a variety query, list only standard-language analyses. A requested variety also includes
         # analyses without a variety restriction.
-        and (
-            not analysis.get("language_varieties")
-            if variety is None
-            else variety in analysis.get("language_varieties", []) or not analysis.get("language_varieties")
-        )
-    ]
+        if any(
+            not language_info.get("variety")
+            or (variety is not None and language_info.get("variety") == variety)
+            for language_info in matching_languages
+        ):
+            filtered_analyses.append(analysis)
+
+    return filtered_analyses

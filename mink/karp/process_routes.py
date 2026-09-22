@@ -99,7 +99,8 @@ async def run_karp_pipeline(
     source_changed = config_changed = False
     try:
         info_item = route_utils.get_info_from_auth(auth_data)
-        source_changed, config_changed = storage.get_file_changes(resource_id, info_item)
+        if info_item.job.started:
+            source_changed, config_changed = storage.get_file_changes(resource_id, info_item)
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if source_changed or config_changed:
@@ -259,7 +260,8 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
     sources_changed = config_changed = False
     try:
         info_item = route_utils.get_info_from_auth(auth_data)
-        sources_changed, config_changed = storage.get_file_changes(resource_id, info_item)
+        if info_item.job.started:
+            sources_changed, config_changed = storage.get_file_changes(resource_id, info_item)
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_changed or config_changed:
