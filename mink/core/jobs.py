@@ -149,8 +149,9 @@ class BaseJob:
             msg = json_output.get("message")
             level = json_output.get("level")
             event = json_output.get("event")
+            is_final = event == "final" or level == "FINAL"
 
-            if event == "final":
+            if is_final:
                 parsed_output["final"] = str(msg) if msg is not None else ""
 
             if level == "WARNING":
@@ -164,7 +165,7 @@ class BaseJob:
                     parsed_output["progress"] = int(str(msg).strip("%"))
             elif json_output.get("exit_code") is not None:
                 parsed_output["exit_code"] = str(json_output["exit_code"])
-            elif event != "final" and msg is not None:
+            elif not is_final and msg is not None:
                 parsed_output["misc"].append(str(msg))
         return parsed_output
 
