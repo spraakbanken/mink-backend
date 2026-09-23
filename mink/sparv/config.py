@@ -161,8 +161,8 @@ class SparvSettings(BaseSettings):
         ]
     )
 
-    # How long a demo resource is kept before it expires (in seconds)
-    SPARV_DEMO_RESOURCE_LIFETIME: int = 60 * 60 * 24 * 7
+    # How long a demo resource is kept before it expires (in hours)
+    SPARV_DEMO_RESOURCE_LIFETIME: int = 24 * 7
 
     model_config = {
         "env_file": ".env",  # Load variables from a .env file if it exists

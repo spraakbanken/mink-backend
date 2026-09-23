@@ -170,7 +170,7 @@ def get_demo_resource_by_id(resource_id: str) -> Info:
 
 def resource_is_expired(info_item: Info) -> bool:
     """Check if a demo resource has expired based on its last accessed timestamp."""
-    lifetime_seconds = sparv_settings.SPARV_DEMO_RESOURCE_LIFETIME
+    lifetime_seconds = sparv_settings.SPARV_DEMO_RESOURCE_LIFETIME * 60 * 60  # Convert hours to seconds
     return utils.is_older_than(info_item.resource.last_accessed, lifetime_seconds)
 
 

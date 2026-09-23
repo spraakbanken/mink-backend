@@ -80,7 +80,7 @@ class Settings(BaseSettings):
     CHECK_QUEUE_FREQUENCY: int = 20  # How often the queue will be checked for new jobs (in seconds)
     CHECK_QUEUE_HEALTH_FREQUENCY: int = 60  # How often the queue health will be checked (in seconds)
     QUEUE_HEALTH_WARNING_SECONDS: int = 60 * 60  # Warn if a queued/running job stays active longer than this
-    CLEANUP_DEMO_JOBS_FREQUENCY: int = 60 * 60 * 24  # How often expired demo corpora will be removed (in seconds)
+    CLEANUP_DEMO_JOBS_FREQUENCY: int = 24  # How often expired demo corpora will be removed (in hours)
     MINK_SECRET_KEY: str = ""
     HEALTHCHECKS_URL: str = ""
     SLACK_NOTIFICATIONS_WEBHOOK_URL: str = ""  # URL for the Slack webhook to send notifications
