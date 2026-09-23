@@ -47,7 +47,7 @@ def run_sparv_demo(
     ### Example
 
     ```bash
-    curl -X POST --get 'http://localhost:8000/demo/corpus/run' --data-urlencode 'text=Detta är en text.'
+    curl -X POST --get '{{host}}/demo/corpus/run' --data-urlencode 'text=Detta är en text.'
     ```
     """
     # Reject if input text is empty or only whitespace
@@ -457,6 +457,8 @@ async def download_demo_corpus_exports(
 )
 async def remove_demo_corpus(resource_id: str, _access: dict = Depends(secret_key_or_admin_mode)) -> JSONResponse:
     """Remove a demo corpus resource (for admin use only).
+
+    Will abort any running job for the resource and remove it from storage and the registry.
 
     ### Example
 
