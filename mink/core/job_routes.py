@@ -320,8 +320,14 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
     response_model=models.ListResourcesResponse,
     responses={**models.common_auth_error_responses},
 )
-async def list_resources(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
+async def list_resources(
+    demo_only: bool = Query(False, description="Whether to filter for demo resources only"),
+    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
+) -> JSONResponse:
     """List all resources available to the authenticated user, regardless of resource type.
+
+    If `demo_only` is True, only demo resources will be included (this is only relevant for admins, since non-admin
+    users will not see any demo resources).
 
     ### Example
 
@@ -329,10 +335,11 @@ async def list_resources(auth_data: dict = Depends(login.AuthDependencyNoResourc
     curl -X GET '{{host}}/resource/list' -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
+    resources = auth_data["resources"]
+    if demo_only and auth_data["admin_mode"]:
+        resources = registry.filter_resources(resources, demo_only=demo_only)
     return utils.response(
-        return_code=return_codes.LISTING_CONTENT,
-        info="Listing available resources",
-        resources=auth_data["resources"],
+        return_code=return_codes.LISTING_CONTENT, info="Listing available resources", resources=resources
     )
 
 
@@ -343,8 +350,14 @@ async def list_resources(auth_data: dict = Depends(login.AuthDependencyNoResourc
     response_model=models.StatusesResponse,
     responses={**models.common_auth_error_responses},
 )
-async def list_resource_statuses(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
+async def list_resource_statuses(
+    demo_only: bool = Query(False, description="Whether to filter for demo resources only"),
+    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
+) -> JSONResponse:
     """Return statuses for all resources available to the authenticated user.
+
+    If `demo_only` is True, only demo resources will be included (this is only relevant for admins, since non-admin
+    users will not see any demo resources).
 
     ### Example
 
@@ -355,7 +368,7 @@ async def list_resource_statuses(auth_data: dict = Depends(login.AuthDependencyN
     try:
         # Get all job statuses for this user's resources
         res_list = []
-        resource_infos = registry.filter_resources(auth_data["resources"])
+        resource_infos = registry.filter_resources(auth_data["resources"], demo_only=demo_only)
         for info_obj in resource_infos:
             resp_dict = route_utils.make_status_response(info_obj, admin=auth_data["admin_mode"])
             res_list.append(resp_dict)

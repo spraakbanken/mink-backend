@@ -131,11 +131,12 @@ def get(resource_id: str) -> info.Info:
 
 
 @ensure_initialized
-def filter_resources(resource_ids: list[str] | None = None) -> list[info.Info]:
+def filter_resources(resource_ids: list[str] | None = None, demo_only: bool = False) -> list[info.Info]:
     """Get info for all resources listed in 'resource_ids'.
 
     Args:
         resource_ids: A list of resource IDs to filter by.
+        demo_only: Whether to filter for demo resources only.
 
     Returns:
         A list of Info instances for the filtered resources.
@@ -146,6 +147,8 @@ def filter_resources(resource_ids: list[str] | None = None) -> list[info.Info]:
         if resource_ids is not None and res_id not in resource_ids:
             continue
         infoobj = info.load_from_str(jobs_cache.get_job(res_id))
+        if demo_only and not infoobj.resource.demo_mode:
+            continue
         filtered_resources.append(infoobj)
     return filtered_resources
 

@@ -17,6 +17,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Added a Sparv demo mode which allows users to run a shorter text through Sparv and retrieve the results without
   needing to log in or create a resource.
+- Added a flag `demo_only` to the `/resource/list` and `/resource/status/list` routes which allows filtering for demo
+  resources only.
 - Added a setting for CHECK_QUEUE_HEALTH_FREQUENCY to control how often the queue health is checked.
 - The `/corpus/sparv/list-languages` route now includes language varieties in the response.
 - Added production deployment documentation recommending Gunicorn with `uvicorn_worker.UvicornWorker`.
