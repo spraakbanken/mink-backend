@@ -21,7 +21,6 @@ from mink.sparv.spec import CORPUS, ProcessName
 DEMO_ID_PATTERN = re.compile(rf"{re.escape(settings.DEMO_PREFIX)}[0-9a-f]{{8}}\Z")
 DEMO_DUMMY_ID = f"{settings.DEMO_PREFIX}dummy"
 DEMO_RESOURCE_NAME = {"swe": "Demo", "eng": "Demo"}
-DEMO_INPUT_FILENAME = "input.txt"
 
 
 def compute_demo_id(text: str, config: str) -> str:
@@ -267,7 +266,7 @@ def _prepare_demo_storage(info_item: Info, text: str, config: str, default_confi
 
     # Save input text
     source_dir = storage.get_source_dir(resource_id, mkdir=True)
-    source_file_path = source_dir / DEMO_INPUT_FILENAME
+    source_file_path = source_dir / sparv_settings.SPARV_DEMO_INPUT_FILENAME
     storage.write_file_contents(source_file_path, text.encode("UTF-8"), resource_id)
     info_item.resource.source_files = storage.list_contents(source_dir)
 

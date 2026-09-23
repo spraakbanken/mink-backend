@@ -14,8 +14,6 @@ from mink.sparv import demo, processing
 from mink.sparv.config import sparv_settings
 from mink.sparv.storage import storage
 
-DEMO_XML_EXPORT_NAME = f"xml_export.pretty/{demo.DEMO_INPUT_FILENAME.replace('.txt', '_export.xml')}"
-
 router = APIRouter(tags=["Sparv Demo"], prefix="/demo/corpus")
 
 
@@ -218,7 +216,7 @@ async def get_demo_corpus_input(resource_id: str) -> JSONResponse:
     # Get input text
     input_text = ""
     try:
-        input_file_path = storage.get_source_dir(resource_id) / demo.DEMO_INPUT_FILENAME
+        input_file_path = storage.get_source_dir(resource_id) / sparv_settings.SPARV_DEMO_INPUT_FILENAME
         input_text = storage.get_file_contents(input_file_path)
     except Exception as e:
         logger.exception(f"Failed to retrieve input text for resource {resource_id}: {e}")
@@ -272,19 +270,12 @@ async def get_demo_corpus_output(resource_id: str) -> JSONResponse:
     # Make sure the resource exists and is a demo resource, and update its last_accessed timestamp
     _info_item = demo.get_demo_resource_by_id(resource_id)
 
-    # # Check if resource is done processing
-    # status = info_item.job.status[ProcessName.sparv]
-    # if status != Status.done:
-    #     raise exceptions.MinkHTTPException(
-    #         return_code=return_codes.RESOURCE_NOT_READY, info="The resource has not finished processing"
-    #     )
-
     output = ""
     try:
         export_dir = storage.get_export_dir(resource_id)
         export_contents = storage.list_contents(export_dir)
-        assert any(item["path"] == DEMO_XML_EXPORT_NAME for item in export_contents)
-        xml_file_path = export_dir / DEMO_XML_EXPORT_NAME
+        assert any(item["path"] == sparv_settings.SPARV_DEMO_DEFAULT_EXPORT_FILE for item in export_contents)
+        xml_file_path = export_dir / sparv_settings.SPARV_DEMO_DEFAULT_EXPORT_FILE
         output = storage.get_file_contents(xml_file_path)
     except Exception as e:
         logger.exception(f"Failed to retrieve output for resource {resource_id}: {e}")
