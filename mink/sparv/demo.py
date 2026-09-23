@@ -20,7 +20,6 @@ from mink.sparv.spec import CORPUS, ProcessName
 
 DEMO_ID_PATTERN = re.compile(rf"{re.escape(settings.DEMO_PREFIX)}[0-9a-f]{{8}}\Z")
 DEMO_DUMMY_ID = f"{settings.DEMO_PREFIX}dummy"
-DEMO_RESOURCE_NAME = {"swe": "Demo", "eng": "Demo"}
 
 
 def compute_demo_id(text: str, config: str) -> str:
@@ -276,8 +275,7 @@ def _prepare_demo_storage(info_item: Info, text: str, config: str, default_confi
 
     # Insert resource ID and save config
     new_yaml = insert_id_into_config(config, resource_id)
-    # TODO: Do we really need a resource name? Check with frontend.
-    info_item.resource.name = DEMO_RESOURCE_NAME.copy()
+    info_item.resource.name = {"swe": f"Demokorpus {resource_id}", "eng": f"Demo corpus {resource_id}"}
     config_path = storage.get_config_file(resource_id)
     storage.write_file_contents(config_path, new_yaml.encode("UTF-8"), resource_id)
 
