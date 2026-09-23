@@ -14,7 +14,7 @@ from mink.core import return_codes
 from mink.core.config import settings
 from mink.sparv import processing
 from mink.sparv.demo import DEMO_ID_PATTERN
-from tests.utils import call_route, check_resource_loop
+from tests.utils import HEADERS, call_route, check_resource_loop
 
 INPUT_TEXT = "Detta är en mening."
 
@@ -51,6 +51,23 @@ def test_get_demo_corpus_input(demo_corpus: str) -> None:
         f"Input text does not match. Expected: {INPUT_TEXT}, Got: {json_data.get('input_text')}"
     )
     assert json_data.get("config"), "Config should not be empty"
+
+
+@pytest.mark.demo_corpus
+def test_regular_corpus_routes_reject_demo_resources(demo_corpus: str) -> None:
+    """Test that authenticated corpus routes cannot operate on demo resources, even in admin mode."""
+    response = call_route("POST", "/user/admin-mode/activate", headers=HEADERS)
+    admin_cookie = response.cookies.get("session_id")
+    assert admin_cookie is not None, "No session_id cookie set when enabling admin mode"
+
+    response = call_route(
+        "GET",
+        f"/corpus/sources/list/{demo_corpus}",
+        headers=HEADERS,
+        cookies={"session_id": admin_cookie},
+        status_code=status.HTTP_404_NOT_FOUND,
+    )
+    assert response.json().get("return_code") == return_codes.RESOURCE_NOT_FOUND.code
 
 
 @pytest.fixture(scope="module")

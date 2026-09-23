@@ -15,7 +15,9 @@ router = APIRouter(prefix="/user", tags=["User Management"])
     response_model=models.UserInfoResponse,
     responses={**models.common_auth_error_responses},
 )
-async def get_user_info(auth_data: dict = Depends(login.AuthDependencyNoResourceId())) -> JSONResponse:
+async def get_user_info(
+    auth_data: dict = Depends(login.AuthDependencyNoResourceId(reject_demo_mode=False)),
+) -> JSONResponse:
     """Return all user related info for the authenticated user.
 
     ### Example

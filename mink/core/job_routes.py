@@ -322,7 +322,7 @@ async def queue_health(_access: dict = Depends(login.secret_key_or_admin_mode)) 
 )
 async def list_resources(
     demo_only: bool = Query(False, description="Whether to filter for demo resources only"),
-    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
+    auth_data: dict = Depends(login.AuthDependencyNoResourceId(reject_demo_mode=False)),
 ) -> JSONResponse:
     """List all resources available to the authenticated user, regardless of resource type.
 
@@ -352,7 +352,7 @@ async def list_resources(
 )
 async def list_resource_statuses(
     demo_only: bool = Query(False, description="Whether to filter for demo resources only"),
-    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
+    auth_data: dict = Depends(login.AuthDependencyNoResourceId(reject_demo_mode=False)),
 ) -> JSONResponse:
     """Return statuses for all resources available to the authenticated user.
 
@@ -403,7 +403,7 @@ async def list_resource_statuses(
 )
 async def get_resource_status(
     resource_id: str,
-    auth_data: dict = Depends(login.AuthDependencyNoResourceId()),
+    auth_data: dict = Depends(login.AuthDependencyNoResourceId(reject_demo_mode=False)),
 ) -> JSONResponse:
     """Return the status for one resource.
 
