@@ -1,6 +1,6 @@
 """Default configuration for metadata module."""
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class MetadataSettings(BaseSettings):
@@ -22,11 +22,11 @@ class MetadataSettings(BaseSettings):
     # Dir for storing resource files belonging to a metadata resource
     METADATA_SOURCE_DIR: str = "source"
 
-    model_config = {
-        "env_file": ".env",  # Load variables from a .env file if it exists
-        "env_file_encoding": "utf-8",
-        "extra": "ignore",  # Ignore extra environment variables from other modules (e.g. SPARV_*)
-    }
+    model_config = SettingsConfigDict(
+        env_file=".env",  # Load variables from a .env file if it exists
+        env_file_encoding="utf-8",
+        extra="ignore",  # Ignore extra environment variables from other modules (e.g. SPARV_*)
+    )
 
 
 metadata_settings = MetadataSettings()

@@ -2371,40 +2371,6 @@
         ]
     },
     {
-        "id": "sbx-swe-lexical_classes_text-sparv-blingbring",
-        "name": {
-            "swe": "Lexikala klasser från Blingbring, textnivå",
-            "eng": "Lexical classes from Blingbring, text-level"
-        },
-        "annotations": [
-            "<text>:lexical_classes.blingbring"
-        ],
-        "task": {
-            "eng": "lexical classes",
-            "swe": "lexikala klasser"
-        },
-        "analysis_unit": {
-            "eng": "text",
-            "swe": "text"
-        },
-        "short_description": {
-            "swe": "Lexikala klasser från Blingbring på textnivå",
-            "eng": "Lexical classes from Blingbring on text-level"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
-    },
-    {
         "id": "sbx-swe-lexical_classes_text-sparv-swefn",
         "name": {
             "swe": "Lexikala klasser från SweFN, textnivå",
@@ -2424,40 +2390,6 @@
         "short_description": {
             "swe": "Lexikala klasser från SweFN på textnivå",
             "eng": "Lexical classes from SweFN on text-level"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-swe-lexical_classes_token-sparv-blingbring",
-        "name": {
-            "swe": "Lexikala klasser från Blingbring, tokennivå",
-            "eng": "Lexical classes from Blingbring, token-level"
-        },
-        "annotations": [
-            "<token>:lexical_classes.blingbring"
-        ],
-        "task": {
-            "eng": "lexical classes",
-            "swe": "lexikala klasser"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Lexikala klasser från Blingbring på tokennivå",
-            "eng": "Lexical classes from Blingbring on token-level"
         },
         "languages": [
             {

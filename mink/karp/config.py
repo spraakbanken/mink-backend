@@ -1,7 +1,7 @@
 """Default configuration for Karp module."""
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class KarpSettings(BaseSettings):
@@ -43,11 +43,11 @@ class KarpSettings(BaseSettings):
     # Max size (chars) to keep for each of the warnings/errors/misc output fields (prevents oversized cache items)
     KARP_OUTPUT_MAX_LENGTH: int = 1024 * 200
 
-    model_config = {
-        "env_file": ".env",  # Load variables from a .env file if it exists
-        "env_file_encoding": "utf-8",
-        "extra": "ignore",  # Ignore extra environment variables from other modules
-    }
+    model_config = SettingsConfigDict(
+        env_file=".env",  # Load variables from a .env file if it exists
+        env_file_encoding="utf-8",
+        extra="ignore",  # Ignore extra environment variables from other modules
+    )
 
 
 karp_settings = KarpSettings()
