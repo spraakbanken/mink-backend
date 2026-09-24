@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class SparvSettings(BaseSettings):
@@ -125,11 +125,11 @@ class SparvSettings(BaseSettings):
         ]
     )
 
-    model_config = {
-        "env_file": ".env",  # Load variables from a .env file if it exists
-        "env_file_encoding": "utf-8",
-        "extra": "ignore",  # Ignore extra environment variables from other modules
-    }
+    model_config = SettingsConfigDict(
+        env_file=".env",  # Load variables from a .env file if it exists
+        env_file_encoding="utf-8",
+        extra="ignore",  # Ignore extra environment variables from other modules
+    )
 
 
 sparv_settings = SparvSettings()

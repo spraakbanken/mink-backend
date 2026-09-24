@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -89,11 +89,11 @@ class Settings(BaseSettings):
     TRACKING_MATOMO_AUTH_TOKEN: str = ""
     TRACKING_MATOMO_HTTP_TIMEOUT: int = 5
 
-    model_config = {
-        "env_file": ".env",  # Load variables from a .env file if it exists
-        "env_file_encoding": "utf-8",
-        "extra": "ignore",  # Ignore extra environment variables from other modules (e.g. SPARV_*)
-    }
+    model_config = SettingsConfigDict(
+        env_file=".env",  # Load variables from a .env file if it exists
+        env_file_encoding="utf-8",
+        extra="ignore",  # Ignore extra environment variables from other modules (e.g. SPARV_*)
+    )
 
 
 settings = Settings()
