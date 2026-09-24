@@ -31,6 +31,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
   warnings are only sent when the queue health state changes.
 - Fixed a bug in parsing the output of `sparv languages`.
 - Adapted the parsing of Sparv output to handle a new log format introduced in [Sparv commit cde41011](https://github.com/spraakbanken/sparv/commit/cde410113ef3d696a1013076c3dc375b13eea17c).
+- Fixed insufficient error handling in Sparv job execution by catching Sparv stdout instead of stderr.
 
 ## [3.0.0] - 2026-06-04
 
