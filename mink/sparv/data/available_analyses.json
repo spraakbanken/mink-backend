@@ -1,3058 +1,2894 @@
 [
-    {
-        "id": "sbx-bul-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för bulgariska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Bulgarian"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för bulgariska",
-            "eng": "Lemmatization with TreeTagger for Bulgarian"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "bul",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "bulgariska",
-                    "eng": "Bulgarian"
-                }
-            }
-        ]
+  {
+    "id": "sbx-bul-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för bulgariska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Bulgarian"
     },
-    {
-        "id": "sbx-bul-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för bulgariska",
-            "eng": "Part-of-speech tagging with TreeTagger for Bulgarian"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av BTB-TS ordklasser med TreeTagger för bulgariska",
-            "eng": "Bulgarian part-of-speech annotation with BTB-TS tags by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "bul",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "bulgariska",
-                    "eng": "Bulgarian"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
     },
-    {
-        "id": "sbx-bul-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för bulgariska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Bulgarian"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för bulgariska som översätts från BTB-TS",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Bulgarian translated from BTB-TS"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "bul",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "bulgariska",
-                    "eng": "Bulgarian"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-deu-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för tyska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for German"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för tyska",
-            "eng": "Lemmatization with TreeTagger for German"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "deu",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "tyska",
-                    "eng": "German"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för bulgariska",
+      "eng": "Lemmatization with TreeTagger for Bulgarian"
     },
-    {
-        "id": "sbx-deu-pos-treetagger",
+    "languages": [
+      {
+        "code": "bul",
         "name": {
-            "swe": "Ordklasstaggning med TreeTagger för tyska",
-            "eng": "Part-of-speech tagging with TreeTagger for German"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för tyska",
-            "eng": "German part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "deu",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "tyska",
-                    "eng": "German"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-deu-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för tyska",
-            "eng": "UD part-of-speech tagging with TreeTagger for German"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för tyska som översätts från STTS-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for German translated from STTS part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "deu",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "tyska",
-                    "eng": "German"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-dependency-stanza",
-        "name": {
-            "swe": "Dependensparsning för engelska med Stanza",
-            "eng": "Dependency parsing for English with Stanza"
-        },
-        "annotations": [
-            "<token>:stanza.ref",
-            "<token>:stanza.dephead_ref as dephead",
-            "<token>:stanza.deprel"
-        ],
-        "task": {
-            "eng": "dependency parsing",
-            "swe": "dependensparsning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Dependensparsning med Stanzas standardmodell för engelska",
-            "eng": "Dependency parsing with Stanza's standard model for English"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-lemmatization-stanza",
-        "name": {
-            "swe": "Lemmatisering för engelska med Stanza",
-            "eng": "Lemmatization for English with Stanza"
-        },
-        "annotations": [
-            "<token>:stanza.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Lemmatisering med Stanzas standardmodell för engelska",
-            "eng": "Lemmatization with Stanza's standard model for English"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för engelska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for English"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för engelska",
-            "eng": "Lemmatization with TreeTagger for English"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-msd-stanza-ufeats",
-        "name": {
-            "swe": "Morfologisk analys för engelska baserad på Stanza",
-            "eng": "Stanza-based morphological analysis for English"
-        },
-        "annotations": [
-            "<token>:stanza.ufeats"
-        ],
-        "task": {
-            "eng": "morphosyntactic tagging",
-            "swe": "morfosyntaktisk taggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Morfologisk analys för engelska med universal features (UD) baserad på Stanza",
-            "eng": "Stanza-based morphological analysis for English, using universal features (UD)"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-namedentity-stanza",
-        "name": {
-            "swe": "Namnigenkänning för engelska med Stanza",
-            "eng": "Named entity recognition for English with Stanza"
-        },
-        "annotations": [
-            "stanza.ne",
-            "stanza.ne:stanza.ne_type"
-        ],
-        "task": {
-            "eng": "named entity recognition",
-            "swe": "namnigenkänning"
-        },
-        "short_description": {
-            "swe": "Namnigenkänning (NER) med Stanzas standardmodell för engelska",
-            "eng": "Named entity recognition with Stanza's standard model for English"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-pos-stanza",
-        "name": {
-            "swe": "Ordklasstaggning med Stanza för engelska",
-            "eng": "Part-of-speech tagging with Stanza for English"
-        },
-        "annotations": [
-            "<token>:stanza.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser (Penn Treebank-taggar) med Stanzas standardmodell för engelska",
-            "eng": "Part-of-speech annotation with Penn Treebank tags with Stanza's standard model for English"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-pos-stanza-upos",
-        "name": {
-            "swe": "UD-Ordklasstaggning med Stanza för engelska",
-            "eng": "UD part-of-speech tagging with Stanza for English"
-        },
-        "annotations": [
-            "<token>:stanza.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) med Stanzas standardmodell för engelska",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags with Stanza's standard model for English"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för engelska",
-            "eng": "Part-of-speech tagging with TreeTagger for English"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för engelska",
-            "eng": "English part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-sentence-stanza",
-        "name": {
-            "swe": "Meningssegmentering för engelska med Stanza",
-            "eng": "Sentence segmentation for English with Stanza"
-        },
-        "annotations": [
-            "stanza.sentence"
-        ],
-        "task": {
-            "eng": "sentence segmentation",
-            "swe": "meningssegmentering"
-        },
-        "analysis_unit": {
-            "eng": "sentence",
-            "swe": "mening"
-        },
-        "short_description": {
-            "swe": "Meningssegmentering med Stanzas standardmodell för engelska",
-            "eng": "Sentence segmentation with Stanza's standard model for English"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-tokenization-stanza",
-        "name": {
-            "swe": "Tokenisering för engelska med Stanza",
-            "eng": "Tokenization for English with Stanza"
-        },
-        "annotations": [
-            "stanza.token"
-        ],
-        "task": {
-            "eng": "tokenization",
-            "swe": "tokenisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Tokenisering med Stanzas standardmodell för engelska",
-            "eng": "Tokenization with Stanza's standard model for English"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-eng-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för engelska",
-            "eng": "UD part-of-speech tagging with TreeTagger for English"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för engelska som översätts från Penn-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for English translated from Penn part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "eng",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "engelska",
-                    "eng": "English"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-est-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för estniska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Estonian"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för estniska",
-            "eng": "Lemmatization with TreeTagger for Estonian"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "est",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "estniska",
-                    "eng": "Estonian"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-est-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för estniska",
-            "eng": "Part-of-speech tagging with TreeTagger for Estonian"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för estniska",
-            "eng": "Estonian part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "est",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "estniska",
-                    "eng": "Estonian"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-est-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för estniska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Estonian"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för estniska som översätts från TreeTaggers ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Estonian translated from TreeTagger's part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "est",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "estniska",
-                    "eng": "Estonian"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-fin-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för finska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Finnish"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för finska",
-            "eng": "Lemmatization with TreeTagger for Finnish"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "fin",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "finska",
-                    "eng": "Finnish"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-fin-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för finska",
-            "eng": "Part-of-speech tagging with TreeTagger for Finnish"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för finska",
-            "eng": "Finnish part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "fin",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "finska",
-                    "eng": "Finnish"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-fra-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för franska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for French"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för franska",
-            "eng": "Lemmatization with TreeTagger for French"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "fra",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "franska",
-                    "eng": "French"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-fra-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för franska",
-            "eng": "Part-of-speech tagging with TreeTagger for French"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för franska",
-            "eng": "French part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "fra",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "franska",
-                    "eng": "French"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-fra-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för franska",
-            "eng": "UD part-of-speech tagging with TreeTagger for French"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för franska som översätts från TreeTagger-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for French translated from TreeTagger part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "fra",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "franska",
-                    "eng": "French"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-ita-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för italienska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Italian"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för italienska",
-            "eng": "Lemmatization with TreeTagger for Italian"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "ita",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "italienska",
-                    "eng": "Italian"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-ita-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för italienska",
-            "eng": "Part-of-speech tagging with TreeTagger for Italian"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för italienska",
-            "eng": "Italian part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "ita",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "italienska",
-                    "eng": "Italian"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-ita-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för italienska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Italian"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för italienska som översätts från TreeTagger-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Italian translated from TreeTagger part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "ita",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "italienska",
-                    "eng": "Italian"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-lat-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för latin",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Latin"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för latin",
-            "eng": "Lemmatization with TreeTagger for Latin"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "lat",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "latin",
-                    "eng": "Latin"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-lat-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för latin",
-            "eng": "Part-of-speech tagging with TreeTagger for Latin"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för latin",
-            "eng": "Latin part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "lat",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "latin",
-                    "eng": "Latin"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-lat-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för latin",
-            "eng": "UD part-of-speech tagging with TreeTagger for Latin"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för latin som översätts från Lamap-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Latin translated from Lamap's part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "lat",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "latin",
-                    "eng": "Latin"
-                }
-            }
-        ]
-    },
-    {
-        "id": "sbx-mul-paragraph-sparv-blanklines",
-        "name": {
-            "swe": "Tomradssegmentering, stycken",
-            "eng": "Blanklines paragraph segmentation"
-        },
-        "annotations": [
-            "segment.paragraph"
-        ],
-        "task": {
-            "eng": "tokenization",
-            "swe": "tokenisering"
-        },
-        "analysis_unit": {
-            "eng": "paragraph",
-            "swe": "stycke"
-        },
-        "short_description": {
-            "swe": "Segmenterar text i stycken utifrån tomma rader med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Segments text into paragraphs by blank lines using the RegexpTokenizer from NLTK"
+          "swe": "bulgariska",
+          "eng": "Bulgarian"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-bul-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för bulgariska",
+      "eng": "Part-of-speech tagging with TreeTagger for Bulgarian"
     },
-    {
-        "id": "sbx-mul-paragraph-sparv-linebreaks",
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av BTB-TS ordklasser med TreeTagger för bulgariska",
+      "eng": "Bulgarian part-of-speech annotation with BTB-TS tags by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "bul",
         "name": {
-            "swe": "Radbrytningssegmentering, stycken",
-            "eng": "Linebreaks paragraph segmentation"
-        },
-        "annotations": [
-            "segment.paragraph"
-        ],
-        "task": {
-            "eng": "paragraph segmentation",
-            "swe": "styckessegmentering"
-        },
-        "analysis_unit": {
-            "eng": "paragraph",
-            "swe": "stycke"
-        },
-        "short_description": {
-            "swe": "Segmenterar text i stycken utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Segments text into paragraphs by linebreaks using the RegexpTokenizer from NLTK"
+          "swe": "bulgariska",
+          "eng": "Bulgarian"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-bul-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för bulgariska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Bulgarian"
     },
-    {
-        "id": "sbx-mul-paragraph-sparv-whitespace",
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för bulgariska som översätts från BTB-TS",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Bulgarian translated from BTB-TS"
+    },
+    "languages": [
+      {
+        "code": "bul",
         "name": {
-            "swe": "Blankteckensegmentering, stycken",
-            "eng": "Blankspace paragraph segmentation"
-        },
-        "annotations": [
-            "segment.paragraph"
-        ],
-        "task": {
-            "eng": "paragraph segmentation",
-            "swe": "styckessegmentering"
-        },
-        "analysis_unit": {
-            "eng": "paragraph",
-            "swe": "stycke"
-        },
-        "short_description": {
-            "swe": "Segmenterar text i stycken utifrån blanktecken med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Segments text into paragraphs by whitespaces using the RegexpTokenizer from NLTK"
+          "swe": "bulgariska",
+          "eng": "Bulgarian"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-deu-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för tyska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for German"
     },
-    {
-        "id": "sbx-mul-sentence-sparv-blanklines",
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för tyska",
+      "eng": "Lemmatization with TreeTagger for German"
+    },
+    "languages": [
+      {
+        "code": "deu",
         "name": {
-            "swe": "Tomradssegmentering, meningar",
-            "eng": "Blanklines sentence segmentation"
-        },
-        "annotations": [
-            "segment.sentence"
-        ],
-        "task": {
-            "eng": "tokenization",
-            "swe": "tokenisering"
-        },
-        "analysis_unit": {
-            "eng": "sentence",
-            "swe": "mening"
-        },
-        "short_description": {
-            "swe": "Segmenterar text i meningar utifrån tomma rader med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Segments text into sentences by blank lines using the RegexpTokenizer from NLTK"
+          "swe": "tyska",
+          "eng": "German"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-deu-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för tyska",
+      "eng": "Part-of-speech tagging with TreeTagger for German"
     },
-    {
-        "id": "sbx-mul-sentence-sparv-linebreaks",
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för tyska",
+      "eng": "German part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "deu",
         "name": {
-            "swe": "Radbrytningssegmentering, meningar",
-            "eng": "Linebreaks sentence segmentation"
-        },
-        "annotations": [
-            "segment.sentence"
-        ],
-        "task": {
-            "eng": "sentence segmentation",
-            "swe": "meningssegmentering"
-        },
-        "analysis_unit": {
-            "eng": "sentence",
-            "swe": "mening"
-        },
-        "short_description": {
-            "swe": "Segmenterar text i meningar utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Segments text into sentences by linebreaks using the RegexpTokenizer from NLTK"
+          "swe": "tyska",
+          "eng": "German"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-deu-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för tyska",
+      "eng": "UD part-of-speech tagging with TreeTagger for German"
     },
-    {
-        "id": "sbx-mul-sentence-sparv-punctuation",
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för tyska som översätts från STTS-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for German translated from STTS part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "deu",
         "name": {
-            "swe": "Meningssegmentering utifrån skiljetecken",
-            "eng": "Sentence segmentation by punctuation"
-        },
-        "annotations": [
-            "segment.sentence"
-        ],
-        "task": {
-            "eng": "sentence segmentation",
-            "swe": "meningssegmentering"
-        },
-        "analysis_unit": {
-            "eng": "sentence",
-            "swe": "mening"
-        },
-        "short_description": {
-            "swe": "Segmenterar text i meningar utifrån skiljetecken med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Segments text into sentences by punctuation marks using the RegexpTokenizer from NLTK"
+          "swe": "tyska",
+          "eng": "German"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-dependency-stanza",
+    "name": {
+      "swe": "Dependensparsning för engelska med Stanza",
+      "eng": "Dependency parsing for English with Stanza"
     },
-    {
-        "id": "sbx-mul-sentence-sparv-whitespace",
+    "annotations": [
+      "<token>:stanza.ref",
+      "<token>:stanza.dephead_ref as dephead",
+      "<token>:stanza.deprel"
+    ],
+    "task": {
+      "eng": "dependency parsing",
+      "swe": "dependensparsning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Dependensparsning med Stanzas standardmodell för engelska",
+      "eng": "Dependency parsing with Stanza's standard model for English"
+    },
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Blankteckensegmentering, meningar",
-            "eng": "Blankspace sentence segmentation"
-        },
-        "annotations": [
-            "segment.sentence"
-        ],
-        "task": {
-            "eng": "sentence segmentation",
-            "swe": "meningssegmentering"
-        },
-        "analysis_unit": {
-            "eng": "sentence",
-            "swe": "mening"
-        },
-        "short_description": {
-            "swe": "Segmenterar text i meningar utifrån blanktecken med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Segments text into sentences by whitespaces using the RegexpTokenizer from NLTK"
+          "swe": "engelska",
+          "eng": "English"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-lemmatization-stanza",
+    "name": {
+      "swe": "Lemmatisering för engelska med Stanza",
+      "eng": "Lemmatization for English with Stanza"
     },
-    {
-        "id": "sbx-mul-tokenization-sparv-blanklines",
+    "annotations": [
+      "<token>:stanza.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Lemmatisering med Stanzas standardmodell för engelska",
+      "eng": "Lemmatization with Stanza's standard model for English"
+    },
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Tomradstokenisering",
-            "eng": "Blanklines tokenization"
-        },
-        "annotations": [
-            "segment.token"
-        ],
-        "task": {
-            "eng": "tokenization",
-            "swe": "tokenisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Tokeniserar text utifrån tomma rader med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Tokenizes text into tokens by blank lines using the RegexpTokenizer from NLTK"
+          "swe": "engelska",
+          "eng": "English"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för engelska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for English"
     },
-    {
-        "id": "sbx-mul-tokenization-sparv-linebreaks",
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för engelska",
+      "eng": "Lemmatization with TreeTagger for English"
+    },
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Radbrytningstokenisering",
-            "eng": "Linebreaks tokenization"
-        },
-        "annotations": [
-            "segment.token"
-        ],
-        "task": {
-            "eng": "tokenization",
-            "swe": "tokenisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Tokeniserar text utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Tokenizes text into tokens by linebreaks using the RegexpTokenizer from NLTK"
+          "swe": "engelska",
+          "eng": "English"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-msd-stanza-ufeats",
+    "name": {
+      "swe": "Morfologisk analys för engelska baserad på Stanza",
+      "eng": "Stanza-based morphological analysis for English"
     },
-    {
-        "id": "sbx-mul-tokenization-sparv-whitespace",
+    "annotations": [
+      "<token>:stanza.ufeats"
+    ],
+    "task": {
+      "eng": "morphosyntactic tagging",
+      "swe": "morfosyntaktisk taggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Morfologisk analys för engelska med universal features (UD) baserad på Stanza",
+      "eng": "Stanza-based morphological analysis for English, using universal features (UD)"
+    },
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Blankteckentokenisering",
-            "eng": "Blankspace tokenization"
-        },
-        "annotations": [
-            "segment.token"
-        ],
-        "task": {
-            "eng": "tokenization",
-            "swe": "tokenisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Tokeniserar text utifrån blanktecken med hjälp av NLTKs RegexpTokenizer",
-            "eng": "Tokenizes text into tokens by whitespaces using the RegexpTokenizer from NLTK"
+          "swe": "engelska",
+          "eng": "English"
         }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-namedentity-stanza",
+    "name": {
+      "swe": "Namnigenkänning för engelska med Stanza",
+      "eng": "Named entity recognition for English with Stanza"
     },
-    {
-        "id": "sbx-nld-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för nederländska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Dutch"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för nederländska",
-            "eng": "Lemmatization with TreeTagger for Dutch"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "nld",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "nederländska",
-                    "eng": "Dutch"
-                }
-            }
-        ]
+    "annotations": [
+      "stanza.ne",
+      "stanza.ne:stanza.ne_type"
+    ],
+    "task": {
+      "eng": "named entity recognition",
+      "swe": "namnigenkänning"
     },
-    {
-        "id": "sbx-nld-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för nederländska",
-            "eng": "Part-of-speech tagging with TreeTagger for Dutch"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för nederländska",
-            "eng": "Dutch part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "nld",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "nederländska",
-                    "eng": "Dutch"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Namnigenkänning (NER) med Stanzas standardmodell för engelska",
+      "eng": "Named entity recognition with Stanza's standard model for English"
     },
-    {
-        "id": "sbx-nld-upos-treetagger",
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för nederländska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Dutch"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för nederländska som översätts från TreeTagger-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Dutch translated from TreeTagger's part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "nld",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "nederländska",
-                    "eng": "Dutch"
-                }
-            }
-        ]
+          "swe": "engelska",
+          "eng": "English"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-pos-stanza",
+    "name": {
+      "swe": "Ordklasstaggning med Stanza för engelska",
+      "eng": "Part-of-speech tagging with Stanza for English"
     },
-    {
-        "id": "sbx-pol-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för polska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Polish"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för polska",
-            "eng": "Lemmatization with TreeTagger for Polish"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "pol",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "polska",
-                    "eng": "Polish"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:stanza.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
     },
-    {
-        "id": "sbx-pol-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för polska",
-            "eng": "Part-of-speech tagging with TreeTagger for Polish"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för polska",
-            "eng": "Polish part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "pol",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "polska",
-                    "eng": "Polish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-pol-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för polska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Polish"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för polska som översätts från NKJP-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Polish translated from NKJP's part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "pol",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "polska",
-                    "eng": "Polish"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av ordklasser (Penn Treebank-taggar) med Stanzas standardmodell för engelska",
+      "eng": "Part-of-speech annotation with Penn Treebank tags with Stanza's standard model for English"
     },
-    {
-        "id": "sbx-ron-lemmatization-treetagger",
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Annotering av grundformer med TreeTagger för rumänska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Romanian"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för rumänska",
-            "eng": "Lemmatization with TreeTagger for Romanian"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "ron",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "rumänska",
-                    "eng": "Romanian"
-                }
-            }
-        ]
+          "swe": "engelska",
+          "eng": "English"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-pos-stanza-upos",
+    "name": {
+      "swe": "UD-Ordklasstaggning med Stanza för engelska",
+      "eng": "UD part-of-speech tagging with Stanza for English"
     },
-    {
-        "id": "sbx-ron-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för rumänska",
-            "eng": "Part-of-speech tagging with TreeTagger for Romanian"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för rumänska",
-            "eng": "Romanian part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "ron",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "rumänska",
-                    "eng": "Romanian"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:stanza.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
     },
-    {
-        "id": "sbx-ron-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för rumänska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Romanian"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för rumänska som översätts från TreeTagger-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Romanian translated from TreeTagger's part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "ron",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "rumänska",
-                    "eng": "Romanian"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-rus-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för ryska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Russian"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för ryska",
-            "eng": "Lemmatization with TreeTagger for Russian"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "rus",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "ryska",
-                    "eng": "Russian"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) med Stanzas standardmodell för engelska",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags with Stanza's standard model for English"
     },
-    {
-        "id": "sbx-rus-pos-treetagger",
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Ordklasstaggning med TreeTagger för ryska",
-            "eng": "Part-of-speech tagging with TreeTagger for Russian"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för ryska",
-            "eng": "Russian part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "rus",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "ryska",
-                    "eng": "Russian"
-                }
-            }
-        ]
+          "swe": "engelska",
+          "eng": "English"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för engelska",
+      "eng": "Part-of-speech tagging with TreeTagger for English"
     },
-    {
-        "id": "sbx-rus-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för ryska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Russian"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för ryska som översätts från TreeTagger-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Russian translated from TreeTagger part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "rus",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "ryska",
-                    "eng": "Russian"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
     },
-    {
-        "id": "sbx-slk-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för slovakiska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Slovak"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för slovakiska",
-            "eng": "Lemmatization with TreeTagger for Slovak"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "slk",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "slovakiska",
-                    "eng": "Slovak"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-slk-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för slovakiska",
-            "eng": "Part-of-speech tagging with TreeTagger for Slovak"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för slovakiska",
-            "eng": "Slovak part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "slk",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "slovakiska",
-                    "eng": "Slovak"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för engelska",
+      "eng": "English part-of-speech annotation by TreeTagger"
     },
-    {
-        "id": "sbx-slk-upos-treetagger",
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för slovakiska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Slovak"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för slovakiska som översätts från TreeTagger-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Slovak translated from TreeTagger's part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "slk",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "slovakiska",
-                    "eng": "Slovak"
-                }
-            }
-        ]
+          "swe": "engelska",
+          "eng": "English"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-sentence-stanza",
+    "name": {
+      "swe": "Meningssegmentering för engelska med Stanza",
+      "eng": "Sentence segmentation for English with Stanza"
     },
-    {
-        "id": "sbx-spa-lemmatization-treetagger",
-        "name": {
-            "swe": "Annotering av grundformer med TreeTagger för spanska",
-            "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Spanish"
-        },
-        "annotations": [
-            "<token>:treetagger.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med TreeTagger för spanska",
-            "eng": "Lemmatization with TreeTagger for Spanish"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "spa",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "spanska",
-                    "eng": "Spanish"
-                }
-            }
-        ]
+    "annotations": [
+      "stanza.sentence"
+    ],
+    "task": {
+      "eng": "sentence segmentation",
+      "swe": "meningssegmentering"
     },
-    {
-        "id": "sbx-spa-pos-treetagger",
-        "name": {
-            "swe": "Ordklasstaggning med TreeTagger för spanska",
-            "eng": "Part-of-speech tagging with TreeTagger for Spanish"
-        },
-        "annotations": [
-            "<token>:treetagger.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av ordklasser med TreeTagger för spanska",
-            "eng": "Spanish part-of-speech annotation by TreeTagger"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "spa",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "spanska",
-                    "eng": "Spanish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "sentence",
+      "swe": "mening"
     },
-    {
-        "id": "sbx-spa-upos-treetagger",
-        "name": {
-            "swe": "UD-Ordklasstaggning med TreeTagger för spanska",
-            "eng": "UD part-of-speech tagging with TreeTagger for Spanish"
-        },
-        "annotations": [
-            "<token>:treetagger.upos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av UD-ordklasser (universal dependencies) för spanska som översätts från TreeTagger-ordklasser",
-            "eng": "Part-of-speech annotation with UD (universal dependency) tags for Spanish translated from TreeTagger part-of-speech tags"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "spa",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "spanska",
-                    "eng": "Spanish"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Meningssegmentering med Stanzas standardmodell för engelska",
+      "eng": "Sentence segmentation with Stanza's standard model for English"
     },
-    {
-        "id": "sbx-swe-compound-sparv-saldolemgram",
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Sammansättningsanalys med hjälp av SALDO-lemgram",
-            "eng": "Compound analysis using SALDO lemgrams"
-        },
-        "annotations": [
-            "<token>:saldo.complemgram"
-        ],
-        "task": {
-            "eng": "compound analysis",
-            "swe": "sammansättningsanalys"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Analys av sammansatta SALDO-lemgram inklusive sannolikhetsrankning",
-            "eng": "Analysis of SALDO lemgram compounds including a probability ranking"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+          "swe": "engelska",
+          "eng": "English"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-tokenization-stanza",
+    "name": {
+      "swe": "Tokenisering för engelska med Stanza",
+      "eng": "Tokenization for English with Stanza"
     },
-    {
-        "id": "sbx-swe-compound-sparv-saldowords",
-        "name": {
-            "swe": "Sammansättningsanalys med hjälp av SALDO-ordformer",
-            "eng": "Compound analysis using SALDO wordforms"
-        },
-        "annotations": [
-            "<token>:saldo.compwf"
-        ],
-        "task": {
-            "eng": "compound analysis",
-            "swe": "sammansättningsanalys"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Analys av sammansatta SALDO-ordformer",
-            "eng": "Analysis of SALDO wordform compounds"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "annotations": [
+      "stanza.token"
+    ],
+    "task": {
+      "eng": "tokenization",
+      "swe": "tokenisering"
     },
-    {
-        "id": "sbx-swe-dependency-malt-treebank",
-        "name": {
-            "swe": "Dependensparsning med MaltParser",
-            "eng": "Dependency parsing with MaltParser"
-        },
-        "annotations": [
-            "<token>:malt.ref",
-            "<token>:malt.dephead_ref as dephead",
-            "<token>:malt.deprel"
-        ],
-        "task": {
-            "eng": "dependency parsing",
-            "swe": "dependensparsning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Svensk dependensparsning tränad på Svensk trädbank baserad på MaltParser",
-            "eng": "Swedish dependency parsing from MaltParser trained on Sweedish treebank"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-swe-dependency-stanza-stanzasynt",
-        "name": {
-            "swe": "Dependensparsning med Stanza",
-            "eng": "Dependency parsing with Stanza"
-        },
-        "annotations": [
-            "<token>:stanza.dephead_ref as dephead",
-            "<token>:stanza.deprel",
-            "<token>:stanza.ref"
-        ],
-        "task": {
-            "eng": "dependency parsing",
-            "swe": "dependensparsning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Svensk dependensparsning tränad på Svensk trädbank med Stanza",
-            "eng": "Swedish dependency parsing with Stanza trained on Sweedish treebank"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Tokenisering med Stanzas standardmodell för engelska",
+      "eng": "Tokenization with Stanza's standard model for English"
     },
-    {
-        "id": "sbx-swe-geotagcontext-sparv",
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Geotaggning av platsnamn från kontext",
-            "eng": "Geotagging of place names from context"
-        },
-        "annotations": [
-            "<text>:geo.geo_context",
-            "<paragraph>:geo.geo_context",
-            "<sentence>:geo.geo_context as geocontext"
-        ],
-        "task": {
-            "eng": "geotagging",
-            "swe": "geotaggning"
-        },
-        "analysis_unit": {
-            "eng": "text",
-            "swe": "text"
-        },
-        "short_description": {
-            "swe": "Annotering av texter med platsinformation, baserad på platser som finns i texten",
-            "eng": "Annotate text chunks with location data, based on locations contained within the text"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+          "swe": "engelska",
+          "eng": "English"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-eng-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för engelska",
+      "eng": "UD part-of-speech tagging with TreeTagger for English"
     },
-    {
-        "id": "sbx-swe-geotagmetadata-sparv",
-        "name": {
-            "swe": "Geotagging av platsnamn från metadata",
-            "eng": "Geotagging of place names from metadata"
-        },
-        "annotations": [
-            "<text>:geo.geo_metadata"
-        ],
-        "task": {
-            "eng": "geotagging",
-            "swe": "geotaggning"
-        },
-        "analysis_unit": {
-            "eng": "text",
-            "swe": "text"
-        },
-        "short_description": {
-            "swe": "Annotering av texter med platsinformation, baserad på platser som finns i texten",
-            "eng": "Annotate text chunks with location data, based on metadata containing location names"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
     },
-    {
-        "id": "sbx-swe-lemgram-sparv-saldo",
-        "name": {
-            "swe": "Annotering av SALDO-lemgram",
-            "eng": "Annotation of SALDO lemgrams"
-        },
-        "annotations": [
-            "<token>:saldo.lemgram as lex"
-        ],
-        "task": {
-            "eng": "lexical lookup",
-            "swe": "lexikala uppslag"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Uppslagning som ger SALDO-lemgram",
-            "eng": "Lookup of SALDO lemgrams"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-swe-lemgram-sparv-saldo_dalin_swedberg_1800",
-        "name": {
-            "swe": "Annotering av SALDO-lemgram för 1800-talssvenska",
-            "eng": "Annotation of SALDO lemgrams for Swedish from the 1800s"
-        },
-        "annotations": [
-            "<token>:hist.lemgram as lex"
-        ],
-        "task": {
-            "eng": "lexical lookup",
-            "swe": "lexikala uppslag"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Uppslagning av SALDO-lemgram med hjälp av Dalin och Swedberg",
-            "eng": "Lookup of SALDO lemgrams using Dalin and Swedberg"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "1800-talssvenska",
-                    "eng": "19th-century Swedish"
-                },
-                "variety": "1800"
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för engelska som översätts från Penn-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for English translated from Penn part-of-speech tags"
     },
-    {
-        "id": "sbx-swe-lemgram-sparv-schlyter_soderwall_fsv",
+    "languages": [
+      {
+        "code": "eng",
         "name": {
-            "swe": "Annotering av lemgram för fornsvenska",
-            "eng": "Annotation of lemgrams for Old Swedish"
-        },
-        "annotations": [
-            "<token>:hist.lemgram as lex"
-        ],
-        "task": {
-            "eng": "lexical lookup",
-            "swe": "lexikala uppslag"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Uppslagning av lemgram med Schlyter och Söderwall",
-            "eng": "Lookup of lemgrams using Schlyter and Soderwall"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "fornsvenska",
-                    "eng": "Old Swedish"
-                },
-                "variety": "fsv"
-            }
-        ]
+          "swe": "engelska",
+          "eng": "English"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-est-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för estniska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Estonian"
     },
-    {
-        "id": "sbx-swe-lemmatization-sparv-saldo",
-        "name": {
-            "swe": "Annotering av SALDO-grundformer",
-            "eng": "Annotation of SALDO citation forms (base forms, lemmas)"
-        },
-        "annotations": [
-            "<token>:saldo.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Fullformsuppslagning som ger SALDO-grundformer",
-            "eng": "Full-form lookup of SALDO citation forms (lemmas)"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
     },
-    {
-        "id": "sbx-swe-lemmatization-sparv-saldo2",
-        "name": {
-            "swe": "Annotering av SALDO-grundformer (utökade)",
-            "eng": "Annotation of SALDO citation forms (base forms, lemmas) (extended)"
-        },
-        "annotations": [
-            "<token>:saldo.baseform2 as lemma"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "SALDO-grundformer plus analys av sammansättningar bestående av SALDO-ingångar",
-            "eng": "Full-form lookup of SALDO citation forms (lemmas) plus analysis of compounds made up of SALDO entries"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-swe-lemmatization-sparv-saldo_dalin_swedberg_1800",
-        "name": {
-            "swe": "Annotering av SALDO-grundformer för 1800-talssvenska",
-            "eng": "Annotation of SALDO citation forms (base forms, lemmas) for Swedish from the 1800s"
-        },
-        "annotations": [
-            "<token>:hist.baseform as lemma"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Fullformsuppslagning som ger SALDO-grundformer med hjälp av Dalin och Swedberg",
-            "eng": "Full-form lookup of SALDO citation forms (lemmas) using Dalin and Swedberg"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "1800-talssvenska",
-                    "eng": "19th-century Swedish"
-                },
-                "variety": "1800"
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för estniska",
+      "eng": "Lemmatization with TreeTagger for Estonian"
     },
-    {
-        "id": "sbx-swe-lemmatization-sparv-schlyter_soderwall_fsv",
+    "languages": [
+      {
+        "code": "est",
         "name": {
-            "swe": "Annotering av grundformer för fornsvenska",
-            "eng": "Annotation of citation forms (base forms, lemmas) for Old Swedish"
-        },
-        "annotations": [
-            "<token>:hist.baseform as lemma"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Fullformsuppslagning som ger grundformer med Schlyter och Söderwall",
-            "eng": "Full-form lookup of citation forms (lemmas) using Schlyter and Soderwall"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "fornsvenska",
-                    "eng": "Old Swedish"
-                },
-                "variety": "fsv"
-            }
-        ]
+          "swe": "estniska",
+          "eng": "Estonian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-est-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för estniska",
+      "eng": "Part-of-speech tagging with TreeTagger for Estonian"
     },
-    {
-        "id": "sbx-swe-lemmatization-stanza-stanzalem",
-        "name": {
-            "swe": "SUC3-grundformanalys med Stanza",
-            "eng": "SUC3-citation form analysis with Stanza"
-        },
-        "annotations": [
-            "<token>:stanza.baseform"
-        ],
-        "task": {
-            "eng": "lemmatization",
-            "swe": "lemmatisering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av grundformer (lemman) med Stanza för svenska tränat på SUC3",
-            "eng": "Swedish citation form analysis (base forms, lemmas) by Stanza, trained on SUC3"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
     },
-    {
-        "id": "sbx-swe-lexical_classes_text-sparv-swefn",
-        "name": {
-            "swe": "Lexikala klasser från SweFN, textnivå",
-            "eng": "Lexical classes from SweFN, text-level"
-        },
-        "annotations": [
-            "<text>:lexical_classes.swefn"
-        ],
-        "task": {
-            "eng": "lexical classes",
-            "swe": "lexikala klasser"
-        },
-        "analysis_unit": {
-            "eng": "text",
-            "swe": "text"
-        },
-        "short_description": {
-            "swe": "Lexikala klasser från SweFN på textnivå",
-            "eng": "Lexical classes from SweFN on text-level"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-swe-lexical_classes_token-sparv-swefn",
-        "name": {
-            "swe": "Lexikala klasser från SweFN, tokennivå",
-            "eng": "Lexical classes from SweFN, token-level"
-        },
-        "annotations": [
-            "<token>:lexical_classes.swefn"
-        ],
-        "task": {
-            "eng": "lexical classes",
-            "swe": "lexikala klasser"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Lexikala klasser från SweFN på tokennivå",
-            "eng": "Lexical classes from SweFN on token-level"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för estniska",
+      "eng": "Estonian part-of-speech annotation by TreeTagger"
     },
-    {
-        "id": "sbx-swe-msd-hunpos-suc3",
+    "languages": [
+      {
+        "code": "est",
         "name": {
-            "swe": "Morfosyntaktisk SUC-taggning med Hunpos",
-            "eng": "Tagging of morphological features (SUC) by Hunpos"
-        },
-        "annotations": [
-            "<token>:hunpos.msd"
-        ],
-        "task": {
-            "eng": "morphosyntactic tagging",
-            "swe": "morfosyntaktisk taggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för svenska",
-            "eng": "Annotation of morphological features (SUC) by Hunpos for Swedish"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+          "swe": "estniska",
+          "eng": "Estonian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-est-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för estniska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Estonian"
     },
-    {
-        "id": "sbx-swe-msd-hunpos-suc3_1800",
-        "name": {
-            "swe": "Morfosyntaktisk SUC-taggning med Hunpos för 1800-talssvenska",
-            "eng": "Tagging of morphological features (SUC) by Hunpos for Swedish from the 1800s"
-        },
-        "annotations": [
-            "<token>:hunpos.msd"
-        ],
-        "task": {
-            "eng": "morphosyntactic tagging",
-            "swe": "morfosyntaktisk taggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för 1800-talssvenska",
-            "eng": "Annotation of morphological features (SUC) by Hunpos for Swedish from the 1800s"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "1800-talssvenska",
-                    "eng": "19th-century Swedish"
-                },
-                "variety": "1800"
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
     },
-    {
-        "id": "sbx-swe-msd-stanza-stanzamorph-suc3",
-        "name": {
-            "swe": "Morfosyntaktisk SUC-taggning med Stanza",
-            "eng": "Tagging of morphological features (SUC) by Stanza"
-        },
-        "annotations": [
-            "<token>:stanza.msd"
-        ],
-        "task": {
-            "eng": "morphosyntactic tagging",
-            "swe": "morfosyntaktisk taggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av morfosyntaktiska deskriptorer (SUC) med Stanza för svenska",
-            "eng": "Annotation of morphological features (SUC) by Stanza for Swedish"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-swe-msd-stanza-stanzamorph-ufeats",
-        "name": {
-            "swe": "Morfologisk analys för svenska baserad på Stanza",
-            "eng": "Stanza-based morphological analysis for Swedish"
-        },
-        "annotations": [
-            "<token>:stanza.ufeats"
-        ],
-        "task": {
-            "eng": "morphosyntactic tagging",
-            "swe": "morfosyntaktisk taggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Morfologisk analys för svenska med universal features (UD) baserad på Stanza",
-            "eng": "Stanza-based morphological analysis for Swedish, using universal features (UD)"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för estniska som översätts från TreeTaggers ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Estonian translated from TreeTagger's part-of-speech tags"
     },
-    {
-        "id": "sbx-swe-namedentity-swener",
+    "languages": [
+      {
+        "code": "est",
         "name": {
-            "swe": "Namnigenkänning med HFST-SweNER",
-            "eng": "Named entity recognition with HFST-SweNER"
-        },
-        "annotations": [
-            "swener.ne",
-            "swener.ne:swener.name",
-            "swener.ne:swener.ex",
-            "swener.ne:swener.type",
-            "swener.ne:swener.subtype"
-        ],
-        "task": {
-            "eng": "named entity recognition",
-            "swe": "namnigenkänning"
-        },
-        "short_description": {
-            "swe": "Namnigenkänning känner igen och förser namn och namnliknande uttryck (s.k. entiteter) i löpande text med fördefinierade etiketter, som organisation, person eller plats.",
-            "eng": "Named entity recognition (NER) recognises named entities such as locations, persons and time expressions in text."
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+          "swe": "estniska",
+          "eng": "Estonian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-fin-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för finska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Finnish"
     },
-    {
-        "id": "sbx-swe-pos-hunpos-suc3",
-        "name": {
-            "swe": "SUC-ordklasstaggning med Hunpos",
-            "eng": "SUC part-of-speech tagging with Hunpos"
-        },
-        "annotations": [
-            "<token>:hunpos.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av SUC-ordklasser med Hunpos för svenska",
-            "eng": "Swedish part-of-speech annotation with SUC tags by Hunpos"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
     },
-    {
-        "id": "sbx-swe-pos-hunpos-suc3_1800",
-        "name": {
-            "swe": "SUC-ordklasstaggning med Hunpos för 1800-talssvenska",
-            "eng": "SUC part-of-speech tagging with Hunpos for Swedish from the 1800s"
-        },
-        "annotations": [
-            "<token>:hunpos.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av SUC-ordklasser med Hunpos för 1800-talssvenska",
-            "eng": "Part-of-speech annotation with SUC tags by Hunpos for Swedish from the 1800s"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "1800-talssvenska",
-                    "eng": "19th-century Swedish"
-                },
-                "variety": "1800"
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-swe-pos-stanza-stanzamorph",
-        "name": {
-            "swe": "SUC-ordklasstaggning med Stanza",
-            "eng": "SUC part-of-speech tagging with Stanza"
-        },
-        "annotations": [
-            "<token>:stanza.pos"
-        ],
-        "task": {
-            "eng": "part-of-speech tagging",
-            "swe": "ordklasstaggning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Annotering av SUC-ordklasser med Stanza för svenska",
-            "eng": "Swedish part-of-speech annotation with SUC tags by Stanza"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för finska",
+      "eng": "Lemmatization with TreeTagger for Finnish"
     },
-    {
-        "id": "sbx-swe-readability-sparv-lix",
+    "languages": [
+      {
+        "code": "fin",
         "name": {
-            "swe": "Annotering av läsbarhetsindex (LIX) för texter",
-            "eng": "Annotation of readability index (LIX) for text chunks"
-        },
-        "annotations": [
-            "<text>:readability.lix"
-        ],
-        "task": {
-            "eng": "readability measures",
-            "swe": "läsbarhetsvärden"
-        },
-        "analysis_unit": {
-            "eng": "text",
-            "swe": "text"
-        },
-        "short_description": {
-            "swe": "Annotering av svenska texter med LIX-värden som indikerar hur lätt eller svår en text är att läsa",
-            "eng": "Annotation of Swedish texts with LIX values which indicate the difficulty of the texts"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+          "swe": "finska",
+          "eng": "Finnish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-fin-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för finska",
+      "eng": "Part-of-speech tagging with TreeTagger for Finnish"
     },
-    {
-        "id": "sbx-swe-readability-sparv-nk",
-        "name": {
-            "swe": "Annotering av Nominalkvot (NK) för texter",
-            "eng": "Annotation of nominal ratios for text chunks"
-        },
-        "annotations": [
-            "<text>:readability.nk"
-        ],
-        "task": {
-            "eng": "readability measures",
-            "swe": "läsbarhetsvärden"
-        },
-        "analysis_unit": {
-            "eng": "text",
-            "swe": "text"
-        },
-        "short_description": {
-            "swe": "Annotering av svenska texter med NK-värden som indikerar hur lätt eller svår en text är att läsa",
-            "eng": "Annotation of Swedish texts with nominal ratios which indicate the difficulty of the texts"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
     },
-    {
-        "id": "sbx-swe-readability-sparv-ovix",
-        "name": {
-            "swe": "Annotering av Ordvariationsindex (OVIX) för texter",
-            "eng": "Annotation of OVIX values for text chunks"
-        },
-        "annotations": [
-            "<text>:readability.ovix"
-        ],
-        "task": {
-            "eng": "readability measures",
-            "swe": "läsbarhetsvärden"
-        },
-        "analysis_unit": {
-            "eng": "text",
-            "swe": "text"
-        },
-        "short_description": {
-            "swe": "Annotering av svenska texter med OVIX-värden som indikerar hur lätt eller svår en text är att läsa",
-            "eng": "Annotation of Swedish texts with OVIX values which indicate the difficulty of the texts"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-swe-sense-sparv",
-        "name": {
-            "swe": "Betydelsedisambiguering med hjälp av SALDO ID:n",
-            "eng": "Sense disambiguation of SALDO identifiers"
-        },
-        "annotations": [
-            "<token>:wsd.sense"
-        ],
-        "task": {
-            "eng": "sense disambiguation",
-            "swe": "betydelsedisambiguering"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Ordbetydelsedisambiguering baserad på annotering i SALDO",
-            "eng": "Word sense disambiguation based on SALDO annotation"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för finska",
+      "eng": "Finnish part-of-speech annotation by TreeTagger"
     },
-    {
-        "id": "sbx-swe-sense-sparv-saldo",
+    "languages": [
+      {
+        "code": "fin",
         "name": {
-            "swe": "Annotering av SALDO-identifierare",
-            "eng": "Annotation of SALDO identifiers"
-        },
-        "annotations": [
-            "<token>:saldo.sense"
-        ],
-        "task": {
-            "eng": "lexical lookup",
-            "swe": "lexikala uppslag"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Uppslagning som ger SALDO-identifierare",
-            "eng": "Lookup of SALDO identifiers"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+          "swe": "finska",
+          "eng": "Finnish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-fra-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för franska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for French"
     },
-    {
-        "id": "sbx-swe-sense-sparv-saldo_dalin_swedberg_1800",
-        "name": {
-            "swe": "Annotering av SALDO-identifierare för 1800-talssvenska",
-            "eng": "Annotation of SALDO identifiers for Swedish from the 1800s"
-        },
-        "annotations": [
-            "<token>:hist.sense"
-        ],
-        "task": {
-            "eng": "lexical lookup",
-            "swe": "lexikala uppslag"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Uppslagning av SALDO-identifierare för 1800-talssvenska med stöd av Dalin och Swedberg",
-            "eng": "Lookup of SALDO identifiers for 19th-century Swedish using SALDO, with Dalin and Swedberg support for historical lookup coverage."
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "1800-talssvenska",
-                    "eng": "19th-century Swedish"
-                },
-                "variety": "1800"
-            }
-        ]
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
     },
-    {
-        "id": "sbx-swe-sentence-sparv-storsuc",
-        "name": {
-            "swe": "Svensk meningssegmentering",
-            "eng": "Swedish sentence segmentation"
-        },
-        "annotations": [
-            "segment.sentence"
-        ],
-        "task": {
-            "eng": "sentence segmentation",
-            "swe": "meningssegmentering"
-        },
-        "analysis_unit": {
-            "eng": "sentence",
-            "swe": "mening"
-        },
-        "short_description": {
-            "swe": "Meningssegmenterar text, specialanpassad för svenska",
-            "eng": "Segments text into sentences, custom-made for Swedish"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
     },
-    {
-        "id": "sbx-swe-sentiment-sparv-sensaldo",
-        "name": {
-            "swe": "Sentimentanalys per token med SenSALDO",
-            "eng": "Sentiment analysis per token using SenSALDO"
-        },
-        "annotations": [
-            "<token>:sensaldo.sentiment_label",
-            "<token>:sensaldo.sentiment_score"
-        ],
-        "task": {
-            "eng": "sentiment analysis",
-            "swe": "attitydanalys"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Sentimentanalys via uppslag i SenSALDO-lexikonet",
-            "eng": "Sentiment analysis via lookup in SenSALDO"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för franska",
+      "eng": "Lemmatization with TreeTagger for French"
     },
-    {
-        "id": "sbx-swe-spelling_variants-sparv-fsv",
+    "languages": [
+      {
+        "code": "fra",
         "name": {
-            "swe": "Stavningsvarianter för fornsvenska",
-            "eng": "Spelling variants for Old Swedish"
-        },
-        "annotations": [
-            "<token>:hist.spelling_variants"
-        ],
-        "task": {
-            "eng": "lexical lookup",
-            "swe": "lexikala uppslag"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "short_description": {
-            "swe": "Uppslagning som ger möjliga stavningsvarianter för token",
-            "eng": "Lookup producing possible spelling variants for tokens"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "fornsvenska",
-                    "eng": "Old Swedish"
-                },
-                "variety": "fsv"
-            }
-        ]
+          "swe": "franska",
+          "eng": "French"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-fra-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för franska",
+      "eng": "Part-of-speech tagging with TreeTagger for French"
     },
-    {
-        "id": "sbx-swe-tokenization-sparv-betterword",
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för franska",
+      "eng": "French part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "fra",
         "name": {
-            "swe": "Svensk tokenisering",
-            "eng": "Swedish tokenization"
+          "swe": "franska",
+          "eng": "French"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-fra-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för franska",
+      "eng": "UD part-of-speech tagging with TreeTagger for French"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för franska som översätts från TreeTagger-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for French translated from TreeTagger part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "swe": "franska",
+          "eng": "French"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-ita-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för italienska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Italian"
+    },
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för italienska",
+      "eng": "Lemmatization with TreeTagger for Italian"
+    },
+    "languages": [
+      {
+        "code": "ita",
+        "name": {
+          "swe": "italienska",
+          "eng": "Italian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-ita-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för italienska",
+      "eng": "Part-of-speech tagging with TreeTagger for Italian"
+    },
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för italienska",
+      "eng": "Italian part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "ita",
+        "name": {
+          "swe": "italienska",
+          "eng": "Italian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-ita-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för italienska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Italian"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för italienska som översätts från TreeTagger-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Italian translated from TreeTagger part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "ita",
+        "name": {
+          "swe": "italienska",
+          "eng": "Italian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-lat-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för latin",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Latin"
+    },
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för latin",
+      "eng": "Lemmatization with TreeTagger for Latin"
+    },
+    "languages": [
+      {
+        "code": "lat",
+        "name": {
+          "swe": "latin",
+          "eng": "Latin"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-lat-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för latin",
+      "eng": "Part-of-speech tagging with TreeTagger for Latin"
+    },
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för latin",
+      "eng": "Latin part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "lat",
+        "name": {
+          "swe": "latin",
+          "eng": "Latin"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-lat-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för latin",
+      "eng": "UD part-of-speech tagging with TreeTagger for Latin"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för latin som översätts från Lamap-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Latin translated from Lamap's part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "lat",
+        "name": {
+          "swe": "latin",
+          "eng": "Latin"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-paragraph-sparv-blanklines",
+    "name": {
+      "swe": "Tomradssegmentering, stycken",
+      "eng": "Blanklines paragraph segmentation"
+    },
+    "annotations": [
+      "segment.paragraph"
+    ],
+    "task": {
+      "eng": "tokenization",
+      "swe": "tokenisering"
+    },
+    "analysis_unit": {
+      "eng": "paragraph",
+      "swe": "stycke"
+    },
+    "short_description": {
+      "swe": "Segmenterar text i stycken utifrån tomma rader med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Segments text into paragraphs by blank lines using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-paragraph-sparv-linebreaks",
+    "name": {
+      "swe": "Radbrytningssegmentering, stycken",
+      "eng": "Linebreaks paragraph segmentation"
+    },
+    "annotations": [
+      "segment.paragraph"
+    ],
+    "task": {
+      "eng": "paragraph segmentation",
+      "swe": "styckessegmentering"
+    },
+    "analysis_unit": {
+      "eng": "paragraph",
+      "swe": "stycke"
+    },
+    "short_description": {
+      "swe": "Segmenterar text i stycken utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Segments text into paragraphs by linebreaks using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-paragraph-sparv-whitespace",
+    "name": {
+      "swe": "Blankteckensegmentering, stycken",
+      "eng": "Blankspace paragraph segmentation"
+    },
+    "annotations": [
+      "segment.paragraph"
+    ],
+    "task": {
+      "eng": "paragraph segmentation",
+      "swe": "styckessegmentering"
+    },
+    "analysis_unit": {
+      "eng": "paragraph",
+      "swe": "stycke"
+    },
+    "short_description": {
+      "swe": "Segmenterar text i stycken utifrån blanktecken med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Segments text into paragraphs by whitespaces using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-sentence-sparv-blanklines",
+    "name": {
+      "swe": "Tomradssegmentering, meningar",
+      "eng": "Blanklines sentence segmentation"
+    },
+    "annotations": [
+      "segment.sentence"
+    ],
+    "task": {
+      "eng": "tokenization",
+      "swe": "tokenisering"
+    },
+    "analysis_unit": {
+      "eng": "sentence",
+      "swe": "mening"
+    },
+    "short_description": {
+      "swe": "Segmenterar text i meningar utifrån tomma rader med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Segments text into sentences by blank lines using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-sentence-sparv-linebreaks",
+    "name": {
+      "swe": "Radbrytningssegmentering, meningar",
+      "eng": "Linebreaks sentence segmentation"
+    },
+    "annotations": [
+      "segment.sentence"
+    ],
+    "task": {
+      "eng": "sentence segmentation",
+      "swe": "meningssegmentering"
+    },
+    "analysis_unit": {
+      "eng": "sentence",
+      "swe": "mening"
+    },
+    "short_description": {
+      "swe": "Segmenterar text i meningar utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Segments text into sentences by linebreaks using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-sentence-sparv-punctuation",
+    "name": {
+      "swe": "Meningssegmentering utifrån skiljetecken",
+      "eng": "Sentence segmentation by punctuation"
+    },
+    "annotations": [
+      "segment.sentence"
+    ],
+    "task": {
+      "eng": "sentence segmentation",
+      "swe": "meningssegmentering"
+    },
+    "analysis_unit": {
+      "eng": "sentence",
+      "swe": "mening"
+    },
+    "short_description": {
+      "swe": "Segmenterar text i meningar utifrån skiljetecken med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Segments text into sentences by punctuation marks using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-sentence-sparv-whitespace",
+    "name": {
+      "swe": "Blankteckensegmentering, meningar",
+      "eng": "Blankspace sentence segmentation"
+    },
+    "annotations": [
+      "segment.sentence"
+    ],
+    "task": {
+      "eng": "sentence segmentation",
+      "swe": "meningssegmentering"
+    },
+    "analysis_unit": {
+      "eng": "sentence",
+      "swe": "mening"
+    },
+    "short_description": {
+      "swe": "Segmenterar text i meningar utifrån blanktecken med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Segments text into sentences by whitespaces using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-tokenization-sparv-blanklines",
+    "name": {
+      "swe": "Tomradstokenisering",
+      "eng": "Blanklines tokenization"
+    },
+    "annotations": [
+      "segment.token"
+    ],
+    "task": {
+      "eng": "tokenization",
+      "swe": "tokenisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Tokeniserar text utifrån tomma rader med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Tokenizes text into tokens by blank lines using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-tokenization-sparv-linebreaks",
+    "name": {
+      "swe": "Radbrytningstokenisering",
+      "eng": "Linebreaks tokenization"
+    },
+    "annotations": [
+      "segment.token"
+    ],
+    "task": {
+      "eng": "tokenization",
+      "swe": "tokenisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Tokeniserar text utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Tokenizes text into tokens by linebreaks using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-mul-tokenization-sparv-whitespace",
+    "name": {
+      "swe": "Blankteckentokenisering",
+      "eng": "Blankspace tokenization"
+    },
+    "annotations": [
+      "segment.token"
+    ],
+    "task": {
+      "eng": "tokenization",
+      "swe": "tokenisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Tokeniserar text utifrån blanktecken med hjälp av NLTKs RegexpTokenizer",
+      "eng": "Tokenizes text into tokens by whitespaces using the RegexpTokenizer from NLTK"
+    },
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-nld-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för nederländska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Dutch"
+    },
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för nederländska",
+      "eng": "Lemmatization with TreeTagger for Dutch"
+    },
+    "languages": [
+      {
+        "code": "nld",
+        "name": {
+          "swe": "nederländska",
+          "eng": "Dutch"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-nld-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för nederländska",
+      "eng": "Part-of-speech tagging with TreeTagger for Dutch"
+    },
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för nederländska",
+      "eng": "Dutch part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "nld",
+        "name": {
+          "swe": "nederländska",
+          "eng": "Dutch"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-nld-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för nederländska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Dutch"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för nederländska som översätts från TreeTagger-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Dutch translated from TreeTagger's part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "nld",
+        "name": {
+          "swe": "nederländska",
+          "eng": "Dutch"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-pol-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för polska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Polish"
+    },
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för polska",
+      "eng": "Lemmatization with TreeTagger for Polish"
+    },
+    "languages": [
+      {
+        "code": "pol",
+        "name": {
+          "swe": "polska",
+          "eng": "Polish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-pol-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för polska",
+      "eng": "Part-of-speech tagging with TreeTagger for Polish"
+    },
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för polska",
+      "eng": "Polish part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "pol",
+        "name": {
+          "swe": "polska",
+          "eng": "Polish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-pol-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för polska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Polish"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för polska som översätts från NKJP-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Polish translated from NKJP's part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "pol",
+        "name": {
+          "swe": "polska",
+          "eng": "Polish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-ron-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för rumänska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Romanian"
+    },
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för rumänska",
+      "eng": "Lemmatization with TreeTagger for Romanian"
+    },
+    "languages": [
+      {
+        "code": "ron",
+        "name": {
+          "swe": "rumänska",
+          "eng": "Romanian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-ron-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för rumänska",
+      "eng": "Part-of-speech tagging with TreeTagger for Romanian"
+    },
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för rumänska",
+      "eng": "Romanian part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "ron",
+        "name": {
+          "swe": "rumänska",
+          "eng": "Romanian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-ron-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för rumänska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Romanian"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för rumänska som översätts från TreeTagger-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Romanian translated from TreeTagger's part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "ron",
+        "name": {
+          "swe": "rumänska",
+          "eng": "Romanian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-rus-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för ryska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Russian"
+    },
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för ryska",
+      "eng": "Lemmatization with TreeTagger for Russian"
+    },
+    "languages": [
+      {
+        "code": "rus",
+        "name": {
+          "swe": "ryska",
+          "eng": "Russian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-rus-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för ryska",
+      "eng": "Part-of-speech tagging with TreeTagger for Russian"
+    },
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för ryska",
+      "eng": "Russian part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "rus",
+        "name": {
+          "swe": "ryska",
+          "eng": "Russian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-rus-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för ryska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Russian"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för ryska som översätts från TreeTagger-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Russian translated from TreeTagger part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "rus",
+        "name": {
+          "swe": "ryska",
+          "eng": "Russian"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-slk-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för slovakiska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Slovak"
+    },
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för slovakiska",
+      "eng": "Lemmatization with TreeTagger for Slovak"
+    },
+    "languages": [
+      {
+        "code": "slk",
+        "name": {
+          "swe": "slovakiska",
+          "eng": "Slovak"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-slk-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för slovakiska",
+      "eng": "Part-of-speech tagging with TreeTagger for Slovak"
+    },
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för slovakiska",
+      "eng": "Slovak part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "slk",
+        "name": {
+          "swe": "slovakiska",
+          "eng": "Slovak"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-slk-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för slovakiska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Slovak"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för slovakiska som översätts från TreeTagger-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Slovak translated from TreeTagger's part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "slk",
+        "name": {
+          "swe": "slovakiska",
+          "eng": "Slovak"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-spa-lemmatization-treetagger",
+    "name": {
+      "swe": "Annotering av grundformer med TreeTagger för spanska",
+      "eng": "Annotation of citation forms (base forms, lemmas) with TreeTagger for Spanish"
+    },
+    "annotations": [
+      "<token>:treetagger.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med TreeTagger för spanska",
+      "eng": "Lemmatization with TreeTagger for Spanish"
+    },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "swe": "spanska",
+          "eng": "Spanish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-spa-pos-treetagger",
+    "name": {
+      "swe": "Ordklasstaggning med TreeTagger för spanska",
+      "eng": "Part-of-speech tagging with TreeTagger for Spanish"
+    },
+    "annotations": [
+      "<token>:treetagger.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av ordklasser med TreeTagger för spanska",
+      "eng": "Spanish part-of-speech annotation by TreeTagger"
+    },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "swe": "spanska",
+          "eng": "Spanish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-spa-upos-treetagger",
+    "name": {
+      "swe": "UD-Ordklasstaggning med TreeTagger för spanska",
+      "eng": "UD part-of-speech tagging with TreeTagger for Spanish"
+    },
+    "annotations": [
+      "<token>:treetagger.upos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av UD-ordklasser (universal dependencies) för spanska som översätts från TreeTagger-ordklasser",
+      "eng": "Part-of-speech annotation with UD (universal dependency) tags for Spanish translated from TreeTagger part-of-speech tags"
+    },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "swe": "spanska",
+          "eng": "Spanish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-compound-sparv-saldolemgram",
+    "name": {
+      "swe": "Sammansättningsanalys med hjälp av SALDO-lemgram",
+      "eng": "Compound analysis using SALDO lemgrams"
+    },
+    "annotations": [
+      "<token>:saldo.complemgram"
+    ],
+    "task": {
+      "eng": "compound analysis",
+      "swe": "sammansättningsanalys"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Analys av sammansatta SALDO-lemgram inklusive sannolikhetsrankning",
+      "eng": "Analysis of SALDO lemgram compounds including a probability ranking"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-compound-sparv-saldowords",
+    "name": {
+      "swe": "Sammansättningsanalys med hjälp av SALDO-ordformer",
+      "eng": "Compound analysis using SALDO wordforms"
+    },
+    "annotations": [
+      "<token>:saldo.compwf"
+    ],
+    "task": {
+      "eng": "compound analysis",
+      "swe": "sammansättningsanalys"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Analys av sammansatta SALDO-ordformer",
+      "eng": "Analysis of SALDO wordform compounds"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-dependency-malt-treebank",
+    "name": {
+      "swe": "Dependensparsning med MaltParser",
+      "eng": "Dependency parsing with MaltParser"
+    },
+    "annotations": [
+      "<token>:malt.ref",
+      "<token>:malt.dephead_ref as dephead",
+      "<token>:malt.deprel"
+    ],
+    "task": {
+      "eng": "dependency parsing",
+      "swe": "dependensparsning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Svensk dependensparsning tränad på Svensk trädbank baserad på MaltParser",
+      "eng": "Swedish dependency parsing from MaltParser trained on Sweedish treebank"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-dependency-stanza-stanzasynt",
+    "name": {
+      "swe": "Dependensparsning med Stanza",
+      "eng": "Dependency parsing with Stanza"
+    },
+    "annotations": [
+      "<token>:stanza.dephead_ref as dephead",
+      "<token>:stanza.deprel",
+      "<token>:stanza.ref"
+    ],
+    "task": {
+      "eng": "dependency parsing",
+      "swe": "dependensparsning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Svensk dependensparsning tränad på Svensk trädbank med Stanza",
+      "eng": "Swedish dependency parsing with Stanza trained on Sweedish treebank"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-geotagcontext-sparv",
+    "name": {
+      "swe": "Geotaggning av platsnamn från kontext",
+      "eng": "Geotagging of place names from context"
+    },
+    "annotations": [
+      "<text>:geo.geo_context",
+      "<paragraph>:geo.geo_context",
+      "<sentence>:geo.geo_context as geocontext"
+    ],
+    "task": {
+      "eng": "geotagging",
+      "swe": "geotaggning"
+    },
+    "analysis_unit": {
+      "eng": "text",
+      "swe": "text"
+    },
+    "short_description": {
+      "swe": "Annotering av texter med platsinformation, baserad på platser som finns i texten",
+      "eng": "Annotate text chunks with location data, based on locations contained within the text"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-lemgram-sparv-saldo",
+    "name": {
+      "swe": "Annotering av SALDO-lemgram",
+      "eng": "Annotation of SALDO lemgrams"
+    },
+    "annotations": [
+      "<token>:saldo.lemgram as lex"
+    ],
+    "task": {
+      "eng": "lexical lookup",
+      "swe": "lexikala uppslag"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Uppslagning som ger SALDO-lemgram",
+      "eng": "Lookup of SALDO lemgrams"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-lemgram-sparv-saldo_dalin_swedberg_1800",
+    "name": {
+      "swe": "Annotering av SALDO-lemgram för 1800-talssvenska",
+      "eng": "Annotation of SALDO lemgrams for Swedish from the 1800s"
+    },
+    "annotations": [
+      "<token>:hist.lemgram as lex"
+    ],
+    "task": {
+      "eng": "lexical lookup",
+      "swe": "lexikala uppslag"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Uppslagning av SALDO-lemgram med hjälp av Dalin och Swedberg",
+      "eng": "Lookup of SALDO lemgrams using Dalin and Swedberg"
+    },
+    "languages": [
+      {
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
         },
-        "annotations": [
-            "segment.token"
-        ],
-        "task": {
-            "eng": "tokenization",
-            "swe": "tokenisering"
+        "name": {
+          "swe": "1800-talssvenska",
+          "eng": "19th-century Swedish"
         },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
+        "variety": "1800"
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-lemgram-sparv-schlyter_soderwall_fsv",
+    "name": {
+      "swe": "Annotering av lemgram för fornsvenska",
+      "eng": "Annotation of lemgrams for Old Swedish"
+    },
+    "annotations": [
+      "<token>:hist.lemgram as lex"
+    ],
+    "task": {
+      "eng": "lexical lookup",
+      "swe": "lexikala uppslag"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Uppslagning av lemgram med Schlyter och Söderwall",
+      "eng": "Lookup of lemgrams using Schlyter and Soderwall"
+    },
+    "languages": [
+      {
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
         },
-        "short_description": {
-            "swe": "Tokeniserar text, specialanpassad för svenska",
-            "eng": "Tokenizes text, custom-made for Swedish"
+        "name": {
+          "swe": "fornsvenska",
+          "eng": "Old Swedish"
         },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
-    }
+        "variety": "fsv"
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-lemmatization-sparv-saldo",
+    "name": {
+      "swe": "Annotering av SALDO-grundformer",
+      "eng": "Annotation of SALDO citation forms (base forms, lemmas)"
+    },
+    "annotations": [
+      "<token>:saldo.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Fullformsuppslagning som ger SALDO-grundformer",
+      "eng": "Full-form lookup of SALDO citation forms (lemmas)"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-lemmatization-sparv-saldo2",
+    "name": {
+      "swe": "Annotering av SALDO-grundformer (utökade)",
+      "eng": "Annotation of SALDO citation forms (base forms, lemmas) (extended)"
+    },
+    "annotations": [
+      "<token>:saldo.baseform2 as lemma"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "SALDO-grundformer plus analys av sammansättningar bestående av SALDO-ingångar",
+      "eng": "Full-form lookup of SALDO citation forms (lemmas) plus analysis of compounds made up of SALDO entries"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-lemmatization-sparv-saldo_dalin_swedberg_1800",
+    "name": {
+      "swe": "Annotering av SALDO-grundformer för 1800-talssvenska",
+      "eng": "Annotation of SALDO citation forms (base forms, lemmas) for Swedish from the 1800s"
+    },
+    "annotations": [
+      "<token>:hist.baseform as lemma"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Fullformsuppslagning som ger SALDO-grundformer med hjälp av Dalin och Swedberg",
+      "eng": "Full-form lookup of SALDO citation forms (lemmas) using Dalin and Swedberg"
+    },
+    "languages": [
+      {
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
+        "name": {
+          "swe": "1800-talssvenska",
+          "eng": "19th-century Swedish"
+        },
+        "variety": "1800"
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-lemmatization-sparv-schlyter_soderwall_fsv",
+    "name": {
+      "swe": "Annotering av grundformer för fornsvenska",
+      "eng": "Annotation of citation forms (base forms, lemmas) for Old Swedish"
+    },
+    "annotations": [
+      "<token>:hist.baseform as lemma"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Fullformsuppslagning som ger grundformer med Schlyter och Söderwall",
+      "eng": "Full-form lookup of citation forms (lemmas) using Schlyter and Soderwall"
+    },
+    "languages": [
+      {
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
+        "name": {
+          "swe": "fornsvenska",
+          "eng": "Old Swedish"
+        },
+        "variety": "fsv"
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-lemmatization-stanza-stanzalem",
+    "name": {
+      "swe": "SUC3-grundformanalys med Stanza",
+      "eng": "SUC3-citation form analysis with Stanza"
+    },
+    "annotations": [
+      "<token>:stanza.baseform"
+    ],
+    "task": {
+      "eng": "lemmatization",
+      "swe": "lemmatisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av grundformer (lemman) med Stanza för svenska tränat på SUC3",
+      "eng": "Swedish citation form analysis (base forms, lemmas) by Stanza, trained on SUC3"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-lexical_classes_text-sparv-swefn",
+    "name": {
+      "swe": "Lexikala klasser från SweFN, textnivå",
+      "eng": "Lexical classes from SweFN, text-level"
+    },
+    "annotations": [
+      "<text>:lexical_classes.swefn"
+    ],
+    "task": {
+      "eng": "lexical classes",
+      "swe": "lexikala klasser"
+    },
+    "analysis_unit": {
+      "eng": "text",
+      "swe": "text"
+    },
+    "short_description": {
+      "swe": "Lexikala klasser från SweFN på textnivå",
+      "eng": "Lexical classes from SweFN on text-level"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-lexical_classes_token-sparv-swefn",
+    "name": {
+      "swe": "Lexikala klasser från SweFN, tokennivå",
+      "eng": "Lexical classes from SweFN, token-level"
+    },
+    "annotations": [
+      "<token>:lexical_classes.swefn"
+    ],
+    "task": {
+      "eng": "lexical classes",
+      "swe": "lexikala klasser"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Lexikala klasser från SweFN på tokennivå",
+      "eng": "Lexical classes from SweFN on token-level"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-msd-hunpos-suc3",
+    "name": {
+      "swe": "Morfosyntaktisk SUC-taggning med Hunpos",
+      "eng": "Tagging of morphological features (SUC) by Hunpos"
+    },
+    "annotations": [
+      "<token>:hunpos.msd"
+    ],
+    "task": {
+      "eng": "morphosyntactic tagging",
+      "swe": "morfosyntaktisk taggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för svenska",
+      "eng": "Annotation of morphological features (SUC) by Hunpos for Swedish"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-msd-hunpos-suc3_1800",
+    "name": {
+      "swe": "Morfosyntaktisk SUC-taggning med Hunpos för 1800-talssvenska",
+      "eng": "Tagging of morphological features (SUC) by Hunpos for Swedish from the 1800s"
+    },
+    "annotations": [
+      "<token>:hunpos.msd"
+    ],
+    "task": {
+      "eng": "morphosyntactic tagging",
+      "swe": "morfosyntaktisk taggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för 1800-talssvenska",
+      "eng": "Annotation of morphological features (SUC) by Hunpos for Swedish from the 1800s"
+    },
+    "languages": [
+      {
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
+        "name": {
+          "swe": "1800-talssvenska",
+          "eng": "19th-century Swedish"
+        },
+        "variety": "1800"
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-msd-stanza-stanzamorph-suc3",
+    "name": {
+      "swe": "Morfosyntaktisk SUC-taggning med Stanza",
+      "eng": "Tagging of morphological features (SUC) by Stanza"
+    },
+    "annotations": [
+      "<token>:stanza.msd"
+    ],
+    "task": {
+      "eng": "morphosyntactic tagging",
+      "swe": "morfosyntaktisk taggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av morfosyntaktiska deskriptorer (SUC) med Stanza för svenska",
+      "eng": "Annotation of morphological features (SUC) by Stanza for Swedish"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-msd-stanza-stanzamorph-ufeats",
+    "name": {
+      "swe": "Morfologisk analys för svenska baserad på Stanza",
+      "eng": "Stanza-based morphological analysis for Swedish"
+    },
+    "annotations": [
+      "<token>:stanza.ufeats"
+    ],
+    "task": {
+      "eng": "morphosyntactic tagging",
+      "swe": "morfosyntaktisk taggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Morfologisk analys för svenska med universal features (UD) baserad på Stanza",
+      "eng": "Stanza-based morphological analysis for Swedish, using universal features (UD)"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-namedentity-swener",
+    "name": {
+      "swe": "Namnigenkänning med HFST-SweNER",
+      "eng": "Named entity recognition with HFST-SweNER"
+    },
+    "annotations": [
+      "swener.ne",
+      "swener.ne:swener.name",
+      "swener.ne:swener.ex",
+      "swener.ne:swener.type",
+      "swener.ne:swener.subtype"
+    ],
+    "task": {
+      "eng": "named entity recognition",
+      "swe": "namnigenkänning"
+    },
+    "short_description": {
+      "swe": "Namnigenkänning känner igen och förser namn och namnliknande uttryck (s.k. entiteter) i löpande text med fördefinierade etiketter, som organisation, person eller plats.",
+      "eng": "Named entity recognition (NER) recognises named entities such as locations, persons and time expressions in text."
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-pos-hunpos-suc3",
+    "name": {
+      "swe": "SUC-ordklasstaggning med Hunpos",
+      "eng": "SUC part-of-speech tagging with Hunpos"
+    },
+    "annotations": [
+      "<token>:hunpos.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av SUC-ordklasser med Hunpos för svenska",
+      "eng": "Swedish part-of-speech annotation with SUC tags by Hunpos"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-pos-hunpos-suc3_1800",
+    "name": {
+      "swe": "SUC-ordklasstaggning med Hunpos för 1800-talssvenska",
+      "eng": "SUC part-of-speech tagging with Hunpos for Swedish from the 1800s"
+    },
+    "annotations": [
+      "<token>:hunpos.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av SUC-ordklasser med Hunpos för 1800-talssvenska",
+      "eng": "Part-of-speech annotation with SUC tags by Hunpos for Swedish from the 1800s"
+    },
+    "languages": [
+      {
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
+        "name": {
+          "swe": "1800-talssvenska",
+          "eng": "19th-century Swedish"
+        },
+        "variety": "1800"
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-pos-stanza-stanzamorph",
+    "name": {
+      "swe": "SUC-ordklasstaggning med Stanza",
+      "eng": "SUC part-of-speech tagging with Stanza"
+    },
+    "annotations": [
+      "<token>:stanza.pos"
+    ],
+    "task": {
+      "eng": "part-of-speech tagging",
+      "swe": "ordklasstaggning"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Annotering av SUC-ordklasser med Stanza för svenska",
+      "eng": "Swedish part-of-speech annotation with SUC tags by Stanza"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-readability-sparv-lix",
+    "name": {
+      "swe": "Annotering av läsbarhetsindex (LIX) för texter",
+      "eng": "Annotation of readability index (LIX) for text chunks"
+    },
+    "annotations": [
+      "<text>:readability.lix"
+    ],
+    "task": {
+      "eng": "readability measures",
+      "swe": "läsbarhetsvärden"
+    },
+    "analysis_unit": {
+      "eng": "text",
+      "swe": "text"
+    },
+    "short_description": {
+      "swe": "Annotering av svenska texter med LIX-värden som indikerar hur lätt eller svår en text är att läsa",
+      "eng": "Annotation of Swedish texts with LIX values which indicate the difficulty of the texts"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-readability-sparv-nk",
+    "name": {
+      "swe": "Annotering av Nominalkvot (NK) för texter",
+      "eng": "Annotation of nominal ratios for text chunks"
+    },
+    "annotations": [
+      "<text>:readability.nk"
+    ],
+    "task": {
+      "eng": "readability measures",
+      "swe": "läsbarhetsvärden"
+    },
+    "analysis_unit": {
+      "eng": "text",
+      "swe": "text"
+    },
+    "short_description": {
+      "swe": "Annotering av svenska texter med NK-värden som indikerar hur lätt eller svår en text är att läsa",
+      "eng": "Annotation of Swedish texts with nominal ratios which indicate the difficulty of the texts"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-readability-sparv-ovix",
+    "name": {
+      "swe": "Annotering av Ordvariationsindex (OVIX) för texter",
+      "eng": "Annotation of OVIX values for text chunks"
+    },
+    "annotations": [
+      "<text>:readability.ovix"
+    ],
+    "task": {
+      "eng": "readability measures",
+      "swe": "läsbarhetsvärden"
+    },
+    "analysis_unit": {
+      "eng": "text",
+      "swe": "text"
+    },
+    "short_description": {
+      "swe": "Annotering av svenska texter med OVIX-värden som indikerar hur lätt eller svår en text är att läsa",
+      "eng": "Annotation of Swedish texts with OVIX values which indicate the difficulty of the texts"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-sense-sparv",
+    "name": {
+      "swe": "Betydelsedisambiguering med hjälp av SALDO ID:n",
+      "eng": "Sense disambiguation of SALDO identifiers"
+    },
+    "annotations": [
+      "<token>:wsd.sense"
+    ],
+    "task": {
+      "eng": "sense disambiguation",
+      "swe": "betydelsedisambiguering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Ordbetydelsedisambiguering baserad på annotering i SALDO",
+      "eng": "Word sense disambiguation based on SALDO annotation"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": true
+  },
+  {
+    "id": "sbx-swe-sense-sparv-saldo",
+    "name": {
+      "swe": "Annotering av SALDO-identifierare",
+      "eng": "Annotation of SALDO identifiers"
+    },
+    "annotations": [
+      "<token>:saldo.sense"
+    ],
+    "task": {
+      "eng": "lexical lookup",
+      "swe": "lexikala uppslag"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Uppslagning som ger SALDO-identifierare",
+      "eng": "Lookup of SALDO identifiers"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-sense-sparv-saldo_dalin_swedberg_1800",
+    "name": {
+      "swe": "Annotering av SALDO-identifierare för 1800-talssvenska",
+      "eng": "Annotation of SALDO identifiers for Swedish from the 1800s"
+    },
+    "annotations": [
+      "<token>:hist.sense"
+    ],
+    "task": {
+      "eng": "lexical lookup",
+      "swe": "lexikala uppslag"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Uppslagning av SALDO-identifierare för 1800-talssvenska med stöd av Dalin och Swedberg",
+      "eng": "Lookup of SALDO identifiers for 19th-century Swedish using SALDO, with Dalin and Swedberg support for historical lookup coverage."
+    },
+    "languages": [
+      {
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
+        "name": {
+          "swe": "1800-talssvenska",
+          "eng": "19th-century Swedish"
+        },
+        "variety": "1800"
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-sentence-sparv-storsuc",
+    "name": {
+      "swe": "Svensk meningssegmentering",
+      "eng": "Swedish sentence segmentation"
+    },
+    "annotations": [
+      "segment.sentence"
+    ],
+    "task": {
+      "eng": "sentence segmentation",
+      "swe": "meningssegmentering"
+    },
+    "analysis_unit": {
+      "eng": "sentence",
+      "swe": "mening"
+    },
+    "short_description": {
+      "swe": "Meningssegmenterar text, specialanpassad för svenska",
+      "eng": "Segments text into sentences, custom-made for Swedish"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-sentiment-sparv-sensaldo",
+    "name": {
+      "swe": "Sentimentanalys per token med SenSALDO",
+      "eng": "Sentiment analysis per token using SenSALDO"
+    },
+    "annotations": [
+      "<token>:sensaldo.sentiment_label",
+      "<token>:sensaldo.sentiment_score"
+    ],
+    "task": {
+      "eng": "sentiment analysis",
+      "swe": "attitydanalys"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Sentimentanalys via uppslag i SenSALDO-lexikonet",
+      "eng": "Sentiment analysis via lookup in SenSALDO"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-spelling_variants-sparv-fsv",
+    "name": {
+      "swe": "Stavningsvarianter för fornsvenska",
+      "eng": "Spelling variants for Old Swedish"
+    },
+    "annotations": [
+      "<token>:hist.spelling_variants"
+    ],
+    "task": {
+      "eng": "lexical lookup",
+      "swe": "lexikala uppslag"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Uppslagning som ger möjliga stavningsvarianter för token",
+      "eng": "Lookup producing possible spelling variants for tokens"
+    },
+    "languages": [
+      {
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
+        "name": {
+          "swe": "fornsvenska",
+          "eng": "Old Swedish"
+        },
+        "variety": "fsv"
+      }
+    ],
+    "enabled_by_default": false
+  },
+  {
+    "id": "sbx-swe-tokenization-sparv-betterword",
+    "name": {
+      "swe": "Svensk tokenisering",
+      "eng": "Swedish tokenization"
+    },
+    "annotations": [
+      "segment.token"
+    ],
+    "task": {
+      "eng": "tokenization",
+      "swe": "tokenisering"
+    },
+    "analysis_unit": {
+      "eng": "token",
+      "swe": "token"
+    },
+    "short_description": {
+      "swe": "Tokeniserar text, specialanpassad för svenska",
+      "eng": "Tokenizes text, custom-made for Swedish"
+    },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "swe": "svenska",
+          "eng": "Swedish"
+        }
+      }
+    ],
+    "enabled_by_default": false
+  }
 ]
