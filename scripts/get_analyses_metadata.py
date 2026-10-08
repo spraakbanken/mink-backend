@@ -88,7 +88,7 @@ WHITELISTED_ANNOTATIONS = [
     "sbx-swe-dependency-malt-treebank",
     "sbx-swe-dependency-stanza-stanzasynt",
     "sbx-swe-geotagcontext-sparv",
-    "sbx-swe-geotagmetadata-sparv",
+    # "sbx-swe-geotagmetadata-sparv", # Needs extra configuration, so we'll leave it out for now
     "sbx-swe-lemgram-sparv-saldo",
     "sbx-swe-lemgram-sparv-saldo_dalin_swedberg_1800",
     "sbx-swe-lemgram-sparv-schlyter_soderwall_fsv",
