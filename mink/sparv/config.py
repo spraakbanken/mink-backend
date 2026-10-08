@@ -122,6 +122,10 @@ class SparvSettings(BaseSettings):
             "korp.remote_host",
             "korp.wordpicture_table",
             "sbx_strix",
+            "hunpos.binary",
+            "hunpus.model",
+            "segment.tokenizer_config",
+            "import.source_dir",
         ]
     )
 
