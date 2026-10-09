@@ -41,7 +41,7 @@ def is_demo_id(resource_id: str) -> bool:
     return DEMO_ID_PATTERN.fullmatch(resource_id) is not None
 
 
-def load_default_config() -> str:
+def load_default_config(return_json: bool = False) -> str | dict:
     """Load and validate the default config for demo resources."""
     # Load the instance default config file, or the packaged default when it is absent.
     path = Path(sparv_settings.SPARV_DEMO_DEFAULT_CONFIG).expanduser()
@@ -53,6 +53,10 @@ def load_default_config() -> str:
             default_config = file.read()
     except Exception as error:
         raise ValueError(f"Could not read default config file {path}: {error}") from error
+
+    if return_json:
+        # Parse yaml into json
+        return yaml.load(default_config, Loader=yaml.FullLoader)
 
     return default_config
 
@@ -89,7 +93,7 @@ def get_and_queue_demo_resource(text: str, config: str | None) -> tuple[Info, bo
     """
     # Use default config if none was uploaded
     if config is None or not config.strip():
-        resolved_config = load_default_config().strip()
+        resolved_config = str(load_default_config()).strip()
         default_config_used = True
     else:
         resolved_config = config

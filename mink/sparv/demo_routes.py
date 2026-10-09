@@ -74,6 +74,15 @@ def run_sparv_demo(
     return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
 
 
+@router.get("/default-config/get", response_model=sparv_models.DefaultConfigResponse)
+def get_default_config(
+    return_json: bool = Query(False, description="Whether to return the config as JSON"),
+) -> JSONResponse:
+    """Get the default Sparv config for demo mode."""
+    config_json = demo.load_default_config(return_json=return_json)
+    return utils.response(return_code=return_codes.LISTING_CONTENT, config=config_json)
+
+
 @router.post(
     "/job/abort/{resource_id}",
     operation_id="abort-demo-corpus-job",

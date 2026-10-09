@@ -350,6 +350,28 @@ class AnalysesResponse(models.BaseResponse):
     }
 
 
+class DefaultConfigResponse(models.BaseResponse):
+    """Model for the /demo/corpus/default-config/get response."""
+
+    config: str | dict = Field(description="The default Sparv configuration for demo resources")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "config": (
+                        "export:\n  annotations:\n  - <sentence>\n  - <token>:saldo.baseform2 as baseform\n  - "
+                        "<token>:saldo.lemgram\n  - <token>:wsd.sense\n  - <token>:stanza.pos\n  - <token>:stanza.msd\n"
+                        "import:\n  importer: text_import:parse\nmetadata:\n  id: mink-demo-220fee71\n"
+                    ),
+                }
+            ]
+        }
+    }
+
+
 class InputResponse(models.BaseResponse):
     """Model for the /demo/corpus/input/get/{resource_id} response."""
 
