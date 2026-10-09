@@ -59,12 +59,14 @@ def config_compatible(config: str | bytes, source_file: dict) -> tuple[bool, Any
     return False, current_importer, expected_importer
 
 
-def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, dict]:
+def standardize_config(config: str | bytes, resource_id: str, custom_config: bool = True) -> tuple[str, dict]:
     """Set the correct corpus ID and remove the compression setting in the corpus config.
 
     Args:
         config: The corpus config.
         resource_id: The corpus ID.
+        custom_config: Whether the config is a custom config or not (it is not custom when set by default, e.g by a
+            frontend).
 
     Returns:
         A tuple containing the standardized config and the corpus name.
@@ -114,6 +116,13 @@ def standardize_config(config: str | bytes, resource_id: str) -> tuple[str, dict
     export.setdefault("annotations", [])
     if "<text>:misc.id as _id" not in export["annotations"]:
         export["annotations"].append("<text>:misc.id as _id")
+
+    # Add SPARV_AUTO_ANNOTATIONS, unless a custom config was uploaded
+    if not custom_config:
+        export.setdefault("annotations", [])
+        for annotation in sparv_settings.SPARV_AUTO_ANNOTATIONS:
+            if annotation not in export["annotations"]:
+                export["annotations"].append(annotation)
 
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 
@@ -193,8 +202,7 @@ def filter_available_analyses(
         # Without a variety query, list only standard-language analyses. A requested variety also includes
         # analyses without a variety restriction.
         if any(
-            not language_info.get("variety")
-            or (variety is not None and language_info.get("variety") == variety)
+            not language_info.get("variety") or (variety is not None and language_info.get("variety") == variety)
             for language_info in matching_languages
         ):
             filtered_analyses.append(analysis)

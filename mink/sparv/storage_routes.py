@@ -742,7 +742,9 @@ async def upload_config(
         yaml_file=yaml_file,
         yaml_txt=yaml_txt,
         res_obj=info_obj.resource,
-        standardize_fn=lambda contents: sparv_utils.standardize_config(contents, resource_id),
+        standardize_fn=lambda contents: sparv_utils.standardize_config(
+            contents, resource_id, custom_config=custom_config
+        ),
         write_fn=lambda data: storage.write_file_contents(config_path, data, resource_id),
         validate_fn=lambda contents: sparv_utils.require_compatible_config(contents, source_files),
     )
