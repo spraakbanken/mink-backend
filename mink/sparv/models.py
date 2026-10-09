@@ -315,6 +315,7 @@ class AnalysesResponse(models.BaseResponse):
                                     "name": {"swe": "svenska", "eng": "Swedish"},
                                 }
                             ],
+                            "enabled_by_default": True,
                         },
                         {
                             "id": "sbx-swe-msd-hunpos-suc3_1800",
@@ -340,6 +341,7 @@ class AnalysesResponse(models.BaseResponse):
                                     "variety": "1800",
                                 }
                             ],
+                            "enabled_by_default": False,
                         },
                     ],
                 }

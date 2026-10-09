@@ -122,6 +122,22 @@ class SparvSettings(BaseSettings):
             "korp.remote_host",
             "korp.wordpicture_table",
             "sbx_strix",
+            "hunpos.binary",
+            "hunpus.model",
+            "segment.tokenizer_config",
+            "import.source_dir",
+        ]
+    )
+
+    # Annotations which are automatically added to every corpus, regardless of the analyses run, unless a custom config
+    # is uploaded. These are needed for Korp and Strix to work properly.
+    SPARV_AUTO_ANNOTATIONS: list[str] = Field(
+        default_factory=lambda: [
+            "<sentence>:misc.id",
+            "<text>:misc.id as _id",
+            "<text>:misc.source",
+            "<token>:misc.head as _head",
+            "<token>:misc.tail as _tail",
         ]
     )
 

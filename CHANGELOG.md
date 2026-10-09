@@ -24,6 +24,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added production deployment documentation recommending Gunicorn with `uvicorn_worker.UvicornWorker`.
 - Added a new route `/corpus/sparv/list-analyses` for listing all available Sparv analyses, optionally filtered by
   language and variety. The list of analyses is read from a JSON file which can be overridden in the Mink config.
+- Added a setting `SPARV_AUTO_ANNOTATIONS` which is a list of annotations that are automatically added to the Sparv
+  config upon upload. This setting is ignored if the user uploads a custom config.
 
 ### Fixed
 

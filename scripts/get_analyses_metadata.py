@@ -11,13 +11,13 @@ OUTPUT_FILE = PROJECT_ROOT / "instance" / "available_analyses.json"
 
 WHITELISTED_ANNOTATIONS = [
     # Stanford eng
-    "sbx-eng-dependency-stanford",
-    "sbx-eng-lemmatization-stanford",
-    "sbx-eng-namedentity-stanford",
-    "sbx-eng-pos-stanford",
-    "sbx-eng-sentence-stanford",
-    "sbx-eng-tokenization-stanford",
-    "sbx-eng-upos-stanford",
+    # "sbx-eng-dependency-stanford",
+    # "sbx-eng-lemmatization-stanford",
+    # "sbx-eng-namedentity-stanford",
+    # "sbx-eng-pos-stanford",
+    # "sbx-eng-sentence-stanford",
+    # "sbx-eng-tokenization-stanford",
+    # "sbx-eng-upos-stanford",
     # Stanza eng
     "sbx-eng-msd-stanza-ufeats",
     "sbx-eng-namedentity-stanza",
@@ -88,7 +88,7 @@ WHITELISTED_ANNOTATIONS = [
     "sbx-swe-dependency-malt-treebank",
     "sbx-swe-dependency-stanza-stanzasynt",
     "sbx-swe-geotagcontext-sparv",
-    "sbx-swe-geotagmetadata-sparv",
+    # "sbx-swe-geotagmetadata-sparv", # Needs extra configuration, so we'll leave it out for now
     "sbx-swe-lemgram-sparv-saldo",
     "sbx-swe-lemgram-sparv-saldo_dalin_swedberg_1800",
     "sbx-swe-lemgram-sparv-schlyter_soderwall_fsv",
@@ -128,6 +128,23 @@ ANNOTATION_EXPANSIONS = {
     "<token>:hist.baseform": "lemma",
 }
 
+DEFAULT_ANALYSES = [
+    "sbx-swe-lexical_classes_text-sparv-swefn",
+    "sbx-swe-lexical_classes_token-sparv-swefn",
+    "sbx-swe-readability-sparv-lix",
+    "sbx-swe-readability-sparv-nk",
+    "sbx-swe-readability-sparv-ovix",
+    "sbx-swe-lemgram-sparv-saldo",
+    "sbx-swe-sense-sparv",
+    "sbx-swe-pos-stanza-stanzamorph",
+    "sbx-swe-msd-stanza-stanzamorph-suc3",
+    "sbx-swe-msd-stanza-stanzamorph-ufeats",
+    "sbx-swe-dependency-stanza-stanzasynt",
+    "sbx-swe-lemmatization-sparv-saldo2",
+    "sbx-swe-compound-sparv-saldolemgram",
+    "sbx-swe-compound-sparv-saldowords",
+]
+
 
 def main() -> None:
     """Download the analyses metadata from the Spraakbanken Metadata API and output it as JSON."""
@@ -162,6 +179,7 @@ def main() -> None:
                 "analysis_unit": r.get("analysis_unit"),
                 "short_description": r.get("short_description"),
                 "languages": r.get("languages"),
+                "enabled_by_default": r.get("id") in DEFAULT_ANALYSES,
             }.items()
             if value not in (None, [], {}, "")
         }
@@ -171,6 +189,7 @@ def main() -> None:
     ]
 
     OUTPUT_FILE.write_text(json.dumps(filtered_resources, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote {len(filtered_resources)} analyses to {OUTPUT_FILE}", file=sys.stderr)  # ruff: ignore[print]
 
 
 if __name__ == "__main__":

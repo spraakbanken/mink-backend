@@ -313,11 +313,11 @@ Gunicorn's `--root-path` flag. This keeps route generation and internal callers 
 #### Available Sparv Analyses
 
 The `GET /corpus/sparv/list-analyses` endpoint returns a curated list of analyses that Mink makes available. The list
-is stored as JSON, not as a structured value in `.env`.
+is stored in a JSON file selected by the `SPARV_AVAILABLE_ANALYSES_FILE` configuration variable.
 
-`SPARV_AVAILABLE_ANALYSES_FILE` controls which JSON file is loaded. Its default value is Mink's packaged file,
-`mink/sparv/data/available_analyses.json`. To use an instance-specific list, create the JSON file inside the instance
-directory and set a relative path in `.env`. Relative paths are resolved from `INSTANCE_PATH`.
+By default, Mink loads its packaged list from `mink/sparv/data/available_analyses.json`. To use an instance-specific
+list, create a JSON file inside the instance directory and set a relative path in `.env`. Relative paths are resolved
+from `INSTANCE_PATH`:
 
 ```ini
 # Resolves to <INSTANCE_PATH>/available_analyses.json
@@ -327,65 +327,72 @@ SPARV_AVAILABLE_ANALYSES_FILE=available_analyses.json
 An absolute path may also be used. Once this setting is explicitly overridden, the configured file must exist and
 contain valid JSON; Mink does not fall back to the packaged file.
 
-The JSON must be a list of analyses. In the current implementation, each analysis contains an `id`, an `annotations`
-list containing strings, and additional other metadata fields, such as information about which languages the analysis
-supports. The following is an example of a single analysis entry:
-
-```json
-[
-    {
-        "id": "sbx-swe-dependency-stanza-stanzasynt",
-        "name": {
-            "swe": "Dependensparsning med Stanza",
-            "eng": "Dependency parsing with Stanza"
-        },
-        "annotations": [
-            "<token>:stanza.dephead_ref as dephead",
-            "<token>:stanza.deprel",
-            "<token>:stanza.ref"
-        ],
-        "task": {
-            "eng": "dependency parsing",
-            "swe": "dependensparsning"
-        },
-        "analysis_unit": {
-            "eng": "token",
-            "swe": "token"
-        },
-        "languages": [
-            {
-                "identifier": {
-                    "value": "swe",
-                    "scheme": "ISO 639-3"
-                },
-                "name": {
-                    "swe": "svenska",
-                    "eng": "Swedish"
-                }
-            }
-        ]
-    }
-]
-```
-
-`get_analyses_metadata.py` downloads and filters metadata from the Spraakbanken Metadata API, then writes an
-instance-specific list to `instance/available_analyses.json`. Run it from the project root:
+You can create the list manually or generate it with `scripts/get_analyses_metadata.py`. The script downloads and
+filters metadata from the Spraakbanken Metadata API and writes it to `instance/available_analyses.json`. Run it from the
+project root, then use the `.env` setting above to make Mink load the generated file:
 
 ```bash
 python scripts/get_analyses_metadata.py
 ```
 
-The list endpoint is cached for `SPARV_CACHE_LIFETIME`. After changing the JSON file, request
+The list is cached for `SPARV_CACHE_LIFETIME`. After changing the JSON file, request
 `/corpus/sparv/list-analyses?update_cache=true` to reload it immediately.
 
-Add an ISO 639-3 `language` query parameter to return analyses applicable to one language, for example
-`/corpus/sparv/list-analyses?language=swe`. Analyses marked as `mul` or `zxx`, and analyses with no language metadata,
-are included for every language.
+The JSON file must contain a list of objects, each with a string `id` and an `annotations` list of strings. Additional
+metadata fields, such as names, descriptions, and tasks, can be included to suit the frontend's needs. To describe which
+languages an analysis supports, include a `languages` list. Each language entry contains an `identifier` object whose
+`value` is an ISO 639-3 language code, and may include a `variety` field for a specific language variety.
 
-Add `variety` to limit the result to a language variety, for example
-`/corpus/sparv/list-analyses?language=swe&variety=1800`. Analyses whose matching `languages` entry has no `variety`
-are included for every variety. Analyses with a `languages[].variety` value are excluded unless that variety is
-requested.
+For example, the following object describes an analysis for 19th-century Swedish. Place it inside the JSON list:
+
+```json
+{
+    "id": "sbx-swe-msd-hunpos-suc3_1800",
+    "name": {
+        "swe": "Morfosyntaktisk SUC-taggning med Hunpos för 1800-talssvenska",
+        "eng": "Tagging of morphological features (SUC) by Hunpos for Swedish from the 1800s"
+    },
+    "annotations": [
+        "<token>:hunpos.msd"
+    ],
+    "task": {
+        "eng": "morphosyntactic tagging",
+        "swe": "morfosyntaktisk taggning"
+    },
+    "analysis_unit": {
+        "eng": "token",
+        "swe": "token"
+    },
+    "short_description": {
+        "swe": "Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för 1800-talssvenska",
+        "eng": "Annotation of morphological features (SUC) by Hunpos for Swedish from the 1800s"
+    },
+    "languages": [
+        {
+            "identifier": {
+                "value": "swe",
+                "scheme": "ISO 639-3"
+            },
+            "name": {
+                "swe": "1800-talssvenska",
+                "eng": "19th-century Swedish"
+            },
+            "variety": "1800"
+        }
+    ]
+}
+```
+
+Without filtering parameters, the endpoint returns the full list. Use the `language` and `variety` query parameters
+to select applicable analyses based on their `languages` metadata:
+
+- `language=swe` returns analyses for Swedish, including analyses marked as `mul` or `zxx` and those with no language
+  metadata. Entries restricted to a language variety are excluded unless that variety is also requested.
+- `language=swe&variety=1800` also includes analyses for 19th-century Swedish, such as the example above. Analyses
+  whose matching language entry has no variety restriction remain included.
+
+For example, request `/corpus/sparv/list-analyses?language=swe&variety=1800` to get analyses applicable to
+19th-century Swedish.
 
 #### Using Configuration Variables in Code
 
