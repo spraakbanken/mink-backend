@@ -53,6 +53,14 @@ class BaseStorage:
     # ------------------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------------------
+    @staticmethod
+    def command_error(process: subprocess.CompletedProcess) -> str:
+        """Format a failed command's exit code and both output streams."""
+        output = "\n".join(
+            stream.decode(errors="replace").strip() for stream in (process.stdout, process.stderr) if stream
+        )
+        return f"Exit code {process.returncode}" + (f": {output}" if output else "")
+
     def _ensure(self, capability: str) -> None:
         """Ensure that the storage supports the given capability."""
         if not getattr(self, f"supports_{capability}", False):
@@ -182,11 +190,11 @@ class BaseStorage:
         objlist = []
         directory_quoted = shlex.quote(str(directory))
         p = self.ssh_run(
-            f"test -d {directory_quoted} && cd {directory_quoted} && "
-            f"find . -exec ls -lgGd --time-style=full-iso {{}} \\;"
+            f"if [ -d {directory_quoted} ]; then cd {directory_quoted} && "
+            f"find . -exec ls -lgGd --time-style=full-iso {{}} +; fi"
         )
-        if p.stderr:
-            raise exceptions.ReadError(directory, f"Failed to list contents: {p.stderr.decode()}")
+        if p.returncode != 0:
+            raise exceptions.ReadError(directory, f"Failed to list contents: {self.command_error(p)}")
 
         blacklist_items = list(blacklist or [])
         blacklist_items.extend(self.always_exclude)
@@ -225,8 +233,8 @@ class BaseStorage:
         """
         self._ensure("read")
         p = self.ssh_run(f"ls -lgGd --time-style=full-iso {shlex.quote(str(filepath))}")
-        if p.stderr:
-            raise exceptions.ReadError(filepath, f"Failed to get file info: {p.stderr.decode()}")
+        if p.returncode != 0:
+            raise exceptions.ReadError(filepath, f"Failed to get file info: {self.command_error(p)}")
 
         fileinfo = p.stdout.decode().strip()
         permissions, _, size, date, time, tz, _ = fileinfo.split(maxsplit=6)
@@ -277,8 +285,8 @@ class BaseStorage:
 
         args = ["--protect-args"]
         p = self.rsync(remote_file_path, local_file, src_remote=True, args=args)
-        if p.stderr:
-            raise exceptions.ReadError(remote_file_path, p.stderr.decode())
+        if p.returncode != 0:
+            raise exceptions.ReadError(remote_file_path, self.command_error(p))
         return local_file.is_file()
 
     def get_file_contents(self, filepath: Path, as_bytes: bool = False) -> bytes | str:
@@ -293,8 +301,8 @@ class BaseStorage:
         """
         self._ensure("read")
         p = self.ssh_run(f"cat {shlex.quote(str(filepath))}")
-        if p.stderr:
-            raise exceptions.ReadError(filepath, p.stderr.decode())
+        if p.returncode != 0:
+            raise exceptions.ReadError(filepath, self.command_error(p))
         if as_bytes:
             return p.stdout
         return p.stdout.decode()
@@ -310,8 +318,8 @@ class BaseStorage:
         """
         self._ensure("read")
         p = self.ssh_run(f"du -b -s {shlex.quote(str(remote_path))}")
-        if p.stderr:
-            raise exceptions.ReadError(remote_path, f"Failed to retrieve size: {p.stderr.decode()}")
+        if p.returncode != 0:
+            raise exceptions.ReadError(remote_path, f"Failed to retrieve size: {self.command_error(p)}")
         try:
             return int(p.stdout.decode().split()[0])
         except Exception as e:
@@ -330,8 +338,8 @@ class BaseStorage:
             raise exceptions.WriteError(filepath, "You don't have permission to edit this file")
 
         p = self.ssh_run(f"cat - > {shlex.quote(str(filepath))}", ssh_input=file_contents)
-        if p.stderr:
-            raise exceptions.WriteError(filepath, p.stderr.decode())
+        if p.returncode != 0:
+            raise exceptions.WriteError(filepath, self.command_error(p))
 
     def download_dir(
         self,
@@ -373,8 +381,8 @@ class BaseStorage:
         if skip_empty_dirs:
             args.append("--prune-empty-dirs")
         p = self.rsync(f"{remote_dir}/", local_dir, src_remote=True, args=args)
-        if p.stderr:
-            raise exceptions.ReadError(remote_dir, p.stderr.decode())
+        if p.returncode != 0:
+            raise exceptions.ReadError(remote_dir, self.command_error(p))
 
         if not zipped:
             return local_dir
@@ -402,8 +410,8 @@ class BaseStorage:
 
         self.make_dir(remote_dir)
         p = self.rsync(f"{local_dir}/", remote_dir, dst_remote=True, args=args)
-        if p.stderr:
-            raise exceptions.WriteError(remote_dir, p.stderr.decode())
+        if p.returncode != 0:
+            raise exceptions.WriteError(remote_dir, self.command_error(p))
 
     def remove_dir(self, path: Path, resource_id: str) -> None:
         """Remove directory on remote server.
@@ -416,9 +424,9 @@ class BaseStorage:
         if not self.is_valid_path(path, resource_id):
             raise exceptions.WriteError(path, "You don't have permission to remove this directory")
 
-        p = self.ssh_run(f"test -d {shlex.quote(str(path))} && rm -r {shlex.quote(str(path))}")
-        if p.stderr:
-            raise exceptions.WriteError(path, f"Cannot remove corpus dir: {p.stderr.decode()}")
+        p = self.ssh_run(f"if [ -d {shlex.quote(str(path))} ]; then rm -r {shlex.quote(str(path))}; fi")
+        if p.returncode != 0:
+            raise exceptions.WriteError(path, f"Cannot remove corpus dir: {self.command_error(p)}")
 
     def remove_file(self, path: Path, resource_id: str) -> None:
         """Remove file on remote server.
@@ -431,9 +439,9 @@ class BaseStorage:
         if not self.is_valid_path(path, resource_id):
             raise exceptions.WriteError(path, "You don't have permission to remove this file")
 
-        p = self.ssh_run(f"test -f {shlex.quote(str(path))} && rm {shlex.quote(str(path))}")
-        if p.stderr:
-            raise exceptions.WriteError(path, f"Failed to remove file: {p.stderr.decode()}")
+        p = self.ssh_run(f"if [ -f {shlex.quote(str(path))} ]; then rm {shlex.quote(str(path))}; fi")
+        if p.returncode != 0:
+            raise exceptions.WriteError(path, f"Failed to remove file: {self.command_error(p)}")
 
     def make_dir(self, dirpath: Path) -> None:
         """Create directory on remote server.
@@ -443,5 +451,5 @@ class BaseStorage:
         """
         self._ensure("write")
         p = self.ssh_run(f"mkdir -p {shlex.quote(str(dirpath))}")
-        if p.stderr:
-            raise exceptions.WriteError(dirpath, f"Failed to create resource dir: {p.stderr.decode()}")
+        if p.returncode != 0:
+            raise exceptions.WriteError(dirpath, f"Failed to create resource dir: {self.command_error(p)}")

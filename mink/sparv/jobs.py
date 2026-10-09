@@ -209,9 +209,11 @@ class SparvJob(BaseJob):
 
         # Create user and corpus dir on Sparv server
         p = storage.ssh_run(f"mkdir -p {self.remote_corpus_dir_esc} && rm -f {self.nohupfile} {self.runscript}")
-        if p.stderr:
+        if p.returncode != 0:
             self.set_status(Status.error)
-            raise exceptions.WriteError(self.remote_corpus_dir_esc, f"Failed to create corpus dir: {p.stderr.decode()}")
+            raise exceptions.WriteError(
+                self.remote_corpus_dir_esc, f"Failed to create corpus dir: {storage.command_error(p)}"
+            )
 
         # Download from storage server to local tmp dir
         # TODO: do this async?
@@ -229,10 +231,10 @@ class SparvJob(BaseJob):
             dst_remote=True,
             args=["-av"],
         )
-        if p.stderr:
+        if p.returncode != 0:
             self.set_status(Status.error)
             config_path = self.remote_corpus_dir / sparv_settings.SPARV_CORPUS_CONFIG
-            raise exceptions.WriteError(config_path, f"Failed to copy file to Sparv server: {p.stderr.decode()}")
+            raise exceptions.WriteError(config_path, f"Failed to copy file to Sparv server: {storage.command_error(p)}")
 
         # Sync corpus files to Sparv server
         # TODO: do this async
@@ -243,9 +245,11 @@ class SparvJob(BaseJob):
             dst_remote=True,
             args=["-av", "--delete"],
         )
-        if p.stderr:
+        if p.returncode != 0:
             self.set_status(Status.error)
-            raise exceptions.WriteError(self.id, f"Failed to copy corpus files to Sparv server: {p.stderr.decode()}")
+            raise exceptions.WriteError(
+                self.id, f"Failed to copy corpus files to Sparv server: {storage.command_error(p)}"
+            )
 
         self.set_status(Status.done)
 
@@ -257,7 +261,7 @@ class SparvJob(BaseJob):
         )
 
         if p.returncode != 0:
-            stdout = p.stdout.decode() if p.stdout else ""
+            stdout = storage.command_error(p)
             logger.error("Failed to unlock Snakemake for corpus %s: %s", self.id, stdout)
             raise exceptions.JobError(f"Failed to unlock Snakemake: {stdout}")
 
@@ -287,7 +291,7 @@ class SparvJob(BaseJob):
         )
 
         if p.returncode != 0:
-            stderr = p.stderr.decode() if p.stderr else ""
+            stderr = storage.command_error(p)
             self.reset_time()
             self.set_status(Status.error, ProcessName.sparv)
             raise exceptions.JobError(f"Failed to run Sparv: {stderr}")
@@ -341,7 +345,7 @@ class SparvJob(BaseJob):
         )
 
         if p.returncode != 0:
-            stderr = p.stderr.decode() if p.stderr else ""
+            stderr = storage.command_error(p)
             self.reset_time()
             self.set_status(Status.error, ProcessName.korp)
             raise exceptions.JobError(f"Failed to install corpus in Korp: {stderr}")
@@ -374,7 +378,7 @@ class SparvJob(BaseJob):
         )
 
         if p.returncode != 0:
-            stdout = p.stdout.decode() if p.stdout else ""
+            stdout = storage.command_error(p)
             logger.error("Failed to uninstall corpus %s from Korp: %s", self.id, stdout)
             raise exceptions.JobError(f"Failed to uninstall corpus from Korp: {stdout}")
 
@@ -414,7 +418,7 @@ class SparvJob(BaseJob):
         )
 
         if p.returncode != 0:
-            stderr = p.stderr.decode() if p.stderr else ""
+            stderr = storage.command_error(p)
             self.reset_time()
             self.set_status(Status.error, ProcessName.strix)
             raise exceptions.JobError(f"Failed to install corpus in Strix: {stderr}")
@@ -447,7 +451,7 @@ class SparvJob(BaseJob):
         )
 
         if p.returncode != 0:
-            stdout = p.stdout.decode() if p.stdout else ""
+            stdout = storage.command_error(p)
             logger.error("Failed to uninstall corpus %s from Strix: %s", self.id, stdout)
             raise exceptions.JobError(f"Failed to uninstall corpus from Strix: {stdout}")
 
@@ -614,11 +618,11 @@ class SparvJob(BaseJob):
         # Get exports from Sparv
         remote_export_dir = storage.get_export_dir(self.id)
         p = storage.rsync(remote_export_dir, local_corpus_dir, src_remote=True, args=["-av"])
-        if p.stderr:
+        if p.returncode != 0:
             self.set_status(Status.error)
             raise exceptions.MinkHTTPException(
                 return_code=return_codes.FAILED_SYNCING,
-                info=f"Failed to retrieve Sparv exports: {p.stderr.decode()}",
+                info=f"Failed to retrieve Sparv exports: {storage.command_error(p)}",
             )
 
         # Get plain text sources from Sparv
@@ -629,11 +633,11 @@ class SparvJob(BaseJob):
             src_remote=True,
             args=["-av", "--include=@text", "--include=*/", "--exclude=*", "--prune-empty-dirs"],
         )
-        if p.stderr:
+        if p.returncode != 0:
             self.set_status(Status.error)
             raise exceptions.MinkHTTPException(
                 return_code=return_codes.FAILED_SYNCING,
-                info=f"Failed to retrieve plain text sources: {p.stderr.decode()}",
+                info=f"Failed to retrieve plain text sources: {storage.command_error(p)}",
             )
 
         # Transfer exports to the storage server
@@ -666,8 +670,8 @@ class SparvJob(BaseJob):
             raise
 
         p = storage.ssh_run(f"rm -rf {self.remote_corpus_dir_esc}")
-        if p.stderr:
-            logger.error("Failed to remove corpus dir '%s'", self.remote_corpus_dir)
+        if p.returncode != 0:
+            logger.error("Failed to remove corpus dir '%s': %s", self.remote_corpus_dir, storage.command_error(p))
 
     def clean(self) -> str:
         """Remove annotation and export files from Sparv server by running 'sparv clean --all'.
@@ -680,8 +684,10 @@ class SparvJob(BaseJob):
             f"{sparv_settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} clean --all"
         )
 
-        if p.stdout:
-            raise exceptions.WriteError(self.remote_corpus_dir_esc, f"Failed to clean corpus dir: {p.stdout.decode()}")
+        if p.returncode != 0:
+            raise exceptions.WriteError(
+                self.remote_corpus_dir_esc, f"Failed to clean corpus dir: {storage.command_error(p)}"
+            )
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         cache.set_corpus_export_contents(self.id, [])
@@ -697,18 +703,13 @@ class SparvJob(BaseJob):
             f"{sparv_settings.SPARV_ENVIRON} {sparv_settings.SPARV_COMMAND} "
             f"--dir {self.remote_corpus_dir_esc} clean --export"
         )
-        if p.stdout:
-            raise exceptions.WriteError(self.remote_corpus_dir_esc, f"Failed to clean exports: {p.stdout.decode()}")
+        if p.returncode != 0:
+            raise exceptions.WriteError(
+                self.remote_corpus_dir_esc, f"Failed to clean exports: {storage.command_error(p)}"
+            )
 
         sparv_output = p.stdout.decode() if p.stdout else ""
         sparv_output = ", ".join([line for line in sparv_output.split("\n") if line])
-        if not ("Nothing to remove" in sparv_output or "'export' directory removed" in sparv_output):
-            logger.error(
-                "Failed to remove Sparv export dir for corpus '%s': %s",
-                self.id,
-                sparv_output,
-            )
-            return False, sparv_output
         cache.set_corpus_export_contents(self.id, [])
         return True, sparv_output
 
@@ -743,7 +744,7 @@ class SparvDefaultJob:
         p = storage.ssh_run(f"{sparv_settings.SPARV_ENVIRON} {sparv_settings.SPARV_COMMAND} schema")
 
         if p.returncode != 0:
-            stdout = p.stdout.decode() if p.stdout else ""
+            stdout = storage.command_error(p)
             raise exceptions.JobError(f"Failed to run Sparv: {stdout}")
 
         stdout = p.stdout.decode() if p.stdout else ""
@@ -775,15 +776,15 @@ class SparvDefaultJob:
             f"mkdir -p {self.remote_corpus_dir_esc} && cat > {shlex.quote(str(config_path))}",
             ssh_input=config_contents,
         )
-        if p.stdout:
-            raise exceptions.ReadError(self.remote_corpus_dir, f"Failed to list languages: {p.stdout.decode()}")
+        if p.returncode != 0:
+            raise exceptions.ReadError(self.remote_corpus_dir, f"Failed to list languages: {storage.command_error(p)}")
 
         p = storage.ssh_run(
             f"{sparv_settings.SPARV_ENVIRON} {sparv_settings.SPARV_COMMAND} "
             f"--dir {self.remote_corpus_dir_esc} languages"
         )
         if p.returncode != 0:
-            stdout = p.stdout.decode() if p.stdout else ""
+            stdout = storage.command_error(p)
             raise exceptions.JobError(f"Failed to run Sparv: {stdout}")
 
         languages = []
@@ -822,8 +823,8 @@ class SparvDefaultJob:
             f"mkdir -p {self.remote_corpus_dir_esc} && cat > {shlex.quote(str(config_path))}",
             ssh_input=config_contents,
         )
-        if p.stdout:
-            raise exceptions.ReadError(self.remote_corpus_dir, f"Failed to list exports: {p.stdout.decode()}")
+        if p.returncode != 0:
+            raise exceptions.ReadError(self.remote_corpus_dir, f"Failed to list exports: {storage.command_error(p)}")
 
         # Run Sparv to get available exports
         p = storage.ssh_run(
@@ -831,7 +832,7 @@ class SparvDefaultJob:
             f"{self.remote_corpus_dir_esc} modules --exporters --json"
         )
         if p.returncode != 0:
-            stdout = p.stdout.decode() if p.stdout else ""
+            stdout = storage.command_error(p)
             raise exceptions.JobError(f"Failed to run Sparv: {stdout}")
 
         # Parse stdout as json and extract relevant data
