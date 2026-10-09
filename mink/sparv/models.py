@@ -362,9 +362,15 @@ class DefaultConfigResponse(models.BaseResponse):
                     "message": return_codes.LISTING_CONTENT.message,
                     "return_code": return_codes.LISTING_CONTENT.code,
                     "config": (
-                        "export:\n  annotations:\n  - <sentence>\n  - <token>:saldo.baseform2 as baseform\n  - "
-                        "<token>:saldo.lemgram\n  - <token>:wsd.sense\n  - <token>:stanza.pos\n  - <token>:stanza.msd\n"
-                        "import:\n  importer: text_import:parse\nmetadata:\n  id: mink-demo-220fee71\n"
+                        "import:\n  importer: text_import:parse\nmetadata:\n"
+                        "export:\n  annotations:\n  - <sentence>:misc.id\n  - <text>:lexical_classes.swefn\n  "
+                        "- <text>:misc.id as _id\n  - <text>:misc.source\n  - <text>:readability.lix\n  "
+                        "- <text>:readability.nk\n  - <text>:readability.ovix\n  - <token>:lexical_classes.swefn\n  "
+                        "- <token>:misc.head as _head\n  - <token>:misc.tail as _tail\n  - <token>:saldo.baseform2 as "
+                        "lemma\n  - <token>:saldo.complemgram\n  - <token>:saldo.compwf\n  - <token>:saldo.lemgram as "
+                        "lex\n  - <token>:stanza.dephead_ref as dephead\n  - <token>:stanza.deprel\n  "
+                        "- <token>:stanza.msd\n  - <token>:stanza.pos\n  - <token>:stanza.ref\n  "
+                        "- <token>:stanza.ufeats\n  - <token>:wsd.sense\n"
                     ),
                 }
             ]
