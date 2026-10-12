@@ -221,7 +221,7 @@ class KarpJob(BaseJob):
             exceptions.JobError: If installing lexicon in Karp's search mode fails.
         """
         script_content = (
-            f'nohup bash -c "time -p {karp_settings.KARP_COMMAND} {karp_settings.KARP_INSTALL}; rc=\\$?; '
+            f'nohup bash -c "time -p {karp_settings.KARP_COMMAND} {karp_settings.KARP_INSTALL_KARPS}; rc=\\$?; '
             f'printf \'{{\\"exit_code\\":\\"%s\\"}}\\n\' \\"\\$rc\\"" >{self.nohupfile} 2>&1 &\necho $!'
         )
 
@@ -260,7 +260,7 @@ class KarpJob(BaseJob):
             raise
 
         p = storage.ssh_run(
-            f"cd {self.remote_resource_dir_esc} && {karp_settings.KARP_COMMAND} {karp_settings.KARP_UNINSTALL}"
+            f"cd {self.remote_resource_dir_esc} && {karp_settings.KARP_COMMAND} {karp_settings.KARP_UNINSTALL_KARPS}"
         )
 
         if p.returncode != 0:

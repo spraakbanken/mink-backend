@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-URL = "https://ws.spraakbanken.gu.se/ws/metadata/v3/analyses"
+URL = "https://ws.spraakbanken.gu.se/ws/metadata/v4/?resource-type=analysis"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_FILE = PROJECT_ROOT / "instance" / "available_analyses.json"
 

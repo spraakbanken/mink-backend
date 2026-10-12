@@ -12,6 +12,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
   filesystem instead. If it is missing from both, a warning is logged and a `JobNotFoundError` is raised.
 - Output from Sparv and Karp is now truncated to a maximum length (configurable via `SPARV_OUTPUT_MAX_LENGTH` and
   `KARP_OUTPUT_MAX_LENGTH`) to prevent oversized cache items.
+- The config settings `KARP_INSTALL` and `KARP_UNINSTALL` have been renamed to `KARP_INSTALL_KARPS` and
+  `KARP_UNINSTALL_KARPS`.
 
 ### Added
 
