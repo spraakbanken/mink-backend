@@ -35,6 +35,8 @@ class KarpSettings(BaseSettings):
             "**/*.yaml",
             "generate_categorical_values",
             "generate_categorical_values/*",
+            "**/schema.pickle",
+            "*.flatter.jsonl",
         ]
     )
 
