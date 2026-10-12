@@ -22,7 +22,10 @@
     },
     "languages": [
       {
-        "code": "bul",
+        "identifier": {
+          "value": "bul",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "bulgariska",
           "eng": "Bulgarian"
@@ -54,7 +57,10 @@
     },
     "languages": [
       {
-        "code": "bul",
+        "identifier": {
+          "value": "bul",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "bulgariska",
           "eng": "Bulgarian"
@@ -86,7 +92,10 @@
     },
     "languages": [
       {
-        "code": "bul",
+        "identifier": {
+          "value": "bul",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "bulgariska",
           "eng": "Bulgarian"
@@ -118,7 +127,10 @@
     },
     "languages": [
       {
-        "code": "deu",
+        "identifier": {
+          "value": "deu",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "tyska",
           "eng": "German"
@@ -150,7 +162,10 @@
     },
     "languages": [
       {
-        "code": "deu",
+        "identifier": {
+          "value": "deu",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "tyska",
           "eng": "German"
@@ -182,7 +197,10 @@
     },
     "languages": [
       {
-        "code": "deu",
+        "identifier": {
+          "value": "deu",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "tyska",
           "eng": "German"
@@ -216,7 +234,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -248,7 +269,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -280,7 +304,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -312,7 +339,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -341,7 +371,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -373,7 +406,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -405,7 +441,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -437,7 +476,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -469,7 +511,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -501,7 +546,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -533,7 +581,10 @@
     },
     "languages": [
       {
-        "code": "eng",
+        "identifier": {
+          "value": "eng",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "engelska",
           "eng": "English"
@@ -565,7 +616,10 @@
     },
     "languages": [
       {
-        "code": "est",
+        "identifier": {
+          "value": "est",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "estniska",
           "eng": "Estonian"
@@ -597,7 +651,10 @@
     },
     "languages": [
       {
-        "code": "est",
+        "identifier": {
+          "value": "est",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "estniska",
           "eng": "Estonian"
@@ -629,7 +686,10 @@
     },
     "languages": [
       {
-        "code": "est",
+        "identifier": {
+          "value": "est",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "estniska",
           "eng": "Estonian"
@@ -661,7 +721,10 @@
     },
     "languages": [
       {
-        "code": "fin",
+        "identifier": {
+          "value": "fin",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "finska",
           "eng": "Finnish"
@@ -693,7 +756,10 @@
     },
     "languages": [
       {
-        "code": "fin",
+        "identifier": {
+          "value": "fin",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "finska",
           "eng": "Finnish"
@@ -725,7 +791,10 @@
     },
     "languages": [
       {
-        "code": "fra",
+        "identifier": {
+          "value": "fra",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "franska",
           "eng": "French"
@@ -757,7 +826,10 @@
     },
     "languages": [
       {
-        "code": "fra",
+        "identifier": {
+          "value": "fra",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "franska",
           "eng": "French"
@@ -789,7 +861,10 @@
     },
     "languages": [
       {
-        "code": "fra",
+        "identifier": {
+          "value": "fra",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "franska",
           "eng": "French"
@@ -821,7 +896,10 @@
     },
     "languages": [
       {
-        "code": "ita",
+        "identifier": {
+          "value": "ita",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "italienska",
           "eng": "Italian"
@@ -853,7 +931,10 @@
     },
     "languages": [
       {
-        "code": "ita",
+        "identifier": {
+          "value": "ita",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "italienska",
           "eng": "Italian"
@@ -885,7 +966,10 @@
     },
     "languages": [
       {
-        "code": "ita",
+        "identifier": {
+          "value": "ita",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "italienska",
           "eng": "Italian"
@@ -917,7 +1001,10 @@
     },
     "languages": [
       {
-        "code": "lat",
+        "identifier": {
+          "value": "lat",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "latin",
           "eng": "Latin"
@@ -949,7 +1036,10 @@
     },
     "languages": [
       {
-        "code": "lat",
+        "identifier": {
+          "value": "lat",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "latin",
           "eng": "Latin"
@@ -981,7 +1071,10 @@
     },
     "languages": [
       {
-        "code": "lat",
+        "identifier": {
+          "value": "lat",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "latin",
           "eng": "Latin"
@@ -1243,7 +1336,10 @@
     },
     "languages": [
       {
-        "code": "nld",
+        "identifier": {
+          "value": "nld",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "nederländska",
           "eng": "Dutch"
@@ -1275,7 +1371,10 @@
     },
     "languages": [
       {
-        "code": "nld",
+        "identifier": {
+          "value": "nld",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "nederländska",
           "eng": "Dutch"
@@ -1307,7 +1406,10 @@
     },
     "languages": [
       {
-        "code": "nld",
+        "identifier": {
+          "value": "nld",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "nederländska",
           "eng": "Dutch"
@@ -1339,7 +1441,10 @@
     },
     "languages": [
       {
-        "code": "pol",
+        "identifier": {
+          "value": "pol",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "polska",
           "eng": "Polish"
@@ -1371,7 +1476,10 @@
     },
     "languages": [
       {
-        "code": "pol",
+        "identifier": {
+          "value": "pol",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "polska",
           "eng": "Polish"
@@ -1403,7 +1511,10 @@
     },
     "languages": [
       {
-        "code": "pol",
+        "identifier": {
+          "value": "pol",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "polska",
           "eng": "Polish"
@@ -1435,7 +1546,10 @@
     },
     "languages": [
       {
-        "code": "ron",
+        "identifier": {
+          "value": "ron",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "rumänska",
           "eng": "Romanian"
@@ -1467,7 +1581,10 @@
     },
     "languages": [
       {
-        "code": "ron",
+        "identifier": {
+          "value": "ron",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "rumänska",
           "eng": "Romanian"
@@ -1499,7 +1616,10 @@
     },
     "languages": [
       {
-        "code": "ron",
+        "identifier": {
+          "value": "ron",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "rumänska",
           "eng": "Romanian"
@@ -1531,7 +1651,10 @@
     },
     "languages": [
       {
-        "code": "rus",
+        "identifier": {
+          "value": "rus",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "ryska",
           "eng": "Russian"
@@ -1563,7 +1686,10 @@
     },
     "languages": [
       {
-        "code": "rus",
+        "identifier": {
+          "value": "rus",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "ryska",
           "eng": "Russian"
@@ -1595,7 +1721,10 @@
     },
     "languages": [
       {
-        "code": "rus",
+        "identifier": {
+          "value": "rus",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "ryska",
           "eng": "Russian"
@@ -1627,7 +1756,10 @@
     },
     "languages": [
       {
-        "code": "slk",
+        "identifier": {
+          "value": "slk",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "slovakiska",
           "eng": "Slovak"
@@ -1659,7 +1791,10 @@
     },
     "languages": [
       {
-        "code": "slk",
+        "identifier": {
+          "value": "slk",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "slovakiska",
           "eng": "Slovak"
@@ -1691,7 +1826,10 @@
     },
     "languages": [
       {
-        "code": "slk",
+        "identifier": {
+          "value": "slk",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "slovakiska",
           "eng": "Slovak"
@@ -1723,7 +1861,10 @@
     },
     "languages": [
       {
-        "code": "spa",
+        "identifier": {
+          "value": "spa",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "spanska",
           "eng": "Spanish"
@@ -1755,7 +1896,10 @@
     },
     "languages": [
       {
-        "code": "spa",
+        "identifier": {
+          "value": "spa",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "spanska",
           "eng": "Spanish"
@@ -1787,7 +1931,10 @@
     },
     "languages": [
       {
-        "code": "spa",
+        "identifier": {
+          "value": "spa",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "spanska",
           "eng": "Spanish"
@@ -1819,7 +1966,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -1851,7 +2001,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -1885,7 +2038,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -1919,7 +2075,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -1953,7 +2112,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -1985,7 +2147,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2089,7 +2254,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2121,7 +2289,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2225,7 +2396,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2257,7 +2431,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2289,7 +2466,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2321,7 +2501,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2389,7 +2572,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2421,7 +2607,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2453,7 +2642,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2485,7 +2677,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2553,7 +2748,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2585,7 +2783,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2617,7 +2818,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2649,7 +2853,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2681,7 +2888,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2713,7 +2923,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2781,7 +2994,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2814,7 +3030,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
@@ -2882,7 +3101,10 @@
     },
     "languages": [
       {
-        "code": "swe",
+        "identifier": {
+          "value": "swe",
+          "scheme": "ISO 639-3"
+        },
         "name": {
           "swe": "svenska",
           "eng": "Swedish"
