@@ -1,4 +1,4 @@
-"""Response data models for the sparv module."""
+"""Response data models for the karp module."""
 
 from typing import ClassVar
 
@@ -45,10 +45,11 @@ lexicon_model_example = {
 
 
 job_model_example = {
-    "status": {"karp_pipeline": "waiting", "karps": "none"},
+    "status": {"karp_pipeline": "waiting", "karps": "none", "karp_red": "none"},
     "current_process": "karp_pipeline",
     "pid": None,
     "installed_karps": False,
+    "installed_karp_red": False,
     "priority": 1,
     "warnings": "",
     "errors": "",
@@ -107,3 +108,24 @@ statuses_response_examples = [
         ],
     }
 ]
+
+
+class RemoveLexiconResponse(models.BaseResponse):
+    """Model for lexicon removal responses."""
+
+    removed_karps: bool = Field(default=False, description="Whether the lexicon was removed from Karp's search mode")
+    removed_karpred: bool = Field(default=False, description="Whether the lexicon was removed from Karp's edit mode")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "error",
+                    "message": return_codes.FAILED_REMOVING_CONTENT.message,
+                    "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
+                    "info": "Failed to remove resource from Karp's search mode",
+                    "removed_karps": False,
+                    "removed_karpred": False,
+                }
+            ]
+        }
+    }

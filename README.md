@@ -8,7 +8,8 @@ Mink currently supports three kinds of resources:
 
 - Corpora: have large text data annotated with [Sparv](https://spraakbanken.gu.se/sparv), and explore it in
   [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix)
-- Lexicons: explore lists or tabular data in [Karp's search mode](https://spraakbanken.gu.se/karp)
+- Lexicons: explore lists or tabular data in [Karp's search mode](https://spraakbanken.gu.se/karp) and [Karp's edit
+  mode](https://spraakbanken.gu.se/karp-red)
 - Metadata: add language resources to [Språkbanken's resource catalogue](https://spraakbanken.gu.se/en/resources)
 
 The Mink backend is a FastAPI application serving as a backend to the [Mink frontend](https://spraakbanken.gu.se/mink).

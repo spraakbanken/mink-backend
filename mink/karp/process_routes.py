@@ -303,7 +303,7 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
                         "status": "success",
                         "message": return_codes.UNINSTALLED.message,
                         "return_code": return_codes.UNINSTALLED.code,
-                        "info": "Uninstalled from KarpS",
+                        "info": "Uninstalled from Karp's search mode",
                     }
                 }
             }
@@ -330,7 +330,7 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
                         "status": "error",
                         "message": return_codes.FAILED_UNINSTALLING.message,
                         "return_code": return_codes.FAILED_UNINSTALLING.code,
-                        "info": "Error when uninstalling from KarpS",
+                        "info": "Error when uninstalling from Karp's search mode",
                     }
                 }
             },
@@ -366,4 +366,149 @@ async def uninstall_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSON
     except Exception as e:
         raise exceptions.MinkHTTPException(
             return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from Karp's search mode: {e}"
+        ) from e
+
+
+@router.put(
+    "/karpred/install/{resource_id}",
+    operation_id="install-karpred",
+    response_model=models.StatusResponse,
+    responses={
+        **models.common_auth_error_responses,
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_QUEUING.message,
+                        "return_code": return_codes.FAILED_QUEUING.code,
+                        "info": "BaseException",
+                    }
+                }
+            },
+        },
+    },
+)
+async def install_karpred(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONResponse:
+    """Install the resource in Karp's edit mode.
+
+    ### Example
+
+    ```bash
+    curl -X PUT '{{host}}/lexicon/karpred/install/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    resource_id = auth_data["resource_id"]
+
+    # Get info_item, check for changes and remove exports if necessary
+    sources_changed = config_changed = False
+    try:
+        info_item = route_utils.get_info_from_auth(auth_data)
+        if info_item.job.started:
+            sources_changed, config_changed = storage.get_file_changes(resource_id, info_item)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
+    if sources_changed or config_changed:
+        karp_output = None
+        try:
+            job = _require_job(info_item.job)
+            success, karp_output = job.clean()
+            assert success
+        except Exception as e:
+            raise exceptions.MinkHTTPException(
+                return_code=return_codes.FAILED_RUNNING,
+                info=f"Failed to remove outdated export files before running Karp pipeline: {e}",
+                karp_message=karp_output,
+            ) from e
+
+    # Queue job
+    job = _require_job(info_item.job)
+    try:
+        job = registry.add_to_queue(job)
+    except Exception as e:
+        raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_QUEUING, info=str(e)) from e
+
+    job.set_status(Status.waiting, ProcessName.karp_red)
+
+    # Wait a few seconds to check whether anything terminated early
+    time.sleep(2)
+    return utils.response(return_code=return_codes.CHECKED_STATUS, **route_utils.make_status_response(info_item))
+
+
+@router.delete(
+    "/karpred/uninstall/{resource_id}",
+    operation_id="uninstall-karpred",
+    response_model=models.BaseResponse,
+    responses={
+        status.HTTP_200_OK: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": return_codes.UNINSTALLED.message,
+                        "return_code": return_codes.UNINSTALLED.code,
+                        "info": "Uninstalled from Karp's edit mode",
+                    }
+                }
+            }
+        },
+        **models.common_auth_error_responses,
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "model": models.BaseErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.PROCESS_RUNNING.message,
+                        "return_code": return_codes.PROCESS_RUNNING.code,
+                        "info": "Cannot uninstall while a job is running",
+                    }
+                }
+            },
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": models.ErrorResponse500,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "error",
+                        "message": return_codes.FAILED_UNINSTALLING.message,
+                        "return_code": return_codes.FAILED_UNINSTALLING.code,
+                        "info": "Error when uninstalling from Karp's edit mode",
+                    }
+                }
+            },
+        },
+    },
+)
+async def uninstall_karpred(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONResponse:
+    """Uninstall the lexicon from Karp's edit mode.
+
+    ### Example
+
+    ```bash
+    curl -X DELETE '{{host}}/lexicon/karpred/uninstall/<resource_id>' -H 'Authorization: Bearer YOUR_JWT'
+    ```
+    """
+    resource_id = auth_data["resource_id"]
+    # Check if there is an active job
+    job = _require_job(registry.get(resource_id).job)
+    if job.status.is_running():
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.PROCESS_RUNNING, info="Cannot uninstall while a job is running"
+        )
+
+    try:
+        job = _require_job(job)
+        warnings, output = job.uninstall_karp_red()
+        return utils.response(
+            return_code=return_codes.UNINSTALLED,
+            info="Uninstalled from Karp's edit mode",
+            output=output,
+            warnings=warnings,
+        )
+    except Exception as e:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_UNINSTALLING, info=f"Error when uninstalling from Karp's edit mode: {e}"
         ) from e
