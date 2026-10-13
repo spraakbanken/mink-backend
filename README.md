@@ -1,8 +1,15 @@
 # Mink Backend
 
-Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s data platform, allowing users to upload corpus data, annotate
-it with [Sparv](https://spraakbanken.gu.se/sparv), and view or search it in [Korp](https://spraakbanken.gu.se/korp) and
-[Strix](https://spraakbanken.gu.se/strix).
+Mink is [Språkbanken](https://sprakbanken.se/)'s data platform. Its goal is to make our research infrastructure easily
+accessible to researchers. As a user, you can apply advanced language technology methods to your own data, and download
+or explore the results in our research tools with secure access.
+
+Mink currently supports three kinds of resources:
+
+- Corpora: have large text data annotated with [Sparv](https://spraakbanken.gu.se/sparv), and explore it in
+  [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix)
+- Lexicons: explore lists or tabular data in [Karp's search mode](https://spraakbanken.gu.se/karp).
+- Metadata: add language resources to [Språkbanken's resource catalogue](https://spraakbanken.gu.se/en/resources)
 
 The Mink backend is a FastAPI application serving as a backend to the [Mink frontend](https://spraakbanken.gu.se/mink).
 
@@ -11,8 +18,8 @@ problems or suggestions please contact <sb-mink@svenska.gu.se>.
 
 ## Prerequisites
 
-* [Python 3.11](http://python.org/) or newer
-* [memcached](http://memcached.org/)
+- [Python 3.11](http://python.org/) or newer
+- [memcached](http://memcached.org/)
 
 ## Installation
 
@@ -84,16 +91,16 @@ For production, run Mink behind Gunicorn and use Uvicorn's worker class:
 
 Recommended production notes:
 
-* Run the queue manager as a separate process:
+- Run the queue manager as a separate process:
 
   ```bash
   .venv/bin/python queue_manager.py
   ```
 
-* If Mink is served from a URL prefix such as `/mink`, set `ROOT_PATH=/mink` in the app environment.
-* When using `uvicorn_worker.UvicornWorker`, do not rely on Gunicorn's `--root-path` flag; configure `ROOT_PATH` in
+- If Mink is served from a URL prefix such as `/mink`, set `ROOT_PATH=/mink` in the app environment.
+- When using `uvicorn_worker.UvicornWorker`, do not rely on Gunicorn's `--root-path` flag; configure `ROOT_PATH` in
   Mink instead.
-* Set `MINK_URL` to the complete URL where Mink is served (e.g. `https://example.com/mink`) to ensure correct URL
+- Set `MINK_URL` to the complete URL where Mink is served (e.g. `https://example.com/mink`) to ensure correct URL
   generation in the API responses.
 
 ## Configuration
@@ -113,9 +120,9 @@ listed in `config.py`. For examples, see the [developer's guide](/docs/developer
 
 To enable tracking to Matomo, set the following config variables:
 
-* `TRACKING_MATOMO_URL` - url to matomo
-* `TRACKING_MATOMO_IDSITE` - id for this site (get from matomo admin)
-* `TRACKING_MATOMO_AUTH_TOKEN` - access token to enable tracking IP numbers
+- `TRACKING_MATOMO_URL` - url to matomo
+- `TRACKING_MATOMO_IDSITE` - id for this site (get from matomo admin)
+- `TRACKING_MATOMO_AUTH_TOKEN` - access token to enable tracking IP numbers
 
 ## Testing
 
