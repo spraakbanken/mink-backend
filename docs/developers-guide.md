@@ -4,7 +4,8 @@ Mink is [Språkbanken Text](https://spraakbanken.gu.se/)'s data platform, enabli
 
 - upload corpus data, annotate it with [Sparv](https://spraakbanken.gu.se/sparv), and view or search it in
 [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
-- upload lexicon data and view it in [Karp's search mode](https://spraakbanken.gu.se/karp).
+- upload lexicon data and view it in [Karp's search mode](https://spraakbanken.gu.se/karp) or in [Karp's edit
+  mode](https://spraakbanken.gu.se/karp-red).
 - manage metadata resources that are used to generate [Språkbanken Text's resources
   page](https://spraakbanken.gu.se/en/resources).
 
@@ -140,11 +141,11 @@ are private, meaning only the logged-in user who owns the installed corpus can v
 
 #### Lexicon Installations
 
-In Mink, a user can install their lexicon in Karp's search mode using the `/lexicon/karps/install/<resource_id>` route.
-Installation is performed by the Karp pipeline, and the installation job is added to the job queue in the same way as
-annotation jobs.
+In Mink, a user can install their lexicon in Karp's search mode using the `/lexicon/karps/install/<resource_id>` route,
+or in Karp's edit mode using the `/lexicon/karpred/install/<resource_id>` route. Installation is performed by the Karp
+pipeline, and the installation job is added to the job queue in the same way as annotation jobs.
 
-After a successful installation, users can log in to Karp's search mode and view their own lexicons as usual.
+After a successful installation, users can log in to Karp's search/edit mode and view their own lexicons as usual.
 Installations are private, meaning only the logged-in user who owns the installed lexicon can view it.
 
 ## Authentication and Authorization

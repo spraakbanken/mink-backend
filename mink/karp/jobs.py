@@ -26,6 +26,7 @@ class KarpJob(BaseJob):
         current_process: str | None = None,
         pid: int | None = None,
         installed_karps: bool = False,
+        installed_karp_red: bool = False,
         priority: int | str = "",
         warnings: str = "",
         errors: str = "",
@@ -43,9 +44,10 @@ class KarpJob(BaseJob):
             id: Job ID.
             processes: List of process names to include in the status.
             status: Job status dictionary.
-            current_process: Current process (e.g. 'karp_pipeline', 'karps').
+            current_process: Current process (e.g. 'karp_pipeline', 'karps', 'karp_red').
             pid: Process ID in the Karp server.
             installed_karps: Whether resource is installed in Karp's search mode.
+            installed_karp_red: Whether Karp-red is installed.
             priority: Number in queue.
             warnings: Latest Karp warnings.
             errors: Latest Karp errors.
@@ -80,6 +82,7 @@ class KarpJob(BaseJob):
             duration=duration,
         )
         self.installed_karps = installed_karps
+        self.installed_karp_red = installed_karp_red
         self.output = output
 
         self.karp_user = karp_settings.KARP_USER
@@ -100,6 +103,7 @@ class KarpJob(BaseJob):
             "current_process": self.current_process,
             "pid": self.pid,
             "installed_karps": self.installed_karps,
+            "installed_karp_red": self.installed_karp_red,
             "priority": self.priority,
             "warnings": self.warnings,
             "errors": self.errors,
@@ -277,6 +281,69 @@ class KarpJob(BaseJob):
 
         return warnings, output
 
+    def install_karp_red(self) -> None:
+        """Install a lexicon in Karp's edit mode.
+
+        Raises:
+            exceptions.JobError: If installing lexicon in Karp's edit mode fails.
+        """
+        script_content = (
+            f'nohup bash -c "time -p {karp_settings.KARP_COMMAND} {karp_settings.KARP_INSTALL_KARPRED}; rc=\\$?; '
+            f'printf \'{{\\"exit_code\\":\\"%s\\"}}\\n\' \\"\\$rc\\"" >{self.nohupfile} 2>&1 &\necho $!'
+        )
+
+        self.started = utils.get_current_time()
+        p = storage.ssh_run(
+            f"cd {self.remote_resource_dir_esc} && "
+            f"echo {shlex.quote(script_content)} > {self.runscript} && chmod +x {self.runscript} && {self.runscript}"
+        )
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            self.reset_time()
+            self.set_status(Status.error, ProcessName.karp_red)
+            raise exceptions.JobError(f"Failed to install resource in Karp's edit mode: {stderr}")
+
+        # Get pid from process and store job info
+        try:
+            float(p.stdout.decode())
+            self.set_attribute("pid", int(p.stdout.decode()))
+        except ValueError:
+            pass
+        self.set_status(Status.running, ProcessName.karp_red)
+        # Set 'installed_karp_red' flag to True when setting job status to 'done' (in process_running)
+
+    def uninstall_karp_red(self) -> tuple[str, str]:
+        """Uninstall resource from Karp's edit mode.
+
+        Raises:
+            exceptions.JobError: If uninstalling resource from Karp's edit mode fails.
+        """
+        try:
+            self.abort()
+        except (exceptions.ProcessNotRunningError, exceptions.ProcessNotFoundError):
+            pass
+        except Exception:
+            raise
+
+        p = storage.ssh_run(
+            f"cd {self.remote_resource_dir_esc} && {karp_settings.KARP_COMMAND} {karp_settings.KARP_UNINSTALL_KARPRED}"
+        )
+
+        if p.returncode != 0:
+            stderr = p.stderr.decode() if p.stderr else ""
+            logger.error("Failed to uninstall resource %s from Karp's edit mode: %s", self.id, stderr)
+            raise exceptions.JobError(f"Failed to uninstall resource from Karp's edit mode: {stderr}")
+
+        self.set_attribute("installed_karp_red", False)
+
+        # Get output from uninstall command
+        parsed_output = self.parse_jsonl_output(p.stdout.decode() if p.stdout else "")
+        warnings = "\n".join(parsed_output["warnings"])
+        output = "\n".join(parsed_output["misc"])
+
+        return warnings, output
+
     def abort(self) -> None:
         """Abort running Karp pipeline.
 
@@ -341,6 +408,9 @@ class KarpJob(BaseJob):
                 # Set 'installed_karps' to True if current process is 'karps'
                 if self.current_process == ProcessName.karps:
                     self.installed_karps = True
+                # Set 'installed_karp_red' to True if current process is 'karp_red'
+                elif self.current_process == ProcessName.karp_red:
+                    self.installed_karp_red = True
                 self.set_status(Status.done)
         else:
             if errors:
