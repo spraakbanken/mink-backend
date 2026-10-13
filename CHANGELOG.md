@@ -5,6 +5,13 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [unreleased]
 
+### Added
+
+- Added functionality for installing to and uninstalling from Karp's edit mode. New routes:
+  `/lexicon/karpred/install/{resource_id}` and `/lexicon/karpred/uninstall/{resource_id}`.
+
+## [3.1.0] - 2026-10-13
+
 ### Changed
 
 - Made minor changes to the developer's guide.
@@ -50,7 +57,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Added a new resource type: lexicons. This includes routes for creating, listing, uploading, and processing lexicons,
-  as well as installing them in KarpS.
+  as well as installing them in Karp's search mode.
 - Added a new route `/metadata/list` for listing all metadata resources.
 - Added a new route `/user/info/get` for retrieving information about the currently authenticated user.
 - Added a new route `/queue/health` which exposes monitorable queue statistics and returns a warning when queued or
@@ -283,7 +290,8 @@ This is the first release of the Mink backend! This application contains functio
 corpus-related files, processing corpora with [Sparv](https://spraakbanken.gu.se/sparv/) and installing them in
 [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
 
-[unreleased]: https://github.com/spraakbanken/mink-backend/compare/v3.0.0...dev/
+[unreleased]: https://github.com/spraakbanken/mink-backend/compare/v3.1.0...dev/
+[3.1.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v3.1.0
 [3.0.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v3.0.0
 [2.2.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.2.0
 [2.1.1]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.1.1

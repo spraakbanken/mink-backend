@@ -132,7 +132,7 @@ async def list_lexicons(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
 @router.delete(
     "/remove/{resource_id}",
     operation_id="remove-lexicon",
-    response_model=models.BaseResponse,
+    response_model=karp_models.RemoveLexiconResponse,
     responses={
         status.HTTP_200_OK: {
             "content": {
@@ -155,6 +155,8 @@ async def list_lexicons(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
                         "message": return_codes.FAILED_REMOVING_CONTENT.message,
                         "return_code": return_codes.FAILED_REMOVING_CONTENT.code,
                         "info": "Failed to remove resource from Karp's search mode",
+                        "removed_karps": False,
+                        "removed_karpred": False,
                     }
                 }
             },
@@ -162,9 +164,9 @@ async def list_lexicons(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
     },
 )
 async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
-    """Remove a lexicon from the storage server.
+    """Remove a lexicon from the Karp servers, the storage server, the auth system and the registry.
 
-    Will attempt to abort any running job for this lexicon and also remove it from the Karp server.
+    Will attempt to abort any running job for this lexicon.
 
     ### Example
 
@@ -175,16 +177,33 @@ async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
     resource_id = auth_data["resource_id"]
     info_obj = registry.get(resource_id)
     job = _require_job(info_obj.job)
+    removed_karps = removed_karpred = True
+    error_msg = []
 
-    # Uninstall lexicon from KarpS
+    # Uninstall lexicon from Karp's search mode
     if job.installed_karps:
         try:
             job.uninstall_karps()
         except Exception as e:
-            raise exceptions.MinkHTTPException(
-                return_code=return_codes.FAILED_REMOVING_CONTENT,
-                info=f"Failed to remove resource from Karp's search mode: {e}",
-            ) from e
+            removed_karps = False
+            error_msg.append(f"Failed to remove resource from Karp's search mode: {e}")
+
+    # Uninstall lexicon from Karp's edit mode
+    if job.installed_karp_red:
+        try:
+            job.uninstall_karp_red()
+        except Exception as e:
+            removed_karpred = False
+            error_msg.append(f"Failed to remove resource from Karp's edit mode: {e}")
+
+    # Raise error if any of the uninstallations failed
+    if not (removed_karps and removed_karpred):
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.FAILED_REMOVING_CONTENT,
+            info="; ".join(error_msg) if error_msg else "Unknown error",
+            removed_karps=removed_karps,
+            removed_karpred=removed_karpred,
+        )
 
     return await route_utils.remove_resource(
         resource_id=resource_id,
