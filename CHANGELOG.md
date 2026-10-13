@@ -46,7 +46,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Added a new resource type: lexicons. This includes routes for creating, listing, uploading, and processing lexicons,
-  as well as installing them in KarpS.
+  as well as installing them in Karp's search mode.
 - Added a new route `/metadata/list` for listing all metadata resources.
 - Added a new route `/user/info/get` for retrieving information about the currently authenticated user.
 - Added a new route `/queue/health` which exposes monitorable queue statistics and returns a warning when queued or
