@@ -35,6 +35,8 @@ class Resource:
         source_files: list | None = None,
         sources_deleted: str = "",
         custom_config: bool = False,
+        demo_mode: bool = False,
+        last_accessed: str = "",
         **_obsolete: Any,
     ) -> None:
         """Init resource by setting class variables.
@@ -47,6 +49,8 @@ class Resource:
             source_files: List of source files.
             sources_deleted: Timestamp of when sources were last deleted (used for knowing what to re-annotate).
             custom_config: Whether the current config was uploaded as a custom config.
+            demo_mode: Whether the resource was created in demo mode (unauthenticated usage).
+            last_accessed: Timestamp of when the resource was last accessed.
             obsolete: Catch invalid arguments from outdated resource items.
         """
         self.id = id
@@ -68,6 +72,8 @@ class Resource:
         self.source_files = source_files or []
         self.sources_deleted = sources_deleted or ""
         self.custom_config = custom_config
+        self.demo_mode = demo_mode
+        self.last_accessed = last_accessed or ""
 
     def __str__(self) -> str:
         """Return a string representation of the resource instance."""
@@ -83,6 +89,8 @@ class Resource:
             "source_files": self.source_files,
             "sources_deleted": self.sources_deleted,
             "custom_config": self.custom_config,
+            "demo_mode": self.demo_mode,
+            "last_accessed": self.last_accessed,
         }
         return utils.serialize_obj(raw, depth=depth)
 
@@ -120,4 +128,9 @@ class Resource:
     def set_custom_config(self, custom_config: bool) -> None:
         """Set whether the resource currently has a custom config and save."""
         self.custom_config = custom_config
+        self.parent.update()
+
+    def touch(self) -> None:
+        """Update the last_accessed timestamp and save."""
+        self.last_accessed = utils.get_current_time()
         self.parent.update()

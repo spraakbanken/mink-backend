@@ -2,12 +2,10 @@
 
 import json
 import re
-from contextvars import ContextVar
 from pathlib import Path
 
 import httpx2
 import jwt
-import shortuuid
 from fastapi import Cookie, Query, Request, Security, status
 from fastapi import Path as FastAPIPath
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
@@ -23,9 +21,6 @@ from mink.sb_auth import cache as auth_cache
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="", auto_error=False)
 api_key_scheme = APIKeyHeader(name="X-Api-Key", auto_error=False)
 
-# Context variable to store request ID
-request_id_var = ContextVar("request_id_var", default="")
-
 
 async def get_auth_data(
     request: Request,
@@ -40,6 +35,7 @@ async def get_auth_data(
     require_resource_id: bool = True,
     require_resource_exists: bool = True,
     require_admin: bool = False,
+    reject_demo_mode: bool = True,
 ) -> dict:
     """Attempt to login on SB Auth and check for different conditions required by the route.
 
@@ -55,6 +51,7 @@ async def get_auth_data(
         require_resource_id: The route requires the user to supply a resource ID.
         require_resource_exists: The route requires that the supplied resource ID occurs in the JWT.
         require_admin: The route requires the user to be a mink admin.
+        reject_demo_mode: Reject demo resources even when the authenticated user otherwise has access to them.
 
     Returns:
         A dictionary containing user information, resource information and the session ID.
@@ -89,9 +86,7 @@ async def get_auth_data(
         raise exceptions.MinkHTTPException(return_code=return_codes.MISSING_LOGIN_CREDENTIALS)
 
     # Store random ID in contextvar and in request state (used for temporary file storage and cookies)
-    request_id = shortuuid.uuid()
-    request.state.request_id = request_id
-    request_id_var.set(request_id)
+    request_id = request.state.request_id
     if session_id is None:
         session_id = request_id
 
@@ -143,17 +138,25 @@ async def get_auth_data(
     if require_resource_exists and resource_id not in resources:
         raise exceptions.MinkHTTPException(return_code=return_codes.RESOURCE_NOT_FOUND)
 
-    # Refresh persisted owner metadata for the requested resource
+    # Load the requested resource and optionally reject demo resources before the route handler is called
     try:
         from mink.core import registry  # ruff: ignore[import-outside-top-level], avoids circular import
 
         info_obj = registry.get(resource_id)
-        info_obj.sync_owner(user)
-        auth_data["info_obj"] = info_obj
     except exceptions.JobNotFoundError:
         pass
     except Exception:
-        logger.exception("Failed to load/sync info object for resource '%s'.", resource_id)
+        logger.exception("Failed to load info object for resource '%s'.", resource_id)
+    else:
+        if reject_demo_mode and info_obj.resource.demo_mode:
+            raise exceptions.MinkHTTPException(return_code=return_codes.RESOURCE_NOT_FOUND)
+
+        # Refresh persisted owner metadata for the requested resource
+        try:
+            info_obj.sync_owner(user)
+            auth_data["info_obj"] = info_obj
+        except Exception:
+            logger.exception("Failed to sync owner metadata for resource '%s'.", resource_id)
 
     return auth_data
 
@@ -169,6 +172,7 @@ class BaseAuthDependency:
         require_resource_id: bool = True,
         require_resource_exists: bool = True,
         require_admin: bool = False,
+        reject_demo_mode: bool = True,
     ) -> None:
         """Initialize the AuthDependency class."""
         self.min_level = min_level
@@ -177,6 +181,7 @@ class BaseAuthDependency:
         self.require_resource_id = require_resource_id
         self.require_resource_exists = require_resource_exists
         self.require_admin = require_admin
+        self.reject_demo_mode = reject_demo_mode
 
 
 class AuthDependency(BaseAuthDependency):
@@ -203,6 +208,7 @@ class AuthDependency(BaseAuthDependency):
             require_resource_id=self.require_resource_id,
             require_resource_exists=self.require_resource_exists,
             require_admin=self.require_admin,
+            reject_demo_mode=self.reject_demo_mode,
         )
 
 
@@ -228,6 +234,7 @@ class AuthDependencyNoResourceId(BaseAuthDependency):
             require_resource_id=False,
             require_resource_exists=False,
             require_admin=self.require_admin,
+            reject_demo_mode=self.reject_demo_mode,
         )
 
 

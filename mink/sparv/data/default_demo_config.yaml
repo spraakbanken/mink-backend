@@ -1,0 +1,26 @@
+import:
+  importer: text_import:parse
+
+export:
+  annotations:
+    - <sentence>:misc.id
+    - <text>:lexical_classes.swefn
+    - <text>:misc.id as _id
+    - <text>:misc.source
+    - <text>:readability.lix
+    - <text>:readability.nk
+    - <text>:readability.ovix
+    - <token>:lexical_classes.swefn
+    - <token>:misc.head as _head
+    - <token>:misc.tail as _tail
+    - <token>:saldo.baseform2 as lemma
+    - <token>:saldo.complemgram
+    - <token>:saldo.compwf
+    - <token>:saldo.lemgram as lex
+    - <token>:stanza.dephead_ref as dephead
+    - <token>:stanza.deprel
+    - <token>:stanza.msd
+    - <token>:stanza.pos
+    - <token>:stanza.ref
+    - <token>:stanza.ufeats
+    - <token>:wsd.sense

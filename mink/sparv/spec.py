@@ -38,6 +38,7 @@ def register() -> None:
             "SPARV_USER",
             "SPARV_CORPORA_DIR",
             "SPARV_DEFAULT_CORPORA_DIR",
+            "SPARV_DEMO_CORPORA_DIR",
             "SPARV_COMMAND",
         ]:
             if not getattr(sparv_settings, var):
@@ -45,6 +46,12 @@ def register() -> None:
                     raise exceptions.ConfigVariableNotSetError(var)
                 logger.warning(f"'{var}' not set, Sparv will not be available!")
                 sparv_settings.SPARV_ENABLED = False
+
+        # Ensure SPARV_DEMO_DEFAULT_EXPORTS is a subset of SPARV_DEMO_ALLOWED_EXPORTS
+        if not set(sparv_settings.SPARV_DEMO_DEFAULT_EXPORTS).issubset(sparv_settings.SPARV_DEMO_ALLOWED_EXPORTS):
+            raise exceptions.ConfigurationError(
+                "SPARV_DEMO_DEFAULT_EXPORTS must be a subset of SPARV_DEMO_ALLOWED_EXPORTS"
+            )
 
     def process_running(job: Any) -> bool:
         return cast(SparvJob, job).process_running()
@@ -84,7 +91,12 @@ def register() -> None:
             config_filename=sparv_settings.SPARV_CORPUS_CONFIG,
             process_names=tuple(p.name for p in ProcessName),
             sbauth_resource_type="corpora",
-            router_modules=("mink.sparv.routes", "mink.sparv.storage_routes", "mink.sparv.process_routes"),
+            router_modules=(
+                "mink.sparv.routes",
+                "mink.sparv.storage_routes",
+                "mink.sparv.process_routes",
+                "mink.sparv.demo_routes",
+            ),
             process_running=process_running,
             queue_handlers={
                 ProcessName.sparv.name: run_sparv,

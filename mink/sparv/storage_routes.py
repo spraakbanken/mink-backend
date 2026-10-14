@@ -633,14 +633,14 @@ async def download_sources(
             if zipped:
                 outfile_path = local_corpus_dir / f"{resource_id}_{download_file_name}.zip"
                 utils.create_zip(local_path, outfile_path, zip_rootdir=resource_id)
-                return FileResponse(outfile_path, media_type="application/zip", filename=outfile_path.name)
+                return utils.file_response(outfile_path, media_type="application/zip", filename=outfile_path.name)
             # Determine content type
             content_type = "application/xml"
             for file_obj in source_contents:
                 if file_obj.get("name") == download_file_name:
                     content_type = file_obj.get("type")
                     break
-            return FileResponse(local_path, media_type=content_type, filename=local_path.name)
+            return utils.file_response(local_path, media_type=content_type, filename=local_path.name)
         except FileNotFoundError as e:
             raise exceptions.MinkHTTPException(return_code=return_codes.FILE_NOT_FOUND, info=str(e)) from e
         except Exception as e:
@@ -651,7 +651,7 @@ async def download_sources(
         zip_out = local_corpus_dir / f"{resource_id}_source.zip"
         # Get files from storage server
         storage.download_dir(storage_source_dir, local_source_dir, resource_id, zipped=True, zippath=zip_out)
-        return FileResponse(zip_out, media_type="application/zip", filename=zip_out.name)
+        return utils.file_response(zip_out, media_type="application/zip", filename=zip_out.name)
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_DOWNLOADING, info=str(e)) from e
 

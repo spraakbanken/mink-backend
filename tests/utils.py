@@ -102,7 +102,9 @@ def log_response(response: typing.Any, method: str, loglevel: int = logging.DEBU
         logger.log(loglevel, "Response from %s %s:\n%s...", method, url, response.text[:100])
 
 
-def check_resource_loop(resource_id: str, process_name: str, timeout: int = 60) -> typing.Any:
+def check_resource_loop(
+    resource_id: str, process_name: str, timeout: int = 60, demo_corpus: bool = False
+) -> typing.Any:
     """Call /resource/status/get and /queue/advance until the resource is processed, abort if it takes too long.
 
     Returns:
@@ -113,7 +115,10 @@ def check_resource_loop(resource_id: str, process_name: str, timeout: int = 60) 
     process_status = None
     while True:
         call_route("PUT", "/queue/advance", query=f"secret_key={settings.MINK_SECRET_KEY}", headers=HEADERS, log=False)
-        response = call_route("GET", f"/resource/status/get/{resource_id}", headers=HEADERS)
+        if demo_corpus:
+            response = call_route("GET", f"/demo/corpus/status/get/{resource_id}", headers=HEADERS)
+        else:
+            response = call_route("GET", f"/resource/status/get/{resource_id}", headers=HEADERS)
         json_data = response.json()
         process_status = json_data.get("job", {}).get("status", {}).get(process_name)
         progress = json_data.get("job", {}).get("progress", {})

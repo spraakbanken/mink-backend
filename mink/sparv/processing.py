@@ -5,7 +5,6 @@ from mink.core.info import Info
 from mink.core.resource_specs import get_spec
 from mink.core.status import Status
 from mink.sparv import utils as sparv_utils
-from mink.sparv.config import sparv_settings
 from mink.sparv.jobs import SparvJob
 from mink.sparv.spec import ProcessName
 from mink.sparv.storage import storage
@@ -20,6 +19,12 @@ def require_job(job: object) -> SparvJob:
     return job
 
 
+def require_installable(info_item: Info) -> None:
+    """Ensure that the resource is installable, raise an error if not."""
+    if info_item.resource.demo_mode:
+        raise exceptions.MinkHTTPException(return_code=return_codes.INSTALLATION_NOT_ALLOWED)
+
+
 def run_sparv(info_item: Info, exports: list[str] | None = None, files: list[str] | None = None) -> None:
     """Validate inputs and queue a Sparv annotation job.
 
@@ -30,10 +35,11 @@ def run_sparv(info_item: Info, exports: list[str] | None = None, files: list[str
     """
     resource_id = info_item.id
 
-    # Parse requested exports
-    if exports is None:
-        exports = []
-    exports = [i.strip() for i in exports if i] or sparv_settings.SPARV_DEFAULT_EXPORTS
+    # Update last_accessed timestamp for the resource
+    info_item.resource.touch()
+
+    # Parse and validate requested exports
+    exports = sparv_utils.resolve_exports(info_item, exports)
 
     # Parse list of files to be processed
     if files is None:

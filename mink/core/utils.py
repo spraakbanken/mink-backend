@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime
 import gzip
 import logging
 import os
@@ -12,12 +11,14 @@ import tomllib
 import unicodedata
 import zipfile
 from collections.abc import Mapping, Sequence
+from contextvars import ContextVar
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from fastapi import status
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from mkdocs.commands import build
 from mkdocs.config import load_config
 from starlette.background import BackgroundTask
@@ -26,10 +27,12 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from mink.core import exceptions, return_codes
 from mink.core.config import settings
 from mink.core.logging import logger
-from mink.sb_auth.login import request_id_var
 
 if TYPE_CHECKING:
     from mink.core.storage_base import BaseStorage
+
+# Context variable to store request ID
+request_id_var = ContextVar("request_id_var", default="")
 
 
 def response(
@@ -91,6 +94,16 @@ def response(
     response.background = BackgroundTask(remove_tmp_files, request_id_var.get())
 
     return response
+
+
+def file_response(path: Path, *, media_type: str, filename: str) -> FileResponse:
+    """Return a file response that removes request-scoped temporary files after sending."""
+    return FileResponse(
+        path,
+        media_type=media_type,
+        filename=filename,
+        background=BackgroundTask(remove_tmp_files, request_id_var.get()),
+    )
 
 
 def remove_tmp_files(request_id: str) -> None:
@@ -295,7 +308,15 @@ def serialize_obj(obj: Any, *, depth: int | None = None, seen: set[int] | None =
 
 def get_current_time() -> str:
     """Get the current timestamp as an ISO 8601 string."""
-    return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+    return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def is_older_than(timestamp: str, seconds: int) -> bool:
+    """Check if a timestamp (ISO 8601 string) is older than a given number of seconds."""
+    dt = datetime.fromisoformat(timestamp)
+    if dt.tzinfo is None:
+        raise ValueError("Timestamp must include timezone offset")
+    return datetime.now(UTC) - dt.astimezone(UTC) > timedelta(seconds=seconds)
 
 
 def uncompress_gzip(inpath: Path, outpath: Path | None = None) -> None:

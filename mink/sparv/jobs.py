@@ -4,6 +4,8 @@ import json
 import re
 import shlex
 
+import yaml
+
 from mink.core import exceptions, registry, return_codes, utils
 from mink.core.jobs import BaseJob
 from mink.core.logging import logger
@@ -269,10 +271,13 @@ class SparvJob(BaseJob):
         Raises:
             exceptions.JobError: If running Sparv fails.
         """
+        export_args = shlex.join(self.sparv_exports)
+
         sparv_command = (
             f"{sparv_settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} {sparv_settings.SPARV_RUN} "
-            f"{' '.join(self.sparv_exports)}"
+            f"{export_args}"
         )
+
         if self.current_files:
             sparv_command += f" --file {' '.join(shlex.quote(f) for f in self.current_files)}"
 
@@ -299,12 +304,22 @@ class SparvJob(BaseJob):
             pass
         self.set_status(Status.running, ProcessName.sparv)
 
+    def _reject_demo_installation(self, process: ProcessName) -> None:
+        """Reject installation of demo resources in Korp or Strix."""
+        if not self.parent.resource.demo_mode:
+            return
+
+        self.set_status(Status.error, process)
+        registry.pop_from_queue(self)
+        raise exceptions.JobError(f"Refusing to install demo resource '{self.id}'")
+
     def install_korp(self) -> None:
         """Install a corpus in Korp.
 
         Raises:
             exceptions.JobError: If installing corpus in Korp fails.
         """
+        self._reject_demo_installation(ProcessName.korp)
         # Remove install markers
         sparv_work_dir = shlex.quote(str(storage.get_work_dir(self.id)))
         p = storage.ssh_run(f"rm -rf {sparv_work_dir}/korp.install_*_marker")
@@ -319,7 +334,7 @@ class SparvJob(BaseJob):
 
         sparv_command = shlex.quote(
             f"{sparv_settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} "
-            f"{sparv_settings.SPARV_INSTALL} {' '.join(sparv_installs)}"
+            f"{sparv_settings.SPARV_INSTALL} {shlex.join(sparv_installs)}"
         )
         script_content = shlex.quote(
             f"{sparv_settings.SPARV_ENVIRON} nohup time -p sh -c {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
@@ -359,7 +374,7 @@ class SparvJob(BaseJob):
 
         p = storage.ssh_run(
             f"{sparv_settings.SPARV_ENVIRON} {sparv_settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} "
-            f"{sparv_settings.SPARV_UNINSTALL} {' '.join(sparv_settings.SPARV_DEFAULT_KORP_UNINSTALLS)}"
+            f"{sparv_settings.SPARV_UNINSTALL} {shlex.join(sparv_settings.SPARV_DEFAULT_KORP_UNINSTALLS)}"
         )
 
         if p.returncode != 0:
@@ -382,6 +397,7 @@ class SparvJob(BaseJob):
         Raises:
             exceptions.JobError: If installing corpus in Strix fails.
         """
+        self._reject_demo_installation(ProcessName.strix)
         # Remove install markers
         sparv_work_dir = shlex.quote(str(storage.get_work_dir(self.id)))
         p = storage.ssh_run(f"rm -rf {sparv_work_dir}/sbx_strix.install_*_marker")
@@ -391,7 +407,7 @@ class SparvJob(BaseJob):
         sparv_installs = sparv_settings.SPARV_DEFAULT_STRIX_INSTALLS
         sparv_command = shlex.quote(
             f"{sparv_settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} "
-            f"{sparv_settings.SPARV_INSTALL} {' '.join(sparv_installs)}"
+            f"{sparv_settings.SPARV_INSTALL} {shlex.join(sparv_installs)}"
         )
         script_content = shlex.quote(
             f"{sparv_settings.SPARV_ENVIRON} nohup time -p sh -c {sparv_command} >{self.nohupfile} 2>&1 &\necho $!"
@@ -431,7 +447,7 @@ class SparvJob(BaseJob):
 
         p = storage.ssh_run(
             f"{sparv_settings.SPARV_ENVIRON} {sparv_settings.SPARV_COMMAND} --dir {self.remote_corpus_dir_esc} "
-            f"{sparv_settings.SPARV_UNINSTALL} {' '.join(sparv_settings.SPARV_DEFAULT_STRIX_UNINSTALLS)}"
+            f"{sparv_settings.SPARV_UNINSTALL} {shlex.join(sparv_settings.SPARV_DEFAULT_STRIX_UNINSTALLS)}"
         )
 
         if p.returncode != 0:
@@ -750,10 +766,15 @@ class SparvDefaultJob:
                 return cached_languages
 
         # Create corpus dir with config file on Sparv server
+        config_path = self.remote_corpus_dir / self.config_file
+        config_contents = yaml.safe_dump(
+            {"metadata": {"language": self.lang}},
+            sort_keys=False,
+        ).encode()
+
         p = storage.ssh_run(
-            f"mkdir -p {self.remote_corpus_dir_esc} && "
-            f"echo 'metadata:\n  language: {self.lang}' > "
-            f"{self.remote_corpus_dir_esc + '/' + shlex.quote(self.config_file)}"
+            f"mkdir -p {self.remote_corpus_dir_esc} && cat > {shlex.quote(str(config_path))}",
+            ssh_input=config_contents,
         )
         if p.returncode != 0:
             raise exceptions.ReadError(self.remote_corpus_dir, f"Failed to list languages: {storage.command_error(p)}")
@@ -792,10 +813,15 @@ class SparvDefaultJob:
                 return cached_exports
 
         # Create corpus dir with config file on Sparv server
+        config_path = self.remote_corpus_dir / self.config_file
+        config_contents = yaml.safe_dump(
+            {"metadata": {"id": "corpus-id", "language": self.lang}},
+            sort_keys=False,
+        ).encode()
+
         p = storage.ssh_run(
-            f"mkdir -p {self.remote_corpus_dir_esc} && "
-            f"echo 'metadata:\n  id: corpus-id\n  language: {self.lang}' > "
-            f"{self.remote_corpus_dir_esc + '/' + shlex.quote(self.config_file)}"
+            f"mkdir -p {self.remote_corpus_dir_esc} && cat > {shlex.quote(str(config_path))}",
+            ssh_input=config_contents,
         )
         if p.returncode != 0:
             raise exceptions.ReadError(self.remote_corpus_dir, f"Failed to list exports: {storage.command_error(p)}")

@@ -355,6 +355,111 @@ class AnalysesResponse(models.BaseResponse):
     }
 
 
+class DefaultConfigResponse(models.BaseResponse):
+    """Model for the /demo/corpus/default-config/get response."""
+
+    config: str | dict = Field(description="The default Sparv configuration for demo resources")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.LISTING_CONTENT.message,
+                    "return_code": return_codes.LISTING_CONTENT.code,
+                    "config": (
+                        "import:\n  importer: text_import:parse\nmetadata:\n"
+                        "export:\n  annotations:\n  - <sentence>:misc.id\n  - <text>:lexical_classes.swefn\n  "
+                        "- <text>:misc.id as _id\n  - <text>:misc.source\n  - <text>:readability.lix\n  "
+                        "- <text>:readability.nk\n  - <text>:readability.ovix\n  - <token>:lexical_classes.swefn\n  "
+                        "- <token>:misc.head as _head\n  - <token>:misc.tail as _tail\n  - <token>:saldo.baseform2 as "
+                        "lemma\n  - <token>:saldo.complemgram\n  - <token>:saldo.compwf\n  - <token>:saldo.lemgram as "
+                        "lex\n  - <token>:stanza.dephead_ref as dephead\n  - <token>:stanza.deprel\n  "
+                        "- <token>:stanza.msd\n  - <token>:stanza.pos\n  - <token>:stanza.ref\n  "
+                        "- <token>:stanza.ufeats\n  - <token>:wsd.sense\n"
+                    ),
+                }
+            ]
+        }
+    }
+
+
+class InputResponse(models.BaseResponse):
+    """Model for the /demo/corpus/input/get/{resource_id} response."""
+
+    input_text: str = Field(default="", description="The input text of the corpus resource")
+    config: str = Field(default="", description="The Sparv configuration of the corpus resource")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": "Retrieved content successfully",
+                    "return_code": "retrieved_content",
+                    "input_text": "Detta är en text.",
+                    "config": (
+                        "export:\n  annotations:\n  - <sentence>\n  - <token>:saldo.baseform2 as baseform\n  - "
+                        "<token>:saldo.lemgram\n  - <token>:wsd.sense\n  - <token>:stanza.pos\n  - <token>:stanza.msd\n"
+                        "import:\n  importer: text_import:parse\nmetadata:\n  id: mink-demo-220fee71\n"
+                    ),
+                }
+            ]
+        }
+    }
+
+
+class OutputResponse(models.BaseResponse):
+    """Model for the /demo/corpus/export/get/{resource_id} response."""
+
+    output: str = Field(default="", description="The annotated output from the processed corpus")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": "Retrieved content successfully",
+                    "return_code": "retrieved_content",
+                    "output": (
+                        "<?xml version='1.0' encoding='utf-8'?>\n"
+                        "<sentence>\n"
+                        "  <text>\n"
+                        '    <token baseform="|denna|" lemgram="|denna..pn.1|" msd="PN.NEU.SIN.DEF.SUB+OBJ" '
+                        'pos="PN" sense="|denna..1:-1.000|">Detta</token>\n'
+                        '    <token baseform="|vara|" lemgram="|vara..vb.1|" msd="VB.PRS.AKT" pos="VB" '
+                        'sense="|vara..1:-1.000|">är</token>\n'
+                        '    <token baseform="|en|" lemgram="|en..al.1|" msd="DT.UTR.SIN.IND" pos="DT" '
+                        'sense="|den..1:-1.000|en..2:-1.000|">en</token>\n'
+                        '    <token baseform="|text|" lemgram="|text..nn.1|" msd="NN.UTR.SIN.IND.NOM" '
+                        'pos="NN" sense="|text..1:-1.000|">text</token>\n'
+                        '    <token baseform="|" lemgram="|" msd="MAD" pos="MAD" sense="|">.</token>\n'
+                        "  </text>\n"
+                        "</sentence>\n"
+                    ),
+                }
+            ]
+        }
+    }
+
+
+class RemovedResourcesResponse(models.BaseResponse):
+    """Model for the /demo/corpus/remove-expired response."""
+
+    removed_resources: list[str] = Field(default=[], description="List of removed resource IDs")
+    failed_removals: list[str] = Field(default=[], description="List of resource IDs that failed to be removed")
+    model_config: ClassVar[ConfigDict] = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "success",
+                    "message": return_codes.REMOVED_RESOURCES.message,
+                    "return_code": return_codes.REMOVED_RESOURCES.code,
+                    "removed_resources": ["mink-demo-871eabc3", "mink-demo-845eabgh"],
+                    "failed_removals": ["mink-demo-abc12345"],
+                }
+            ]
+        }
+    }
+
+
 # ------------------------------------------------------------------------------
 # Reusable query parameters
 # ------------------------------------------------------------------------------

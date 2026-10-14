@@ -10,6 +10,7 @@ from mink.core.config import settings
 from mink.core.resource_specs import get_spec
 from mink.core.storage_base import BaseStorage
 from mink.sparv.config import sparv_settings
+from mink.sparv.demo import is_demo_id
 from mink.sparv.spec import CORPUS
 
 if TYPE_CHECKING:
@@ -76,6 +77,8 @@ class SparvStorage(BaseStorage):
         """Get dir for given corpus."""
         if default_dir:
             corpus_dir = Path(sparv_settings.SPARV_DEFAULT_CORPORA_DIR) / resource_id
+        elif is_demo_id(resource_id):
+            corpus_dir = Path(sparv_settings.SPARV_DEMO_CORPORA_DIR) / resource_id
         else:
             corpus_dir = (
                 Path(sparv_settings.SPARV_CORPORA_DIR) / resource_id[len(settings.RESOURCE_PREFIX)] / resource_id

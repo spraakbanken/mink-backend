@@ -5,11 +5,11 @@ info:
 
     The Mink backend is a REST API that powers the [Mink](https://spraakbanken.gu.se/mink) frontend, Språkbanken's data
     platform. It enables users to:
-    
+
     - upload corpus data, process it using Sparv and install it in Korp and Strix
     - upload lexicon data and install it in Karp's search mode
     - manage metadata resources (limited support)
-    
+
     This documentation provides a comprehensive reference for all available API routes.
 
     ## Workflow for corpora
@@ -91,5 +91,7 @@ tags:
     description: Routes for managing lexicon resources with Karp.
   - name: Manage Metadata
     description: Routes for creating, uploading, and downloading metadata resources.
+  - name: Sparv Demo
+    description: Routes for processing short texts with Sparv (demo mode, unauthenticated usage).
   - name: Documentation
     description: Routes used for documentation purposes.

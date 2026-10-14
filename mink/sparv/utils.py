@@ -8,7 +8,9 @@ import yaml
 
 from mink.core import exceptions, return_codes
 from mink.core.config import settings
+from mink.core.info import Info
 from mink.sparv.config import sparv_settings
+from mink.sparv.demo import is_demo_id
 from mink.sparv.storage import storage
 
 
@@ -71,6 +73,7 @@ def standardize_config(config: str | bytes, resource_id: str, custom_config: boo
     Returns:
         A tuple containing the standardized config and the corpus name.
     """
+    is_demo = is_demo_id(resource_id)
     config_yaml = yaml.load(config, Loader=yaml.FullLoader)
 
     # Set correct corpus ID
@@ -80,7 +83,11 @@ def standardize_config(config: str | bytes, resource_id: str, custom_config: boo
         config_yaml["metadata"]["id"] = resource_id
 
     # Get corpus name
-    name = config_yaml.get("metadata", {}).get("name", {})
+    if is_demo:
+        config_yaml.get("metadata", {}).pop("name", None)
+        name = {}
+    else:
+        name = config_yaml.get("metadata", {}).get("name", {})
 
     # Remove the compression setting in order to use the standard one given by the default config
     if config_yaml.get("sparv", {}).get("compression") is not None:
@@ -101,6 +108,12 @@ def standardize_config(config: str | bytes, resource_id: str, custom_config: boo
     # Remove all install and uninstall targets (this is handled in the installation step instead)
     config_yaml.pop("install", None)
     config_yaml.pop("uninstall", None)
+
+    if is_demo:
+        # Remove all Korp and Strix settings for demo resources
+        config_yaml.pop("korp", None)
+        config_yaml.pop("sbx_strix", None)
+        return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 
     # Add Korp settings
     korp = config_yaml.setdefault("korp", {})
@@ -143,6 +156,27 @@ def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, st
         return True, current_ext, None
     existing_ext = Path(existing_files[0].get("name")).suffix
     return current_ext == existing_ext, current_ext, existing_ext
+
+
+def resolve_exports(info_item: Info, exports: list[str] | None) -> list[str]:
+    """Resolve the requested export formats, taking into account demo mode restrictions."""
+    requested = [value.strip() for value in exports or [] if value.strip()]
+
+    if not info_item.resource.demo_mode:
+        return requested or list(sparv_settings.SPARV_DEFAULT_EXPORTS)
+
+    requested = requested or list(sparv_settings.SPARV_DEMO_DEFAULT_EXPORTS)
+    allowed = frozenset(sparv_settings.SPARV_DEMO_ALLOWED_EXPORTS)
+    rejected = sorted(set(requested) - allowed)
+
+    if rejected:
+        raise exceptions.MinkHTTPException(
+            return_code=return_codes.VALIDATION_ERROR,
+            info="One or more exports are not available in demo mode",
+            invalid_exports=rejected,
+        )
+
+    return requested
 
 
 def load_available_analyses() -> list[dict[str, Any]]:

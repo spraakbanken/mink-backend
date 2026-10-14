@@ -141,6 +141,51 @@ class SparvSettings(BaseSettings):
         ]
     )
 
+    # -----------------------------------------
+    # Sparv demo mode settings
+    # -----------------------------------------
+
+    # Dir for running demo corpora, e.g. "/home/user/mink-data/corpus/demo"
+    SPARV_DEMO_CORPORA_DIR: str = ""
+
+    # Default config file path for demo corpora. If overridden in .env the path becomes relative to the instance dir,
+    # unless an absolute path is given. Make sure the file contains a valid Sparv config.
+    SPARV_DEMO_DEFAULT_CONFIG: str = str(Path(__file__).resolve().parent / "data" / "default_demo_config.yaml")
+
+    # Filename for the input text file in demo corpora to be created as input for Sparv
+    SPARV_DEMO_INPUT_FILENAME: str = "input.txt"
+
+    # Default demo export formats to create
+    SPARV_DEMO_DEFAULT_EXPORTS: list[str] = Field(
+        default_factory=lambda: [
+            "xml_export:pretty",
+        ]
+    )
+
+    # Default demo export file to be returned by `/demo/corpus/export/get/`. Must be one of the default demo exports.
+    SPARV_DEMO_DEFAULT_EXPORT_FILE: str = f"xml_export.pretty/{Path(SPARV_DEMO_INPUT_FILENAME).stem}_export.xml"
+
+    SPARV_DEMO_ALLOWED_EXPORTS: list[str] = Field(
+        default_factory=lambda: [
+            "xml_export:pretty",
+            "text_export:plain_text",
+            "csv_export:csv",
+            "stats_export:freq_list",
+        ]
+    )
+
+    SPARV_DEMO_ALLOWED_EXPORT_PATHS: list[str] = Field(
+        default_factory=lambda: [
+            "xml_export.pretty",
+            "csv_export",
+            "text_export",
+            "stats_export.frequency_list",
+        ]
+    )
+
+    # How long a demo resource is kept before it expires (in hours)
+    SPARV_DEMO_RESOURCE_LIFETIME: int = 24 * 7
+
     model_config = SettingsConfigDict(
         env_file=".env",  # Load variables from a .env file if it exists
         env_file_encoding="utf-8",
