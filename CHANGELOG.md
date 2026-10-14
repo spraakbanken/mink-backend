@@ -10,12 +10,17 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added functionality for installing to and uninstalling from Karp's edit mode. New routes:
   `/lexicon/karpred/install/{resource_id}` and `/lexicon/karpred/uninstall/{resource_id}`.
 
-### Fixed
+## [3.1.1] - 2026-10-14
 
-- Fixed a caching bug that caused the `language` parameter in the `/corpus/sparv/list-exports` route to have no effect.
+### Added
+
 - Added `enabled_by_default` field to the `/corpus/sparv/list-exports` response which indicates whether an export is
   enabled by default in Sparv. This is determined by checking if the export is listed in the `SPARV_DEFAULT_EXPORTS`
   config variable.
+
+### Fixed
+
+- Fixed a caching bug that caused the `language` parameter in the `/corpus/sparv/list-exports` route to have no effect.
 
 ## [3.1.0] - 2026-10-13
 
@@ -293,7 +298,8 @@ This is the first release of the Mink backend! This application contains functio
 corpus-related files, processing corpora with [Sparv](https://spraakbanken.gu.se/sparv/) and installing them in
 [Korp](https://spraakbanken.gu.se/korp) and [Strix](https://spraakbanken.gu.se/strix).
 
-[unreleased]: https://github.com/spraakbanken/mink-backend/compare/v3.1.0...dev/
+[unreleased]: https://github.com/spraakbanken/mink-backend/compare/v3.1.1...dev/
+[3.1.1]: https://github.com/spraakbanken/mink-backend/releases/tag/v3.1.1
 [3.1.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v3.1.0
 [3.0.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v3.0.0
 [2.2.0]: https://github.com/spraakbanken/mink-backend/releases/tag/v2.2.0
