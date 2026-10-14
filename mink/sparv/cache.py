@@ -17,9 +17,9 @@ def _key_sparv_languages() -> str:
     return cache_namespace("sparv_languages")
 
 
-def _key_sparv_exports() -> str:
-    """Return the cache key for the Sparv exports."""
-    return cache_namespace("sparv_exports")
+def _key_sparv_exports(language: str) -> str:
+    """Return the cache key for the Sparv exports for a language."""
+    return cache_namespace(f"sparv_exports:{language}")
 
 
 def _key_sparv_analyses() -> str:
@@ -59,16 +59,16 @@ def get_sparv_languages() -> list | None:
         return client.get(_key_sparv_languages())
 
 
-def set_sparv_exports(exports: list) -> None:
-    """Store Sparv exports in cache."""
+def set_sparv_exports(language: str, exports: list) -> None:
+    """Store Sparv exports for a language in cache."""
     with cache.get_client() as client:
-        client.set(_key_sparv_exports(), exports, expire=sparv_settings.SPARV_CACHE_LIFETIME)
+        client.set(_key_sparv_exports(language), exports, expire=sparv_settings.SPARV_CACHE_LIFETIME)
 
 
-def get_sparv_exports() -> list | None:
-    """Return cached Sparv exports as a list, or None if not found."""
+def get_sparv_exports(language: str) -> list | None:
+    """Return cached Sparv exports for a language, or None if not found."""
     with cache.get_client() as client:
-        return client.get(_key_sparv_exports())
+        return client.get(_key_sparv_exports(language))
 
 
 def set_sparv_analyses(analyses: list) -> None:
