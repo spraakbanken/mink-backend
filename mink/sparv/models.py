@@ -130,26 +130,31 @@ class ExportsResponse(models.BaseResponse):
                     "exports": [
                         {
                             "export": "conll_export:conllu",
+                            "enabled_by_default": True,
                             "description": "CoNLL-U (SBX version) export",
                             "export_files": ["conll_export/{file}.conllu"],
                         },
                         {
                             "export": "csv_export:csv",
+                            "enabled_by_default": True,
                             "description": "CSV export",
                             "export_files": ["csv_export/{file}.csv"],
                         },
                         {
                             "export": "stats_export:freq_list",
+                            "enabled_by_default": False,
                             "description": "Corpus word frequency list",
                             "export_files": ["stats_export.frequency_list/stats_standard-swe.csv"],
                         },
                         {
                             "export": "xml_export:pretty",
+                            "enabled_by_default": True,
                             "description": "XML export with one token element per line",
                             "export_files": ["xml_export.pretty/{file}_export.xml"],
                         },
                         {
                             "export": "xml_export:scrambled",
+                            "enabled_by_default": False,
                             "description": "Scrambled XML export",
                             "export_files": ["xml_export.scrambled/{file}_export.xml"],
                         },

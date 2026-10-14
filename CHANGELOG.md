@@ -8,6 +8,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Fixed a caching bug that caused the `language` parameter in the `/corpus/sparv/list-exports` route to have no effect.
+- Added `enabled_by_default` field to the `/corpus/sparv/list-exports` response which indicates whether an export is
+  enabled by default in Sparv. This is determined by checking if the export is listed in the `SPARV_DEFAULT_EXPORTS`
+  config variable.
 
 ## [3.1.0] - 2026-10-13
 

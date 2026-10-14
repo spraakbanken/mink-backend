@@ -816,13 +816,19 @@ class SparvDefaultJob:
         except json.JSONDecodeError as e:
             raise exceptions.JobError("Failed to parse Sparv output as JSON") from e
         exports = []
+        default_exports = sparv_settings.SPARV_DEFAULT_EXPORTS
         for exporter, exporter_data in json_data["exporters"].items():
             # Skip exporers blacklisted exporters
             if any(re.match(pattern, exporter) for pattern in sparv_settings.SPARV_EXPORT_BLACKLIST):
                 continue
             for function, function_data in exporter_data["functions"].items():
                 functions_info = {}
-                functions_info["export"] = f"{exporter}:{function}"
+                export = f"{exporter}:{function}"
+                functions_info["export"] = export
+                if export in default_exports:
+                    functions_info["enabled_by_default"] = True
+                else:
+                    functions_info["enabled_by_default"] = False
                 functions_info["description"] = function_data["description"]
                 export_files = [i.removeprefix("export/") for i in function_data.get("exports", [])]
                 functions_info["export_files"] = export_files
