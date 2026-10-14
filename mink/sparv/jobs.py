@@ -787,7 +787,7 @@ class SparvDefaultJob:
         """List the available exports for the current language."""
         if not update_cache:
             # Get from cache if available
-            cached_exports = cache.get_sparv_exports()
+            cached_exports = cache.get_sparv_exports(self.lang)
             if cached_exports:
                 return cached_exports
 
@@ -828,6 +828,6 @@ class SparvDefaultJob:
                 functions_info["export_files"] = export_files
                 exports.append(functions_info)
 
-        cache.set_sparv_exports(exports)
+        cache.set_sparv_exports(self.lang, exports)
 
         return exports

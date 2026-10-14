@@ -3,6 +3,12 @@
 All notable API changes will be documented in this file. The format is based on [Keep a
 Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [unreleased]
+
+### Fixed
+
+- Fixed a caching bug that caused the `language` parameter in the `/corpus/sparv/list-exports` route to have no effect.
+
 ## [3.1.0] - 2026-10-13
 
 ### Changed
