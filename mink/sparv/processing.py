@@ -42,6 +42,8 @@ def run_sparv(info_item: Info, exports: list[str] | None = None, files: list[str
     exports = sparv_utils.resolve_exports(info_item, exports)
 
     # Parse list of files to be processed
+    if files is not None and isinstance(files, list) and len(files) == 1:
+        files = files[0].split(",")
     if files is None:
         files = []
     files = [i.strip() for i in files if i]

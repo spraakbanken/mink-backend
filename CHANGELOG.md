@@ -16,7 +16,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- Fixed a bug in `/corpus/job/run/{resource_id}` where comma-separated export strings were not parsed correctly.
+- Fixed a bug where comma-separated values in query parameters were not parsed correctly.
 
 ## [3.1.1] - 2026-10-14
 

@@ -514,18 +514,18 @@ async def list_sources(auth_data: dict = Depends(AUTH_CORPUS)) -> JSONResponse:
     },
 )
 async def remove_sources(
-    remove: list[str] = Query(..., description="Files to remove, comma-separated"),
+    remove: list[str] = Query(..., description="Files to remove, relative to the source directory"),
     auth_data: dict = Depends(AUTH_CORPUS_WRITE),
 ) -> JSONResponse:
     """Remove the source files given in the `remove` parameter from the corpus.
 
-    Files are provided as a comma-separated list of paths relative to the source directory. If any files could not be
-    removed they will be listed in the error response.
+    Files are provided as paths relative to the source directory, e.g. `remove=file1.xml&remove=file2.xml`. If any files
+    could not be removed they will be listed in the error response.
 
     ### Example
 
     ```bash
-    curl -X DELETE '{{host}}/corpus/sources/remove/<resource_id>?remove=file1,file2' \
+    curl -X DELETE '{{host}}/corpus/sources/remove/<resource_id>?remove=file1&remove=file2' \
 -H 'Authorization: Bearer YOUR_JWT'
     ```
     """
@@ -538,6 +538,11 @@ async def remove_sources(
     resource_id = auth_data["resource_id"]
     successes = []
     fails = []
+
+    # Parse comma-separated remove string into a list
+    if remove is not None and isinstance(remove, list) and len(remove) == 1:
+        remove = remove[0].split(",")
+
     for rf in remove:
         storage_path = storage.get_source_dir(resource_id) / rf
         try:
