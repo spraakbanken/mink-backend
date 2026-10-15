@@ -14,6 +14,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added functionality for installing to and uninstalling from Karp's edit mode. New routes:
   `/lexicon/karpred/install/{resource_id}` and `/lexicon/karpred/uninstall/{resource_id}`.
 
+### Fixed
+
+- Fixed a bug in `/corpus/job/run/{resource_id}` where comma-separated export strings were not parsed correctly.
+
 ## [3.1.1] - 2026-10-14
 
 ### Added

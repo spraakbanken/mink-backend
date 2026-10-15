@@ -160,6 +160,10 @@ def file_ext_compatible(filename: Path, source_dir: Path) -> tuple[bool, str, st
 
 def resolve_exports(info_item: Info, exports: list[str] | None) -> list[str]:
     """Resolve the requested export formats, taking into account demo mode restrictions."""
+    # Parse comma-separated export string into a list
+    if exports is not None and isinstance(exports, list) and len(exports) == 1:
+        exports = exports[0].split(",")
+
     requested = [value.strip() for value in exports or [] if value.strip()]
 
     if not info_item.resource.demo_mode:
