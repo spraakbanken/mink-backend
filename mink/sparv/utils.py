@@ -109,6 +109,20 @@ def standardize_config(config: str | bytes, resource_id: str, custom_config: boo
     config_yaml.pop("install", None)
     config_yaml.pop("uninstall", None)
 
+    export = config_yaml.setdefault("export", {})
+
+    # Add SPARV_AUTO_ANNOTATIONS, unless a custom config was uploaded
+    if not custom_config:
+        export.setdefault("annotations", [])
+        for annotation in sparv_settings.SPARV_AUTO_ANNOTATIONS:
+            if annotation not in export["annotations"]:
+                export["annotations"].append(annotation)
+
+    # When in demo mode or when no custom config is uploaded, add a default '<token>' annotation if none is present
+    if is_demo or not custom_config:  # ruff: ignore[collapsible-if]
+        if not any(annotation.startswith("<token>") for annotation in export["annotations"]):
+            export["annotations"].append("<token>")
+
     if is_demo:
         # Remove all Korp and Strix settings for demo resources
         config_yaml.pop("korp", None)
@@ -125,17 +139,9 @@ def standardize_config(config: str | bytes, resource_id: str, custom_config: boo
     strix = config_yaml.setdefault("sbx_strix", {})
     strix["modes"] = [{"name": "mink"}]
     # Add '<text>:misc.id as _id' to annotations for Strix' sake
-    export = config_yaml.setdefault("export", {})
     export.setdefault("annotations", [])
     if "<text>:misc.id as _id" not in export["annotations"]:
         export["annotations"].append("<text>:misc.id as _id")
-
-    # Add SPARV_AUTO_ANNOTATIONS, unless a custom config was uploaded
-    if not custom_config:
-        export.setdefault("annotations", [])
-        for annotation in sparv_settings.SPARV_AUTO_ANNOTATIONS:
-            if annotation not in export["annotations"]:
-                export["annotations"].append(annotation)
 
     return yaml.dump(config_yaml, sort_keys=False, allow_unicode=True), name
 

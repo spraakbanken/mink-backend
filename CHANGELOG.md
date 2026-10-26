@@ -17,6 +17,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Fixed a bug where comma-separated values in query parameters were not parsed correctly.
+- Add a default `<token>` annotation to the Sparv config if no token annotation is present, unless a custom config is
+  uploaded. This avoids some Sparv errors.
 
 ## [3.1.1] - 2026-10-14
 
