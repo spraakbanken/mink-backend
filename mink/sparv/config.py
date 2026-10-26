@@ -126,6 +126,7 @@ class SparvSettings(BaseSettings):
             "hunpus.model",
             "segment.tokenizer_config",
             "import.source_dir",
+            "swener.binary",
         ]
     )
 
