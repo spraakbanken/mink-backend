@@ -9,6 +9,7 @@ from pathlib import Path
 import shortuuid
 import yaml
 from asgi_matomo import MatomoMiddleware
+from asgi_matomo.background import BackgroundTaskMiddleware
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -189,6 +190,7 @@ if settings.TRACKING_MATOMO_URL and settings.TRACKING_MATOMO_IDSITE:
         exclude_paths=[settings.ROOT_PATH + "/queue/advance", settings.ROOT_PATH + "/queue/health"],
         ignored_methods=["OPTIONS"],
     )
+    app.add_middleware(BackgroundTaskMiddleware)
 elif settings.ENV not in {"testing", "development"}:
     logger.warning("Tracking to Matomo disabled, please set TRACKING_MATOMO_URL and TRACKING_MATOMO_IDSITE.")
 

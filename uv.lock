@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.12' and sys_platform == 'emscripten'",
@@ -7,7 +7,8 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-09-18T00:00:00Z"
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer-span = "P4D"
 
 [[package]]
 name = "annotated-doc"
@@ -53,17 +54,44 @@ wheels = [
 ]
 
 [[package]]
+name = "asgi-background"
+version = "0.2.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "asgi-lifespan-middleware" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4f/a6/972a433cf7329307e23db2b5f5b6b7ae82a18152e0e83de5fd56857bc240/asgi_background-0.2.2.tar.gz", hash = "sha256:5046aa0c54690ac980bfe8049b9d3288b352c29d35720397f83be7e825c0f598", size = 4918, upload-time = "2022-10-27T03:17:31.714Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/c8/302c68d5b00a15eaa6599634d742df392a834af3337c62d0cb0f7440adb2/asgi_background-0.2.2-py3-none-any.whl", hash = "sha256:3d928d74b313fd45ddeeb77272fd7f6edb239cbeee5d0359c4684dca4990ca23", size = 5279, upload-time = "2022-10-27T03:17:30.207Z" },
+]
+
+[[package]]
+name = "asgi-lifespan-middleware"
+version = "0.1.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/14/e413ef0ed1878a6c84296dd9103653eb9a838a6196acb98d21ec52b059ce/asgi_lifespan_middleware-0.1.3.tar.gz", hash = "sha256:88adb5932e90e47f8a1ac075ce974c39e39def90b99edb43801732102ae5d132", size = 4672, upload-time = "2022-10-27T03:16:28.497Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/65/0c/8776c4453a002bf9476c5aafac520c14c5046288190ff34b58f68857138c/asgi_lifespan_middleware-0.1.3-py3-none-any.whl", hash = "sha256:c36734c0bc33f416621ed050c092391b89f0c312b462976d7536e2be941d780d", size = 5033, upload-time = "2022-10-27T03:16:26.905Z" },
+]
+
+[[package]]
 name = "asgi-matomo"
-version = "0.8.0"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "httpx2", extra = ["http2"] },
     { name = "matomo-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b3/f3/1c5375ed932c5e92bce37f4c1b5276c8e1947c2c74c3c51351c0efd3ac3d/asgi_matomo-0.8.0.tar.gz", hash = "sha256:269c3074e4314eb85bfe356d394cf48cef7f95842813d38af26cdf939d9c50bf", size = 8171, upload-time = "2026-09-17T12:05:36.433Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/70/a31233cfc8dedf01389ffdd611e57da09c493f67cd82f3f4dc8eb0ea1469/asgi_matomo-0.9.0.tar.gz", hash = "sha256:2bb2675f2f611e8874127dc6f8c30d553a6b0b7774643a8bb15a23c5777f4c75", size = 8199, upload-time = "2026-11-05T13:43:35.338Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/17/47f8c4c29b164506e71c3877f2760e669c2e18d67344c9b6f73cd9eaf8d5/asgi_matomo-0.8.0-py3-none-any.whl", hash = "sha256:6c68d7a3b665a7d997e391d350a65e818d7c98d6841ead5c93d71678200f3997", size = 9206, upload-time = "2026-09-17T12:05:35.159Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/e9/fbb053dd7cedc982d76924009bced2d7340b48eaaca3978c68cf0b2eed7f/asgi_matomo-0.9.0-py3-none-any.whl", hash = "sha256:6b7cffcc733692a0439ae5530770dd0e910807b0942e63653ee1211a9f63b336", size = 9245, upload-time = "2026-11-05T13:43:33.882Z" },
+]
+
+[package.optional-dependencies]
+background = [
+    { name = "asgi-background" },
 ]
 
 [[package]]
@@ -437,8 +465,8 @@ name = "httpcore2"
 version = "2.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "h11", marker = "python_full_version < '3.12' or sys_platform != 'emscripten'" },
-    { name = "truststore", marker = "python_full_version < '3.12' or sys_platform != 'emscripten'" },
+    { name = "h11" },
+    { name = "truststore" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/be/ad/f4f0e57345f1870f3e8cb624e058d7eca6e5a27d33bcc3311d9b618734cd/httpcore2-2.12.0.tar.gz", hash = "sha256:9293522bba0aa7c4c8e9e3f040c16575bd8868e155a77fa30c7a9085a5eae648", size = 67548, upload-time = "2026-08-18T13:22:08.211Z" }
 wheels = [
@@ -689,7 +717,7 @@ version = "3.2.0.dev0"
 source = { virtual = "." }
 dependencies = [
     { name = "apscheduler" },
-    { name = "asgi-matomo" },
+    { name = "asgi-matomo", extra = ["background"] },
     { name = "fastapi" },
     { name = "httpx2" },
     { name = "mkdocs-macros-plugin" },
@@ -724,7 +752,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "apscheduler", specifier = "==3.11.3" },
-    { name = "asgi-matomo", specifier = "==0.8.0" },
+    { name = "asgi-matomo", extras = ["background"], specifier = "==0.9.0" },
     { name = "fastapi", specifier = "==0.141.1" },
     { name = "gunicorn", marker = "extra == 'server'", specifier = ">=26.2.0" },
     { name = "httpx2", specifier = ">=2.12.0" },
