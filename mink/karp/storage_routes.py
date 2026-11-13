@@ -189,9 +189,9 @@ async def remove_lexicon(auth_data: dict = Depends(AUTH_ADMIN)) -> JSONResponse:
             error_msg.append(f"Failed to remove resource from Karp's search mode: {e}")
 
     # Uninstall lexicon from Karp's edit mode
-    if job.installed_karp_red:
+    if job.installed_karpred:
         try:
-            job.uninstall_karp_red()
+            job.uninstall_karpred()
         except Exception as e:
             removed_karpred = False
             error_msg.append(f"Failed to remove resource from Karp's edit mode: {e}")

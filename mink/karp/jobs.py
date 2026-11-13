@@ -26,7 +26,7 @@ class KarpJob(BaseJob):
         current_process: str | None = None,
         pid: int | None = None,
         installed_karps: bool = False,
-        installed_karp_red: bool = False,
+        installed_karpred: bool = False,
         priority: int | str = "",
         warnings: str = "",
         errors: str = "",
@@ -44,10 +44,10 @@ class KarpJob(BaseJob):
             id: Job ID.
             processes: List of process names to include in the status.
             status: Job status dictionary.
-            current_process: Current process (e.g. 'karp_pipeline', 'karps', 'karp_red').
+            current_process: Current process (e.g. 'karp_pipeline', 'karps', 'karpred').
             pid: Process ID in the Karp server.
             installed_karps: Whether resource is installed in Karp's search mode.
-            installed_karp_red: Whether Karp-red is installed.
+            installed_karpred: Whether Karp-red is installed.
             priority: Number in queue.
             warnings: Latest Karp warnings.
             errors: Latest Karp errors.
@@ -82,7 +82,7 @@ class KarpJob(BaseJob):
             duration=duration,
         )
         self.installed_karps = installed_karps
-        self.installed_karp_red = installed_karp_red
+        self.installed_karpred = installed_karpred
         self.output = output
 
         self.karp_user = karp_settings.KARP_USER
@@ -103,7 +103,7 @@ class KarpJob(BaseJob):
             "current_process": self.current_process,
             "pid": self.pid,
             "installed_karps": self.installed_karps,
-            "installed_karp_red": self.installed_karp_red,
+            "installed_karpred": self.installed_karpred,
             "priority": self.priority,
             "warnings": self.warnings,
             "errors": self.errors,
@@ -281,7 +281,7 @@ class KarpJob(BaseJob):
 
         return warnings, output
 
-    def install_karp_red(self) -> None:
+    def install_karpred(self) -> None:
         """Install a lexicon in Karp's edit mode.
 
         Raises:
@@ -301,7 +301,7 @@ class KarpJob(BaseJob):
         if p.returncode != 0:
             stderr = p.stderr.decode() if p.stderr else ""
             self.reset_time()
-            self.set_status(Status.error, ProcessName.karp_red)
+            self.set_status(Status.error, ProcessName.karpred)
             raise exceptions.JobError(f"Failed to install resource in Karp's edit mode: {stderr}")
 
         # Get pid from process and store job info
@@ -310,10 +310,10 @@ class KarpJob(BaseJob):
             self.set_attribute("pid", int(p.stdout.decode()))
         except ValueError:
             pass
-        self.set_status(Status.running, ProcessName.karp_red)
-        # Set 'installed_karp_red' flag to True when setting job status to 'done' (in process_running)
+        self.set_status(Status.running, ProcessName.karpred)
+        # Set 'installed_karpred' flag to True when setting job status to 'done' (in process_running)
 
-    def uninstall_karp_red(self) -> tuple[str, str]:
+    def uninstall_karpred(self) -> tuple[str, str]:
         """Uninstall resource from Karp's edit mode.
 
         Raises:
@@ -335,7 +335,7 @@ class KarpJob(BaseJob):
             logger.error("Failed to uninstall resource %s from Karp's edit mode: %s", self.id, stderr)
             raise exceptions.JobError(f"Failed to uninstall resource from Karp's edit mode: {stderr}")
 
-        self.set_attribute("installed_karp_red", False)
+        self.set_attribute("installed_karpred", False)
 
         # Get output from uninstall command
         parsed_output = self.parse_jsonl_output(p.stdout.decode() if p.stdout else "")
@@ -408,9 +408,9 @@ class KarpJob(BaseJob):
                 # Set 'installed_karps' to True if current process is 'karps'
                 if self.current_process == ProcessName.karps:
                     self.installed_karps = True
-                # Set 'installed_karp_red' to True if current process is 'karp_red'
-                elif self.current_process == ProcessName.karp_red:
-                    self.installed_karp_red = True
+                # Set 'installed_karpred' to True if current process is 'karpred'
+                elif self.current_process == ProcessName.karpred:
+                    self.installed_karpred = True
                 self.set_status(Status.done)
         else:
             if errors:

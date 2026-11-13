@@ -160,7 +160,7 @@ def test_processing_lexicons(lexicon_processed: str) -> None:
         ("PUT", f"/lexicon/job/run/{lexicon_processed}", "karp_pipeline"),  # Needs to run again after output removal
         ("PUT", f"/lexicon/karps/install/{lexicon_processed}", "karps"),
         ("DELETE", f"/lexicon/karps/uninstall/{lexicon_processed}", None),
-        ("PUT", f"/lexicon/karpred/install/{lexicon_processed}", "karp_red"),
+        ("PUT", f"/lexicon/karpred/install/{lexicon_processed}", "karpred"),
         ("DELETE", f"/lexicon/karpred/uninstall/{lexicon_processed}", None),
     ]
     for method, path, process_name in routes:

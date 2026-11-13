@@ -21,8 +21,8 @@ class KarpSettings(BaseSettings):
     KARP_RUN: str = "run --json-output"  # Karp's 'run' command
     KARP_INSTALL_KARPS: str = "install karps --json-output"  # Karp's 'install karps' command
     KARP_UNINSTALL_KARPS: str = "uninstall karps --json-output"  # Karp's 'uninstall karps' command
-    KARP_INSTALL_KARPRED: str = "install karp_red --json-output"  # Karp's 'install karps' command
-    KARP_UNINSTALL_KARPRED: str = "uninstall karp_red --json-output"  # Karp's 'uninstall karps' command
+    KARP_INSTALL_KARPRED: str = "install karp_red --json-output"  # Karp's 'install karp_red' command
+    KARP_UNINSTALL_KARPRED: str = "uninstall karp_red --json-output"  # Karp's 'uninstall karp_red' command
 
     # Karp data dirs and file naming
     KARP_SOURCE_DIR: str = "source"  # Dir for storing source files

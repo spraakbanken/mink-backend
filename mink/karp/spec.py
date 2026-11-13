@@ -16,7 +16,7 @@ class ProcessName(StrEnum):
 
     karp_pipeline = auto()
     karps = auto()
-    karp_red = auto()
+    karpred = auto()
 
 
 def register() -> None:
@@ -46,8 +46,8 @@ def register() -> None:
     def install_karps(job: Any) -> None:
         cast(KarpJob, job).install_karps()
 
-    def install_karp_red(job: Any) -> None:
-        cast(KarpJob, job).install_karp_red()
+    def install_karpred(job: Any) -> None:
+        cast(KarpJob, job).install_karpred()
 
     register_spec(
         LEXICON,
@@ -63,7 +63,7 @@ def register() -> None:
             queue_handlers={
                 ProcessName.karp_pipeline.name: run_karp_pipeline,
                 ProcessName.karps.name: install_karps,
-                ProcessName.karp_red.name: install_karp_red,
+                ProcessName.karpred.name: install_karpred,
             },
             sync_processes=(),
             no_output_processes=(),

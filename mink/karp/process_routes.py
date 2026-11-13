@@ -429,7 +429,7 @@ async def install_karpred(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSON
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_QUEUING, info=str(e)) from e
 
-    job.set_status(Status.waiting, ProcessName.karp_red)
+    job.set_status(Status.waiting, ProcessName.karpred)
 
     # Wait a few seconds to check whether anything terminated early
     time.sleep(2)
@@ -501,7 +501,7 @@ async def uninstall_karpred(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JS
 
     try:
         job = _require_job(job)
-        warnings, output = job.uninstall_karp_red()
+        warnings, output = job.uninstall_karpred()
         return utils.response(
             return_code=return_codes.UNINSTALLED,
             info="Uninstalled from Karp's edit mode",

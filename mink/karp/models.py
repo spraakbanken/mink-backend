@@ -45,11 +45,11 @@ lexicon_model_example = {
 
 
 job_model_example = {
-    "status": {"karp_pipeline": "waiting", "karps": "none", "karp_red": "none"},
+    "status": {"karp_pipeline": "waiting", "karps": "none", "karpred": "none"},
     "current_process": "karp_pipeline",
     "pid": None,
     "installed_karps": False,
-    "installed_karp_red": False,
+    "installed_karpred": False,
     "priority": 1,
     "warnings": "",
     "errors": "",
