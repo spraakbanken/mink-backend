@@ -87,7 +87,9 @@ def test_get_demo_corpus_output(demo_corpus_processed: str) -> None:
     assert json_data.get("return_code") == return_codes.RETRIEVED_CONTENT.code, (
         f"Getting demo corpus output failed: {json_data}"
     )
-    assert json_data.get("output"), "Output should not be empty"
+    outputs = json_data.get("outputs", {})
+    assert outputs.get("xml"), "XML output should not be empty"
+    assert outputs.get("csv"), "CSV output should not be empty"
 
 
 @pytest.mark.demo_corpus

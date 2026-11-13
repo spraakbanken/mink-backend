@@ -410,7 +410,7 @@ class InputResponse(models.BaseResponse):
 class OutputResponse(models.BaseResponse):
     """Model for the /demo/corpus/export/get/{resource_id} response."""
 
-    output: str = Field(default="", description="The annotated output from the processed corpus")
+    outputs: dict[str, str] = Field(description="Named annotated outputs from the processed corpus")
     model_config: ClassVar[ConfigDict] = {
         "json_schema_extra": {
             "examples": [
@@ -418,22 +418,37 @@ class OutputResponse(models.BaseResponse):
                     "status": "success",
                     "message": "Retrieved content successfully",
                     "return_code": "retrieved_content",
-                    "output": (
-                        "<?xml version='1.0' encoding='utf-8'?>\n"
-                        "<sentence>\n"
-                        "  <text>\n"
-                        '    <token baseform="|denna|" lemgram="|denna..pn.1|" msd="PN.NEU.SIN.DEF.SUB+OBJ" '
-                        'pos="PN" sense="|denna..1:-1.000|">Detta</token>\n'
-                        '    <token baseform="|vara|" lemgram="|vara..vb.1|" msd="VB.PRS.AKT" pos="VB" '
-                        'sense="|vara..1:-1.000|">är</token>\n'
-                        '    <token baseform="|en|" lemgram="|en..al.1|" msd="DT.UTR.SIN.IND" pos="DT" '
-                        'sense="|den..1:-1.000|en..2:-1.000|">en</token>\n'
-                        '    <token baseform="|text|" lemgram="|text..nn.1|" msd="NN.UTR.SIN.IND.NOM" '
-                        'pos="NN" sense="|text..1:-1.000|">text</token>\n'
-                        '    <token baseform="|" lemgram="|" msd="MAD" pos="MAD" sense="|">.</token>\n'
-                        "  </text>\n"
-                        "</sentence>\n"
-                    ),
+                    "outputs": {
+                        "xml": (
+                            "<?xml version='1.0' encoding='utf-8'?>\n"
+                            "<sentence>\n"
+                            "  <text>\n"
+                            '    <token baseform="|denna|" lemgram="|denna..pn.1|" msd="PN.NEU.SIN.DEF.SUB+OBJ" '
+                            'pos="PN" sense="|denna..1:-1.000|">Detta</token>\n'
+                            '    <token baseform="|vara|" lemgram="|vara..vb.1|" msd="VB.PRS.AKT" pos="VB" '
+                            'sense="|vara..1:-1.000|">är</token>\n'
+                            '    <token baseform="|en|" lemgram="|en..al.1|" msd="DT.UTR.SIN.IND" pos="DT" '
+                            'sense="|den..1:-1.000|en..2:-1.000|">en</token>\n'
+                            '    <token baseform="|text|" lemgram="|text..nn.1|" msd="NN.UTR.SIN.IND.NOM" '
+                            'pos="NN" sense="|text..1:-1.000|">text</token>\n'
+                            '    <token baseform="|" lemgram="|" msd="MAD" pos="MAD" sense="|">.</token>\n'
+                            "  </text>\n"
+                            "</sentence>\n"
+                        ),
+                        "csv": (
+                            "token\tswefn\t_head\t_tail\tlemma\tcomplemgram\tcompwf\tlex\tdephead\tdeprel\tmsd\tpos"
+                            "\tref\tufeats\tsense\n# sentence.id = 83\n# text.swefn = |Text:124.044|Existence:9.877|\n"
+                            "# text._id = 81\n# text.source = input\n# text.lix = 4.00\n# text.nk = 0.50\n# text.ovix ="
+                            " inf\nDetta\t|\t\t\\s\t|denna|\t|\t|\t|denna..pn.1|\t2\tSS\tPN.NEU.SIN.DEF.SUB+OBJ\tPN\t"
+                            "1\t|Case=Acc,Nom|Definite=Def|Gender=Neut|Number=Sing|\t|denna..1:-1.000|\när\t|Existence"
+                            "|\t\t\\s\t|vara|\t|\t|\t|vara..vb.1|\t\tROOT\tVB.PRS.AKT\tVB\t2\t|Mood=Ind|Tense=Pres|"
+                            "VerbForm=Fin|Voice=Act|\t|vara..1:-1.000|\nen\t|\t\t\\s\t|en|\t|\t|\t|en..al.1|\t4\tDT\t"
+                            "DT.UTR.SIN.IND\tDT\t3\t|Definite=Ind|Gender=Com|Number=Sing|\t|den..1:-1.000|en..2:-1.000"
+                            "|\ntext\t|Text|\t\t\t|text|\t|\t|\t|text..nn.1|\t2\tSP\tNN.UTR.SIN.IND.NOM\tNN\t4\t|"
+                            "Case=Nom|Definite=Ind|Gender=Com|Number=Sing|\t|text..1:-1.000|\n.\t|\t\t\t|\t|\t|\t|\t2"
+                            '\tIP\tMAD\tMAD\t5\t|\t|\n"'
+                        ),
+                    },
                 }
             ]
         }

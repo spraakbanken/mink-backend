@@ -160,11 +160,18 @@ class SparvSettings(BaseSettings):
     SPARV_DEMO_DEFAULT_EXPORTS: list[str] = Field(
         default_factory=lambda: [
             "xml_export:pretty",
+            "csv_export:csv",
         ]
     )
 
-    # Default demo export file to be returned by `/demo/corpus/export/get/`. Must be one of the default demo exports.
-    SPARV_DEMO_DEFAULT_EXPORT_FILE: str = f"xml_export.pretty/{Path(SPARV_DEMO_INPUT_FILENAME).stem}_export.xml"
+    # Named files returned by `/demo/corpus/export/get/`, relative to the export directory.
+    # Must be included in the default demo exports.
+    SPARV_DEMO_OUTPUT_FILES: dict[str, str] = Field(
+        default_factory=lambda data: {
+            "xml": f"xml_export.pretty/{Path(data['SPARV_DEMO_INPUT_FILENAME']).stem}_export.xml",
+            "csv": f"csv_export/{Path(data['SPARV_DEMO_INPUT_FILENAME']).stem}.csv",
+        }
+    )
 
     SPARV_DEMO_ALLOWED_EXPORTS: list[str] = Field(
         default_factory=lambda: [

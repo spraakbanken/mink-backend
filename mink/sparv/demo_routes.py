@@ -279,22 +279,30 @@ async def get_demo_corpus_output(resource_id: str) -> JSONResponse:
     # Make sure the resource exists and is a demo resource, and update its last_accessed timestamp
     _info_item = demo.get_demo_resource_by_id(resource_id)
 
-    output = ""
     try:
         export_dir = storage.get_export_dir(resource_id)
-        export_contents = storage.list_contents(export_dir)
-        assert any(item["path"] == sparv_settings.SPARV_DEMO_DEFAULT_EXPORT_FILE for item in export_contents)
-        xml_file_path = export_dir / sparv_settings.SPARV_DEMO_DEFAULT_EXPORT_FILE
-        output = storage.get_file_contents(xml_file_path)
+        export_paths = {item["path"] for item in storage.list_contents(export_dir)}
     except Exception as e:
         logger.exception(f"Failed to retrieve output for resource {resource_id}: {e}")
-
-    if not output:
         raise exceptions.MinkHTTPException(
             return_code=return_codes.FAILED_RETRIEVING_CONTENT, info="Failed to retrieve output"
-        )
+        ) from e
 
-    return utils.response(return_code=return_codes.RETRIEVED_CONTENT, output=output)
+    outputs = {}
+    for name, path in sparv_settings.SPARV_DEMO_OUTPUT_FILES.items():
+        if path not in export_paths:
+            raise exceptions.MinkHTTPException(
+                return_code=return_codes.FAILED_RETRIEVING_CONTENT, info=f"Missing output '{name}': {path}"
+            )
+        try:
+            outputs[name] = storage.get_file_contents(export_dir / path)
+        except Exception as e:
+            logger.exception(f"Failed to retrieve output {name} for resource {resource_id}: {e}")
+            raise exceptions.MinkHTTPException(
+                return_code=return_codes.FAILED_RETRIEVING_CONTENT, info=f"Failed to retrieve output '{name}'"
+            ) from e
+
+    return utils.response(return_code=return_codes.RETRIEVED_CONTENT, outputs=outputs)
 
 
 @router.get(
