@@ -265,16 +265,14 @@ async def install_karps(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSONRe
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_changed or config_changed:
-        karp_output = None
         try:
             job = _require_job(info_item.job)
-            success, karp_output = job.clean()
-            assert success
+            karp_output = job.clean()
+            logger.debug(f"Removed outdated Karp output before running Karp pipeline. Output: {karp_output}")
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 return_code=return_codes.FAILED_RUNNING,
                 info=f"Failed to remove outdated export files before running Karp pipeline: {e}",
-                karp_message=karp_output,
             ) from e
 
     # Queue job
@@ -410,16 +408,14 @@ async def install_karpred(auth_data: dict = Depends(AUTH_LEXICON_WRITE)) -> JSON
     except Exception as e:
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_RUNNING, info=str(e)) from e
     if sources_changed or config_changed:
-        karp_output = None
         try:
             job = _require_job(info_item.job)
-            success, karp_output = job.clean()
-            assert success
+            karp_output = job.clean()
+            logger.debug(f"Removed outdated Karp output before running Karp pipeline. Output: {karp_output}")
         except Exception as e:
             raise exceptions.MinkHTTPException(
                 return_code=return_codes.FAILED_RUNNING,
                 info=f"Failed to remove outdated export files before running Karp pipeline: {e}",
-                karp_message=karp_output,
             ) from e
 
     # Queue job
