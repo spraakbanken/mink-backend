@@ -74,35 +74,8 @@ Once started, your development server will be running and you can access the API
 
 ## How to Run in Production
 
-Install production dependencies with the server extra:
-
-```bash
-uv sync --frozen --no-dev --extra server
-```
-
-For production, run Mink behind Gunicorn and use Uvicorn's worker class:
-
-```bash
-.venv/bin/gunicorn mink.main:app \
-  --worker-class uvicorn_worker.UvicornWorker \
-  --bind 127.0.0.1:9001 \
-  --workers 1 \
-  --forwarded-allow-ips="*"
-```
-
-Recommended production notes:
-
-- Run the queue manager as a separate process:
-
-  ```bash
-  .venv/bin/python queue_manager.py
-  ```
-
-- If Mink is served from a URL prefix such as `/mink`, set `ROOT_PATH=/mink` in the app environment.
-- When using `uvicorn_worker.UvicornWorker`, do not rely on Gunicorn's `--root-path` flag; configure `ROOT_PATH` in
-  Mink instead.
-- Set `MINK_URL` to the complete URL where Mink is served (e.g. `https://example.com/mink`) to ensure correct URL
-  generation in the API responses.
+Run the Mink backend and queue manager as separate processes. For installation commands, configuration, and startup
+order, see [Production Deployment](docs/developers-guide.md#production-deployment) in the developer's guide.
 
 ## Configuration
 
@@ -115,7 +88,7 @@ python config_helper.py
 ```
 
 To override the default settings, create a `.env` file in the project's root directory and set the environment variables
-listed in `config.py`. For examples, see the [developer's guide](/docs/developers-guide/#configuration).
+listed in `config.py`. For examples, see the [developer's guide](docs/developers-guide.md/#configuration).
 
 ## Tracking to Matomo
 

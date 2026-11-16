@@ -31,8 +31,8 @@ The Mink backend can be distributed across several servers, each serving a speci
 - **Karp server**: This server concept does not currently exist but might be added in the future. As of now it is
   assumed that the Karp pipeline runs on the same server as the Mink backend, so no synchronization is needed for
   lexicon processing.
-- **Installation targets**: Installing corpora from Mink involves synchronizing specific Sparv export files to servers
-  hosting other applications, such as Korp and Strix.
+- **Installation targets**: Installing resources from Mink involves synchronizing specific export files to servers
+  hosting other applications, such as Korp, Karp, and Strix.
 
 ## Resource Types
 
@@ -438,11 +438,11 @@ An info object is generated whenever a new resource is created. It is composed o
 - `resource`: Contains general properties of the resource, such as its [resource ID](#resource-id), names in different
   languages, resource type, and the list of available source files.
 - `owner`: Provides information about the user who created the resource, including user ID, name, and email address.
-- `job`: Provides details about the most recent Sparv job for the resource, including job status, queue priority, and
-  annotation progress.
+- `job`: Provides details about the most recent job for the resource, including job status, queue priority, and
+  job process progress.
 
 The info object is saved as a JSON file in the instance directory and is also cached using
-[Memcached](https://memcached.org/) for faster access. It is updated whenever a Sparv process is run, when file
+[Memcached](https://memcached.org/) for faster access. It is updated whenever a job process is run, when file
 operations occur (such as uploading a new source file), or when `/resource/info` is called.
 
 ### Job Queue
@@ -475,11 +475,38 @@ communicates with the Mink API by calling the `/queue/advance` API route, which 
 The resource registry keeps track of all resources managed by Mink. It acts as a dictionary, mapping each resource ID to
 its corresponding [info object](#info-object).
 
-At application startup, all info objects are loaded from their JSON files in the instance directory and cached for fast
-access. The job queue is also read from the instance directory and cached. This approach enables Mink to efficiently
-manage resources and queue positions.
+When the registry cache needs initialization, Mink loads info objects from their JSON files in the instance directory
+and reads the saved job queue into the cache. This approach enables Mink to efficiently manage resources and queue
+positions.
 
 A resource remains in the registry from creation until it is deleted.
+
+Cached registry data takes precedence over the filesystem backups. Manual changes to registry files are not picked up
+while the corresponding data remains cached and may be overwritten by subsequent Mink updates.
+
+### Cache and Recovery
+
+Mink uses [Memcached](https://memcached.org/) for registry and queue data, cached authentication data, Sparv and Karp
+results, and locks shared between backend processes. Configure `CACHE_CLIENT` with the server address or Unix socket
+path. `CACHE_NAMESPACE` prefixes Mink's cache keys: processes serving the same instance must use the same namespace,
+while separate instances sharing a Memcached server should use distinct namespaces.
+
+Registry info objects and queue order have filesystem backups in the instance directory. If Memcached loses its
+contents, a subsequent registry access detects the missing initialization marker and rebuilds the registry and queue
+from those backups. A missing individual info object can also be restored from its backup. Use the registry functions
+for resource lookups and lists so they perform these checks; the lower-level `jobs_cache` functions do not initialize
+the registry themselves.
+
+Other cached values are not restored from those backups. For example, cached Sparv information and file listings are
+recomputed when needed, while cached session data such as admin mode is lost. Cache entries can also expire or be
+evicted without a full restart. The `SPARV_CACHE_LIFETIME`, `SPARV_EXPORT_CONTENTS_CACHE_LIFETIME`,
+`KARP_OUTPUT_CONTENTS_CACHE_LIFETIME`, `SBAUTH_CACHE_LIFETIME`, and `ADMIN_MODE_LIFETIME` settings control the
+lifetimes of their respective entries, in seconds.
+
+While Memcached is unavailable, cache-dependent operations can fail. After it returns, new operations can connect
+again, but a restart also clears locks held by operations already in progress. Registry recovery does not protect such
+operations from overlapping, and only changes successfully written to the filesystem can be restored from backup.
+See [Service Startup Order](#service-startup-order) for startup connection retries.
 
 ## Project Structure
 
@@ -596,3 +623,95 @@ comments in the script itself and run `./release.sh -h`.
 When creating a major release, please follow the [todo for major
 release](https://github.com/spraakbanken/dev-docs/blob/main/projektinformation/Mink.md#todo-for-major-release) (only
 available internally at Språkbanken).
+
+## Production Deployment
+
+### Installation and Processes
+
+Install production dependencies with the server extra:
+
+```bash
+uv sync --frozen --no-dev --extra server
+```
+
+Run Mink behind Gunicorn using Uvicorn's worker class, for example:
+
+```bash
+.venv/bin/gunicorn mink.main:app \
+  --worker-class uvicorn_worker.UvicornWorker \
+  --bind 127.0.0.1:9001 \
+  --workers 1 \
+  --forwarded-allow-ips="*"
+```
+
+The forwarded-header setting above trusts all connecting addresses; use it only when access to Gunicorn is restricted
+to a trusted proxy, or configure the trusted proxy addresses for your deployment.
+
+Run the queue manager as a separate process:
+
+```bash
+.venv/bin/python queue_manager.py
+```
+
+Use a service manager to run both processes with a working directory and environment that allow them to load the
+intended configuration.
+
+### Production Configuration
+
+- Set `CACHE_CLIENT` to the Memcached address or Unix socket and configure `CACHE_NAMESPACE` for the instance. See
+  [Cache and Recovery](#cache-and-recovery) for sharing a cache server between instances.
+- Set `MINK_URL` to the complete API URL, including any path prefix (e.g. `https://example.com/mink`), and make sure the
+  queue manager can reach it. If the API is served under a prefix, also set `ROOT_PATH` to that prefix rather than
+  relying on Gunicorn's `--root-path` flag.
+- Configure the same nonempty `MINK_SECRET_KEY` for the backend and queue manager. The queue manager uses it when
+  calling protected queue and cleanup endpoints; keep it private.
+- Set `INSTANCE_PATH` and the relevant registry, queue, temporary and log paths for the deployment. Ensure the service
+  accounts can access the configured files and directories, including the SB Auth public key at `SBAUTH_PUBKEY_FILE`.
+  Back up the registry and queue files together with other instance data, and verify that the backup can be restored.
+- Configure the external services and module-specific settings needed by the enabled resource types. The
+  [Configuration](#configuration) section describes how settings are loaded.
+
+Monitor the backend and queue manager processes and their logs. The queue manager periodically checks queue health and
+can report changes through `SLACK_NOTIFICATIONS_WEBHOOK_URL`; its optional `HEALTHCHECKS_URL` ping indicates that the
+queue manager is running, but does not by itself establish that the Mink API or queue is healthy.
+
+### Service Startup Order
+
+There are three main services that must be running for Mink to function properly: Memcached, the Mink backend, and the
+queue manager. The order in which these services are started is important to ensure that Mink can connect to Memcached
+and that the queue manager can communicate with the Mink API. The recommended startup order is as follows:
+
+1. Start Memcached
+2. Start the Mink backend
+3. Start the queue manager
+
+Mink checks its Memcached connection during startup, retrying for up to approximately 30 seconds by default if it is
+unavailable. Set `CACHE_STARTUP_TIMEOUT` to change this period in seconds, or to `0` to disable retries. Mink fails
+startup if it still cannot connect. The queue manager calls the Mink API
+periodically; if the API is unavailable, it logs the error and tries again at the next scheduled interval.
+
+Ensure Memcached is ready to accept connections before starting Mink, and wait for the Mink API to be ready before
+starting the queue manager. How to arrange this depends on the service manager or deployment environment.
+
+For example, if you use [Supervisor](https://supervisord.org/configuration.html), you can set priorities in your
+existing program sections:
+
+```ini
+[program:memcached]
+priority=10
+
+[program:mink]
+priority=20
+startsecs=10
+startretries=10
+
+[program:queue-manager]
+priority=30
+```
+
+In Supervisor, lower priorities start first and stop last when Supervisor starts up or manages the programs as a group.
+Priority does not check whether a service is ready, so the backend may still start before Memcached accepts connections.
+`startsecs=10` means the backend process must stay alive for ten seconds before Supervisor considers it started; it does
+not check whether the API is ready. If the process exits sooner, `startretries` allows Supervisor to retry with
+increasing delays; after the retries are exhausted, the process enters `FATAL` and must be started again after the
+problem is resolved.
