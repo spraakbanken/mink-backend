@@ -4,7 +4,6 @@ import httpx2
 from fastapi import APIRouter, Depends, Query, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
-from mink.cache import jobs_cache
 from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
@@ -89,13 +88,13 @@ async def create_metadata(
         raise exceptions.MinkHTTPException(
             return_code=return_codes.FAILED_CREATING_RESOURCE, info=f"Error when checking ID availability: {e}"
         ) from e
-    if not id_available or public_id in jobs_cache.get_all_resources():
+    if not id_available or public_id in registry.get_all_resources():
         raise exceptions.MinkHTTPException(return_code=return_codes.FAILED_CREATING_RESOURCE, info="ID not available")
 
     resource_id = await route_utils.create_resource_id(
         auth_token=auth_data["auth_token"],
         resource_type=get_spec(METADATA).sbauth_resource_type,
-        existing_ids_fn=jobs_cache.get_all_resources,
+        existing_ids_fn=registry.get_all_resources,
         resource_prefix=settings.RESOURCE_PREFIX,
     )
 

@@ -10,8 +10,7 @@ from fastapi import Cookie, Query, Request, Security, status
 from fastapi import Path as FastAPIPath
 from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 
-from mink.cache import jobs_cache
-from mink.core import exceptions, return_codes
+from mink.core import exceptions, registry, return_codes
 from mink.core.config import settings
 from mink.core.logging import logger
 from mink.core.user import User
@@ -94,7 +93,7 @@ async def get_auth_data(
     user = auth.get_user()
     is_admin = auth.is_admin()
     sb_auth_resources = auth.get_resource_ids(min_level, resource_type=sbauth_resource_type)
-    all_resources = jobs_cache.get_all_resources()
+    all_resources = registry.get_all_resources()
     # Get intersection between resources in SB Auth and resources in Mink-backend
     # (in case SB Auth is used for multiple backends)
     resources = list(set(sb_auth_resources) & set(all_resources))
@@ -140,8 +139,6 @@ async def get_auth_data(
 
     # Load the requested resource and optionally reject demo resources before the route handler is called
     try:
-        from mink.core import registry  # ruff: ignore[import-outside-top-level], avoids circular import
-
         info_obj = registry.get(resource_id)
     except exceptions.JobNotFoundError:
         pass
@@ -525,7 +522,7 @@ def _filter_resource_ids_by_type(resource_ids: list[str], resource_type: str) ->
     filtered_resource_ids = []
     for resource_id in resource_ids:
         try:
-            rtype = json.loads(jobs_cache.get_job(resource_id)).get("resource", {}).get("type")
+            rtype = json.loads(registry.get_job_str(resource_id) or "null").get("resource", {}).get("type")
         except (TypeError, AttributeError, json.JSONDecodeError):
             logger.warning("Failed to read cached metadata for resource '%s' while filtering auth data.", resource_id)
             continue

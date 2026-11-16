@@ -6,7 +6,6 @@ from pathlib import Path
 
 import yaml
 
-from mink.cache import jobs_cache
 from mink.cache.memcached import CacheLockTimeoutError, cache
 from mink.core import exceptions, registry, return_codes, utils
 from mink.core.config import settings
@@ -179,7 +178,7 @@ def resource_is_expired(info_item: Info) -> bool:
 def get_expired_demo_resources() -> list[Info]:
     """Get a list of expired demo resources (info items)."""
     expired_resources = []
-    all_resources = jobs_cache.get_all_resources()
+    all_resources = registry.get_all_resources()
     for resource_id in all_resources:
         if is_demo_id(resource_id):
             try:

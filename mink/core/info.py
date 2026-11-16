@@ -57,6 +57,7 @@ class Info:
         Raises:
             exceptions.CorpusExistsError: If the resource ID already exists.
         """
+        registry.initialize_if_needed()
         # Save to cache
         with jobs_cache.lock_all_resources():
             all_resources = jobs_cache.get_all_resources()

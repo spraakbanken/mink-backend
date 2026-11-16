@@ -5,7 +5,6 @@ from typing import cast
 from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
-from mink.cache import jobs_cache
 from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
@@ -78,7 +77,7 @@ async def create_lexicon(auth_data: dict = Depends(AUTH_NO_ID)) -> JSONResponse:
     resource_id = await route_utils.create_resource_id(
         auth_token=auth_data["auth_token"],
         resource_type=get_spec(LEXICON).sbauth_resource_type,
-        existing_ids_fn=jobs_cache.get_all_resources,
+        existing_ids_fn=registry.get_all_resources,
         resource_prefix=settings.RESOURCE_PREFIX,
     )
     resource_dir = storage.get_resource_dir(resource_id)

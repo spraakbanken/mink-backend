@@ -111,6 +111,18 @@ def _get_job_str(resource_id: str) -> str | None:
 
 
 @ensure_initialized
+def get_all_resources() -> list[str]:
+    """Return the resource IDs, restoring the registry after a cache clear if needed."""
+    return jobs_cache.get_all_resources()
+
+
+@ensure_initialized
+def get_job_str(resource_id: str) -> str | None:
+    """Return serialized resource metadata, restoring it from disk if needed."""
+    return _get_job_str(resource_id)
+
+
+@ensure_initialized
 def get(resource_id: str) -> info.Info:
     """Get an existing info instance from the cache.
 

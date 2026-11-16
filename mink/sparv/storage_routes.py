@@ -7,7 +7,6 @@ from xml.etree import ElementTree
 from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
-from mink.cache import jobs_cache
 from mink.core import exceptions, models, registry, return_codes, route_utils, utils
 from mink.core.config import settings
 from mink.core.info import Info
@@ -80,7 +79,7 @@ async def create_corpus(auth_data: dict = Depends(AUTH_CORPUS_NO_ID)) -> JSONRes
     resource_id = await route_utils.create_resource_id(
         auth_token=auth_data["auth_token"],
         resource_type=get_spec(CORPUS).sbauth_resource_type,
-        existing_ids_fn=jobs_cache.get_all_resources,
+        existing_ids_fn=registry.get_all_resources,
         resource_prefix=settings.RESOURCE_PREFIX,
     )
 
