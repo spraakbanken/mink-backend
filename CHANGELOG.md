@@ -13,6 +13,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
   resources only.
 - Added functionality for installing to and uninstalling from Karp's edit mode. New routes:
   `/lexicon/karpred/install/{resource_id}` and `/lexicon/karpred/uninstall/{resource_id}`.
+- Improved Memcached connection handling. The backend now retries connecting to Memcached for a configurable period of
+  time (default 30 seconds) before failing startup.
 
 ### Fixed
 

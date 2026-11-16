@@ -39,23 +39,37 @@ class CacheManager:
 
         self.server = cache_server
 
-        try:
-            with self.get_client() as cache_client:
-                cache_client.get("test_connection")
-            logger.info("Connected to memcached on %s", cache_server)
-        except Exception as e:
-            logger.exception("Failed to connect to memcached on %s: %s", cache_server, e)
-            raise exceptions.CacheConnectionError(self.server, e) from e
+        deadline = time.monotonic() + settings.CACHE_STARTUP_TIMEOUT
+        while True:
+            try:
+                # Bound each socket operation so an unresponsive server cannot block startup indefinitely.
+                with self.get_client(timeout=1) as cache_client:
+                    cache_client.get("test_connection")
+            except (OSError, EOFError) as e:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    logger.exception("Failed to connect to memcached on %s: %s", cache_server, e)
+                    raise exceptions.CacheConnectionError(self.server, e) from e
+                logger.warning("Memcached unavailable at %s; retrying: %s", cache_server, e)
+                time.sleep(min(1, remaining))
+            except Exception as e:
+                logger.exception("Failed to connect to memcached on %s: %s", cache_server, e)
+                raise exceptions.CacheConnectionError(self.server, e) from e
+            else:
+                logger.info("Connected to memcached on %s", cache_server)
+                return
 
     @contextmanager
-    def get_client(self) -> Generator[Client, None, None]:
+    def get_client(self, *, timeout: float | None = None) -> Generator[Client, None, None]:
         """Retrieve a connected Memcached client."""
         if self.server is None:
             logger.exception("Cache client not initialized. Call 'initialize' first.")
             raise RuntimeError("Cache client not initialized. Call 'initialize' first.")
         # Set default_noreply to False to avoid strange behaviour during registry initialization
         # (e.g. missing resources in cache and queue)
-        client = Client(self.server, serde=serde.pickle_serde, default_noreply=False)
+        client = Client(
+            self.server, serde=serde.pickle_serde, default_noreply=False, connect_timeout=timeout, timeout=timeout
+        )
         try:
             yield client
         finally:

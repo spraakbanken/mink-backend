@@ -53,6 +53,7 @@ class Settings(BaseSettings):
 
     # Cache settings
     CACHE_CLIENT: str = ""  # Server address or a path to a socket, e.g. "127.0.0.1:11211" or "/var/run/memcached.sock"
+    CACHE_STARTUP_TIMEOUT: float = Field(default=30, ge=0)  # Seconds to retry the initial Memcached connection
     CACHE_NAMESPACE: str = "mink"  # Namespace prefix for cache keys
     ADMIN_MODE_LIFETIME: int = 60 * 60 * 12  # How long the admin mode is active (in seconds)
 
